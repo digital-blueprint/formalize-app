@@ -6,7 +6,7 @@ import {Icon} from '@dbp-toolkit/common';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 
-class StarterActivity extends ScopedElementsMixin(DBPLitElement) {
+class FormsActivity extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
         super();
         this._i18n = createInstance();
@@ -55,4 +55,4 @@ class StarterActivity extends ScopedElementsMixin(DBPLitElement) {
     }
 }
 
-commonUtils.defineCustomElement('dbp-starter-activity', StarterActivity);
+commonUtils.defineCustomElement('dbp-forms-activity', FormsActivity);

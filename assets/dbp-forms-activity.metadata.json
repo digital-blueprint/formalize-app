@@ -1,7 +1,7 @@
 {
-    "element": "dbp-starter-activity",
-    "module_src": "dbp-starter-activity.js",
-    "routing_name": "starter-activity",
+    "element": "dbp-forms-activity",
+    "module_src": "dbp-forms-activity.js",
+    "routing_name": "forms-activity",
     "name": {
         "de": "Frontend Starter Activity",
         "en": "Frontend Starter Activity"

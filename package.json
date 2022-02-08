@@ -1,7 +1,7 @@
 {
-    "name": "dbp-frontend-starter-app",
+    "name": "@dbp-topics/forms",
     "version": "1.0.0",
-    "main": "src/dbp-frontend-starter-app.js",
+    "main": "src/dbp-forms.js",
     "license": "LGPL-2.1-or-later",
     "private": true,
     "workspaces": [
