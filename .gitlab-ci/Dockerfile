@@ -34,3 +34,11 @@ RUN useradd -u 1000 -ms /bin/bash user
 RUN echo 'user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER user
 WORKDIR /home/user
+
+# Install deployer globally and add it to PATH
+ENV COMPOSER_HOME="/home/user/.composer"
+RUN mkdir -p "${COMPOSER_HOME}"
+ADD composer.lock "${COMPOSER_HOME}"
+ADD composer.json "${COMPOSER_HOME}"
+RUN composer global install
+ENV PATH "${COMPOSER_HOME}/vendor/bin:${PATH}"

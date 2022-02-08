@@ -6,7 +6,7 @@ cache:
     - _yarn_cache
 
 before_script:
-  - "sed -i 's|git@gitlab.tugraz.at:dbp|../..|g' .gitmodules"
+  - 'git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.tugraz.at/".insteadOf "git@gitlab.tugraz.at:"'
   - git submodule sync
   - git submodule update --init
   - yarn config set cache-folder "$CI_PROJECT_DIR/_yarn_cache"
@@ -28,3 +28,31 @@ linting:
   script:
     - yarn install
     - yarn run lint
+
+.deploy_defaults: &deploy_defaults
+  except:
+    - schedules
+  stage: deploy
+  script:
+    # Add ssh key
+    - mkdir -p ~/.ssh
+    - echo "${DEPLOY_KEY}" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh && chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -t rsa "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+    # Deploy
+    - dep deploy --file ./.gitlab-ci/deploy.php "${CI_ENVIRONMENT_NAME}"
+    - echo "Deployed to ${CI_ENVIRONMENT_URL}"
+    # Simple health check
+    - curl --max-time 10 --retry 3 --output /dev/null --silent --show-error --fail --location "${CI_ENVIRONMENT_URL}"
+
+deploy_development:
+  only:
+    refs:
+      - main
+  environment:
+    name: development
+    url: https://dbp-dev.tugraz.at/apps/forms
+  variables:
+    DEPLOY_HOST: vpu01-dev.tugraz.at
+    DEPLOY_KEY: "$DEPLOY_SSH_KEY"
+  <<: *deploy_defaults
