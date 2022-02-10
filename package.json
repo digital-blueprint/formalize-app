@@ -1,7 +1,7 @@
 {
-    "name": "@dbp-topics/forms",
+    "name": "@dbp-topics/formalize",
     "version": "1.0.0",
-    "main": "src/dbp-forms.js",
+    "main": "src/dbp-formalize.js",
     "license": "LGPL-2.1-or-later",
     "private": true,
     "workspaces": [

@@ -55,4 +55,4 @@ class FormsActivity extends ScopedElementsMixin(DBPLitElement) {
     }
 }
 
-commonUtils.defineCustomElement('dbp-forms-activity', FormsActivity);
+commonUtils.defineCustomElement('dbp-formalize-activity', FormsActivity);

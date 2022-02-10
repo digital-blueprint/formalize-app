@@ -1,13 +1,13 @@
 import {assert} from 'chai';
 
-import '../src/dbp-forms-activity';
-import '../src/dbp-forms.js';
+import '../src/dbp-formalize-activity';
+import '../src/dbp-formalize.js';
 
-suite('dbp-forms-activity basics', () => {
+suite('dbp-formalize-activity basics', () => {
     let node;
 
     suiteSetup(async () => {
-        node = document.createElement('dbp-forms-activity');
+        node = document.createElement('dbp-formalize-activity');
         document.body.appendChild(node);
         await node.updateComplete;
     });

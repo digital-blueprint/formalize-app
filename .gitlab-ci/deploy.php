@@ -30,7 +30,7 @@ set('rsync_dest','{{release_path}}');
 host('development')
     ->stage('development')
     ->hostname('mw@vpu01-dev.tugraz.at')
-    ->set('deploy_path', '/home/mw/dev/deploy/apps/forms');
+    ->set('deploy_path', '/home/mw/dev/deploy/apps/formalize');
 
 task('build', function () {
     $stage = get('stage');

@@ -1,4 +1,4 @@
-image: registry.gitlab.tugraz.at/dbp/forms/forms/main:v1
+image: registry.gitlab.tugraz.at/dbp/formalize/formalize/main:v1
 
 cache:
   key: $CI_PROJECT_PATH
@@ -51,7 +51,7 @@ deploy_development:
       - main
   environment:
     name: development
-    url: https://dbp-dev.tugraz.at/apps/forms
+    url: https://dbp-dev.tugraz.at/apps/formalize
   variables:
     DEPLOY_HOST: vpu01-dev.tugraz.at
     DEPLOY_KEY: "$DEPLOY_SSH_KEY"
