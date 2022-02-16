@@ -28,6 +28,7 @@ const buildFull = (!watch && appEnv !== 'test') || process.env.FORCE_FULL !== un
 let useTerser = buildFull;
 let useBabel = buildFull;
 let checkLicenses = buildFull;
+let treeshake = buildFull;
 let useHTTPS = true;
 
 let config;
@@ -67,6 +68,7 @@ export default (async () => {
             format: 'esm',
             sourcemap: true,
         },
+        treeshake: treeshake,
         preserveEntrySignatures: false,
         onwarn: function (warning, warn) {
             // ignore chai warnings
