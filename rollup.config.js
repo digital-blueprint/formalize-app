@@ -59,7 +59,7 @@ export default (async () => {
     return {
         input:
             appEnv != 'test'
-                ? ['src/' + appName + '.js', 'src/dbp-formalize-activity.js']
+                ? ['src/' + appName + '.js', 'src/dbp-formalize-show-registrations.js']
                 : glob.sync('test/**/*.js'),
         output: {
             dir: 'dist',
@@ -147,6 +147,7 @@ export default (async () => {
                     {src: 'assets/*.ico', dest: 'dist/' + (await getDistPath(pkg.name))},
                     {src: 'assets/*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
                     {src: 'assets/icon/*', dest: 'dist/' + (await getDistPath(pkg.name, 'icon'))},
+                    {src: 'src/*.metadata.json', dest: 'dist'},
                     {
                         src: await getPackagePath('@dbp-toolkit/font-source-sans-pro', 'files/*'),
                         dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/source-sans-pro')),

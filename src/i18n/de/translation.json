@@ -1,1 +1,7 @@
-{}
+{
+    "show-registrations": {
+        "additional-information": "Hier könnten mehr Informationen stehen."
+    },
+    "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
+    "loading-message": "Lädt..."
+}

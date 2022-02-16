@@ -5284,7 +5284,7 @@ web-component-analyzer@~1.1.1:
     typescript "^3.8.3"
     yargs "^15.3.1"
 
-webdav@4.8.0:
+webdav@^4.8.0:
   version "4.8.0"
   resolved "https://registry.yarnpkg.com/webdav/-/webdav-4.8.0.tgz#b5d7ebe46039d048c177fb021c9da591cf3ac6f0"
   integrity sha512-CVJvxu0attEfoQUKraDiNh3uMjNPNl+BY0pbcKbyc/X+8IXDnqAT4tT4Ge12w+j49fYuVpFVkpEGwBZabv7Uhw==

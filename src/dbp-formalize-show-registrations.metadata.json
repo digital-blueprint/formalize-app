@@ -1,0 +1,18 @@
+{
+    "element": "dbp-formalize-show-registrations",
+    "module_src": "dbp-formalize-show-registrations.js",
+    "routing_name": "show-registrations",
+    "name": {
+        "de": "Kursanmeldungen anzeigen",
+        "en": "Show course registrations"
+    },
+    "short_name": {
+        "de": "Kursanmeldungen anzeigen",
+        "en": "Show course registrations"
+    },
+    "description": {
+        "de": "Dies ist eine Starter Activity für den Digital Blueprint.",
+        "en": "This is a starter activity for the digital blueprint."
+    },
+    "subscribe": "lang,entry-point-url,auth,html-overrides"
+}
