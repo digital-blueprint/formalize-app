@@ -5,12 +5,12 @@ import * as commonUtils from '@dbp-toolkit/common/utils';
 import {LoadingButton, Icon} from '@dbp-toolkit/common';
 import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles';
-import { send } from '@dbp-toolkit/common/notification';
+// import { send } from '@dbp-toolkit/common/notification';
 import {Activity} from './activity.js';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import Tabulator from 'tabulator-tables';
-import {name as pkgName} from './../package.json';
+// import Tabulator from 'tabulator-tables';
+// import {name as pkgName} from './../package.json';
 
 class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
@@ -43,7 +43,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        const i18n = this._i18n;
+        // const i18n = this._i18n;
         this._loginStatus = '';
         this._loginState = [];
 
@@ -60,9 +60,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             //     responsiveLayoutCollapseStartOpen: false,
             //     resizableColumns: false,
             //     autoColumns: true,
-            //     data: this.getAllSubmissions(),
+            //     data: this.getListOfAllSubmissions(),
             // });
-        })
+        });
     }
 
     update(changedProperties) {
@@ -119,7 +119,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return (!this.isLoggedIn() && this.auth.token !== undefined);
     }
 
-     /**
+    /**
      * Send a fetch to given url with given options
      *
      * @param url
@@ -142,12 +142,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
-         async getAllSubmissions() {
-            // Simulate fetching table data (xml)
-            var tabledata = [{id:1, name:"Sommerkurse", col:"red", date:"01/03/2022"}];
-    
-            return tabledata;
-        }
+    async getListOfAllSubmissions() {
+        // Simulate fetching table data (xml)
+        var tabledata = [{id:1, name:"Sommerkurse", col:"red", date:"01/03/2022"}];
+
+        return tabledata;
+    }
 
     /**
      * Gets the list of submissions
@@ -196,10 +196,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     render() {
         const i18n = this._i18n;
-        const tabulatorCss = commonUtils.getAssetURL(
-            pkgName,
-            'tabulator-tables/css/tabulator.min.css'
-        );
+        // const tabulatorCss = commonUtils.getAssetURL(
+        //     pkgName,
+        //     'tabulator-tables/css/tabulator.min.css'
+        // );
 
         return html`
             <div class="notification is-warning ${classMap({hidden: this.isLoggedIn() || this.isLoading()})}">
