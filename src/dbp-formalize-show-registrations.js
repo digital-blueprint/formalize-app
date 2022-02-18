@@ -201,7 +201,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     this.requestUpdate();
                 },
                 rowClick: (e, row) => {
-                    const data = row.getData();
                     if (!row.getElement().classList.contains('no-select')) {
                         if (this.submissionsTable !== null && 
                             this.submissionsTable.getSelectedRows().length === this.submissionsTable.getRows().length
