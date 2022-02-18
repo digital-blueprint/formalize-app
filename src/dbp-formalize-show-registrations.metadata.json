@@ -11,8 +11,8 @@
         "en": "Show course registrations"
     },
     "description": {
-        "de": "Dies ist eine Starter Activity für den Digital Blueprint.",
-        "en": "This is a starter activity for the digital blueprint."
+        "de": "Zeigt eine Liste aller verfügbaren Kursanmeldungen.",
+        "en": "Shows a list of all available course submissions."
     },
     "subscribe": "lang,entry-point-url,auth,html-overrides"
 }

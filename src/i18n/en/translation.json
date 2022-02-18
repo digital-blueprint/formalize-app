@@ -1,6 +1,13 @@
 {
     "show-registrations": {
-        "additional-information": "Here could be more information."
+        "additional-information": "Here could be more information.",
+        "no-data": "No data available",
+        "folder-home": "Jump to course list",
+        "load-path-link": "Go to {{path}}",
+        "submission-dialog-title": "Submission: {{id}}",
+        "modal-close": "Close dialog",
+        "select-all": "Select all",
+        "select-nothing": "Select nothing"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."

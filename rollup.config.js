@@ -166,6 +166,10 @@ export default (async () => {
                         src: await getPackagePath('@dbp-toolkit/common', 'assets/icons/*.svg'),
                         dest: 'dist/' + (await getDistPath('@dbp-toolkit/common', 'icons')),
                     },
+                    {
+                        src: await getPackagePath('tabulator-tables', 'dist/css'),
+                        dest: 'dist/' + (await getDistPath(pkg.name, 'tabulator-tables')),
+                    },
                 ],
             }),
             useBabel &&

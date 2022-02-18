@@ -1,6 +1,13 @@
 {
     "show-registrations": {
-        "additional-information": "Hier könnten mehr Informationen stehen."
+        "additional-information": "Hier könnten mehr Informationen stehen.",
+        "no-data": "Keine Daten vorhanden",
+        "folder-home": "Zur Kursliste springen",
+        "load-path-link": "Gehe zu {{path}}",
+        "submission-dialog-title": "Submission: {{id}}",
+        "modal-close": "Dialog schließen",
+        "select-all": "Alle auswählen",
+        "select-nothing": "Nichts auswählen"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."
