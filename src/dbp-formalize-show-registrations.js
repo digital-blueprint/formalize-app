@@ -10,12 +10,19 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 // import {humanFileSize} from '@dbp-toolkit/common/i18next';
 import Tabulator from 'tabulator-tables';
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+import * as XLSX from 'xlsx';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
+
+window.jsPDF = jsPDF;
+window.XLSX = XLSX;
+
+
 
 class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
@@ -597,45 +604,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     exportPdf() {
-        if(jsPDF) {
-            let xy = new jsPDF({
-                orientation:"portrait", //set page orientation to portrait
-                title:"Dynamics Quotation Report", //add title to report
-                jsPDF:{
-                    unit:"in", //set units to inches
-                },
-                autoTable:{ //advanced table styling
+
+
+        this.submissionsTable.download("pdf", "data.pdf", {
+            orientation:"portrait", //set page orientation to portrait
+            autoTable:function(doc){
+                //doc - the jsPDF document object
+
+                //add some text to the top left corner of the PDF
+                doc.text("SOME TEXT", 1, 1);
+
+                //return the autoTable config options object
+                return {
                     styles: {
-                        fillColor: [100, 255, 255]
+                        fillColor: [200, 0o0, 0o0]
                     },
-                    columnStyles: {
-                        id: {fillColor: 255}
-                    },
-                    margin: {top: 60},
-                },
-                documentProcessing:function(doc){
-                    //carry out an action on the doc object
-                }
-            });
-            console.log("------------", xy);
+                };
+            },
+        });
 
-            this.submissionsTable.download("pdf", "data.pdf", {
-                orientation:"portrait", //set page orientation to portrait
-                autoTable:function(doc){
-                    //doc - the jsPDF document object
-
-                    //add some text to the top left corner of the PDF
-                    doc.text("SOME TEXT", 1, 1);
-
-                    //return the autoTable config options object
-                    return {
-                        styles: {
-                            fillColor: [200, 0o0, 0o0]
-                        },
-                    };
-                },
-            });
-        }
 
 
     }
@@ -701,6 +688,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         `;
 
         return htmlpath;
+    }
+
+    getSubmissionColumns() {
+         this.submissionsTable
     }
 
     static get styles() {
