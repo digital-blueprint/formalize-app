@@ -12,7 +12,12 @@
         "searchbar-placeholder": "Suchen",
         "filter-options-button-text": "Filteroptionen",
         "back-text": "Zurück zur Kursübersicht",
-        "search-button": "Suchen"
+        "search-button": "Suchen",
+        "show-submission-btn-text": "Zeigen",
+        "pagination-btn-first": "Erster",
+        "pagination-btn-next": "Nächster",
+        "pagination-btn-prev": "Voriger",
+        "pagination-btn-last": "Letzter"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."

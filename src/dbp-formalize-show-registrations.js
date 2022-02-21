@@ -36,9 +36,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.coursesTable = null;
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
-        this.directoryPath = '/';
         this.dataList = [];
-        this.countDataListEntries = 0;
     }
 
     static get scopedElements() {
@@ -58,9 +56,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             coursesTable: { type: Object, attribute: false },
             submissionsTable: { type: Object, attribute: false },
             showSubmissionsTable: { type: Boolean, attribute: false },
-            directoryPath: {type: String, attribute: 'directory-path'},
             dataList: { type: Array, attribute: false },
-            countDataListEntries: { type: Number, attribute: false },
         };
     }
 
@@ -470,8 +466,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {object} response
      */
     getListOfAllCourses() {
+        const i18n = this._i18n;
+        
         const button_tag = this.getScopedTagName('dbp-loading-button');    
-        let button = `<${button_tag} name="" class="" id="summercourses-btn">Show</${button_tag}>`;
+        let button = `<${button_tag} name="" class="" id="summercourses-btn">` + i18n.t('show-registrations.show-submission-btn-text') + `</${button_tag}>`;
         let div = getShadowRootDocument(this).createElement('div');
         div.innerHTML = button;
 
@@ -489,7 +487,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     path = element['name'];
                 }
             });
-            this.directoryPath = '/' + path;
 
             event.stopPropagation();
         });
@@ -546,26 +543,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         console.log("data: ", data["hydra:member"]);
 
         data["hydra:member"].forEach(entry => {
-            let id = entry["@id"].split('/')[3]; //TODO
+            // let id = entry["@id"].split('/')[3]; //TODO
             // console.log('id:', id);
 
-            const button_tag = this.getScopedTagName('dbp-loading-button');    
-            let button = `<${button_tag} name="" class="" id="` + id + `">Show</${button_tag}>`;
-            let div = getShadowRootDocument(this).createElement('div');
-            div.innerHTML = button;
+            // const button_tag = this.getScopedTagName('dbp-loading-button');    
+            // let button = `<${button_tag} name="" class="" id="` + id + `">Show</${button_tag}>`;
+            // let div = getShadowRootDocument(this).createElement('div');
+            // div.innerHTML = button;
             
-            div.firstChild.addEventListener("click", event => {
-                this.doDetailedRequest(id);
-                console.log('event target id:', event.target.id);
-                let path = '';
-                if (id === event.target.id) {
-                    path = id;
-                }
-                this.directoryPath += '/' + path; 
-                event.stopPropagation();
-            });
+            // div.firstChild.addEventListener("click", event => {
+            //     this.requestDetailedSubmission(id);
+            //     console.log('event target id:', event.target.id);
+            //     let path = '';
+            //     if (id === event.target.id) {
+            //         path = id;
+            //     }
+            //     event.stopPropagation();
+            // });
 
-            entry['type'] = div;
+            // entry['type'] = div;
 
             try {
                 let json = JSON.parse(entry["dataFeedElement"]);
@@ -576,19 +572,27 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         });
         
         // this.dataList.push(json["dataFeedElement"]);
-        // this.countDataListEntries++;
-        console.log(this.dataList);
-        // console.log(json);
+        // console.log(this.dataList);
         // console.log(json["dataFeedElement"]);
-
-
         this.submissionsTable.setData(dataList2);
 
-        //this.submissionsTable.setData(data['hydra:member']);
+        // if (this.submissionsTable) {
+        //     const i18n = this._i18n;
+        //     console.log(document.querySelectorAll('[data-page]'));
+        //     console.log(this._('.tabulator-page'));
+        //     document.querySelectorAll("[data-page]").innerText = i18n.t("show-registrations.pagination-btn-first");
+            // this._('.tabulator-page')['data-page=first'].innerText = i18n.t("pagination-btn-first");
+            // this._('.tabulator-page')['data-page="prev"'].innerText = i18n.t("pagination-btn-prev");
+            // this._('.tabulator-page')['data-page="next"'].innerText = i18n.t("pagination-btn-next");
+            // this._('.tabulator-page')['data-page="last"'].innerText = i18n.t("pagination-btn-last");
+        // }div div.table-wrapper div#courses-table.tabulator div.tabulator-footer span.tabulator-paginator button.tabulator-page
+        //#courses-table > div:nth-child(3) > span:nth-child(1) > button:nth-child(1)
+
+
         this.showSubmissionsTable = true;
     }
 
-    async doDetailedRequest(identifier) {
+    async requestDetailedSubmission(identifier) {
         const i18n = this._i18n;
 
         let response = await this.getSubmissionForId(identifier);
@@ -648,50 +652,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         this.submissionsTable.setFilter(matchAny, {value: filter});
-    }
-
-
-    /**
-     * Returns clickable breadcrumbs
-     *
-     * @returns {string} clickable breadcrumb path
-     */
-     getBreadcrumb() {
-        const i18n = this._i18n;
-        if (typeof this.directoryPath === 'undefined') {
-            this.directoryPath = '';
-        }
-        let htmlpath = [];
-        htmlpath[0] = html`
-            <span class="breadcrumb">
-                <a
-                    class="home-link"
-                    @click="${() => {
-                        this.showSubmissionsTable = false;
-                        this.submissionsTable.clearData();
-                        this.directoryPath = '/';
-                    }}"
-                    title="${i18n.t('show-registrations.folder-home')}">
-                    <dbp-icon name="home"></dbp-icon>
-                </a>
-            </span>
-        `;
-
-        const directories = this.directoryPath.split('/');
-        if (directories[1] === '') {
-            return htmlpath;
-        }
-        
-        htmlpath[1] = html`
-            <span class="first breadcrumb-arrow">›</span>
-            <span class="breadcrumb">${directories[1]}</span>
-        `;
-
-        return htmlpath;
-    }
-
-    getSubmissionColumns() {
-         this.submissionsTable
     }
 
     static get styles() {
@@ -810,57 +770,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 top: 1px; /*4px*/
             }
 
-            .tabulator-cell[tabulator-field="type"] {
+            #courses-table .tabulator-cell[tabulator-field="type"] {
                 padding: 0;
             }
 
-            .tabulator-cell {
+            #courses-table .tabulator-cell {
                 height: 33px;
-            }
-
-            a.home-link {
-                padding-left: 6px;
-                padding-right: 6px;
-                margin-left: -6px;
             }
 
             span.first {
                 margin-left: -6px;
-            }
-
-            .nextcloud-nav a.home-link {
-                font-size: 1.4em;
-            }
-
-            .breadcrumb-folder {
-                padding-right: 5px;
-                color: var(--dbp-muted);
-                font-size: 1.4em;
-                padding-top: 7px;
-            }
-
-            .breadcrumb.special a {
-                overflow: visible;
-            }
-
-            .breadcrumb {
-                border-bottom: var(--dbp-border);
-            }
-
-            .breadcrumb:last-child,
-            .breadcrumb:first-child {
-                border-bottom: none;
-            }
-
-            .breadcrumb a {
-                display: inline-block;
-                height: 33px;
-                vertical-align: middle;
-                line-height: 33px;
-            }
-
-            .breadcrumb-menu {
-                display: inline;
             }
 
             select:not(.select) {
@@ -879,24 +798,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: 27px;
             }
 
+            .search-wrapper {
+                display: flex;
+            }
+
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
-                .nextcloud-nav .home-link {
+                .nextcloud-nav {
                     font-size: 1.2rem;
-                }
-
-                .breadcrumb-arrow {
-                    font-size: 1.6em;
-                    vertical-align: middle;
-                    padding-bottom: 3px;
-                    padding-left: 2px;
-                    padding-right: 2px;
-                    /**padding: 0px 2px 2px 3px;*/
-                }
-
-                .breadcrumb .extended-breadcrumb-menu a {
-                    /* overflow: visible; */
-                    display: inherit;
                 }
 
                 .select-all-icon {
@@ -967,13 +876,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="table-wrapper ${classMap({hidden: !this.showSubmissionsTable })}">
                     <div class="export-buttons">
-                        <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
-                        <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
-                                            class="button" @click="${() => { this.filterTable(); }}"> 
-                            <dbp-icon name="search"></dbp-icon>
+                        <div class="search-wrapper">
+                            <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
+                            <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
+                                                class="button" @click="${() => { this.filterTable(); }}"> 
+                                <dbp-icon name="search"></dbp-icon>
 
-                        </dbp-button>
-                        
+                            </dbp-button>
+                        </div>
                         <select id="export-select">
                             <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
                             <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
@@ -981,9 +891,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                         </select>
                         <dbp-loading-button id="download-pdf" @click="">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
-                        <!-- <dbp-loading-button id="download-csv" class="button" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">Export CSV</dbp-loading-button>
-                        <dbp-loading-button id="download-xlsx" class="button" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Export XLSX</dbp-loading-button>
-                        <dbp-loading-button id="download-pdf" class="button" @click="${() => { this.exportPdf(); }}">Export PDF</dbp-loading-button> -->
                     </div>
                     <div class="scrollable-table-wrapper">   
                         <table id="submissions-table"></table>

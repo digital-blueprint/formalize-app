@@ -12,7 +12,12 @@
         "searchbar-placeholder": "Search",
         "filter-options-button-text": "Filter Options",
         "back-text": "Back to course list",
-        "search-button": "Search"
+        "search-button": "Search",
+        "show-submission-btn-text": "Show",
+        "pagination-btn-first": "First",
+        "pagination-btn-next": "Next",
+        "pagination-btn-prev": "Prev",
+        "pagination-btn-last": "Last"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."
