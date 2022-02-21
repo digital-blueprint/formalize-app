@@ -230,6 +230,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             */
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
+                layout:"fitDataStretch",
                 responsiveLayout:"collapse",
                 responsiveLayoutCollapseStartOpen: false,
                 selectable: this.maxSelectedItems,
@@ -249,29 +250,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         headerSort: false,
                         formatter: 'responsiveCollapse',
                     },
-                    {
-                        title:
-                            '<label id="select_all_wrapper" class="button-container select-all-icon">' +
-                            '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
-                            '<span class="checkmark" id="select_all_checkmark"></span>' +
-                            '</label>',
-                        field: 'type',
-                        align: 'center',
-                        headerSort: false,
-                        width: 50,
-                        responsive: 1,
-                        formatter: (cell, formatterParams, onRendered) => {
-                            let div = getShadowRootDocument(this).createElement('div');
-                            return div;
-                        },
-                    },
-                    {
-                        title: 'Actions', 
-                        width: 100,
-                        field: 'type', 
-                        formatter: 'html', 
-                        download: false
-                    },
+
                 ],
                 initialSort: [
                     {
@@ -314,35 +293,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
                                 '<span class="checkmark" id="select_all_checkmark"></span>' +
                                 '</label>',
-                            field: 'type',
-                            align: 'center',
-                            headerSort: false,
-                            width: 50,
-                            responsive: 1,
-                            formatter: (cell, formatterParams, onRendered) => {
-                                const icon_tag = that.getScopedTagName('dbp-icon');
-                                let disabled = this.directoriesOnly
-                                    ? 'nextcloud-picker-icon-disabled'
-                                    : '';
-                                let icon =
-                                    `<${icon_tag} name="empty-file" class="nextcloud-picker-icon ` +
-                                    disabled +
-                                    `"></${icon_tag}>`;
-                                let html =
-                                    cell.getValue() === 'directory'
-                                        ? `<${icon_tag} name="folder" class="nextcloud-picker-icon"></${icon_tag}>`
-                                        : icon;
-                                let div = getShadowRootDocument(this).createElement('div');
-                                div.innerHTML = html;
-                                return div;
-                            },
-                        }, true);
-                        this.submissionsTable.addColumn(     {
-                            width: 32,
-                            minWidth: 32,
                             align: 'center',
                             resizable: false,
                             headerSort: false,
+                            sortable:false,
                             formatter: 'responsiveCollapse'
                         }, true);
                         this.submissionsTable.addColumn({
@@ -350,8 +304,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             width: 100,
                             field: 'type',
                             formatter: 'html',
-                            download: false
+                            download: false,
+                            headerSort:false,
+                            sortable:false
                         }, true);
+
+
+                        if (this._('#select_all')) {
+                            let boundSelectHandler = this.selectAllSubmissions.bind(this);
+                            this._('#select_all').addEventListener('click', boundSelectHandler);
+                        }
 
                         const that = this;
                         setTimeout(function () {
@@ -392,10 +354,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     async firstUpdated() {
         // Give the browser a chance to paint
         await new Promise((r) => setTimeout(r, 0));
-        if (this._('#select_all')) {
-            let boundSelectHandler = this.selectAllSubmissions.bind(this);
-            this._('#select_all').addEventListener('click', boundSelectHandler);
-        }
+
     }
 
     update(changedProperties) {
@@ -458,6 +417,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     selectAllSubmissions() {
         let allSelected = this.checkAllSelected();
+
         if (allSelected) {
             this.submissionsTable.getSelectedRows().forEach((row) => row.deselect());
         } else {
@@ -714,8 +674,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getButtonCSS()}
 
             .scrollable-table-wrapper {
-          /*      overflow: auto;
-                white-space: nowrap;*/
+                width: 100%;
             }
 
             .tabulator-table {

@@ -275,8 +275,8 @@ export function getFileHandlingCss() {
             mask-position: center center;
             padding: 0 0 0.25% 0;
             margin: 0px;
-            -webkit-mask-size: 50%;
-            mask-size: 50%;
+            -webkit-mask-size: 30%;
+            mask-size: 30%;
             visibility: visible;
 
             width: 100%;
@@ -301,8 +301,8 @@ export function getFileHandlingCss() {
             mask-position: center center;
             margin: 0px;
             padding: 0 0 0.25% 0;
-            -webkit-mask-size: 50%;
-            mask-size: 50%;
+            -webkit-mask-size: 30%;
+            mask-size: 30%;
             visibility: visible;
             position: absolute;
 
