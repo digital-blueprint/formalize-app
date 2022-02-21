@@ -137,8 +137,9 @@ var MicroModal = (function () {
         }
         /**
          * Loops through all openTriggers and binds click event
-         * @param  {array} triggers [Array of node elements]
-         * @return {void}
+         *
+         * @param  {Array} triggers [Array of node elements]
+         * @returns {void}
          */
 
         _createClass(Modal, [
@@ -368,9 +369,10 @@ var MicroModal = (function () {
     /**
      * Generates an associative array of modals and it's
      * respective triggers
-     * @param  {array} triggers     An array of all triggers
+     *
+     * @param  {Array} triggers     An array of all triggers
      * @param  {string} triggerAttr The data-attribute which triggers the module
-     * @return {array}
+     * @returns {Array}
      */
 
     var generateTriggerMap = function generateTriggerMap(triggers, triggerAttr) {
@@ -385,8 +387,9 @@ var MicroModal = (function () {
     /**
      * Validates whether a modal of the given id exists
      * in the DOM
+     *
      * @param  {number} id  The id of the modal
-     * @return {boolean}
+     * @returns {boolean}
      */
 
     var validateModalPresence = function validateModalPresence(id) {
@@ -407,8 +410,9 @@ var MicroModal = (function () {
     /**
      * Validates if there are modal triggers present
      * in the DOM
-     * @param  {array} triggers An array of data-triggers
-     * @return {boolean}
+     *
+     * @param  {Array} triggers An array of data-triggers
+     * @returns {boolean}
      */
 
     var validateTriggerPresence = function validateTriggerPresence(triggers) {
@@ -429,9 +433,10 @@ var MicroModal = (function () {
     /**
      * Checks if triggers and their corresponding modals
      * are present in the DOM
-     * @param  {array} triggers   Array of DOM nodes which have data-triggers
-     * @param  {array} triggerMap Associative array of modals and their triggers
-     * @return {boolean}
+     *
+     * @param  {Array} triggers   Array of DOM nodes which have data-triggers
+     * @param  {Array} triggerMap Associative array of modals and their triggers
+     * @returns {boolean}
      */
 
     var validateArgs = function validateArgs(triggers, triggerMap) {
@@ -446,8 +451,9 @@ var MicroModal = (function () {
     };
     /**
      * Binds click handlers to all modal triggers
+     *
      * @param  {object} config [description]
-     * @return void
+     * @returns void
      */
 
     var init = function init(config) {
@@ -477,9 +483,10 @@ var MicroModal = (function () {
     };
     /**
      * Shows a particular modal
+     *
      * @param  {string} targetModal [The id of the modal to display]
      * @param  {object} config [The configuration object to pass]
-     * @return {void}
+     * @returns {void}
      */
 
     var show = function show(targetModal, config) {
@@ -496,8 +503,9 @@ var MicroModal = (function () {
     };
     /**
      * Closes the active modal
+     *
      * @param  {string} targetModal [The id of the modal to close]
-     * @return {void}
+     * @returns {void}
      */
 
     var close = function close(targetModal) {

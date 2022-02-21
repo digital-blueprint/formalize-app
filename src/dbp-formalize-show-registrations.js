@@ -193,6 +193,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     {column: 'dateCreated', dir: 'desc'},
                 ],
                 rowSelectionChanged: (data, rows) => {
+                    if (this.submissionsTable && this.submissionsTable.getSelectedRows().length > 0) {
+                        this._('#export-select').disabled = false;
+                    } else {
+                        this._('#export-select').disabled = true;
+                    }
                     if (this._('#select_all_checkmark')) {
                         this._('#select_all_checkmark').title = this.checkAllSelected()
                             ? i18n.t('show-registrations.select-nothing')
@@ -498,6 +503,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             ${fileHandlingStyles.getFileHandlingCss()}
 
+            .export-buttons {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                gap: 4px;
+            }
+
             .submission-modal-content-wrapper {
                 overflow: auto;
             }
@@ -601,6 +613,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: inline;
             }
 
+            select:not(.select) {
+                background-size: 13px;
+                background-position-x: calc(100% - 0.4rem);
+                padding-right: 1.3rem;
+                height: 26px;
+            }
+
+            select[disabled] {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            #searchbar {
+                height: 27px;
+            }
+
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
                 .nextcloud-nav .home-link {
@@ -680,9 +708,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="table-wrapper ${classMap({hidden: !this.showSubmissionsTable })}">
                     <div class="export-buttons">
-                        <dbp-loading-button id="download-csv" class="button" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">Export CSV</dbp-loading-button>
+                        <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
+                    
+                        <select id="export-select">
+                            <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
+                            <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
+                            <option value="excel" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Excel</option>
+                            <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
+                        </select>
+                        <dbp-loading-button id="download-pdf" class="button" @click="">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
+                        <!-- <dbp-loading-button id="download-csv" class="button" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">Export CSV</dbp-loading-button>
                         <dbp-loading-button id="download-xlsx" class="button" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Export XLSX</dbp-loading-button>
-                        <dbp-loading-button id="download-pdf" class="button" @click="${() => { this.exportPdf(); }}">Export PDF</dbp-loading-button>
+                        <dbp-loading-button id="download-pdf" class="button" @click="${() => { this.exportPdf(); }}">Export PDF</dbp-loading-button> -->
                     </div>         
                     <table id="submissions-table"></table>
                 </div>

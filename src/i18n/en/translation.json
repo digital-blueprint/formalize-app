@@ -7,7 +7,10 @@
         "submission-dialog-title": "Submission: {{id}}",
         "modal-close": "Close dialog",
         "select-all": "Select all",
-        "select-nothing": "Select nothing"
+        "select-nothing": "Select nothing",
+        "default-export-select": "Export",
+        "searchbar-placeholder": "Search",
+        "filter-options-button-text": "Filter Options"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."
