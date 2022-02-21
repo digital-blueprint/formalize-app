@@ -342,8 +342,7 @@ export function getFileHandlingCss() {
         .tabulator .tabulator-footer .tabulator-page.active {
             background: var(--dbp-on-secondary-surface);
             color: var(--dbp-secondary-surface);
-            border-color: var(--dbp-secondary-surface-bor
-                der-color);
+            border-color: var(--dbp-secondary-surface-border-color);
         }
 
         .tabulator .tabulator-footer .tabulator-page.active:hover {

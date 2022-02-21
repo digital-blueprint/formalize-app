@@ -11,7 +11,8 @@
         "default-export-select": "Exportieren",
         "searchbar-placeholder": "Suchen",
         "filter-options-button-text": "Filteroptionen",
-        "back-text": "Zurück zur Kursübersicht"
+        "back-text": "Zurück zur Kursübersicht",
+        "search-button": "Suchen"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."

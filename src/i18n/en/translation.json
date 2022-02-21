@@ -11,7 +11,8 @@
         "default-export-select": "Export",
         "searchbar-placeholder": "Search",
         "filter-options-button-text": "Filter Options",
-        "back-text": "Back to course list"
+        "back-text": "Back to course list",
+        "search-button": "Search"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."

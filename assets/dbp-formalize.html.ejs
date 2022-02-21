@@ -40,14 +40,18 @@
         @import "<%= getPrivateUrl('fonts/source-sans-pro/400.css') %>";
         @import "<%= getPrivateUrl('fonts/source-sans-pro/600.css') %>";
 
-        body {
+        html {
             font-family: 'Source Sans Pro', 'Calibri', 'Arial', 'sans-serif';
             font-weight: 300;
+            font-size: 16px;
+        }
+
+        body {
             margin: 0;
         }
 
         /* TU-Graz style override */
-        .light-theme{
+        html {
             --dbp-override-background: white;
             --dbp-override-content: black;
 
@@ -67,6 +71,9 @@
             --dbp-override-danger: #e4154b;
 
             --dbp-override-border: 1px solid black;
+
+
+            --dbp-override-image-nextcloud: url(<%= getUrl('') %>images/nextcloud.svg);
         }
     </style>
 
@@ -90,7 +97,6 @@
     build-url='<%= buildInfo.url %>'
     build-time='<%= buildInfo.time %>'
     env='<%= buildInfo.env %>'
-    themes='[{"class": "light-theme", "icon": "sun", "name": "Light Mode"}]'
 ><dbp-loading-spinner></dbp-loading-spinner>
 <template slot="name">
     TU Graz<br />

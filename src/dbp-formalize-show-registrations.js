@@ -230,7 +230,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             */
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout: 'fitColumns',
+                responsiveLayout:"collapse",
+                responsiveLayoutCollapseStartOpen: false,
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -239,9 +240,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 pagination: 'local',
                 paginationSize: 10,
                 downloadRowRange: 'selected',
-                data: this.dataList,
                 columns:[
                     {
+                        width: 32,
+                        minWidth: 32,
                         align: 'center',
                         resizable: false,
                         headerSort: false,
@@ -303,8 +305,79 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         row.deselect();
                     }
                 },
+                dataLoaded: () => {
+                    if (this.submissionsTable !== null) {
+                        this.submissionsTable.addColumn(     {
+                            title:
+                                '<label id="select_all_wrapper" class="button-container select-all-icon">' +
+                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
+                                '<span class="checkmark" id="select_all_checkmark"></span>' +
+                                '</label>',
+                            field: 'type',
+                            align: 'center',
+                            headerSort: false,
+                            width: 50,
+                            responsive: 1,
+                            formatter: (cell, formatterParams, onRendered) => {
+                                const icon_tag = that.getScopedTagName('dbp-icon');
+                                let disabled = this.directoriesOnly
+                                    ? 'nextcloud-picker-icon-disabled'
+                                    : '';
+                                let icon =
+                                    `<${icon_tag} name="empty-file" class="nextcloud-picker-icon ` +
+                                    disabled +
+                                    `"></${icon_tag}>`;
+                                let html =
+                                    cell.getValue() === 'directory'
+                                        ? `<${icon_tag} name="folder" class="nextcloud-picker-icon"></${icon_tag}>`
+                                        : icon;
+                                let div = getShadowRootDocument(this).createElement('div');
+                                div.innerHTML = html;
+                                return div;
+                            },
+                        }, true);
+                        this.submissionsTable.addColumn(     {
+                            width: 32,
+                            minWidth: 32,
+                            align: 'center',
+                            resizable: false,
+                            headerSort: false,
+                            formatter: 'responsiveCollapse',
+                        }, true);
+                        const that = this;
+                        setTimeout(function () {
+                            if (that._('.tabulator-responsive-collapse-toggle-open')) {
+                                that._a('.tabulator-responsive-collapse-toggle-open').forEach(
+                                    (element) =>
+                                        element.addEventListener(
+                                            'click',
+                                            that.toggleCollapse.bind(that)
+                                        )
+                                );
+                            }
+
+                            if (that._('.tabulator-responsive-collapse-toggle-close')) {
+                                that._a('.tabulator-responsive-collapse-toggle-close').forEach(
+                                    (element) =>
+                                        element.addEventListener(
+                                            'click',
+                                            that.toggleCollapse.bind(that)
+                                        )
+                                );
+                            }
+                        }, 0);
+                    }
+                },
             });
         });
+
+    }
+
+    toggleCollapse(e) {
+        const table = this.submissionsTable;
+        setTimeout(function () {
+            table.redraw();
+        }, 0);
     }
 
     async firstUpdated() {
@@ -556,6 +629,30 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         console.log('PDF export requested');
     }
 
+    filterTable() {
+        let filter = this._('#searchbar').value;
+
+        //custom filter function
+        function matchAny(data, filterParams) {
+            var match = false;
+
+            let searchKey = filterParams.value.toLowerCase();
+
+            for (var key in data) {
+                //console.log("key: " + key + "; data[key]: " + data[key]);
+                let data_lowecase = String(data[key]).toLowerCase();
+                if (data_lowecase.includes(searchKey)) {
+                    match = true;
+                }
+            }
+
+            return match;
+        }
+
+        this.submissionsTable.setFilter(matchAny, {value: filter});
+    }
+
+
     /**
      * Returns clickable breadcrumbs
      *
@@ -605,10 +702,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
             ${fileHandlingStyles.getFileHandlingCss()}
+            ${commonStyles.getButtonCSS()}
 
             .scrollable-table-wrapper {
-                overflow: auto;
-                white-space: nowrap;
+          /*      overflow: auto;
+                white-space: nowrap;*/
             }
 
             .tabulator-table {
@@ -686,7 +784,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .border-wrapper {
                 margin-top: 2rem;
                 padding-top: 1rem;
-                border-top: 1px solid black;
+                border-top: var(--dbp-border);
             }
 
             .button-container input[type="checkbox"] {
@@ -869,14 +967,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 <div class="table-wrapper ${classMap({hidden: !this.showSubmissionsTable })}">
                     <div class="export-buttons">
                         <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
-                    
+                        <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
+                                            class="button" @click="${() => { this.filterTable(); }}"> 
+                            <dbp-icon name="search"></dbp-icon>
+
+                        </dbp-button>
+                        
                         <select id="export-select">
                             <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
                             <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
                             <option value="excel" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Excel</option>
                             <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                         </select>
-                        <dbp-loading-button id="download-pdf" class="button" @click="">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
+                        <dbp-loading-button id="download-pdf" @click="">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
                         <!-- <dbp-loading-button id="download-csv" class="button" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">Export CSV</dbp-loading-button>
                         <dbp-loading-button id="download-xlsx" class="button" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Export XLSX</dbp-loading-button>
                         <dbp-loading-button id="download-pdf" class="button" @click="${() => { this.exportPdf(); }}">Export PDF</dbp-loading-button> -->
