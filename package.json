@@ -45,7 +45,10 @@
         "@dbp-toolkit/person-profile": "^0.2.2",
         "@open-wc/scoped-elements": "^2.0.0",
         "i18next": "^21.4.2",
-        "lit": "^2.0.0"
+        "jspdf": "^2.5.1",
+        "jspdf-autotable": "^3.5.23",
+        "lit": "^2.0.0",
+        "xlsx": "^0.18.2"
     },
     "scripts": {
         "build": "rollup -c",
