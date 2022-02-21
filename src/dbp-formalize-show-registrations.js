@@ -28,6 +28,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
         this.directoryPath = '/';
+        this.dataList = [];
+        this.countDataListEntries = 0;
     }
 
     static get scopedElements() {
@@ -48,6 +50,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             submissionsTable: { type: Object, attribute: false },
             showSubmissionsTable: { type: Boolean, attribute: false },
             directoryPath: {type: String, attribute: 'directory-path'},
+            dataList: { type: Array, attribute: false },
+            countDataListEntries: { type: Number, attribute: false },
         };
     }
 
@@ -116,6 +120,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }]
             });
 
+            /*
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout: 'fitColumns',
                 selectable: this.maxSelectedItems,
@@ -190,7 +195,87 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     },
                 ],
                 initialSort: [
-                    {column: 'dateCreated', dir: 'desc'},
+                    {
+                        column: 'dateCreated', 
+                        dir: 'desc'
+                    },
+                ],
+                rowSelectionChanged: (data, rows) => {
+                    if (this.submissionsTable && this.submissionsTable.getSelectedRows().length > 0) {
+                        this._('#export-select').disabled = false;
+                    } else {
+                        this._('#export-select').disabled = true;
+                    }
+                    if (this._('#select_all_checkmark')) {
+                        this._('#select_all_checkmark').title = this.checkAllSelected()
+                            ? i18n.t('show-registrations.select-nothing')
+                            : i18n.t('show-registrations.select-all');
+                    }
+                    this.requestUpdate();
+                },
+                rowClick: (e, row) => {
+                    if (!row.getElement().classList.contains('no-select')) {
+                        if (this.submissionsTable !== null && 
+                            this.submissionsTable.getSelectedRows().length === this.submissionsTable.getRows().length
+                        ) {
+                            this._('#select_all').checked = true;
+                        } else {
+                            this._('#select_all').checked = false;
+                        }
+                    } else {
+                        row.deselect();
+                    }
+                },
+            });
+            */
+
+            this.submissionsTable = new Tabulator(this._('#submissions-table'), {
+                layout: 'fitColumns',
+                selectable: this.maxSelectedItems,
+                selectableRangeMode: 'drag',
+                placeholder: i18n.t('show-registrations.no-data'),
+                resizableColumns: false,
+                autoColumns: true,
+                pagination: 'local',
+                paginationSize: 10,
+                downloadRowRange: 'selected',
+                data: this.dataList,
+                columns:[
+                    {
+                        align: 'center',
+                        resizable: false,
+                        headerSort: false,
+                        formatter: 'responsiveCollapse',
+                    },
+                    {
+                        title:
+                            '<label id="select_all_wrapper" class="button-container select-all-icon">' +
+                            '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
+                            '<span class="checkmark" id="select_all_checkmark"></span>' +
+                            '</label>',
+                        field: 'type',
+                        align: 'center',
+                        headerSort: false,
+                        width: 50,
+                        responsive: 1,
+                        formatter: (cell, formatterParams, onRendered) => {
+                            let div = getShadowRootDocument(this).createElement('div');
+                            return div;
+                        },
+                    },
+                    {
+                        title: 'Actions', 
+                        width: 100,
+                        field: 'type', 
+                        formatter: 'html', 
+                        download: false
+                    },
+                ],
+                initialSort: [
+                    {
+                        column: 'dateCreated', 
+                        dir: 'desc'
+                    },
                 ],
                 rowSelectionChanged: (data, rows) => {
                     if (this.submissionsTable && this.submissionsTable.getSelectedRows().length > 0) {
@@ -400,11 +485,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     requestCourses() {
         this.coursesTable.setData(this.getListOfAllCourses());
     }
-
+    
     async requestAllCourseSubmissions() {
+        let dataList2 = [];
         let response = await this.getAllSubmissions();
         let data = await response.json();
-
+        
         console.log("data: ", data["hydra:member"]);
 
         data["hydra:member"].forEach(entry => {
@@ -428,9 +514,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
 
             entry['type'] = div;
-        });
 
-        this.submissionsTable.setData(data['hydra:member']);
+            try {
+                let json = JSON.parse(entry["dataFeedElement"]);
+                dataList2.push(json["dataFeedElement"]);
+            } catch(e) {
+                // console.log('error');
+            }
+        });
+        
+        // this.dataList.push(json["dataFeedElement"]);
+        // this.countDataListEntries++;
+        console.log(this.dataList);
+        // console.log(json);
+        // console.log(json["dataFeedElement"]);
+
+
+        this.submissionsTable.setData(dataList2);
+
+        //this.submissionsTable.setData(data['hydra:member']);
         this.showSubmissionsTable = true;
     }
 
@@ -489,6 +591,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             <span class="first breadcrumb-arrow">›</span>
             <span class="breadcrumb">${directories[1]}</span>
         `;
+
         return htmlpath;
     }
 
@@ -502,6 +605,54 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
             ${fileHandlingStyles.getFileHandlingCss()}
+
+            .scrollable-table-wrapper {
+                overflow: auto;
+                white-space: nowrap;
+            }
+
+            .tabulator-table {
+                overflow: auto;
+                white-space: nowrap;
+            }
+
+            .tabulator-row {
+                overflow: auto;
+            }
+
+            .back-navigation {
+                padding-top: 1rem;
+            }
+
+            .back-navigation {
+                color: var(--dbp-border);
+                /* border-bottom: 1px solid var(--dbp-content); */
+            }
+
+            .back-navigation:before {
+                content: '\\00a0\\00a0\\00a0';
+                background-color: var(--dbp-content);
+                -webkit-mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
+                mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
+                -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+                -webkit-mask-position: center -2px;
+                mask-position: center 37%;
+                margin: 0 0 0 4px;
+                padding: 0 0 0.25% 0;
+                -webkit-mask-size: 100%;
+                mask-size: 120%;
+            }
+
+            .back-navigation:hover {
+                color: var(--dbp-hover-color, var(--dbp-content));
+                border-color: var(--dbp-hover-color, var(--dbp-content));
+                background-color: var(--dbp-hover-background-color);
+            }
+
+            .back-navigation:hover::before {
+                background-color: var(--dbp-hover-color, var(--dbp-content));
+            }
 
             .export-buttons {
                 display: flex;
@@ -698,8 +849,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="border-wrapper"></div>
 
-                <div class="nextcloud-nav">
-                    <p>${this.getBreadcrumb()}</p>
+                <div class="nextcloud-nav ${classMap({hidden: !this.showSubmissionsTable})}">
+                    <span class="back-navigation">
+                        <a
+                            @click="${() => {
+                                this.showSubmissionsTable = false;
+                                this.submissionsTable.clearData();
+                            }}"
+                            title="${i18n.t('show-registrations.back-text')}">
+                            ${i18n.t('show-registrations.back-text')}
+                        </a>
+                    </span>
                 </div>
 
                 <div class="table-wrapper ${classMap({hidden: this.showSubmissionsTable })}">
@@ -720,12 +880,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <!-- <dbp-loading-button id="download-csv" class="button" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">Export CSV</dbp-loading-button>
                         <dbp-loading-button id="download-xlsx" class="button" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Export XLSX</dbp-loading-button>
                         <dbp-loading-button id="download-pdf" class="button" @click="${() => { this.exportPdf(); }}">Export PDF</dbp-loading-button> -->
-                    </div>         
-                    <table id="submissions-table"></table>
+                    </div>
+                    <div class="scrollable-table-wrapper">   
+                        <table id="submissions-table"></table>
+                    </div>
                 </div>
             </div>
 
-            <div class="modal micromodal-slide" id="submission-modal" aria-hidden="true">
+            <!-- <div class="modal micromodal-slide" id="submission-modal" aria-hidden="true">
                 <div class="modal-overlay" tabindex="-2" data-micromodal-close>
                     <div
                         class="modal-container"
@@ -781,7 +943,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </footer>
                     </div>
                 </div>
-            </div>
+            </div> -->
         `;
     }
 }

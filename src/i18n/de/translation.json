@@ -10,7 +10,8 @@
         "select-nothing": "Nichts auswählen",
         "default-export-select": "Exportieren",
         "searchbar-placeholder": "Suchen",
-        "filter-options-button-text": "Filteroptionen"
+        "filter-options-button-text": "Filteroptionen",
+        "back-text": "Zurück zur Kursübersicht"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."

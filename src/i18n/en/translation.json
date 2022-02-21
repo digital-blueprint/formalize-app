@@ -10,7 +10,8 @@
         "select-nothing": "Select nothing",
         "default-export-select": "Export",
         "searchbar-placeholder": "Search",
-        "filter-options-button-text": "Filter Options"
+        "filter-options-button-text": "Filter Options",
+        "back-text": "Back to course list"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."
