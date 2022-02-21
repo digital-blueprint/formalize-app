@@ -273,12 +273,16 @@ export function getFileHandlingCss() {
             mask-repeat: no-repeat;
             -webkit-mask-position: center -2px;
             mask-position: center center;
-            margin: 0 0 0 4px;
             padding: 0 0 0.25% 0;
-            -webkit-mask-size: 100%;
-            mask-size: 120%;
+            margin: 0px;
+            -webkit-mask-size: 50%;
+            mask-size: 50%;
             visibility: visible;
-           
+
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 0px;
         }
         
         .tabulator-row.tabulator-selected .tabulator-responsive-collapse-toggle-open::after {
@@ -295,13 +299,17 @@ export function getFileHandlingCss() {
             mask-repeat: no-repeat;
             -webkit-mask-position: center -2px;
             mask-position: center center;
-            margin: 0 0 0 -4px;
+            margin: 0px;
             padding: 0 0 0.25% 0;
-            -webkit-mask-size: 100%;
-            mask-size: 120%;
+            -webkit-mask-size: 50%;
+            mask-size: 50%;
             visibility: visible;
             position: absolute;
 
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 0px;
         }
 
         .tabulator-row.tabulator-selected .tabulator-responsive-collapse-toggle-close::after {
