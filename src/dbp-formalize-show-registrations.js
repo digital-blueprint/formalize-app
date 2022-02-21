@@ -187,10 +187,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         },
                     },
                     {
-                        title: 'Actions', 
+                        title: 'Actions',
                         width: 100,
-                        field: 'type', 
-                        formatter: 'html', 
+                        field: 'type',
+                        formatter: 'html',
                         download: false
                     },
                 ],
@@ -307,6 +307,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 },
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
+
                         this.submissionsTable.addColumn(     {
                             title:
                                 '<label id="select_all_wrapper" class="button-container select-all-icon">' +
@@ -342,8 +343,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             align: 'center',
                             resizable: false,
                             headerSort: false,
-                            formatter: 'responsiveCollapse',
+                            formatter: 'responsiveCollapse'
                         }, true);
+                        this.submissionsTable.addColumn({
+                            title: 'Actions',
+                            width: 100,
+                            field: 'type',
+                            formatter: 'html',
+                            download: false
+                        }, true);
+
                         const that = this;
                         setTimeout(function () {
                             if (that._('.tabulator-responsive-collapse-toggle-open')) {
