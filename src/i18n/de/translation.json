@@ -17,7 +17,8 @@
         "pagination-btn-first": "Erster",
         "pagination-btn-next": "Nächster",
         "pagination-btn-prev": "Voriger",
-        "pagination-btn-last": "Letzter"
+        "pagination-btn-last": "Letzter",
+        "search-all-columns": "Alle Spalten"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."

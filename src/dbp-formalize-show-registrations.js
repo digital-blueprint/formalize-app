@@ -634,8 +634,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     filterTable() {
-        let filter = this._('#searchbar').value;
-        let search = this._('#search-select').value;
+        let filter = this._('#searchbar');
+        let search = this._('#search-select');
+
+        if (!filter || !search)
+            return;
+
+        filter = filter.value;
+        search = search.value;
+
         if (search !== 'all') {
             this.submissionsTable.setFilter(search, 'like', filter);
             return;
