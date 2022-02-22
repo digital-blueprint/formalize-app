@@ -33,7 +33,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.coursesTable = null;
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
+        this.submissionsColumns = [];
         this.dataList = [];
+        this.dragStartIndex = 0;
+        this.dragList = [];
     }
 
     static get scopedElements() {
@@ -53,6 +56,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             coursesTable: { type: Object, attribute: false },
             submissionsTable: { type: Object, attribute: false },
             showSubmissionsTable: { type: Boolean, attribute: false },
+            submissionsColumns: { type: Array, attribute: false },
             dataList: { type: Array, attribute: false },
         };
     }
@@ -308,7 +312,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             resizable: false,
                             headerSort: false,
                             sortable:false,
-                            formatter: 'responsiveCollapse'
+                            formatter: 'responsiveCollapse',
+                            visible: true,
                         }, true);
                         this.submissionsTable.addColumn({
                             title: 'Actions',
@@ -317,7 +322,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             formatter: 'html',
                             download: false,
                             headerSort:false,
-                            sortable:false
+                            sortable:false,
+                            visible: true,
                         }, true);
 
 
@@ -326,34 +332,43 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             this._('#select_all').addEventListener('click', boundSelectHandler);
                         }
 
-                        const that = this;
-                        setTimeout(function () {
-                            if (that._('.tabulator-responsive-collapse-toggle-open')) {
-                                that._a('.tabulator-responsive-collapse-toggle-open').forEach(
-                                    (element) =>
-                                        element.addEventListener(
-                                            'click',
-                                            that.toggleCollapse.bind(that)
-                                        )
-                                );
-                            }
+                        this.addToggleEvent();
 
-                            if (that._('.tabulator-responsive-collapse-toggle-close')) {
-                                that._a('.tabulator-responsive-collapse-toggle-close').forEach(
-                                    (element) =>
-                                        element.addEventListener(
-                                            'click',
-                                            that.toggleCollapse.bind(that)
-                                        )
-                                );
-                            }
-                        }, 0);
+                        this.updateTableHeaderList();
+                        this.createHeaderList();
+
                     }
                 },
             });        
 
             
         });
+    }
+
+    addToggleEvent() {
+
+        const that = this;
+        setTimeout(function () {
+            if (that._('.tabulator-responsive-collapse-toggle-open')) {
+                that._a('.tabulator-responsive-collapse-toggle-open').forEach(
+                    (element) =>
+                        element.addEventListener(
+                            'click',
+                            that.toggleCollapse.bind(that)
+                        )
+                );
+            }
+
+            if (that._('.tabulator-responsive-collapse-toggle-close')) {
+                that._a('.tabulator-responsive-collapse-toggle-close').forEach(
+                    (element) =>
+                        element.addEventListener(
+                            'click',
+                            that.toggleCollapse.bind(that)
+                        )
+                );
+            }
+        }, 0);
     }
 
     toggleCollapse(e) {
@@ -626,7 +641,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this._('#submission-modal-title').innerText = i18n.t('show-registrations.submission-dialog-title', {id: identifier});
         this._('.submission-modal-content-wrapper').innerText = data["dataFeedElement"];
 
-        MicroModal.show(this._('#submission-modal'));
+
     }
 
     exportPdf() {
@@ -692,22 +707,165 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissionsTable.setFilter(matchAny, {value: filter});
     }
 
-    getTableHeaders() {
+    updateTableHeaderList() {
         if (!this.submissionsTable)
             return;
-        let options = [];
-        options[0] = html`<option value="all">Alle Spalten</option>`;
         let columns = this.submissionsTable.getColumns();
-        let counter = 1;
         columns.forEach((col) => {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
             if (field && !field.includes('no_display')) {
-                options[counter]= html`<option value="${name}">${name}</option>`;
+                this.submissionsColumns.push(name);
             }
-            counter ++;
+        });
+    }
+
+    getTableHeaderOptions() {
+        if (!this.submissionsTable)
+            return;
+        let options = [];
+        options[0] = html`<option value="all">Alle Spalten</option>`;
+        this.submissionsColumns.forEach((col, counter) => {
+            options[counter + 1]= html`<option value="${col}">${col}</option>`;
         });
         return options;
+    }
+
+    createHeaderList() {
+        if (this.submissionsColumns.length <= 0)
+        {
+            this.closeModal();
+            console.log("Header list empty");
+            return;
+        }
+        this.createList();
+    }
+
+
+    createList() {
+        const draggable_list = this._('#draggable-list');
+        const check = this._('#check');
+        if (!draggable_list || !check)
+        {
+            this.closeModal();
+            console.log("Error");
+            return;
+        }
+
+        [...this.submissionsColumns]
+            .forEach((col, index) => {
+                const listItem = document.createElement('li');
+
+                listItem.setAttribute('data-index', index);
+
+                listItem.innerHTML = `
+                    <span class="number">${index + 1}</span>
+                    <div class="draggable" draggable="true">
+                      <p class="col-name">${col}</p>
+                      <i class="fas fa-grip-lines"></i>
+                    </div>
+                  `;
+                this.dragList.push(listItem);
+
+                draggable_list.appendChild(listItem);
+            });
+
+        this.addEventListeners();
+    }
+
+    dragStart(e) {
+        //console.log("---------e", e);
+        this.dragStartIndex = +e.originalTarget.closest('li').getAttribute('data-index');
+    }
+
+    dragEnter() {
+        //console.log('Event: ', 'dragenter');
+        this.classList.add('over');
+    }
+
+    dragLeave() {
+        //console.log('Event: ', 'dragleave');
+        this.classList.remove('over');
+    }
+
+    dragOver(e) {
+        //console.log('Event: ', 'dragover');
+        e.preventDefault();
+    }
+
+    dragDrop(e) {
+        //console.log('Event: ', 'drop');
+
+        const dragEndIndex = +e.originalTarget.closest('li').getAttribute('data-index');
+        this.swapItems(this.dragStartIndex, dragEndIndex);
+
+        this.classList.remove('over');
+    }
+
+    // Swap list items that are drag and drop
+    swapItems(fromIndex, toIndex) {
+        const itemOne = this.dragList[fromIndex].querySelector('.draggable');
+        const itemTwo = this.dragList[toIndex].querySelector('.draggable');
+
+        this.dragList[fromIndex].appendChild(itemTwo);
+        this.dragList[toIndex].appendChild(itemOne);
+    }
+
+    // Check the order of list items
+    saveOrder() {
+        let newSubmissionsColumns = [];
+        this.dragList.forEach((listItem, index) => {
+            const col = listItem.querySelector('.draggable').innerText.trim();
+            newSubmissionsColumns.push(col);
+        });
+        this.submissionsColumns = [...newSubmissionsColumns];
+        this.updateTableHeader();
+    }
+
+    updateTableHeader() {
+        let cols = this.submissionsTable.getColumns();
+        this.submissionsColumns.slice().reverse().forEach((col) => {
+            this.submissionsTable.moveColumn(col, cols[1], true);
+        });
+
+        this.submissionsTable.redraw();
+        this.closeModal();
+        this.addToggleEvent();
+    }
+
+    addEventListeners() {
+        const draggables = this._a('.draggable');
+        const dragListItems = this._a('.draggable-list li');
+
+        if(!draggables || !dragListItems)
+            return;
+
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', this.dragStart.bind(this), false);
+        });
+
+        dragListItems.forEach(item => {
+            item.addEventListener('dragover', this.dragOver.bind(this), false);
+            item.addEventListener('drop', this.dragDrop.bind(this), false);
+            item.addEventListener('dragenter', this.dragEnter.bind(this), false);
+            item.addEventListener('dragleave', this.dragLeave.bind(this), false);
+        });
+    }
+
+    openModal() {
+        let modal = this._('#submission-modal');
+        if (modal) {
+            MicroModal.show(modal, {
+
+            });
+        }
+    }
+
+    closeModal() {
+        let modal = this._('#submission-modal');
+        if (modal) {
+            MicroModal.close(modal);
+        }
     }
 
     static get styles() {
@@ -720,6 +878,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
             ${fileHandlingStyles.getFileHandlingCss()}
+            ${fileHandlingStyles.getDragListCss()}
             ${commonStyles.getButtonCSS()}
 
             .scrollable-table-wrapper {
@@ -776,7 +935,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 gap: 4px;
             }
 
-            .submission-modal-content-wrapper {
+            .dragAndDropList {
                 overflow: auto;
             }
 
@@ -788,6 +947,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: unset;
             }
 
+            #submission-modal-content {
+                overflow: scroll;
+                align-items: baseline;
+            }
+            
             .modal-footer-btn {
                 float: right;
                 padding-right: 20px;
@@ -934,7 +1098,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <div class="export-buttons">
                         <div class="search-wrapper">
                             <select id="search-select">
-                               ${this.getTableHeaders()}
+                               ${this.getTableHeaderOptions()}
                             </select>
                             <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
                             <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
@@ -949,7 +1113,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
                             <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                         </select>
-                        <dbp-loading-button id="download-pdf" @click="">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
+                        <dbp-loading-button id="download-pdf" @click="${() => {this.openModal();}}">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
                     </div>
                     <div class="scrollable-table-wrapper">   
                         <table id="submissions-table"></table>
@@ -957,7 +1121,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
             </div>
 
-            <!-- <div class="modal micromodal-slide" id="submission-modal" aria-hidden="true">
+            <div class="modal micromodal-slide" id="submission-modal" aria-hidden="true">
                 <div class="modal-overlay" tabindex="-2" data-micromodal-close>
                     <div
                         class="modal-container"
@@ -982,38 +1146,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </h3>
                         </header>
                         <main class="modal-content" id="submission-modal-content">
-                            <div class="submission-modal-content-wrapper"></div>
+                            <div class="dragAndDropList">
+                                <p>Drag and drop the items into their corresponding spots</p>
+                                <ul class="draggable-list" id="draggable-list"></ul>
+                                <button class="check-btn" id="check" @click="${() => {this.saveOrder();}}">
+                                    Check Order
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
-                                <dbp-loading-button
-                                    class="button"
-                                    @click="${() => {
-                                        //TODO download single file
-                                    }}">
-                                    Export CSV
-                                </dbp-loading-button>
-                                <dbp-loading-button
-                                    class="button"
-                                    id=""
-                                    @click="${() => {
-                                        //TODO download single file
-                                    }}">
-                                    Export XLSX
-                                </dbp-loading-button>
-                                <dbp-loading-button
-                                    class="button"
-                                    id=""
-                                    @click="${() => {
-                                        //TODO download single file
-                                    }}">
-                                    Export PDF
-                                </dbp-loading-button>
                             </div>
                         </footer>
                     </div>
                 </div>
-            </div> -->
+            </div>
         `;
     }
 }

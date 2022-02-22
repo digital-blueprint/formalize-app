@@ -1,5 +1,74 @@
 import {css} from 'lit';
 
+export function getDragListCss() {
+    // language=css
+    return css`
+        .draggable-list {
+            border: var(--dbp-border);
+            color: var(--dbp-content);
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .draggable-list li {
+            background-color: var(--dbp-background);
+            color: var(--dbp-content);
+            display: flex;
+            flex: 1;
+        }
+
+        .draggable-list li:not(:last-of-type) {
+            border-bottom: var(--dbp-border);
+        }
+
+        .draggable-list .number {
+            background-color: var(--dbp-background);
+            color: var(--dbp-content);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            height: 60px;
+            width: 60px;
+        }
+
+        .draggable-list li.over .draggable {
+            background-color: var(--dbp-muted-surface);
+            color: var(--dbp-on-muted-surface);
+        }
+
+        .draggable-list .col-name {
+            margin: 0 20px 0 0;
+        }
+
+        .draggable {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            flex: 1;
+        }
+
+        .check-btn {
+            background-color: var(--dbp-background);
+            border: none;
+            color: var(--dbp-content);
+            font-size: 16px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .check-btn:active {
+            transform: scale(0.98);
+        }
+
+        .check-btn:focus {
+            outline: none;
+        }
+    `;
+}
+
 export function getFileHandlingCss() {
     // language=css
     return css`
