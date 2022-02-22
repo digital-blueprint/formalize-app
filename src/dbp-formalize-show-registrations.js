@@ -119,7 +119,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 ],
                 rows: [{
                     height: 33
-                }]
+                }],
+                dataLoaded: () => {
+                    if (this.submissionsTable !== null) {
+                        this.changePaginationButtonText();
+                    }
+                }
             });
 
             /*
@@ -290,6 +295,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
 
+                        this.changePaginationButtonText();
+
                         this.submissionsTable.addColumn(     {
                             title:
                                 '<label id="select_all_wrapper" class="button-container select-all-icon">' +
@@ -343,9 +350,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         }, 0);
                     }
                 },
-            });
-        });
+            });        
 
+            
+        });
     }
 
     toggleCollapse(e) {
@@ -380,6 +388,48 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return this.shadowRoot === null
             ? this.querySelectorAll(selector)
             : this.shadowRoot.querySelectorAll(selector);
+    }
+
+    changePaginationButtonText() {
+        const i18n = this._i18n;
+        
+        var elements = [ 
+            this._('#courses-table > .tabulator-footer > .tabulator-paginator').childNodes,
+            this._('#submissions-table > .tabulator-footer > .tabulator-paginator').childNodes
+        ];
+        
+        for (let j = 0; j < elements.length; j++) {
+
+            let buttonList = elements[j];
+            // console.log(buttonList);
+
+            for (let i = 0; i < buttonList.length; i++) {
+                let button = buttonList[i];
+                let value = button.getAttribute('data-page');
+                switch (value) {
+                    case 'first': {
+                        button.innerText = i18n.t('show-registrations.pagination-btn-first');
+                        break;
+                    }
+                    case 'prev': {
+                        button.innerText = i18n.t('show-registrations.pagination-btn-prev');
+                        break;
+                    }
+                    case 'next': {
+                        button.innerText = i18n.t('show-registrations.pagination-btn-next');
+                        break;
+                    }
+                    case 'last': {
+                        button.innerText = i18n.t('show-registrations.pagination-btn-last');
+                        break;
+                    }
+                    default:
+                        // console.log('number button detected');
+                        break;
+                }
+            }
+            // }
+        }
     }
 
     /**
@@ -478,14 +528,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         
         div.firstChild.addEventListener("click", event => {
             this.requestAllCourseSubmissions();
-
-            let path = '';
-            tabledata.forEach((element) => {
-                if (element['id'] === event.detail) {
-                    path = element['name'];
-                }
-            });
-
             event.stopPropagation();
         });
         return tabledata;
@@ -568,25 +610,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 // console.log('error');
             }
         });
-        
-        // this.dataList.push(json["dataFeedElement"]);
-        // console.log(this.dataList);
-        // console.log(json["dataFeedElement"]);
         this.submissionsTable.setData(dataList2);
-
-        // if (this.submissionsTable) {
-        //     const i18n = this._i18n;
-        //     console.log(document.querySelectorAll('[data-page]'));
-        //     console.log(this._('.tabulator-page'));
-        //     document.querySelectorAll("[data-page]").innerText = i18n.t("show-registrations.pagination-btn-first");
-            // this._('.tabulator-page')['data-page=first'].innerText = i18n.t("pagination-btn-first");
-            // this._('.tabulator-page')['data-page="prev"'].innerText = i18n.t("pagination-btn-prev");
-            // this._('.tabulator-page')['data-page="next"'].innerText = i18n.t("pagination-btn-next");
-            // this._('.tabulator-page')['data-page="last"'].innerText = i18n.t("pagination-btn-last");
-        // }div div.table-wrapper div#courses-table.tabulator div.tabulator-footer span.tabulator-paginator button.tabulator-page
-        //#courses-table > div:nth-child(3) > span:nth-child(1) > button:nth-child(1)
-
-
         this.showSubmissionsTable = true;
     }
 
