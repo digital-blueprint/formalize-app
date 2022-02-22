@@ -10,17 +10,14 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 // import {humanFileSize} from '@dbp-toolkit/common/i18next';
 import Tabulator from 'tabulator-tables';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-
 import * as XLSX from 'xlsx';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 
-window.jsPDF = jsPDF;
 window.XLSX = XLSX;
+
 
 
 
@@ -300,6 +297,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 '<span class="checkmark" id="select_all_checkmark"></span>' +
                                 '</label>',
                             align: 'center',
+                            field: 'no_display_1',
                             resizable: false,
                             headerSort: false,
                             sortable:false,
@@ -307,8 +305,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         }, true);
                         this.submissionsTable.addColumn({
                             title: 'Actions',
+                            field: 'no_display_2',
                             width: 100,
-                            field: 'type',
                             formatter: 'html',
                             download: false,
                             headerSort:false,
@@ -627,12 +625,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         });
 
+    }
 
-
+    exportXLSX() {
+        window.XLSX = XLSX;
+        this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"});
+        delete window.XLSX;
     }
 
     filterTable() {
         let filter = this._('#searchbar').value;
+        let search = this._('#search-select').value;
+        if (search !== 'all') {
+            this.submissionsTable.setFilter(search, 'like', filter);
+            return;
+        }
 
         //custom filter function
         function matchAny(data, filterParams) {
@@ -652,6 +659,24 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         this.submissionsTable.setFilter(matchAny, {value: filter});
+    }
+
+    getTableHeaders() {
+        if (!this.submissionsTable)
+            return;
+        let options = [];
+        options[0] = html`<option value="all">Alle Spalten</option>`;
+        let columns = this.submissionsTable.getColumns();
+        let counter = 1;
+        columns.forEach((col) => {
+            let name = col.getDefinition().title;
+            let field = col.getDefinition().field;
+            if (field && !field.includes('no_display')) {
+                options[counter]= html`<option value="${name}">${name}</option>`;
+            }
+            counter ++;
+        });
+        return options;
     }
 
     static get styles() {
@@ -877,6 +902,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 <div class="table-wrapper ${classMap({hidden: !this.showSubmissionsTable })}">
                     <div class="export-buttons">
                         <div class="search-wrapper">
+                            <select id="search-select">
+                               ${this.getTableHeaders()}
+                            </select>
                             <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
                             <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
                                                 class="button" @click="${() => { this.filterTable(); }}"> 
@@ -887,7 +915,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <select id="export-select">
                             <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
                             <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
-                            <option value="excel" @click="${() => { this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"}); }}">Excel</option>
+                            <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
                             <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                         </select>
                         <dbp-loading-button id="download-pdf" @click="">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
