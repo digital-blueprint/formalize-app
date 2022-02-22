@@ -37,6 +37,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.dataList = [];
         this.dragStartIndex = 0;
         this.dragList = [];
+        this.initateOpenAdditionalMenu = false;
+        this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
     }
 
     static get scopedElements() {
@@ -868,6 +870,42 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
+    showSearchModal() {
+        //TODO
+    }
+
+    showExportModal() {
+        //TODO
+    }
+
+    toggleMoreMenu() {
+        const menu = this.shadowRoot.querySelector('ul.extended-menu');
+        const menuStart = this.shadowRoot.querySelector('a.extended-menu-link');
+
+        if (menu === null || menuStart === null) {
+            return;
+        }
+
+        menu.classList.toggle('hidden');
+
+        if (!menu.classList.contains('hidden')) {
+            // add event listener for clicking outside of menu
+            document.addEventListener('click', this.boundCloseAdditionalMenuHandler);
+            this.initateOpenAdditionalMenu = true;
+        } else {
+            document.removeEventListener('click', this.boundCloseAdditionalMenuHandler);
+        }
+    }
+
+    hideAdditionalMenu() {
+        if (this.initateOpenAdditionalMenu) {
+            this.initateOpenAdditionalMenu = false;
+            return;
+        }
+        const menu = this.shadowRoot.querySelector('ul.extended-menu');
+        if (menu && !menu.classList.contains('hidden')) this.toggleMoreMenu();
+    }
+
     static get styles() {
         // language=css
         return css`
@@ -958,7 +996,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding-bottom: 20px;
             }
 
-            .table-wrapper {
+            .export-buttons {
                 padding-top: 1rem;
             }
 
@@ -1022,14 +1060,98 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
             }
 
+            .additional-menu {
+                display: none;
+            }
+
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
-                .nextcloud-nav {
-                    font-size: 1.2rem;
+                .export-buttons {
+                    display: none;
                 }
 
                 .select-all-icon {
                     height: 32px;
+                }
+
+                .additional-menu {
+                    display: block;
+                    white-space: nowrap;
+                    height: 33px;
+                    position: inherit; /** absolute */
+                    /** margin-right: -12px; */
+                }
+
+                .additional-menu button {
+                    float: right;
+                }
+
+                .extended-menu-link {
+                    padding: 7px;
+                }
+
+                .extended-breadcrumb-menu li a {
+                    max-width: none;
+                    display: inline;
+                }
+
+                .extended-menu li {
+                    padding: 7px;
+                    padding-right: 46px;
+                }
+    
+                .extended-menu a.inactive {
+                    color: var(--dbp-muted);
+                    pointer-events: none;
+                    cursor: default;
+                }
+    
+                .extended-menu a {
+                    padding: 8px;
+                }
+    
+                .extended-menu {
+                    list-style: none;
+                    border: var(--dbp-border);
+                    position: absolute;
+                    background-color: var(--dbp-background);
+                    z-index: 1000;
+                    right: 12px;
+                    border-radius: var(--dbp-border-radius);
+                    padding: 0;
+                    margin: 4px 0 0 0;
+                }
+    
+                .extended-menu li.active {
+                    background-color: var(--dbp-content-surface);
+                }
+    
+                .extended-menu li.active > a {
+                    color: var(--dbp-on-content-surface);
+                }
+    
+                .extended-menu li.inactive > a {
+                    color: var(--dbp-muted);
+                    pointer-events: none;
+                    cursor: default;
+                }
+
+                .nextcloud-nav {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                }
+
+                .back-navigation {
+                    padding-top: 0;
+                }
+
+                .back-navigation::before {
+                    mask-position: center 44%;
+                }
+
+                .border-wrapper {
+                    margin: 0;
                 }
             }
         `;
@@ -1077,24 +1199,49 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="border-wrapper"></div>
 
-                <div class="nextcloud-nav ${classMap({hidden: !this.showSubmissionsTable})}">
-                    <span class="back-navigation">
-                        <a
-                            @click="${() => {
-                                this.showSubmissionsTable = false;
-                                this.submissionsTable.clearData();
-                            }}"
-                            title="${i18n.t('show-registrations.back-text')}">
-                            ${i18n.t('show-registrations.back-text')}
-                        </a>
-                    </span>
-                </div>
-
                 <div class="table-wrapper ${classMap({hidden: this.showSubmissionsTable })}">
                     <table id="courses-table"></table>
                 </div>
 
                 <div class="table-wrapper ${classMap({hidden: !this.showSubmissionsTable })}">
+                    <div class="nextcloud-nav ${classMap({hidden: !this.showSubmissionsTable})}">
+                        <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
+                            <a
+                                @click="${() => {
+                                    this.showSubmissionsTable = false;
+                                    this.submissionsTable.clearData();
+                                }}"
+                                title="${i18n.t('show-registrations.back-text')}">
+                                ${i18n.t('show-registrations.back-text')}
+                            </a>
+                        </span>
+                        <div class="additional-menu ${classMap({hidden: !this.showSubmissionsTable })}">
+                            <a class="extended-menu-link"
+                                @click="${() => {
+                                    this.toggleMoreMenu();
+                                }}"
+                                title="${i18n.t('nextcloud-file-picker.more-menu')}">
+                                <dbp-icon name="menu-dots" class="more-menu"></dbp-icon>
+                            </a>
+                            <ul class="extended-menu hidden">
+                                <li class="${classMap({active: false})}">
+                                    <a class="" @click="${this.showSearchModal}">
+                                        ${i18n.t('show-registrations.searchbar-placeholder')}
+                                    </a>
+                                </li>
+                                <li class="${classMap({active: false})}">
+                                    <a class="" @click="${this.showExportModal}">
+                                        ${i18n.t('show-registrations.default-export-select')}
+                                    </a>
+                                </li>
+                                <li class="${classMap({active: false})}">
+                                    <a class="" @click="${this.openModal}">
+                                        ${i18n.t('show-registrations.filter-options-button-text')}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                     <div class="export-buttons">
                         <div class="search-wrapper">
                             <select id="search-select">
