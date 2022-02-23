@@ -19,8 +19,6 @@ import metadata from './dbp-formalize-show-registrations.metadata.json';
 window.XLSX = XLSX;
 
 
-
-
 class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
         super();
@@ -39,6 +37,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.dragList = [];
         this.initateOpenAdditionalMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
+        this.dragPos = 0;
     }
 
     static get scopedElements() {
@@ -243,15 +242,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             */
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout:"fitDataStretch",
+                layout: "fitDataFill",
+                virtualDomHoz: true,
                 movableColumns: true,
-                responsiveLayout:"collapse",
-                responsiveLayoutCollapseStartOpen: false,
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
                 placeholder: i18n.t('show-registrations.no-data'),
-                resizableColumns: false,
                 autoColumns: true,
+                resizableColumns: false,
                 pagination: 'local',
                 paginationSize: 10,
                 downloadRowRange: 'selected',
@@ -265,12 +263,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         formatter: 'responsiveCollapse',
                     },
 
-                ],
-                initialSort: [
-                    {
-                        column: 'dateCreated', 
-                        dir: 'desc'
-                    },
                 ],
                 rowSelectionChanged: (data, rows) => {
                     if (this.submissionsTable && this.submissionsTable.getSelectedRows().length > 0) {
@@ -303,7 +295,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         this.changePaginationButtonText();
 
-                        this.submissionsTable.addColumn(     {
+                      /*  this.submissionsTable.addColumn(     {
                             title:
                                 '<label id="select_all_wrapper" class="button-container select-all-icon">' +
                                 '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
@@ -316,9 +308,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             sortable:false,
                             formatter: 'responsiveCollapse',
                             visible: true,
-                        }, true);
-                        this.submissionsTable.addColumn({
-                            title: 'Actions',
+                        }, true);*/
+                        /*this.submissionsTable.addColumn({
+                            title:'<label id="select_all_wrapper" class="button-container select-all-icon">' +
+                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
+                                '<span class="checkmark" id="select_all_checkmark"></span>' +
+                                '</label>',
+                            align: 'center',
                             field: 'no_display_2',
                             width: 100,
                             formatter: 'html',
@@ -326,18 +322,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             headerSort:false,
                             sortable:false,
                             visible: true,
-                        }, true);
+                        }, true);*/
 
 
-                        if (this._('#select_all')) {
+                      /*  if (this._('#select_all')) {
                             let boundSelectHandler = this.selectAllSubmissions.bind(this);
                             this._('#select_all').addEventListener('click', boundSelectHandler);
-                        }
+                        }*/
 
-                        this.addToggleEvent();
+                       // this.addToggleEvent();
 
                         this.updateTableHeaderList();
-                        this.createHeaderList();
+                       // this.createHeaderList();
 
                     }
                 },
@@ -410,7 +406,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     changePaginationButtonText() {
         const i18n = this._i18n;
         
-        var elements = [ 
+        let elements = [
             this._('#courses-table > .tabulator-footer > .tabulator-paginator').childNodes,
             this._('#submissions-table > .tabulator-footer > .tabulator-paginator').childNodes
         ];
@@ -530,16 +526,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
-    getListOfAllCourses() {
-        const i18n = this._i18n;
+    async getListOfAllCourses() {
+        /*const i18n = this._i18n;
         
-        const button_tag = this.getScopedTagName('dbp-loading-button');    
+        const button_tag = this.getScopedTagName('dbp-loading-button');
         let button = `<${button_tag} name="" class="" id="summercourses-btn">` + i18n.t('show-registrations.show-submission-btn-text') + `</${button_tag}>`;
         let div = getShadowRootDocument(this).createElement('div');
-        div.innerHTML = button;
+        div.innerHTML = button;*/
 
         // Simulate fetching table data (xml)
-        var tabledata = [
+        /*var tabledata = [
             {id:1, name:"Sommerkurse", date:"01/03/2022", type:div}
         ];
         
@@ -547,7 +543,61 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.requestAllCourseSubmissions();
             event.stopPropagation();
         });
-        return tabledata;
+        return tabledata;*/
+
+        //TODO cache this data
+        let dataList = [];
+        let response = await this.getAllSubmissions();
+        let data = await response.json();
+
+        if (!data || !data["hydra:member"]) {
+            this.showSubmissionsTable = true;
+            return;
+        }
+
+        const i18n = this._i18n;
+
+
+        let id = 1;
+        let courses = [];
+        for(let x = 0; x <= data["hydra:member"].length; x++) {
+
+            if (x === data["hydra:member"].length) {
+                this.coursesTable.setData(dataList);
+                return;
+            }
+            let entry = data["hydra:member"][x];
+            try {
+
+                //let id = entry["@id"];
+
+                let name = entry["form"];
+
+                if (!name || courses.length > 0 && courses.includes(name)) {
+                    continue;
+                }
+                let date = entry["dateCreated"];
+
+                const button_tag = this.getScopedTagName('dbp-loading-button');
+                let button = `<${button_tag} name="" class="" id="courses-btn">` + i18n.t('show-registrations.show-submission-btn-text') + `</${button_tag}>`;
+                let div = getShadowRootDocument(this).createElement('div');
+                div.innerHTML = button;
+
+                div.firstChild.addEventListener("click", event => {
+                    this.requestAllCourseSubmissions(name);
+                    event.stopPropagation();
+                });
+
+                let course = {id:id, name:name, date:date, type:div};
+                id++;
+                courses.push(name);
+
+                dataList.push(course);
+            } catch(e) {
+                console.log('error');
+            }
+
+        }
     }
 
     /**
@@ -588,18 +638,47 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions/' + identifier, options);
     }
 
-    requestCourses() {
-        this.coursesTable.setData(this.getListOfAllCourses());
+    async requestCourses() {
+
+        await this.getListOfAllCourses();
+        //this.coursesTable.setData(this.getListOfAllCourses());
     }
     
-    async requestAllCourseSubmissions() {
+    async requestAllCourseSubmissions(name) {
         let dataList2 = [];
         let response = await this.getAllSubmissions();
         let data = await response.json();
-        
+        console.log(data);
+
+        if (!data || !data["hydra:member"]) {
+            this.showSubmissionsTable = true;
+            return;
+        }
+
         console.log("data: ", data["hydra:member"]);
 
-        data["hydra:member"].forEach(entry => {
+        for(let x = 0; x <= data["hydra:member"].length; x++) {
+            if (x === data["hydra:member"].length) {
+                this.submissionsTable.setData(dataList2);
+                console.log(dataList2);
+                this.showSubmissionsTable = true;
+                return;
+            }
+            let entry = data["hydra:member"][x];
+            try {
+                if(entry && entry["form"] !== name)
+                    continue;
+                console.log("entry: ", entry);
+
+                let json = JSON.parse(entry["dataFeedElement"]);
+                dataList2.push(json);
+            } catch(e) {
+                 console.log('error');
+            }
+
+        }
+
+        /*data["hydra:member"].forEach(entry => {
             // let id = entry["@id"].split('/')[3]; //TODO
             // console.log('id:', id);
 
@@ -622,13 +701,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             try {
                 let json = JSON.parse(entry["dataFeedElement"]);
-                dataList2.push(json["dataFeedElement"]);
+                dataList2.push(json);
             } catch(e) {
                 // console.log('error');
             }
         });
         this.submissionsTable.setData(dataList2);
-        this.showSubmissionsTable = true;
+        this.showSubmissionsTable = true;*/
     }
 
     async requestDetailedSubmission(identifier) {
@@ -743,7 +822,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.createList();
     }
 
-
+/*
     createList() {
         const draggable_list = this._('#draggable-list');
         const check = this._('#check');
@@ -761,10 +840,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 listItem.setAttribute('data-index', index);
 
                 listItem.innerHTML = `
-                    <span class="number">${index + 1}</span>
                     <div class="draggable" draggable="true">
+                      <span class="number">${index + 1}</span>
                       <p class="col-name">${col}</p>
-                      <i class="fas fa-grip-lines"></i>
                     </div>
                   `;
                 this.dragList.push(listItem);
@@ -776,27 +854,39 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     dragStart(e) {
-        //console.log("---------e", e);
+        console.log("---------e", e);
         this.dragStartIndex = +e.originalTarget.closest('li').getAttribute('data-index');
+
+        e.target.style.backgroundColor = 'green';
+
     }
 
-    dragEnter() {
-        //console.log('Event: ', 'dragenter');
+    dragEnter(e) {
+        console.log('Event: ', 'dragenter');
+        const dragEnterIndex = +e.originalTarget.closest('li').getAttribute('data-index');
+        if (dragEnterIndex !== this.dragStartIndex) {
+            this.swapItems(this.dragStartIndex, dragEnterIndex);
+            this.dragStartIndex = dragEnterIndex;
+        }
+        this.dragPos = dragEnterIndex;
         this.classList.add('over');
     }
 
-    dragLeave() {
-        //console.log('Event: ', 'dragleave');
+    dragLeave(e) {
+        console.log('Event: ', 'dragleave', e);
         this.classList.remove('over');
+        // first item
+        if (this.dragPos === this.dragList.length)
     }
 
     dragOver(e) {
-        //console.log('Event: ', 'dragover');
+        console.log('Event: ', 'dragover');
         e.preventDefault();
     }
 
     dragDrop(e) {
-        //console.log('Event: ', 'drop');
+        console.log('Event: ', 'drop');
+        e.target.style.backgroundColor = 'white';
 
         const dragEndIndex = +e.originalTarget.closest('li').getAttribute('data-index');
         this.swapItems(this.dragStartIndex, dragEndIndex);
@@ -853,6 +943,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             item.addEventListener('dragleave', this.dragLeave.bind(this), false);
         });
     }
+    */
+
 
     openModal() {
         let modal = this._('#submission-modal');
@@ -910,175 +1002,184 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         // language=css
         return css`
             ${commonStyles.getThemeCSS()}
-            ${commonStyles.getGeneralCSS(false)}
+          
             ${commonStyles.getModalDialogCSS()}
             ${commonStyles.getRadioAndCheckboxCss()}
+            ${commonStyles.getGeneralCSS(false)}
+            ${fileHandlingStyles.getFileHandlingCss()}
+            
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
-            ${fileHandlingStyles.getFileHandlingCss()}
+            
             ${fileHandlingStyles.getDragListCss()}
             ${commonStyles.getButtonCSS()}
 
-            .scrollable-table-wrapper {
-                width: 100%;
+            .hideWithoutDisplay {
+                opacity: 0;
+                height: 0px;
+                overflow: hidden;
             }
 
-            .tabulator-table {
-                overflow: auto;
-                white-space: nowrap;
-            }
-
-            .tabulator-row {
-                overflow: auto;
-            }
-
-            .back-navigation {
-                padding-top: 1rem;
-            }
-
-            .back-navigation {
-                color: var(--dbp-border);
-                /* border-bottom: 1px solid var(--dbp-content); */
-            }
-
-            .back-navigation:before {
-                content: '\\00a0\\00a0\\00a0';
-                background-color: var(--dbp-content);
-                -webkit-mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
-                mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
-                -webkit-mask-repeat: no-repeat;
-                mask-repeat: no-repeat;
-                -webkit-mask-position: center -2px;
-                mask-position: center 37%;
-                margin: 0 0 0 4px;
-                padding: 0 0 0.25% 0;
-                -webkit-mask-size: 100%;
-                mask-size: 120%;
-            }
-
-            .back-navigation:hover {
-                color: var(--dbp-hover-color, var(--dbp-content));
-                border-color: var(--dbp-hover-color, var(--dbp-content));
-                background-color: var(--dbp-hover-background-color);
-            }
-
-            .back-navigation:hover::before {
-                background-color: var(--dbp-hover-color, var(--dbp-content));
-            }
-
-            .export-buttons {
-                display: flex;
-                flex-direction: row;
-                justify-content: flex-end;
-                gap: 4px;
-            }
-
-            .dragAndDropList {
-                overflow: auto;
-            }
-
-            .modal-container {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                text-align: center;
-                height: unset;
-            }
-
-            #submission-modal-content {
-                overflow: scroll;
-                align-items: baseline;
-            }
-            
-            .modal-footer-btn {
-                float: right;
-                padding-right: 20px;
-                padding-bottom: 20px;
-            }
-
-            .export-buttons {
-                padding-top: 1rem;
-            }
-
-            .border-wrapper {
-                margin-top: 2rem;
-                padding-top: 1rem;
-                border-top: var(--dbp-border);
-            }
-
-            .button-container input[type="checkbox"] {
-                position: inherit;
-            }
-
-            .button-container .checkmark::after {
-                left: 6px;
-                top: 2px;
-                width: 5px;
-                height: 11px;
-            }
-
-            select-all-icon {
-                height: 30px;
-            }
-
-            .checkmark {
-                height: 20px;
-                width: 20px;
-                left: 11px;
-                top: 1px; /*4px*/
-            }
-
-            #courses-table .tabulator-cell[tabulator-field="type"] {
-                padding: 0;
-            }
-
-            #courses-table .tabulator-cell {
-                height: 33px;
-            }
-
-            span.first {
-                margin-left: -6px;
-            }
-
-            select:not(.select) {
-                background-size: 13px;
-                background-position-x: calc(100% - 0.4rem);
-                padding-right: 1.3rem;
-                height: 26px;
-            }
-
-            select[disabled] {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
-
-            #searchbar {
-                height: 27px;
-            }
-
-            .search-wrapper {
-                display: flex;
-            }
-
-            .additional-menu {
-                display: none;
-            }
-
-            @media only screen and (orientation: portrait) and (max-width: 768px) {
-
-                .export-buttons {
-                    display: none;
-                }
-
-                .select-all-icon {
-                    height: 32px;
-                }
-
-                .additional-menu {
-                    display: block;
-                    white-space: nowrap;
-                    height: 33px;
-                    position: inherit; /** absolute */
+             .scrollable-table-wrapper {
+                 width: 100%;
+             }
+ 
+             .tabulator-table {
+                 overflow: auto;
+                 white-space: nowrap;
+             }
+ 
+             .tabulator-row {
+                 overflow: auto;
+             }
+ 
+             .back-navigation {
+                 padding-top: 1rem;
+             }
+ 
+             .back-navigation {
+                 color: var(--dbp-border);
+                 
+             }
+ 
+             .back-navigation:before {
+                 content: '\\00a0\\00a0\\00a0';
+                 background-color: var(--dbp-content);
+                 -webkit-mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
+                 mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
+                 -webkit-mask-repeat: no-repeat;
+                 mask-repeat: no-repeat;
+                 -webkit-mask-position: center -2px;
+                 mask-position: center 37%;
+                 margin: 0 0 0 4px;
+                 padding: 0 0 0.25% 0;
+                 -webkit-mask-size: 100%;
+                 mask-size: 120%;
+             }
+ 
+             .back-navigation:hover {
+                 color: var(--dbp-hover-color, var(--dbp-content));
+                 border-color: var(--dbp-hover-color, var(--dbp-content));
+                 background-color: var(--dbp-hover-background-color);
+             }
+ 
+             .back-navigation:hover::before {
+                 background-color: var(--dbp-hover-color, var(--dbp-content));
+             }
+ 
+             .export-buttons {
+                 display: flex;
+                 flex-direction: row;
+                 justify-content: flex-end;
+                 gap: 4px;
+             }
+ 
+             .dragAndDropList {
+                 overflow: auto;
+             }
+ 
+             .modal-container {
+                 display: flex;
+                 flex-direction: column;
+                 justify-content: space-between;
+                 text-align: center;
+                 height: unset;
+             }
+ 
+             #submission-modal-content {
+                 overflow: scroll;
+                 align-items: baseline;
+             }
+             
+             .modal-footer-btn {
+                 float: right;
+                 padding-right: 20px;
+                 padding-bottom: 20px;
+             }
+ 
+             .export-buttons {
+                 padding-top: 1rem;
+             }
+ 
+             .border-wrapper {
+                 margin-top: 2rem;
+                 padding-top: 1rem;
+                 border-top: var(--dbp-border);
+             }
+ 
+             .button-container input[type="checkbox"] {
+                 position: inherit;
+             }
+ 
+             .button-container .checkmark::after {
+                 left: 6px;
+                 top: 2px;
+                 width: 5px;
+                 height: 11px;
+             }
+ 
+             select-all-icon {
+                 height: 30px;
+             }
+ 
+             .checkmark {
+                 height: 20px;
+                 width: 20px;
+                 left: 11px;
+                 top: 1px; 
+             }
+ 
+             #courses-table .tabulator-cell[tabulator-field="type"] {
+                 padding: 0;
+             }
+ 
+             #courses-table .tabulator-cell {
+                 height: 33px;
+             }
+ 
+             span.first {
+                 margin-left: -6px;
+             }
+ 
+             select:not(.select) {
+                 background-size: 13px;
+                 background-position-x: calc(100% - 0.4rem);
+                 padding-right: 1.3rem;
+                 height: 26px;
+             }
+ 
+             select[disabled] {
+                 opacity: 0.4;
+                 cursor: not-allowed;
+             }
+ 
+             #searchbar {
+                 height: 27px;
+             }
+ 
+             .search-wrapper {
+                 display: flex;
+             }
+ 
+             .additional-menu {
+                 display: none;
+             }
+ 
+             @media only screen and (orientation: portrait) and (max-width: 768px) {
+ 
+                 .export-buttons {
+                     display: none;
+                 }
+ 
+                 .select-all-icon {
+                     height: 32px;
+                 }
+ 
+                 .additional-menu {
+                     display: block;
+                     white-space: nowrap;
+                     height: 33px;
+                     position: inherit; /** absolute */
                     /** margin-right: -12px; */
                 }
 
@@ -1164,7 +1265,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             'tabulator-tables/css/tabulator.min.css'
         );
 
-        if (this.coursesTable) {
+        if (this.coursesTable && this.isLoggedIn()) {
             this.requestCourses();
         }
 
@@ -1203,7 +1304,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <table id="courses-table"></table>
                 </div>
 
-                <div class="table-wrapper ${classMap({hidden: !this.showSubmissionsTable })}">
+                <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable })}">
                     <div class="nextcloud-nav ${classMap({hidden: !this.showSubmissionsTable})}">
                         <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
                             <a
@@ -1260,7 +1361,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
                             <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                         </select>
-                        <dbp-loading-button id="download-pdf" @click="${() => {this.openModal();}}">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>
+                        <!--<dbp-loading-button id="download-pdf" @click="${() => {this.openModal();}}">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>-->
                     </div>
                     <div class="scrollable-table-wrapper">   
                         <table id="submissions-table"></table>

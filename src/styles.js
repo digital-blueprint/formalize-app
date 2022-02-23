@@ -50,6 +50,12 @@ export function getDragListCss() {
             flex: 1;
         }
 
+        .draggable {
+            cursor: move;
+            user-select: none;
+            border: 3px solid deeppink;
+        }
+
         .check-btn {
             background-color: var(--dbp-background);
             border: none;
@@ -286,9 +292,7 @@ export function getFileHandlingCss() {
             padding-bottom: 10px;
         }
 
-        .tabulator .tabulator-tableHolder {
-            overflow: hidden;
-        }
+   
 
         .tabulator .tabulator-tableHolder .tabulator-placeholder span {
             font-size: inherit;
