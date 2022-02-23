@@ -243,7 +243,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             */
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout: "fitDataFill",
+                layout: "fitData",
                 virtualDomHoz: true,
                 movableColumns: true,
                 selectable: this.maxSelectedItems,
@@ -265,71 +265,39 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     },
 
                 ],
-                rowSelectionChanged: (data, rows) => {
-                    if (this.submissionsTable && this.submissionsTable.getSelectedRows().length > 0) {
-                        this._('#export-select').disabled = false;
-                    } else {
-                        this._('#export-select').disabled = true;
-                    }
-                    if (this._('#select_all_checkmark')) {
-                        this._('#select_all_checkmark').title = this.checkAllSelected()
-                            ? i18n.t('show-registrations.select-nothing')
-                            : i18n.t('show-registrations.select-all');
-                    }
-                    this.requestUpdate();
-                },
-                rowClick: (e, row) => {
-                    if (!row.getElement().classList.contains('no-select')) {
-                        if (this.submissionsTable !== null && 
-                            this.submissionsTable.getSelectedRows().length === this.submissionsTable.getRows().length
-                        ) {
-                            this._('#select_all').checked = true;
-                        } else {
-                            this._('#select_all').checked = false;
-                        }
-                    } else {
-                        row.deselect();
-                    }
-                },
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
 
                         this.changePaginationButtonText();
 
-                      /*  this.submissionsTable.addColumn(     {
-                            title:
-                                '<label id="select_all_wrapper" class="button-container select-all-icon">' +
-                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
-                                '<span class="checkmark" id="select_all_checkmark"></span>' +
-                                '</label>',
-                            align: 'center',
-                            field: 'no_display_1',
-                            resizable: false,
-                            headerSort: false,
-                            sortable:false,
-                            formatter: 'responsiveCollapse',
-                            visible: true,
-                        }, true);*/
+                        const openIcon = function(cell, formatterParams) {
+                            const icon_tag = that.getScopedTagName('dbp-icon');
+                            let html =`<div class="button action-button"><${icon_tag} name="exit-up"></${icon_tag} ></div>`;
+                            let div = getShadowRootDocument(that).createElement('div');
+                            div.innerHTML = html;
+                            return div;
+                        };
+
+                        const openIconClick = function(e, cell) {
+                            console.log(cell.getData());
+                            // TODO this are the modal data
+                        };
+
+                        const that = this;
                         this.submissionsTable.addColumn({
-                            title:'<label id="select_all_wrapper" class="button-container select-all-icon">' +
-                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
-                                '<span class="checkmark" id="select_all_checkmark"></span>' +
-                                '</label>',
+                            title: "Actions",
                             align: 'center',
-                            field: 'no_display_2',
+                            field: 'actions',
                             width: 100,
-                            formatter: 'html',
                             download: false,
                             headerSort:false,
                             sortable:false,
                             visible: true,
+                            formatter: openIcon,
+                            cellClick: openIconClick,
                         }, true);
 
-
-                        if (this._('#select_all')) {
-                            let boundSelectHandler = this.selectAllSubmissions.bind(this);
-                            this._('#select_all').addEventListener('click', boundSelectHandler);
-                        }
+                       // let rows = this.submissionsTable.getRows();
 
                        // this.addToggleEvent();
 
