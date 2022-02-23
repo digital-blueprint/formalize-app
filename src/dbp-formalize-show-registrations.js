@@ -38,6 +38,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.initateOpenAdditionalMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.dragPos = 0;
+        this.activeCourse = '';
     }
 
     static get scopedElements() {
@@ -309,7 +310,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             formatter: 'responsiveCollapse',
                             visible: true,
                         }, true);*/
-                        /*this.submissionsTable.addColumn({
+                        this.submissionsTable.addColumn({
                             title:'<label id="select_all_wrapper" class="button-container select-all-icon">' +
                                 '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
                                 '<span class="checkmark" id="select_all_checkmark"></span>' +
@@ -322,13 +323,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             headerSort:false,
                             sortable:false,
                             visible: true,
-                        }, true);*/
+                        }, true);
 
 
-                      /*  if (this._('#select_all')) {
+                        if (this._('#select_all')) {
                             let boundSelectHandler = this.selectAllSubmissions.bind(this);
                             this._('#select_all').addEventListener('click', boundSelectHandler);
-                        }*/
+                        }
 
                        // this.addToggleEvent();
 
@@ -648,19 +649,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let dataList2 = [];
         let response = await this.getAllSubmissions();
         let data = await response.json();
-        console.log(data);
 
         if (!data || !data["hydra:member"]) {
             this.showSubmissionsTable = true;
             return;
         }
 
-        console.log("data: ", data["hydra:member"]);
-
         for(let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data["hydra:member"].length) {
                 this.submissionsTable.setData(dataList2);
-                console.log(dataList2);
+                this.activeCourse = name;
                 this.showSubmissionsTable = true;
                 return;
             }
@@ -668,7 +666,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             try {
                 if(entry && entry["form"] !== name)
                     continue;
-                console.log("entry: ", entry);
 
                 let json = JSON.parse(entry["dataFeedElement"]);
                 dataList2.push(json);
@@ -1305,6 +1302,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
 
                 <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable })}">
+                    <h3>${this.activeCourse}</h3>
                     <div class="nextcloud-nav ${classMap({hidden: !this.showSubmissionsTable})}">
                         <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
                             <a
