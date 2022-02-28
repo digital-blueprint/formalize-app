@@ -18,7 +18,8 @@
         "pagination-btn-next": "Nächste",
         "pagination-btn-prev": "Vorherige",
         "pagination-btn-last": "Letzte",
-        "search-all-columns": "Alle Spalten"
+        "search-all-columns": "Alle Spalten",
+        "detailed-submission-dialog-title": "Submission: {{lastName}} {{firstName}}"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."

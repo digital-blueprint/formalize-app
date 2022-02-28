@@ -270,6 +270,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         this.changePaginationButtonText();
 
+
                         const openIcon = function(cell, formatterParams) {
                             const icon_tag = that.getScopedTagName('dbp-icon');
                             let html =`<div class="button action-button"><${icon_tag} name="exit-up"></${icon_tag} ></div>`;
@@ -297,7 +298,41 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             cellClick: openIconClick,
                         }, true);
 
-                       // let rows = this.submissionsTable.getRows();
+                      /*  this.submissionsTable.addColumn(     {
+                            title:
+                                '<label id="select_all_wrapper" class="button-container select-all-icon">' +
+                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
+                                '<span class="checkmark" id="select_all_checkmark"></span>' +
+                                '</label>',
+                            align: 'center',
+                            field: 'no_display_1',
+                            resizable: false,
+                            headerSort: false,
+                            sortable:false,
+                            formatter: 'responsiveCollapse',
+                            visible: true,
+                        }, true);*/
+                        /*this.submissionsTable.addColumn({
+                            title:'<label id="select_all_wrapper" class="button-container select-all-icon">' +
+                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
+                                '<span class="checkmark" id="select_all_checkmark"></span>' +
+                                '</label>',
+                        }, true);*/
+
+                        this.submissionsTable.deleteColumn('actions');
+                        this.submissionsTable.addColumn({
+                            title: "actions",
+                            field: "actions",
+                            width: 100,
+                            formatter: "html",
+                            align: 'center',
+                            /*frozen: true*/
+                        });
+
+                        // if (this._('#select_all')) {
+                        //     let boundSelectHandler = this.selectAllSubmissions.bind(this);
+                        //     this._('#select_all').addEventListener('click', boundSelectHandler);
+                        // }
 
                        // this.addToggleEvent();
 
@@ -625,54 +660,48 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         for(let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data["hydra:member"].length) {
+                console.log(dataList2);
                 this.submissionsTable.setData(dataList2);
                 this.activeCourse = name;
                 this.showSubmissionsTable = true;
                 return;
             }
             let entry = data["hydra:member"][x];
+            let id = entry["@id"].split('/')[3]; //TODO
+
+            const button_tag = this.getScopedTagName('dbp-icon');    
+            let button = `<${button_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${button_tag}>`; //enter
+            let div = getShadowRootDocument(this).createElement('div');
+            div.innerHTML = button;
+            
+            div.firstChild.addEventListener("click", event => {
+                this.requestDetailedSubmission(id);
+                let path = '';
+                if (id === event.target.id) {
+                    path = id;
+                }
+                event.stopPropagation();
+            });
+            // entry['type'] = div;
+
+            // try {
+            //     let json = JSON.parse(entry["dataFeedElement"]);
+            //     json['actions'] = div;
+            //     dataList2.push(json);
+            // } catch(e) {
+            // }
             try {
                 if(entry && entry["form"] !== name)
                     continue;
 
                 let json = JSON.parse(entry["dataFeedElement"]);
+                json['actions'] = div;
                 dataList2.push(json);
             } catch(e) {
                  console.log('error');
             }
 
         }
-
-        /*data["hydra:member"].forEach(entry => {
-            // let id = entry["@id"].split('/')[3]; //TODO
-            // console.log('id:', id);
-
-            // const button_tag = this.getScopedTagName('dbp-loading-button');    
-            // let button = `<${button_tag} name="" class="" id="` + id + `">Show</${button_tag}>`;
-            // let div = getShadowRootDocument(this).createElement('div');
-            // div.innerHTML = button;
-            
-            // div.firstChild.addEventListener("click", event => {
-            //     this.requestDetailedSubmission(id);
-            //     console.log('event target id:', event.target.id);
-            //     let path = '';
-            //     if (id === event.target.id) {
-            //         path = id;
-            //     }
-            //     event.stopPropagation();
-            // });
-
-            // entry['type'] = div;
-
-            try {
-                let json = JSON.parse(entry["dataFeedElement"]);
-                dataList2.push(json);
-            } catch(e) {
-                // console.log('error');
-            }
-        });
-        this.submissionsTable.setData(dataList2);
-        this.showSubmissionsTable = true;*/
     }
 
     async requestDetailedSubmission(identifier) {
@@ -681,18 +710,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let response = await this.getSubmissionForId(identifier);
         let data = await response.json();
 
-        console.log("data: ", data);
-        console.log("dataFeedElement: ", data["dataFeedElement"]);
+        let json = JSON.parse(data["dataFeedElement"]);
+        this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', {lastName: json["last_name"], firstName: json["first_name"]});
 
-        this._('#submission-modal-title').innerText = i18n.t('show-registrations.submission-dialog-title', {id: identifier});
-        this._('.submission-modal-content-wrapper').innerText = data["dataFeedElement"];
+        Object.keys(json).forEach(key => {
+            this._('.detailed-submission-modal-content-wrapper > div.left').innerHTML += `<div class="element-left">` + key + `:</div>`;
+            if (json[key] !== '') {
+                this._('.detailed-submission-modal-content-wrapper > div.right').innerHTML += `<div class="element-right">` + json[key] + `</div>`;
+            } else {
+                this._('.detailed-submission-modal-content-wrapper > div.right').innerHTML += `<div class="element-right">/</div>`;
+            }
+        });
 
-
+        this.showDetailedModal();
     }
 
     exportPdf() {
-
-
         this.submissionsTable.download("pdf", "data.pdf", {
             orientation:"portrait", //set page orientation to portrait
             autoTable:function(doc){
@@ -910,7 +943,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
     */
 
-
     openModal() {
         let modal = this._('#submission-modal');
         if (modal) {
@@ -933,6 +965,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     showExportModal() {
         //TODO
+    }
+
+    showDetailedModal() {
+        let modal = this._('#detailed-submission-modal');
+        if (modal) {
+            MicroModal.show(modal, {
+
+            });
+        }
     }
 
     toggleMoreMenu() {
@@ -978,6 +1019,47 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
             ${fileHandlingStyles.getDragListCss()}
             ${commonStyles.getButtonCSS()}
+
+            .open-modal-icon {
+                font-size: 1.5em;
+            }
+
+            #modal-export-select {
+                height: 33px;
+            }
+
+            .detailed-submission-modal-content-wrapper {
+                display: grid;
+                grid-template-columns: min-content auto;
+                /*grid-template-rows: auto;
+                grid-gap: 5px;*/
+                margin: 10px 60px 0 60px;
+                grid-template-rows: auto;
+            }
+
+            .detailed-submission-modal-content-wrapper div.left {
+                background-color: var(--dbp-primary-surface);
+                color: var(--dbp-on-primary-surface);
+                padding: 10px 20px 0 20px;
+                text-align: right;
+            }
+
+            .detailed-submission-modal-content-wrapper div.right {
+                padding: 10px 0 0 0;
+                text-align: left;
+                margin-left: 12px;
+            }
+
+            .element-left {
+                padding: 2px 0px;
+            }
+            
+            .element-right {
+                padding-top: 2px;
+                padding-bottom: 2px;
+                /*padding-bottom: 1px;
+                border-bottom: 1px dotted var(--dbp-primary-surface);*/
+            }
 
             .hideWithoutDisplay {
                 opacity: 0;
@@ -1059,7 +1141,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              .modal-footer-btn {
                  float: right;
                  padding-right: 20px;
-                 padding-bottom: 20px;
+                 padding-bottom: 30px;
              }
  
              .export-buttons {
@@ -1371,6 +1453,50 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal micromodal-slide" id="detailed-submission-modal" aria-hidden="true">
+                <div class="modal-overlay" tabindex="-2" data-micromodal-close>
+                    <div
+                        class="modal-container"
+                        id="detailed-submission-modal-box"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="detailed-submission-modal-title">
+                        <header class="modal-header">
+                            <button
+                                title="${i18n.t('show-registrations.modal-close')}"
+                                class="modal-close"
+                                aria-label="Close modal"
+                                @click="${() => {
+                                    MicroModal.close(this._('#detailed-submission-modal'));
+                                }}">
+                                <dbp-icon
+                                    title="${i18n.t('show-registrations.modal-close')}"
+                                    name="close"
+                                    class="close-icon"></dbp-icon>
+                            </button>
+                            <h3 id="detailed-submission-modal-title">
+                            </h3>
+                        </header>
+                        <main class="modal-content" id="detailed-submission-modal-content">
+                            <div class="detailed-submission-modal-content-wrapper">
+                                <div class="left"></div>
+                                <div class="right"></div>
+                            </div>
+                        </main>
+                        <footer class="modal-footer">
+                            <div class="modal-footer-btn">
+                            <select id="modal-export-select">
+                                <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
+                                <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
+                                <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
+                                <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
+                            </select>
                             </div>
                         </footer>
                     </div>
