@@ -137,7 +137,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout: "fitData",
+                layout:"fitDataFill",
                 movableColumns: true,
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
@@ -722,7 +722,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.submissionsColumns.push({name: name, field: field, visibility: 1});
             }
         });
-
     }
 
     getTableHeaderOptions() {
@@ -740,71 +739,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return options;
     }
 
-    createHeaderList() {
-        if (this.submissionsColumns.length <= 0)
-        {
-            this.closeModal();
-            console.log("Header list empty");
-            return;
-        }
-        this.createList();
-    }
-
-/*
-    createList() {
-        const draggable_list = this._('#draggable-list');
-        const check = this._('#check');
-        if (!draggable_list || !check)
-        {
-            this.closeModal();
-            console.log("Error");
-            return;
-        }
-
-        [...this.submissionsColumns]
-            .forEach((col, index) => {
-                const listItem = document.createElement('li');
-
-                listItem.setAttribute('data-index', index);
-
-                listItem.innerHTML = `
-                    <div class="draggable" draggable="true">
-                      <span class="number">${index + 1}</span>
-                      <p class="col-name">${col}</p>
-                    </div>
-                  `;
-                this.dragList.push(listItem);
-
-                draggable_list.appendChild(listItem);
-            });
-
-        this.addEventListeners();
-    }
-
     dragStart(e) {
-        console.log("---------e", e);
-        this.dragStartIndex = +e.originalTarget.closest('li').getAttribute('data-index');
-
-        e.target.style.backgroundColor = 'green';
+        console.log("---------e", e.originalTarget.firstElementChild);
+        this.dragStartIndex = +e.originalTarget.getAttribute('data-index');
+        +e.originalTarget.firstElementChild.classList.add('dragstart');
 
     }
 
     dragEnter(e) {
-        console.log('Event: ', 'dragenter');
-        const dragEnterIndex = +e.originalTarget.closest('li').getAttribute('data-index');
+        console.log('Event: ', 'dragenter', e);
+        const dragEnterIndex = +e.target.closest('.header-fields').getAttribute('data-index');
         if (dragEnterIndex !== this.dragStartIndex) {
             this.swapItems(this.dragStartIndex, dragEnterIndex);
             this.dragStartIndex = dragEnterIndex;
         }
         this.dragPos = dragEnterIndex;
-        this.classList.add('over');
     }
 
     dragLeave(e) {
         console.log('Event: ', 'dragleave', e);
-        this.classList.remove('over');
-        // first item
-        if (this.dragPos === this.dragList.length)
     }
 
     dragOver(e) {
@@ -813,22 +766,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     dragDrop(e) {
-        console.log('Event: ', 'drop');
-        e.target.style.backgroundColor = 'white';
-
-        const dragEndIndex = +e.originalTarget.closest('li').getAttribute('data-index');
-        this.swapItems(this.dragStartIndex, dragEndIndex);
-
-        this.classList.remove('over');
+        console.log('Event: ', 'drop', e);
+        const dragEndIndex = +e.target.closest('.header-fields').getAttribute('data-index');
+        this.swapItems(this.dragStartIndex, dragEndIndex, true);
+        +e.target.closest('.header-fields').firstElementChild.classList.remove('dragstart');
+        this.dragList.forEach((i, counter) => {
+           i.querySelector('.header-order').innerText = counter + 1;
+        });
     }
 
     // Swap list items that are drag and drop
-    swapItems(fromIndex, toIndex) {
-        const itemOne = this.dragList[fromIndex].querySelector('.draggable');
-        const itemTwo = this.dragList[toIndex].querySelector('.draggable');
+    swapItems(fromIndex, toIndex, drop = false) {
+        const itemOne = this.dragList[fromIndex].querySelector('.header-field');
+        const itemTwo = this.dragList[toIndex].querySelector('.header-field');
 
         this.dragList[fromIndex].appendChild(itemTwo);
         this.dragList[toIndex].appendChild(itemOne);
+
+        let tmp = this.submissionsColumns[fromIndex];
+        this.submissionsColumns[fromIndex] = this.submissionsColumns[toIndex];
+        this.submissionsColumns[toIndex] = tmp;
     }
 
     // Check the order of list items
@@ -842,36 +799,30 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.updateTableHeader();
     }
 
-    updateTableHeader() {
-        let cols = this.submissionsTable.getColumns();
-        this.submissionsColumns.slice().reverse().forEach((col) => {
-            this.submissionsTable.moveColumn(col, cols[1], true);
-        });
-
-        this.submissionsTable.redraw();
-        this.closeModal();
-        this.addToggleEvent();
-    }
 
     addEventListeners() {
-        const draggables = this._a('.draggable');
-        const dragListItems = this._a('.draggable-list li');
+        console.log("addEventListeners");
+        const draggables = this._a('.draggables');
+        //const dragListItems = this._a('.draggable-list li');
+        console.log("addEventListeners", draggables);
 
-        if(!draggables || !dragListItems)
+        if(!draggables)
             return;
 
         draggables.forEach(draggable => {
             draggable.addEventListener('dragstart', this.dragStart.bind(this), false);
         });
 
-        dragListItems.forEach(item => {
+        draggables.forEach(item => {
             item.addEventListener('dragover', this.dragOver.bind(this), false);
             item.addEventListener('drop', this.dragDrop.bind(this), false);
             item.addEventListener('dragenter', this.dragEnter.bind(this), false);
             item.addEventListener('dragleave', this.dragLeave.bind(this), false);
         });
+
+        this.dragList = draggables;
     }
-    */
+
 
     openModal() {
         let modal = this._('#submission-modal');
@@ -880,6 +831,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             });
         }
+
+        let scrollWrapper = this._("#submission-modal-content");
+        if (scrollWrapper) {
+            scrollWrapper.scrollTo(0, 0);
+        }
+        this.addEventListeners();
     }
 
     closeModal() {
@@ -941,17 +898,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     async updateTableHeader() {
         let cols = this.submissionsTable.getColumns();
-        this.submissionsColumns.slice().reverse().forEach((col) => {
+        let lastCol = cols[0];
+        this.submissionsColumns.slice().forEach((col, counter) => {
+
             let sub_col = this.submissionsTable.getColumn(col.field);
             if (col.visibility === 1) {
                 sub_col.show();
             } else {
                 sub_col.hide();
             }
-            this.submissionsTable.moveColumn(col.field, cols[0], true);
+            if(col.field !== cols[0].field) {
+                this.submissionsTable.moveColumn(col.field, lastCol, true);
+                lastCol = col.field;
+            }
         });
 
-        
         this.closeModal();
     }
 
@@ -1179,13 +1140,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding-top: 10px;
                 padding-bottom: 10px;
             }
+            
+            .headers{
+                width: 100%;
+            }
  
             .header-field{
                 align-items: center;
                 height: 50px;
                 border: 1px solid var(--dbp-muted);
                 display: flex;
-                margin-bottom: 10px;
+                margin-bottom: 5px;
             }
             
             .header-button{
@@ -1194,7 +1159,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 align-items: center;
                 height: 50px;
                 width: 50px;
+                min-width: 50px;
                 flex-grow: 0;
+                cursor: pointer;
+            }
+            
+            .header-button dbp-icon{
+                font-size: 1.3em;
+                top: 0px;
             }
 
             .header-button.hidden{
@@ -1203,13 +1175,24 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
             .header-title{
                 flex-grow: 2;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                padding-left: 5px;
             }
+            
             .header-order{
                 background-color: var(--dbp-muted-surface);
                 color: var(--dbp-on-muted-surface);
                 font-weight: bold;
             }
-      
+            
+            .header-drag-and-drop {
+                cursor: grab;
+            }
+            
+            .dragstart{
+                background-color: green;
+            }
             
             
             
@@ -1443,30 +1426,31 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     name="close"
                                     class="close-icon"></dbp-icon>
                             </button>
-                            <h3 id="submission-modal-title">
-                            </h3>
+                            <p id="submission-modal-title">
+                                Change Visibility and Order of table headers
+                            </p>
                         </header>
                         <main class="modal-content" id="submission-modal-content">
                             <div class="headers">
                                  ${this.submissionsColumns.map((i, counter) => html`
-                                     <div class="header-field">
-                                         <span class="header-button header-drag-and-drop-icon">
-                                             <dbp-icon title="order-me"
-                                             name="burger"></dbp-icon></span>
-                                         <span class="header-button header-order">${counter + 1}</span>
-                                         <span class="header-title"><strong>${i.name}</strong></span>
-                                         <span class="header-button header-visibility-icon"
-                                               @click="${() => {
-                                                   this.changeVisibility(i);
-                                               }}">
-                                             <dbp-icon title="hide me" class="${classMap({hidden: i.visibility === 0})}"
-                                                       name="eye"></dbp-icon>
-                                             <dbp-icon title="show me" class="${classMap({hidden: i.visibility === 1})}"
-                                                       name="suspect"></dbp-icon>
-                                         </span>
-                                             
-                                         </span>
-                                        </div>
+                                     <div class="header-fields draggables" draggable="true" data-index="${counter}">
+                                         <div class="header-field">
+                                             <span class="header-button header-drag-and-drop">
+                                                 <dbp-icon title="order-me"
+                                                 name="source_icons_align-justify"></dbp-icon></span>
+                                             <span class="header-button header-order">${counter + 1}</span>
+                                             <span class="header-title"><strong>${i.name}</strong></span>
+                                             <span class="header-button header-visibility-icon"
+                                                   @click="${() => {
+                                                       this.changeVisibility(i);
+                                                   }}">
+                                                 <dbp-icon title="hide me" class="${classMap({hidden: i.visibility === 0})}"
+                                                           name="source_icons_eye-empty"></dbp-icon>
+                                                 <dbp-icon title="show me" class="${classMap({hidden: i.visibility === 1})}"
+                                                           name="source_icons_eye-off"></dbp-icon>
+                                             </span>
+                                         </div>
+                                    </div>
                                  `)}
                             </div>
                             <!--<div class="dragAndDropList">
@@ -1480,7 +1464,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
-                                <button class="check-btn" id="check" @click="${() => {this.updateTableHeader();}}">
+                                <button class="check-btn button is-primary" id="check" @click="${() => {this.updateTableHeader();}}">
                                     Save Headers
                                 </button>
                             </div>
