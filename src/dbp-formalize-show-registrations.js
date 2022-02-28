@@ -179,9 +179,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                           this.submissionsTable.addColumn({
                               title: "Actions",
+                              width: 55,
                               align: 'center',
-                              field: 'actions',
-                              width: 100,
+                              field: 'no_display_1',
                               download: false,
                               headerSort:false,
                               sortable:false,
@@ -588,7 +588,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         for(let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data["hydra:member"].length) {
-                console.log(dataList2);
                 this.submissionsTable.setData(dataList2);
                 this.activeCourse = name;
                 this.showSubmissionsTable = true;
@@ -596,7 +595,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             let entry = data["hydra:member"][x];
             let id = entry["@id"].split('/')[3]; //TODO
-            let date = entry["dateCreated"]; //TODO
+            let date = entry["dateCreated"];
 
             try {
                 if(entry && entry["form"] !== name)
@@ -607,7 +606,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 if (!headerExists) {
                     await this.setHeaderFromJson(json);
                     headerExists = true;
-                    console.log("-----", this.submissionsTable.getColumns());
                 }
                 let jsonFirst = {};
                 jsonFirst['id'] = id;
@@ -622,8 +620,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     async setHeaderFromJson(json){
-
-
         for (let header in json) {
             let col = {};
             col.title = header;
@@ -715,7 +711,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissionsTable.setFilter(matchAny, {value: filter});
     }
 
-    updateTableHeaderList() {
+    async updateTableHeaderList() {
         if (!this.submissionsTable)
             return;
         let columns = this.submissionsTable.getColumns();
@@ -723,9 +719,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
             if (field && !field.includes('no_display')) {
-                this.submissionsColumns.push(name);
+                this.submissionsColumns.push({name: name, field: field, visibility: 1});
             }
         });
+
     }
 
     getTableHeaderOptions() {
@@ -734,7 +731,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let options = [];
         options[0] = html`<option value="all">Alle Spalten</option>`;
         this.submissionsColumns.forEach((col, counter) => {
-            options[counter + 1]= html`<option value="${col}">${col}</option>`;
+            if(col.visibility === 0) {
+                options[counter + 1]= html`<option disabled value="${col.field}">${col.name}</option>`;
+            } else {
+                options[counter + 1]= html`<option value="${col.field}">${col.name}</option>`;
+            }
         });
         return options;
     }
@@ -933,6 +934,28 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (menu && !menu.classList.contains('hidden')) this.toggleMoreMenu();
     }
 
+    changeVisibility(item) {
+        item.visibility = item.visibility === 1 ? 0 : 1;
+        this.requestUpdate();
+    }
+
+    async updateTableHeader() {
+        let cols = this.submissionsTable.getColumns();
+        this.submissionsColumns.slice().reverse().forEach((col) => {
+            let sub_col = this.submissionsTable.getColumn(col.field);
+            if (col.visibility === 1) {
+                sub_col.show();
+            } else {
+                sub_col.hide();
+            }
+            this.submissionsTable.moveColumn(col.field, cols[0], true);
+        });
+
+        
+        this.closeModal();
+    }
+
+
     static get styles() {
         // language=css
         return css`
@@ -1060,7 +1083,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              }
  
              #submission-modal-content {
-                 overflow: scroll;
+                 overflow: auto;
                  align-items: baseline;
              }
              
@@ -1133,10 +1156,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              .search-wrapper {
                  display: flex;
              }
- 
-             .additional-menu {
-                 display: none;
-             }
+             
              
              .scrollable-table-wrapper {
                  position: relative;
@@ -1144,10 +1164,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .frozen-table-divider{
                 position: absolute;
-                height: 86.8%;
+                height: 86.5%;
                 width: 3px;
                 top: 0px;
-                right: 97px;
+                right: 51px;
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0;
@@ -1160,6 +1180,39 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding-bottom: 10px;
             }
  
+            .header-field{
+                align-items: center;
+                height: 50px;
+                border: 1px solid var(--dbp-muted);
+                display: flex;
+                margin-bottom: 10px;
+            }
+            
+            .header-button{
+                justify-content: center;
+                display: flex;
+                align-items: center;
+                height: 50px;
+                width: 50px;
+                flex-grow: 0;
+            }
+
+            .header-button.hidden{
+                display: none;
+            }
+            
+            .header-title{
+                flex-grow: 2;
+            }
+            .header-order{
+                background-color: var(--dbp-muted-surface);
+                color: var(--dbp-on-muted-surface);
+                font-weight: bold;
+            }
+      
+            
+            
+            
              @media only screen and (orientation: portrait) and (max-width: 768px) {
  
                  .export-buttons {
@@ -1394,17 +1447,42 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </h3>
                         </header>
                         <main class="modal-content" id="submission-modal-content">
-                            <div class="dragAndDropList">
+                            <div class="headers">
+                                 ${this.submissionsColumns.map((i, counter) => html`
+                                     <div class="header-field">
+                                         <span class="header-button header-drag-and-drop-icon">
+                                             <dbp-icon title="order-me"
+                                             name="burger"></dbp-icon></span>
+                                         <span class="header-button header-order">${counter + 1}</span>
+                                         <span class="header-title"><strong>${i.name}</strong></span>
+                                         <span class="header-button header-visibility-icon"
+                                               @click="${() => {
+                                                   this.changeVisibility(i);
+                                               }}">
+                                             <dbp-icon title="hide me" class="${classMap({hidden: i.visibility === 0})}"
+                                                       name="eye"></dbp-icon>
+                                             <dbp-icon title="show me" class="${classMap({hidden: i.visibility === 1})}"
+                                                       name="suspect"></dbp-icon>
+                                         </span>
+                                             
+                                         </span>
+                                        </div>
+                                 `)}
+                            </div>
+                            <!--<div class="dragAndDropList">
                                 <p>Drag and drop the items into their corresponding spots</p>
                                 <ul class="draggable-list" id="draggable-list"></ul>
                                 <button class="check-btn" id="check" @click="${() => {this.saveOrder();}}">
                                     Check Order
                                     <i class="fas fa-paper-plane"></i>
                                 </button>
-                            </div>
+                            </div>-->
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
+                                <button class="check-btn" id="check" @click="${() => {this.updateTableHeader();}}">
+                                    Save Headers
+                                </button>
                             </div>
                         </footer>
                     </div>
