@@ -39,6 +39,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.dragPos = 0;
         this.activeCourse = '';
+        this.autoColumns = true;
     }
 
     static get scopedElements() {
@@ -60,6 +61,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             showSubmissionsTable: { type: Boolean, attribute: false },
             submissionsColumns: { type: Array, attribute: false },
             dataList: { type: Array, attribute: false },
+            autoColumns: {type: Boolean, attribute: 'auto-columns'}
         };
     }
 
@@ -120,7 +122,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         title:"Actions",
                         field:"type",
                         width: 100,
-                        formatter:"html" 
+                        formatter:"html",
+                        headerSort: false,
                     },    
                 ],
                 rows: [{
@@ -133,136 +136,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
 
-            /*
-            this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout: 'fitColumns',
-                selectable: this.maxSelectedItems,
-                selectableRangeMode: 'drag',
-                placeholder: i18n.t('show-registrations.no-data'),
-                responsiveLayout: 'collapse',
-                responsiveLayoutCollapseStartOpen: false,
-                resizableColumns: false,
-                // autoColumns: true
-                pagination: 'local',
-                paginationSize: 10,
-                downloadRowRange: 'selected',
-                columns:[
-                    {
-                        align: 'center',
-                        resizable: false,
-                        headerSort: false,
-                        formatter: 'responsiveCollapse',
-                    },
-                    {
-                        title:
-                            '<label id="select_all_wrapper" class="button-container select-all-icon">' +
-                            '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
-                            '<span class="checkmark" id="select_all_checkmark"></span>' +
-                            '</label>',
-                        field: 'type',
-                        align: 'center',
-                        headerSort: false,
-                        width: 50,
-                        responsive: 1,
-                        formatter: (cell, formatterParams, onRendered) => {
-                            let div = getShadowRootDocument(this).createElement('div');
-                            return div;
-                        },
-                    },
-                    {
-                        title: 'Id', 
-                        field: '@id',
-                        widthGrow: 2,
-                        formatter: function (cell, formatterParams, onRendered) {
-                            const value = '' + cell.getValue();
-                            const split = value.split('/');
-                            return split[3]; //TODO 
-                        }
-                    },
-                    {
-                        title: 'Data', 
-                        field: 'dataFeedElement',
-                        widthGrow: 3
-                    },
-                    {
-                        title: 'Date', 
-                        field: 'dateCreated',
-                        widthGrow: 1,
-                        formatter: function (cell, formatterParams, onRendered) {
-                            const d = Date.parse(cell.getValue());
-                            const timestamp = new Date(d);
-                            const year = timestamp.getFullYear();
-                            const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
-                            const date = ('0' + timestamp.getDate()).slice(-2);
-                            const hours = ('0' + timestamp.getHours()).slice(-2);
-                            const minutes = ('0' + timestamp.getMinutes()).slice(-2);
-                            return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
-                        },
-                    },
-                    {
-                        title: 'Actions',
-                        width: 100,
-                        field: 'type',
-                        formatter: 'html',
-                        download: false
-                    },
-                ],
-                initialSort: [
-                    {
-                        column: 'dateCreated', 
-                        dir: 'desc'
-                    },
-                ],
-                rowSelectionChanged: (data, rows) => {
-                    if (this.submissionsTable && this.submissionsTable.getSelectedRows().length > 0) {
-                        this._('#export-select').disabled = false;
-                    } else {
-                        this._('#export-select').disabled = true;
-                    }
-                    if (this._('#select_all_checkmark')) {
-                        this._('#select_all_checkmark').title = this.checkAllSelected()
-                            ? i18n.t('show-registrations.select-nothing')
-                            : i18n.t('show-registrations.select-all');
-                    }
-                    this.requestUpdate();
-                },
-                rowClick: (e, row) => {
-                    if (!row.getElement().classList.contains('no-select')) {
-                        if (this.submissionsTable !== null && 
-                            this.submissionsTable.getSelectedRows().length === this.submissionsTable.getRows().length
-                        ) {
-                            this._('#select_all').checked = true;
-                        } else {
-                            this._('#select_all').checked = false;
-                        }
-                    } else {
-                        row.deselect();
-                    }
-                },
-            });
-            */
-
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout: "fitData",
-                virtualDomHoz: true,
                 movableColumns: true,
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
                 placeholder: i18n.t('show-registrations.no-data'),
-                autoColumns: true,
                 resizableColumns: false,
                 pagination: 'local',
                 paginationSize: 10,
                 downloadRowRange: 'selected',
+                autoColumns: this.autoColumns,
                 columns:[
-                    {
-                        width: 32,
-                        minWidth: 32,
-                        align: 'center',
-                        resizable: false,
-                        headerSort: false,
-                        formatter: 'responsiveCollapse',
-                    },
+
 
                 ],
                 dataLoaded: () => {
@@ -270,33 +156,82 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         this.changePaginationButtonText();
 
+                        const that = this;
 
                         const openIcon = function(cell, formatterParams) {
-                            const icon_tag = that.getScopedTagName('dbp-icon');
-                            let html =`<div class="button action-button"><${icon_tag} name="exit-up"></${icon_tag} ></div>`;
+
+                            const button_tag = that.getScopedTagName('dbp-icon');
+                            let id = cell.getData()['id'];
+                            let button = `<${button_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${button_tag}>`; //enter
                             let div = getShadowRootDocument(that).createElement('div');
-                            div.innerHTML = html;
+                            div.innerHTML = button;
+
+                            div.firstChild.addEventListener("click", event => {
+                                that.requestDetailedSubmission(id);
+                                let path = '';
+                                if (id === event.target.id) {
+                                 path = id;
+                             }
+                             event.stopPropagation();
+                            });
                             return div;
                         };
 
-                        const openIconClick = function(e, cell) {
-                            console.log(cell.getData());
-                            // TODO this are the modal data
-                        };
+                          this.submissionsTable.addColumn({
+                              title: "Actions",
+                              align: 'center',
+                              field: 'actions',
+                              width: 100,
+                              download: false,
+                              headerSort:false,
+                              sortable:false,
+                              visible: true,
+                              formatter: openIcon,
+                              frozen: true,
+                          }, false);
 
-                        const that = this;
-                        this.submissionsTable.addColumn({
-                            title: "Actions",
-                            align: 'center',
-                            field: 'actions',
-                            width: 100,
-                            download: false,
-                            headerSort:false,
-                            sortable:false,
-                            visible: true,
-                            formatter: openIcon,
-                            cellClick: openIconClick,
-                        }, true);
+                        let idCol = {
+                            field: 'id',
+                            title: 'ID',
+                            align: 'left',
+                        };
+                        let dateCol = {
+                            minWidth: 150,
+                            field: 'dateCreated',
+                            title: 'dateCreated',
+                            align: 'left',
+                            sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
+                                const a_timestamp = Date.parse(a);
+                                const b_timestamp = Date.parse(b);
+                                return a_timestamp - b_timestamp;
+                            },
+                            formatter: function (cell, formatterParams, onRendered) {
+                                const d = Date.parse(cell.getValue());
+                                const timestamp = new Date(d);
+                                const year = timestamp.getFullYear();
+                                const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
+                                const date = ('0' + timestamp.getDate()).slice(-2);
+                                const hours = ('0' + timestamp.getHours()).slice(-2);
+                                const minutes = ('0' + timestamp.getMinutes()).slice(-2);
+                                return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+                            },
+                        };
+                        if (this.autoColumns) {
+                            this.submissionsTable.deleteColumn('dateCreated');
+                            this.submissionsTable.deleteColumn('id');
+                        }
+                        this.submissionsTable.addColumn(dateCol, true);
+                        this.submissionsTable.addColumn(idCol, true);
+                        /*  this.submissionsTable.deleteColumn('actions');
+                          this.submissionsTable.addColumn({
+                              title: "actions",
+                              field: "actions",
+                              width: 100,
+                              formatter: "html",
+                              align: 'center',
+                              download: false,
+                              headerSort:false,
+                          });*/
 
                       /*  this.submissionsTable.addColumn(     {
                             title:
@@ -319,15 +254,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 '</label>',
                         }, true);*/
 
-                        this.submissionsTable.deleteColumn('actions');
-                        this.submissionsTable.addColumn({
-                            title: "actions",
-                            field: "actions",
-                            width: 100,
-                            formatter: "html",
-                            align: 'center',
-                            /*frozen: true*/
-                        });
+
 
                         // if (this._('#select_all')) {
                         //     let boundSelectHandler = this.selectAllSubmissions.bind(this);
@@ -652,6 +579,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let dataList2 = [];
         let response = await this.getAllSubmissions();
         let data = await response.json();
+        let headerExists = this.autoColumns;
 
         if (!data || !data["hydra:member"]) {
             this.showSubmissionsTable = true;
@@ -668,40 +596,41 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             let entry = data["hydra:member"][x];
             let id = entry["@id"].split('/')[3]; //TODO
+            let date = entry["dateCreated"]; //TODO
 
-            const button_tag = this.getScopedTagName('dbp-icon');    
-            let button = `<${button_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${button_tag}>`; //enter
-            let div = getShadowRootDocument(this).createElement('div');
-            div.innerHTML = button;
-            
-            div.firstChild.addEventListener("click", event => {
-                this.requestDetailedSubmission(id);
-                let path = '';
-                if (id === event.target.id) {
-                    path = id;
-                }
-                event.stopPropagation();
-            });
-            // entry['type'] = div;
-
-            // try {
-            //     let json = JSON.parse(entry["dataFeedElement"]);
-            //     json['actions'] = div;
-            //     dataList2.push(json);
-            // } catch(e) {
-            // }
             try {
                 if(entry && entry["form"] !== name)
                     continue;
 
                 let json = JSON.parse(entry["dataFeedElement"]);
-                json['actions'] = div;
+
+                if (!headerExists) {
+                    await this.setHeaderFromJson(json);
+                    headerExists = true;
+                    console.log("-----", this.submissionsTable.getColumns());
+                }
+                let jsonFirst = {};
+                jsonFirst['id'] = id;
+                jsonFirst['dateCreated'] = date;
+                json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
             } catch(e) {
                  console.log('error');
             }
 
         }
+    }
+
+    async setHeaderFromJson(json){
+
+
+        for (let header in json) {
+            let col = {};
+            col.title = header;
+            col.field = header;
+            this.submissionsTable.addColumn(col);
+        }
+
     }
 
     async requestDetailedSubmission(identifier) {
@@ -1076,9 +1005,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  white-space: nowrap;
              }
  
-             .tabulator-row {
-                 overflow: auto;
-             }
  
              .back-navigation {
                  padding-top: 1rem;
@@ -1211,6 +1137,28 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              .additional-menu {
                  display: none;
              }
+             
+             .scrollable-table-wrapper {
+                 position: relative;
+             }
+
+            .frozen-table-divider{
+                position: absolute;
+                height: 86.8%;
+                width: 3px;
+                top: 0px;
+                right: 97px;
+                -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
+                box-shadow: -2px 0px 2px 0px var(--dbp-muted);
+                background-color: #fff0;
+            }
+            
+            #courses-table tabulator-row,
+            #courses-table .tabulator-row.tabulator-row-even,
+            #courses-table .tabulator-row.tabulator-row-odd {
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
  
              @media only screen and (orientation: portrait) and (max-width: 768px) {
  
@@ -1301,6 +1249,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 .border-wrapper {
                     margin: 0;
                 }
+                
+                
+               
             }
         `;
     }
@@ -1413,6 +1364,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     </div>
                     <div class="scrollable-table-wrapper">   
                         <table id="submissions-table"></table>
+                        <div class="frozen-table-divider"></div>
                     </div>
                 </div>
             </div>
