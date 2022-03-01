@@ -1404,7 +1404,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     </div>
                 </div>
             </div>
-
+            ${this.submissionsColumns.map((i, counter) => html`
+                                     <div class="header-fields draggables" draggable="true" data-index="${counter}">
+                                         <div class="header-field">
+                                             <span class="header-button header-drag-and-drop">
+                                                 <dbp-icon title="order-me"
+                                                 name="source_icons_align-justify"></dbp-icon></span>
+                                             <span class="header-button header-order">${counter + 1}</span>
+                                             <span class="header-title"><strong>${i.name}</strong></span>
+                                             <span class="header-button header-visibility-icon"
+                                                   @click="${() => {
+                this.changeVisibility(i);
+            }}">
+                                                 <dbp-icon title="hide me" class="${classMap({hidden: i.visibility === 0})}"
+                                                           name="source_icons_eye-empty"></dbp-icon>
+                                                 <dbp-icon title="show me" class="${classMap({hidden: i.visibility === 1})}"
+                                                           name="source_icons_eye-off"></dbp-icon>
+                                             </span>
+                                         </div>
+                                    </div>
+                                 `)}
             <div class="modal micromodal-slide" id="submission-modal" aria-hidden="true">
                 <div class="modal-overlay" tabindex="-2" data-micromodal-close>
                     <div
