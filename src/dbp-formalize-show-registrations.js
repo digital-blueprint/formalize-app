@@ -32,6 +32,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
         this.submissionsColumns = [];
+        this.submissionsColumnsUpdated = false;
         this.dataList = [];
         this.dragStartIndex = 0;
         this.dragList = [];
@@ -60,6 +61,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             submissionsTable: { type: Object, attribute: false },
             showSubmissionsTable: { type: Boolean, attribute: false },
             submissionsColumns: { type: Array, attribute: false },
+            submissionsColumnsUpdated: { type: Boolean, attribute: false },
             dataList: { type: Array, attribute: false },
             autoColumns: {type: Boolean, attribute: 'auto-columns'}
         };
@@ -747,7 +749,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     dragEnter(e) {
-        console.log('Event: ', 'dragenter', e);
+        //console.log('Event: ', 'dragenter', e);
         const dragEnterIndex = +e.target.closest('.header-fields').getAttribute('data-index');
         if (dragEnterIndex !== this.dragStartIndex) {
             this.swapItems(this.dragStartIndex, dragEnterIndex);
@@ -774,6 +776,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
            i.querySelector('.header-order').innerText = counter + 1;
         });
     }
+
 
     // Swap list items that are drag and drop
     swapItems(fromIndex, toIndex, drop = false) {
@@ -818,6 +821,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             item.addEventListener('drop', this.dragDrop.bind(this), false);
             item.addEventListener('dragenter', this.dragEnter.bind(this), false);
             item.addEventListener('dragleave', this.dragLeave.bind(this), false);
+
         });
 
         this.dragList = draggables;
@@ -836,7 +840,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (scrollWrapper) {
             scrollWrapper.scrollTo(0, 0);
         }
-        this.addEventListeners();
+        this.dragList = this._a('.draggables');
+
+
+        //this.addEventListeners(); TODO COMMENT IN IF YOU WANT DRAG AND DROP
     }
 
     closeModal() {
@@ -893,7 +900,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     changeVisibility(item) {
         item.visibility = item.visibility === 1 ? 0 : 1;
-        this.requestUpdate();
+        if (item.visibility === 1) {
+           this._("." + item.field + ' .header-visibility-icon-hide').classList.remove('hidden');
+           this._("." + item.field + ' .header-visibility-icon-show').classList.add('hidden');
+        } else {
+            this._("." + item.field + ' .header-visibility-icon-hide').classList.add('hidden');
+            this._("." + item.field + ' .header-visibility-icon-show').classList.remove('hidden');
+        }
     }
 
     async updateTableHeader() {
@@ -914,6 +927,64 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         });
 
         this.closeModal();
+    }
+
+    moveHeaderUp(i, e) {
+        let elem = this._("." + i.field);
+        let elemIndex = elem.getAttribute('data-index');
+        if (parseInt(elemIndex) === 0)
+            return;
+
+        let swapElem_ = this.submissionsColumns.find((col, index) => {
+
+            if( index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1].field === i.field) {
+                return true;
+            }
+            return false;
+        });
+        this.swapHeader(swapElem_, elem, elemIndex, i);
+    }
+
+    moveHeaderDown(i, e) {
+        let elem = this._("." + i.field);
+        let elemIndex = elem.getAttribute('data-index');
+        if (parseInt(elemIndex) === this.submissionsColumns.length - 1)
+            return;
+
+        let swapElem_ = this.submissionsColumns.find((col, index) => {
+
+            if( index - 1 >= 0 && this.submissionsColumns[index - 1].field === i.field) {
+                return true;
+            }
+            return false;
+
+        });
+       this.swapHeader(swapElem_, elem, elemIndex, i);
+    }
+
+    swapHeader(swapElem_, elem, elemIndex, i){
+        let swapElem = this._("." + swapElem_.field);
+        let swapElemIndex = swapElem.getAttribute('data-index');
+
+        let tmp = this.submissionsColumns[elemIndex];
+        this.submissionsColumns[elemIndex] = this.submissionsColumns[swapElemIndex];
+        this.submissionsColumns[swapElemIndex] = tmp;
+
+        this.submissionsColumnsUpdated = this.submissionsColumnsUpdated === false ? true : false;
+
+        let swapElem2 = this._("." + swapElem_.field);
+
+        function removeClass() {
+            swapElem2.classList.remove('move-up');
+        }
+
+        function addClass() {
+            swapElem2.classList.add('move-up');
+
+        }
+        setTimeout(addClass.bind(swapElem2), 0);
+
+        setTimeout(removeClass.bind(swapElem2), 400);
     }
 
 
@@ -1011,7 +1082,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  margin: 0 0 0 4px;
                  padding: 0 0 0.25% 0;
                  -webkit-mask-size: 100%;
-                 mask-size: 120%;
+                 mask-size: 120%;name
              }
  
              .back-navigation:hover {
@@ -1040,7 +1111,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  flex-direction: column;
                  justify-content: space-between;
                  text-align: center;
-                 height: unset;
              }
  
              #submission-modal-content {
@@ -1142,8 +1212,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             
             .headers{
-                width: 100%;
+                max-width: 100%;
+                margin: 0px;
+                list-style-type: none;
+                padding: 0px;
             }
+            
  
             .header-field{
                 align-items: center;
@@ -1190,8 +1264,33 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 cursor: grab;
             }
             
-            .dragstart{
-                background-color: green;
+            .move-up .header-field{
+                animation: added 0.4s ease;
+            }
+            
+            .header-move{
+                display: flex;
+            }
+            
+            .first-header .header-move .header-button:first-child, .last-header .header-move .header-button:last-child{
+                color: var(--dbp-muted);
+                opacity: 0.5;
+                cursor: default;
+            }
+
+            @keyframes added {
+                0% {
+                    background-color: var(--dbp-background);
+                    color: var(--dbp-content);
+                }
+                50% {
+                    background-color: var(--dbp-success-surface);
+                    color: var(--dbp-on-success-surface);
+                }
+                100% {
+                    background-color: var(--dbp-background);
+                    color: var(--dbp-content);
+                }
             }
             
             
@@ -1404,26 +1503,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     </div>
                 </div>
             </div>
-            ${this.submissionsColumns.map((i, counter) => html`
-                                     <div class="header-fields draggables" draggable="true" data-index="${counter}">
-                                         <div class="header-field">
-                                             <span class="header-button header-drag-and-drop">
-                                                 <dbp-icon title="order-me"
-                                                 name="source_icons_align-justify"></dbp-icon></span>
-                                             <span class="header-button header-order">${counter + 1}</span>
-                                             <span class="header-title"><strong>${i.name}</strong></span>
-                                             <span class="header-button header-visibility-icon"
-                                                   @click="${() => {
-                this.changeVisibility(i);
-            }}">
-                                                 <dbp-icon title="hide me" class="${classMap({hidden: i.visibility === 0})}"
-                                                           name="source_icons_eye-empty"></dbp-icon>
-                                                 <dbp-icon title="show me" class="${classMap({hidden: i.visibility === 1})}"
-                                                           name="source_icons_eye-off"></dbp-icon>
-                                             </span>
-                                         </div>
-                                    </div>
-                                 `)}
+           
             <div class="modal micromodal-slide" id="submission-modal" aria-hidden="true">
                 <div class="modal-overlay" tabindex="-2" data-micromodal-close>
                     <div
@@ -1450,36 +1530,40 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </p>
                         </header>
                         <main class="modal-content" id="submission-modal-content">
-                            <div class="headers">
-                                 ${this.submissionsColumns.map((i, counter) => html`
-                                     <div class="header-fields draggables" draggable="true" data-index="${counter}">
+                            <ul class="headers">
+                                 ${this.submissionsColumns.map((i, counter) => {
+                        
+                                     let classes = "";
+                                     classes += counter === 0 ? "first-header " : "";
+                                     classes += counter === this.submissionsColumns.length - 1 ? "last-header " : "";
+                                     classes += i.field;
+                                     return html`
+                                     <li class="header-fields draggables ${classes}" data-index="${counter}">
                                          <div class="header-field">
-                                             <span class="header-button header-drag-and-drop">
+                                             <!--<span class="header-button header-drag-and-drop">
                                                  <dbp-icon title="order-me"
-                                                 name="source_icons_align-justify"></dbp-icon></span>
+                                                 name="source_icons_align-justify"></dbp-icon></span>-->
                                              <span class="header-button header-order">${counter + 1}</span>
                                              <span class="header-title"><strong>${i.name}</strong></span>
                                              <span class="header-button header-visibility-icon"
                                                    @click="${() => {
                                                        this.changeVisibility(i);
                                                    }}">
-                                                 <dbp-icon title="hide me" class="${classMap({hidden: i.visibility === 0})}"
+                                                 <dbp-icon title="hide me" class="header-visibility-icon-hide ${classMap({hidden: i.visibility === 0})}"
                                                            name="source_icons_eye-empty"></dbp-icon>
-                                                 <dbp-icon title="show me" class="${classMap({hidden: i.visibility === 1})}"
+                                                 <dbp-icon title="show me" class="header-visibility-icon-show ${classMap({hidden: i.visibility === 1})}"
                                                            name="source_icons_eye-off"></dbp-icon>
                                              </span>
+                                             <span class="header-move">
+                                                <div class="header-button" @click="${(e) => { this.moveHeaderUp(i, e); }}"><dbp-icon title="Move up"
+                                                       name="arrow-up"></dbp-icon></div>
+                                                 <div class="header-button"  @click="${(e) => { this.moveHeaderDown(i, e); }}"><dbp-icon title="Move down"
+                                                       name="arrow-down"></dbp-icon></div>
+                                             </span>
                                          </div>
-                                    </div>
-                                 `)}
-                            </div>
-                            <!--<div class="dragAndDropList">
-                                <p>Drag and drop the items into their corresponding spots</p>
-                                <ul class="draggable-list" id="draggable-list"></ul>
-                                <button class="check-btn" id="check" @click="${() => {this.saveOrder();}}">
-                                    Check Order
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>-->
+                                    </li>
+                                 `;})}
+                            </ul>
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">

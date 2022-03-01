@@ -88,6 +88,18 @@ export function getFileHandlingCss() {
             gap: 1px 1px;
             grid-template-areas: 'sidebar header' 'sidebar main';
             position: relative;
+
+            background-color: #fff;
+            max-width: 600px;
+            max-height: 100vh;
+            min-width: 60%;
+            min-height: 50%;
+            overflow-y: auto;
+            box-sizing: border-box;
+            display: grid;
+            height: 70%;
+            width: 70%;
+            position: relative;
         }
 
         .modal-nav {
