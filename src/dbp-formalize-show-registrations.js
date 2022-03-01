@@ -37,7 +37,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.dragStartIndex = 0;
         this.dragList = [];
         this.initateOpenAdditionalMenu = false;
+        this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
+        this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
         this.dragPos = 0;
         this.activeCourse = '';
         this.autoColumns = true;
@@ -681,15 +683,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     filterTable() {
         let filter = this._('#searchbar');
         let search = this._('#search-select');
+        let operator = this._('#search-operator');
 
-        if (!filter || !search)
+        console.log(filter, search, operator);
+        if (!filter || !search || !operator)
             return;
 
         filter = filter.value;
         search = search.value;
+        operator = operator.value;
 
         if (search !== 'all') {
-            this.submissionsTable.setFilter(search, 'like', filter);
+            this.submissionsTable.setFilter(search, operator, filter);
             return;
         }
 
@@ -896,6 +901,46 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
         const menu = this.shadowRoot.querySelector('ul.extended-menu');
         if (menu && !menu.classList.contains('hidden')) this.toggleMoreMenu();
+    }
+
+    toggleSearchMenu(e) {
+        const menu = this._('#extendable-searchbar .extended-menu');
+
+        if (menu === null) {
+            return;
+        }
+
+        menu.classList.remove('hidden');
+
+        if (!menu.classList.contains('hidden')) {
+            // add event listener for clicking outside of menu
+            document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
+            this.initateOpenAdditionalSearchMenu = true;
+        }
+
+    }
+
+    hideAdditionalSearchMenu(e) {
+        console.log(e);
+        if (this.initateOpenAdditionalSearchMenu) {
+            this.initateOpenAdditionalSearchMenu = false;
+            return;
+        }
+console.log(e);
+        if(e.originalTarget && e.originalTarget.parentElement &&
+            (e.originalTarget.parentElement.classList.contains('extended-menu') ||
+                e.originalTarget.parentElement.id === 'search-operator' ||
+                e.originalTarget.parentElement.id === 'search-operator' ||
+                e.originalTarget.parentElement.id === 'search-select') ||
+            e.originalTarget && e.originalTarget.id === 'searchbar-menu' ||
+            e.originalTarget && e.originalTarget.id === 'searchbar') {
+            return;
+        }
+        const menu = this._('#extendable-searchbar .extended-menu');
+        if (menu && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
+        }
     }
 
     changeVisibility(item) {
@@ -1181,13 +1226,62 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              }
  
              #searchbar {
-                 height: 27px;
+                 width: 100%;
+                height: 40px;
+                padding-right: 10px;
+                padding-left: 10px;
+                box-sizing: border-box;
+                border: var(--dbp-border);
+             }
+             
+             #extendable-searchbar {
+                 flex-grow: 1;
+                 position: relative;
              }
  
              .search-wrapper {
                  display: flex;
+                 justify-content: center;
+                 margin-bottom: 10px;
              }
              
+             #search-button{
+                 position: absolute;
+                right: 0px;
+                top: 0px;
+                height: 40px;
+                box-sizing: border-box;
+                padding-top: calc(0.6em - 1px);
+             }
+             
+             #extendable-searchbar .extended-menu{
+                 list-style: none;
+                 border: var(--dbp-border);
+                 background-color: var(--dbp-background);
+                 z-index: 1000;
+                 border-radius: var(--dbp-border-radius);
+                 
+                 width: 100%;
+                position: absolute;
+                right: 0px;
+                background-color: white;
+                padding: 10px;
+                box-sizing: border-box;
+                top: 40px;
+                margin: 0px;
+                border-top: unset;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+
+                 
+             }
+             
+             #search-select, #search-operator {
+                margin-bottom: 10px;
+                height: 40px;
+                box-sizing: border-box;
+             }
              
              .scrollable-table-wrapper {
                  position: relative;
@@ -1243,8 +1337,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 top: 0px;
             }
 
-            .header-button.hidden{
-                display: none;
+            .header-button.hidden, .extended-menu.hidden{
+                display: none !important;
             }
             
             .header-title{
@@ -1477,18 +1571,44 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </ul>
                         </div>
                     </div>
-                    <div class="export-buttons">
-                        <div class="search-wrapper">
-                            <select id="search-select">
-                               ${this.getTableHeaderOptions()}
-                            </select>
-                            <input type="text" id="searchbar" placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"/>
-                            <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
-                                                class="button" @click="${() => { this.filterTable(); }}"> 
-                                <dbp-icon name="search"></dbp-icon>
+                    <div class="search-wrapper">
+                       
+                            <div id="extendable-searchbar">
+                                <input type="text" id="searchbar" 
+                                       placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"  
+                                       @click="${() => {this.toggleSearchMenu();}}"/>
+                                <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
+                                            class="button" @click="${() => { this.filterTable(); }}">
+                                    <dbp-icon name="search"></dbp-icon>
 
-                            </dbp-button>
+                                </dbp-button>
+                                <ul class="extended-menu hidden" id='searchbar-menu'>
+                                    <label for='search-select'>Search in colums:</label>
+                                    <select id="search-select">          
+                                       ${this.getTableHeaderOptions()}
+                                    </select>
+
+                                    <label for='search-operator'>Searchoperator:</label>
+                                    <select id="search-operator">
+                                        <option value="like">like</option>
+                                        <option value="=">equal</option>
+                                        <option value="!=">not equal</option>
+                                        <option value="starts">starts</option>
+                                        <option value="ends">ends</option>
+                                        <option value="<">less than</option>
+                                        <option value="<=">less than or euqal</option>
+                                        <option value=">">greater</option>
+                                        <option value=">=">greater or equal</option>
+                                        <option value="regex">Regex</option>
+                                        <option value="keywords">keywords</option>
+                                    </select>
+                                </ul>
+                            </div>
+                            
+                           
                         </div>
+                    <div class="export-buttons">
+                        
                         <select id="export-select">
                             <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
                             <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
