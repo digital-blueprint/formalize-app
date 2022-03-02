@@ -33,15 +33,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.showSubmissionsTable = false;
         this.submissionsColumns = [];
         this.submissionsColumnsUpdated = false;
-        this.dataList = [];
-        this.dragStartIndex = 0;
-        this.dragList = [];
         this.initateOpenAdditionalMenu = false;
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
-        this.dragPos = 0;
         this.activeCourse = '';
         this.autoColumns = true;
         this.currentSubmissionId = '';
@@ -709,94 +705,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return options;
     }
 
-    dragStart(e) {
-        this.dragStartIndex = +e.originalTarget.getAttribute('data-index');
-        +e.originalTarget.firstElementChild.classList.add('dragstart');
-
-    }
-
-    dragEnter(e) {
-        //console.log('Event: ', 'dragenter', e);
-        const dragEnterIndex = +e.target.closest('.header-fields').getAttribute('data-index');
-        if (dragEnterIndex !== this.dragStartIndex) {
-            this.swapItems(this.dragStartIndex, dragEnterIndex);
-            this.dragStartIndex = dragEnterIndex;
-        }
-        this.dragPos = dragEnterIndex;
-    }
-
-    dragLeave(e) {
-        console.log('Event: ', 'dragleave', e);
-    }
-
-    dragOver(e) {
-        console.log('Event: ', 'dragover');
-        e.preventDefault();
-    }
-
-    dragDrop(e) {
-        console.log('Event: ', 'drop', e);
-        const dragEndIndex = +e.target.closest('.header-fields').getAttribute('data-index');
-        this.swapItems(this.dragStartIndex, dragEndIndex, true);
-        +e.target.closest('.header-fields').firstElementChild.classList.remove('dragstart');
-        this.dragList.forEach((i, counter) => {
-           i.querySelector('.header-order').innerText = counter + 1;
-        });
-    }
-
-    // Swap list items that are drag and drop
-    swapItems(fromIndex, toIndex, drop = false) {
-        const itemOne = this.dragList[fromIndex].querySelector('.header-field');
-        const itemTwo = this.dragList[toIndex].querySelector('.header-field');
-
-        this.dragList[fromIndex].appendChild(itemTwo);
-        this.dragList[toIndex].appendChild(itemOne);
-
-        let tmp = this.submissionsColumns[fromIndex];
-        this.submissionsColumns[fromIndex] = this.submissionsColumns[toIndex];
-        this.submissionsColumns[toIndex] = tmp;
-    }
-
-    // Check the order of list items
-    saveOrder() {
-        let newSubmissionsColumns = [];
-        this.dragList.forEach((listItem, index) => {
-            const col = listItem.querySelector('.draggable').innerText.trim();
-            newSubmissionsColumns.push(col);
-        });
-        this.submissionsColumns = [...newSubmissionsColumns];
-        this.updateTableHeader();
-    }
-
-    addEventListeners() {
-        console.log("addEventListeners");
-        const draggables = this._a('.draggables');
-        //const dragListItems = this._a('.draggable-list li');
-        console.log("addEventListeners", draggables);
-
-        if(!draggables)
-            return;
-
-        draggables.forEach(draggable => {
-            draggable.addEventListener('dragstart', this.dragStart.bind(this), false);
-        });
-
-        draggables.forEach(item => {
-            item.addEventListener('dragover', this.dragOver.bind(this), false);
-            item.addEventListener('drop', this.dragDrop.bind(this), false);
-            item.addEventListener('dragenter', this.dragEnter.bind(this), false);
-            item.addEventListener('dragleave', this.dragLeave.bind(this), false);
-
-        });
-
-        this.dragList = draggables;
-    }
-
     openModal() {
         let modal = this._('#submission-modal');
         if (modal) {
             MicroModal.show(modal, {
-
             });
         }
 
@@ -804,10 +716,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (scrollWrapper) {
             scrollWrapper.scrollTo(0, 0);
         }
-        this.dragList = this._a('.draggables');
 
-
-        //this.addEventListeners(); TODO COMMENT IN IF YOU WANT DRAG AND DROP
     }
 
     closeModal() {
@@ -1021,7 +930,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
             
-            ${fileHandlingStyles.getDragListCss()}
             ${commonStyles.getButtonCSS()}
 
 
@@ -1168,11 +1076,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  justify-content: flex-end;
                  gap: 4px;
              }
- 
-             .dragAndDropList {
-                 overflow: auto;
-             }
- 
+             
              .modal-container {
                  display: flex;
                  flex-direction: column;
@@ -1373,10 +1277,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 background-color: var(--dbp-muted-surface);
                 color: var(--dbp-on-muted-surface);
                 font-weight: bold;
-            }
-            
-            .header-drag-and-drop {
-                cursor: grab;
             }
             
             .move-up .header-field{
@@ -1750,11 +1650,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                      classes += counter === this.submissionsColumns.length - 1 ? "last-header " : "";
                                      classes += i.field;
                                      return html`
-                                     <li class="header-fields draggables ${classes}" data-index="${counter}">
+                                     <li class="header-fields ${classes}" data-index="${counter}">
                                          <div class="header-field">
-                                             <!--<span class="header-button header-drag-and-drop">
-                                                 <dbp-icon title="order-me"
-                                                 name="source_icons_align-justify"></dbp-icon></span>-->
                                              <span class="header-button header-order">${counter + 1}</span>
                                              <span class="header-title"><strong>${i.name}</strong></span>
                                              <span class="header-button header-visibility-icon"
