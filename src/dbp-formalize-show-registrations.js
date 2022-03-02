@@ -40,7 +40,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.activeCourse = '';
         this.autoColumns = true;
-        this.currentSubmissionId = '';
+        this.currentCell = null;
+        this.currentBeautyId = 0;
+        this.isPrevEnabled = false;
+        this.isNextEnabled = false;
     }
 
     static get scopedElements() {
@@ -62,7 +65,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             showSubmissionsTable: { type: Boolean, attribute: false },
             submissionsColumns: { type: Array, attribute: false },
             submissionsColumnsUpdated: { type: Boolean, attribute: false },
-            autoColumns: {type: Boolean, attribute: 'auto-columns'}
+            autoColumns: {type: Boolean, attribute: 'auto-columns'},
+            isPrevEnabled: { type: Boolean, attribute: false },
+            isNextEnabled: { type: Boolean, attribute: false },
+            currentBeautyId: { type: Number, attribute: false }
         };
     }
 
@@ -162,7 +168,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             div.innerHTML = button;
 
                             div.firstChild.addEventListener("click", event => {
-                                that.requestDetailedSubmission(id);
+                                that.requestDetailedSubmission(cell);
                                 let path = '';
                                 if (id === event.target.id) {
                                  path = id;
@@ -590,37 +596,41 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     }
 
-    async requestDetailedSubmission(identifier) {
+    requestDetailedSubmission(cell) {
         const i18n = this._i18n;
 
-        let response = await this.getSubmissionForId(identifier);
-        let data = await response.json();
+        let data = cell.getData();
+        let identifier = data['id'].childNodes[0].textContent;
 
-        let json = JSON.parse(data["dataFeedElement"]);
-        this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', {name: this.activeCourse, date: json["datepicker-1"]});
+        // TODO: no_display nicht anzeigen!
+        this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
         // console.log('number of elements: ', Object.keys(json).length);
         // console.log('elements: ', Object.keys(json));
 
-        let first = true;
-        Object.keys(json).forEach(key => {
+        for (let i = 1; i < Object.keys(data).length; i++) {
+            let key = Object.keys(data)[i];
             this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;
-            if (json[key] !== '') {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + json[key] + `</div>`;
+            
+            if (data[key] !== '') {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + data[key] + `</div>`;
             } else {
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right"></div>`;
             }
-
-            if (first) {
+            
+            if (i === 1) {
                 this._('.detailed-submission-modal-content-wrapper > .element-left').classList.add('first');
                 this._('.detailed-submission-modal-content-wrapper > .element-right').classList.add('first');
-                first = false;
             }
-        });
+        }
+
+        this.currentCell = cell;
+        this.currentBeautyId = identifier;
+        this.isPrevEnabled = identifier === '1' ? false : true;
+        this.isNextEnabled = (parseInt(identifier) + 1) <= this.submissionsTable.getDataCount();
 
         this.showDetailedModal();
-        this.currentSubmissionId = identifier;
     }
 
     exportPdf() {
@@ -908,13 +918,24 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     showLastEntry() {
-        //TODO
+        if (this.currentCell !== null) {
+            let row = this.currentCell.getRow().getPrevRow();
+     
+            if (row) {
+                this.requestDetailedSubmission(row.getCells()[0]);
+            }
+        }
     }
 
     showNextEntry() {
-        //TODO
+        if (this.currentCell !== null) {
+            let row = this.currentCell.getRow().getNextRow();
+            
+            if (row) {
+                this.requestDetailedSubmission(row.getCells()[0]);
+            }
+        }
     }
-
 
     static get styles() {
         // language=css
@@ -1754,11 +1775,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <div class="modal-footer-btn">
                                 <div class="btn-row-left">
                                     <dbp-button class="button back-btn" title="${i18n.t('show-registrations.last-entry-btn-title')}"
-                                        @click="${this.showLastEntry}">
-                                        ${i18n.t('show-registrations.last-entry-btn-title')
-                                    }</dbp-button>
+                                        @click="${this.showLastEntry}"
+                                        ?disabled="${!this.isPrevEnabled}">
+                                        ${i18n.t('show-registrations.last-entry-btn-title')}
+                                    </dbp-button>
                                     <dbp-button class="button next-btn" title="${i18n.t('show-registrations.next-entry-btn-title')}"
-                                        @click="${this.showNextEntry}">
+                                        @click="${this.showNextEntry}"
+                                        ?disabled="${!this.isNextEnabled}">
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
                                     </dbp-button>
                                 </div>

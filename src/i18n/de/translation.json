@@ -33,7 +33,7 @@
         "pagination-btn-prev": "Vorherige",
         "pagination-btn-last": "Letzte",
         "search-all-columns": "Alle Spalten",
-        "detailed-submission-dialog-title": "Submission: {{name}}",
+        "detailed-submission-dialog-title": "Submission ID: {{id}}",
         "last-entry-btn-title": "Vorheriger Eintrag",
         "next-entry-btn-title": "Nächster Eintrag",
         "date": "Datum",
