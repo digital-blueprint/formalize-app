@@ -155,9 +155,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         const openIcon = function(cell, formatterParams) {
 
-                            const button_tag = that.getScopedTagName('dbp-icon');
+                            const icon_tag = that.getScopedTagName('dbp-icon');
                             let id = cell.getData()['id'];
-                            let button = `<${button_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${button_tag}>`; //enter
+                            let button = `<${icon_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${icon_tag}>`; //enter
                             let div = getShadowRootDocument(that).createElement('div');
                             div.innerHTML = button;
 
@@ -462,7 +462,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 const button_tag = this.getScopedTagName('dbp-button');
                 const icon_tag = this.getScopedTagName('dbp-icon');
-                let button = `<${button_tag} name="" class="button" id="courses-btn">` +
+                let button = `<${button_tag} name="" class="button courses-btn">` +
                     `<${icon_tag} name="chevron-right" title="${i18n.t('show-registrations.open-forms')}"></${icon_tag}>` + `</${button_tag}>`;
                 let div = getShadowRootDocument(this).createElement('div');
                 div.classList.add('button-wrapper');
@@ -983,7 +983,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .open-modal-icon {
-                font-size: 1.5em;
+                font-size: 1.2em;
             }
 
             #modal-export-select {
@@ -1037,31 +1037,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
  
              .back-navigation {
                  padding-top: 1rem;
+               
              }
- 
-             .back-navigation {
-                 color: var(--dbp-border);
-                 
+             
+             .table-wrapper h3{
+               margin-top: 0.5em;
+               margin-bottom: 1em;
              }
- 
-             .back-navigation:before {
-                 content: '\\00a0\\00a0\\00a0';
-                 background-color: var(--dbp-content);
-                 -webkit-mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
-                 mask-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3Csvg version='1.1' id='Layer_2_1_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 100 100' style='enable-background:new 0 0 100 100;' xml:space='preserve'%3E%3Cpath d='M70.4,2.4L26.2,46.8c-0.9,0.9-1.3,2.1-1.3,3.3c0,1.2,0.5,2.4,1.3,3.3l44.2,44.2c1.1,1.1,2.8,1.1,3.9,0 c0.5-0.5,0.8-1.2,0.8-1.9c0-0.7-0.3-1.4-0.8-1.9L30.7,50.1L74.3,6.3c1.1-1.1,1.1-2.8,0-3.9C73.2,1.3,71.5,1.3,70.4,2.4z'/%3E%3C/svg%3E%0A");
-                 -webkit-mask-repeat: no-repeat;
-                 mask-repeat: no-repeat;
-                 -webkit-mask-position: center -2px;
-                 mask-position: center 37%;
-                 margin: 0 0 0 4px;
-                 padding: 0 0 0.25% 0;
-                 -webkit-mask-size: 100%;
-                 mask-size: 120%;
+             
+             .back-navigation dbp-icon{
+                 font-size: 0.8em;
+                 padding-right: 7px;
+                 padding-bottom: 2px;
              }
  
              .back-navigation:hover {
                  color: var(--dbp-hover-color, var(--dbp-content));
-                 border-color: var(--dbp-hover-color, var(--dbp-content));
                  background-color: var(--dbp-hover-background-color);
              }
  
@@ -1069,11 +1060,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  background-color: var(--dbp-hover-color, var(--dbp-content));
              }
  
-             .export-buttons {
+             .table-buttons {
                  display: flex;
                  flex-direction: row;
-                 justify-content: flex-end;
+                 justify-content: space-between;
                  gap: 4px;
+                 margin-bottom: 1em;
              }
              
              .modal-container {
@@ -1095,10 +1087,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  display: flex;
                  flex-direction: row;
                  justify-content: space-between;
-             }
- 
-             .export-buttons {
-                 padding-top: 1rem;
              }
  
              .border-wrapper {
@@ -1150,12 +1138,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              }
  
              #searchbar {
-                 width: 100%;
-                height: 40px;
-                padding-right: 10px;
-                padding-left: 10px;
+                width: 100%;
                 box-sizing: border-box;
                 border: var(--dbp-border);
+                padding: calc(0.375em - 1px) 10px calc(0.375em - 1px) 10px;
+                 border-radius: var(--dbp-border-radius);
              }
              
              #extendable-searchbar {
@@ -1166,16 +1153,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              .search-wrapper {
                  display: flex;
                  justify-content: center;
-                 margin-bottom: 10px;
+                 min-width: 320px;
              }
              
              #search-button{
                  position: absolute;
                 right: 0px;
                 top: 0px;
-                height: 40px;
-                box-sizing: border-box;
-                padding-top: calc(0.6em - 1px);
              }
              
              #extendable-searchbar .extended-menu{
@@ -1184,14 +1168,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  background-color: var(--dbp-background);
                  z-index: 1000;
                  border-radius: var(--dbp-border-radius);
-                 
                  width: 100%;
                 position: absolute;
                 right: 0px;
                 background-color: white;
                 padding: 10px;
                 box-sizing: border-box;
-                top: 40px;
+                top: 33px;
                 margin: 0px;
                 border-top: unset;
                 display: flex;
@@ -1222,9 +1205,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 background-color: #fff0;
             }
             
-            #courses-table tabulator-row,
-            #courses-table .tabulator-row.tabulator-row-even,
-            #courses-table .tabulator-row.tabulator-row-odd {
+            tabulator-row,
+            .tabulator-row.tabulator-row-even,
+            .tabulator-row.tabulator-row-odd {
                 padding-top: 10px;
                 padding-bottom: 10px;
             }
@@ -1287,8 +1270,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             
             .first-header .header-move .header-button:first-child, .last-header .header-move .header-button:last-child{
-                color: var(--dbp-muted);
-                opacity: 0.5;
+                opacity: 0.4;
                 cursor: default;
             }
 
@@ -1323,6 +1305,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .additional-menu{
                 display: none;
+            }
+            
+            .tabulator .tabulator-tableHolder .tabulator-placeholder span {
+                margin-left: 0px;
             }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
@@ -1384,8 +1370,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     display: block;
                     white-space: nowrap;
                     height: 33px;
-                    position: inherit; /** absolute */
-                    /** margin-right: -12px; */
+                    position: relative;
                 }
 
                 .additional-menu button {
@@ -1393,7 +1378,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 .extended-menu-link {
-                    padding: 7px;
+                    display: flex;
+                    width: 40px;
+                    box-sizing: border-box;
+                    height: 40px;
+                    justify-content: center;
+                    align-items: center;
+                }
+                
+                .extended-menu-link dbp-icon{
+                    top: 0px;
                 }
 
                 .extended-breadcrumb-menu li a {
@@ -1425,8 +1419,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     right: 12px;
                     border-radius: var(--dbp-border-radius);
                     padding: 0;
-                    margin: 4px 0 0 0;
-                    min-width: 50%;
+                    margin: -2px 0 0 0;
+                    min-width: 50vw;
+                    right: 0px;
                 }
     
                 .extended-menu li.active {
@@ -1460,8 +1455,46 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 .border-wrapper {
                     margin: 0;
                 }
+
+                 #searchbar {
+                     width: 100%;
+                     height: 40px;
+                 }
+
+
+                 #search-button{
+                     position: absolute;
+                     right: 0px;
+                     top: 0px;
+                     height: 40px;
+                     box-sizing: border-box;
+                     padding-top: calc(0.6em - 1px);
+                 }
+                
+                .search-wrapper{
+                    width: 100%;
+                }
+                
+                #extendable-searchbar .extended-menu {
+                    top: 40px;
+                }
+                
+                .table-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                
+                .table-wrapper h3, .table-buttons {
+                    margin-bottom: 0.5em;
+                }
                 
                 
+                .courses-btn {
+                    min-height: 40px;
+                    padding-top: 8px;
+                    min-width: 40px;
+                }
                
             }
         `;
@@ -1517,18 +1550,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
                        <a @click="${() => {this.showSubmissionsTable = false;this.submissionsTable.clearData();}}"
                                 title="${i18n.t('show-registrations.back-text')}">
-                                ${i18n.t('show-registrations.back-text')}
+                                <dbp-icon name="chevron-left"></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
                     </span>
-                    <h3>${this.activeCourse}</h3>
-                    <div class="options-nav ${classMap({hidden: !this.showSubmissionsTable})}">
+                    <div class='table-header'>
+                        <h3>${this.activeCourse}</h3>
+                        <div class="options-nav ${classMap({hidden: !this.showSubmissionsTable})}">
                         
                         <div class="additional-menu ${classMap({hidden: !this.showSubmissionsTable })}">
                             <a class="extended-menu-link"
                                 @click="${() => {
                                     this.toggleMoreMenu();
                                 }}"
-                                title="${i18n.t('nextcloud-file-picker.more-menu')}">
+                                title="${i18n.t('show-registrations.more-menu')}">
                                 <dbp-icon name="menu-dots" class="more-menu"></dbp-icon>
                             </a>
                             <ul class="extended-menu hidden">
@@ -1555,7 +1589,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </ul>
                         </div>
                     </div>
-                    <div class="search-wrapper">
+                    </div>
+                    
+                    <div class="table-buttons">
+                        <div class="search-wrapper">
                             <div id="extendable-searchbar">
                                 <input type="text" id="searchbar" 
                                        placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"  
@@ -1566,42 +1603,44 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                                 </dbp-button>
                                 <ul class="extended-menu hidden" id='searchbar-menu'>
-                                    <label for='search-select'>${i18n.t('nextcloud-file-picker.search-in')}:</label>
-                                    <select id="search-select" title="${i18n.t('nextcloud-file-picker.search-in-column')}:">          
+                                    <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
+                                    <select id="search-select" title="${i18n.t('show-registrations.search-in-column')}:">          
                                        ${this.getTableHeaderOptions()}
                                     </select>
 
-                                    <label for='search-operator'>${i18n.t('nextcloud-file-picker.search-operator')}:</label>
+                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}:</label>
                                     <select id="search-operator">
-                                        <option value="like">${i18n.t('nextcloud-file-picker.search-operator-like')}</option>
-                                        <option value="=">${i18n.t('nextcloud-file-picker.search-operator-equal')}</option>
-                                        <option value="!=">${i18n.t('nextcloud-file-picker.search-operator-notequal')}</option>
-                                        <option value="starts">${i18n.t('nextcloud-file-picker.search-operator-starts')}</option>
-                                        <option value="ends">${i18n.t('nextcloud-file-picker.search-operator-ends')}</option>
-                                        <option value="<">${i18n.t('nextcloud-file-picker.search-operator-less')}</option>
-                                        <option value="<=">${i18n.t('nextcloud-file-picker.search-operator-lessthanorequal')}</option>
-                                        <option value=">">${i18n.t('nextcloud-file-picker.search-operator-greater')}</option>
-                                        <option value=">=">${i18n.t('nextcloud-file-picker.search-operator-greaterorequal')}</option>
-                                        <option value="regex">${i18n.t('nextcloud-file-picker.search-operator-regex')}</option>
-                                        <option value="keywords">${i18n.t('nextcloud-file-picker.search-operator-keywords')}</option>
+                                        <option value="like">${i18n.t('show-registrations.search-operator-like')}</option>
+                                        <option value="=">${i18n.t('show-registrations.search-operator-equal')}</option>
+                                        <option value="!=">${i18n.t('show-registrations.search-operator-notequal')}</option>
+                                        <option value="starts">${i18n.t('show-registrations.search-operator-starts')}</option>
+                                        <option value="ends">${i18n.t('show-registrations.search-operator-ends')}</option>
+                                        <option value="<">${i18n.t('show-registrations.search-operator-less')}</option>
+                                        <option value="<=">${i18n.t('show-registrations.search-operator-lessthanorequal')}</option>
+                                        <option value=">">${i18n.t('show-registrations.search-operator-greater')}</option>
+                                        <option value=">=">${i18n.t('show-registrations.search-operator-greaterorequal')}</option>
+                                        <option value="regex">${i18n.t('show-registrations.search-operator-regex')}</option>
+                                        <option value="keywords">${i18n.t('show-registrations.search-operator-keywords')}</option>
                                     </select>
                                 </ul>
                             </div>
                             
                            
                         </div>
-                    <div class="export-buttons">
-                        <button class="button" title=" ${i18n.t('show-registrations.filter-options-button-text')}">
-                            <a class="" @click="${this.openModal}">
-                                ${i18n.t('show-registrations.filter-options-button-text')}
-                            </a>
-                        </button>
-                        <select id="export-select">
-                            <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
-                            <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
-                            <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
-                            <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
-                        </select>
+                        <div class='export-buttons'>
+                            
+                            <button class="button" title=" ${i18n.t('show-registrations.filter-options-button-text')}">
+                                <a class="" @click="${this.openModal}">
+                                    ${i18n.t('show-registrations.filter-options-button-text')}
+                                </a>
+                            </button>
+                            <select id="export-select">
+                                <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
+                                <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
+                                <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
+                                <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="scrollable-table-wrapper">   
                         <table id="submissions-table"></table>
@@ -1633,7 +1672,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </button>
                             <h3 id="submission-modal-title">
                                 ${i18n.t('show-registrations.header-settings')}
-                                Change Visibility and Order of table headers
                             </h3>
                             <p id="submission-modal-title">
                                 ${i18n.t('show-registrations.header-settings')}

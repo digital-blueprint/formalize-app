@@ -37,7 +37,7 @@
         "last-entry-btn-title": "Last entry",
         "next-entry-btn-title": "Next entry",
         "date": "Date",
-        "date": "Creation Date",
+        "creation-date": "Creation Date",
         "open-forms": "Show form submissions",
         "all-columns": "All columns",
         "header-settings": "Column setting",

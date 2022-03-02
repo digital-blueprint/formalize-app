@@ -455,6 +455,10 @@ export function getFileHandlingCss() {
             min-height: 40px;
         }
 
+        .tabulator .tabulator-footer .tabulator-paginator .tabulator-page[disabled] {
+            opacity: 0.4;
+        }
+
         .tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {
             background: var(--dbp-secondary-surface);
             color: var(--dbp-content);
@@ -476,14 +480,16 @@ export function getFileHandlingCss() {
             background-color: var(--dbp-background);
         }
 
+        .tabulator-row.tabulator-selectable.tabulator-selected:hover, .tabulator-row.tabulator-selected .tabulator-frozen{
+            color: var(--dbp-hover-color, var(--dbp-on-content-surface));
+            background-color: var(--dbp-hover-background-color, var(--dbp-content-surface));
+        }
+
         .tabulator .tabulator-header .tabulator-frozen.tabulator-frozen-right, 
         .tabulator-row .tabulator-frozen.tabulator-frozen-right {
             border-left: unset;
         }
-
-        .tabulator-row .tabulator-frozen.tabulator-frozen-right{
-            border-top: 1px solid #eee;
-        }
+        
 
         @media only screen and (orientation: portrait) and (max-width: 768px) {
             .tabulator .tabulator-tableHolder {
