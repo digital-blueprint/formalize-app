@@ -44,6 +44,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.dragPos = 0;
         this.activeCourse = '';
         this.autoColumns = true;
+        this.currentSubmissionId = '';
     }
 
     static get scopedElements() {
@@ -617,7 +618,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         });
 
-        this.showDetailedModal();    
+        this.showDetailedModal();
+        this.currentSubmissionId = identifier;
     }
 
     exportPdf() {
@@ -735,7 +737,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         });
     }
 
-
     // Swap list items that are drag and drop
     swapItems(fromIndex, toIndex, drop = false) {
         const itemOne = this.dragList[fromIndex].querySelector('.header-field');
@@ -760,7 +761,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.updateTableHeader();
     }
 
-
     addEventListeners() {
         console.log("addEventListeners");
         const draggables = this._a('.draggables');
@@ -784,7 +784,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.dragList = draggables;
     }
-
 
     openModal() {
         let modal = this._('#submission-modal');
@@ -839,7 +838,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-
     pressEnterAndSubmitSearch(event) {
         console.log("key", event.keyCode);
         if (event.keyCode === 13) {
@@ -850,7 +848,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.hideAdditionalSearchMenu(event);
         }
     }
-
 
     hideAdditionalMenu() {
         if (this.initateOpenAdditionalMenu) {
@@ -995,6 +992,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         setTimeout(removeClass.bind(swapElem2), 400);
     }
 
+    showLastEntry() {
+        //TODO
+    }
+
+    showNextEntry() {
+        //TODO
+    }
+
 
     static get styles() {
         // language=css
@@ -1075,7 +1080,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: grid;
                 grid-template-columns: min-content 70%;
                 grid-template-rows: auto;
-                /*margin: 10px 0 0 0;*/
+                height: calc(100vH - 97.8px); /*TODO calculate values*/
+                overflow-y: auto;
             }
 
             .element-left {
@@ -1415,21 +1421,27 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
 
+                .element-right {
+                    /*padding: 10px 0 10px 0;*/
+                    margin-left: 12px;
+                    padding: 0 0 12px 0;
+                }
+
+                .element-right.first {
+                    padding-top: 0;
+                }
+
                 .element-left {
                     text-align: left;
                     padding: 10px 5px 10px 5px;
-                    /*background-color: inherit;
+                    background-color: inherit;
                     color: inherit;
-                    font-style: italic;*/
+                    font-weight: 400;
+                    border-top: 1px solid #3333;
                 }
-
-                .element-right {
-                    text-align: right;
-                    padding: 10px 0 10px 0;
-                }
-
                 .element-left.first {
                     margin-top: 10px;
+                    border-top: 0;
                 }
                 
                 .btn-row-left {
@@ -1441,7 +1453,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 .detailed-submission-modal-content-wrapper {
                     grid-template-columns: auto;
-                    height: calc(100vH - 139px); /*TODO compute values*/
+                    height: calc(100vH - 139px); /*TODO calculate values*/
                 }
 
                 #detailed-submission-modal-box .modal-footer .modal-footer-btn {
@@ -1794,16 +1806,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </h3>
                         </header>
                         <main class="modal-content" id="detailed-submission-modal-content">
-                            <div class="detailed-submission-modal-content-wrapper">
-                                <!-- <div class="left"></div>
-                                <div class="right"></div> -->
-                            </div>
+                            <div class="detailed-submission-modal-content-wrapper"></div>
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
                                 <div class="btn-row-left">
-                                    <dbp-button class="button back-btn" title="Vorheriger Eintrag">Vorheriger Eintrag</dbp-button>
-                                    <dbp-button class="button next-btn" title="Nächster Eintrag">Nächster Eintrag</dbp-button>
+                                    <dbp-button class="button back-btn" title="${i18n.t('show-registrations.last-entry-btn-title')}"
+                                        @click="${this.showLastEntry}">
+                                        ${i18n.t('show-registrations.last-entry-btn-title')
+                                    }</dbp-button>
+                                    <dbp-button class="button next-btn" title="${i18n.t('show-registrations.next-entry-btn-title')}"
+                                        @click="${this.showNextEntry}">
+                                        ${i18n.t('show-registrations.next-entry-btn-title')}
+                                    </dbp-button>
                                 </div>
                                 <select id="modal-export-select">
                                     <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
