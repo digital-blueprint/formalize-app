@@ -451,6 +451,8 @@ export function getFileHandlingCss() {
             background: var(--dbp-secondary-surface);
             color: var(--dbp-on-secondary-surface);
             border-color: var(--dbp-secondary-surface-border-color);
+            box-sizing: border-box;
+            min-height: 40px;
         }
 
         .tabulator .tabulator-footer .tabulator-page:not(.disabled):hover {

@@ -40,6 +40,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
+        this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.dragPos = 0;
         this.activeCourse = '';
         this.autoColumns = true;
@@ -100,7 +101,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     { 
                         title:"Id", 
                         field:"id",
-                        width: 100,
+                        widthGrow: 1,
                     },
                     { 
                         title:"Name", 
@@ -110,7 +111,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     { 
                         title:"Date", 
                         field:"date",
-                        widthGrow: 1,
+                        widthGrow: 2,
                         formatter: function (cell, formatterParams, onRendered) {
                             const d = Date.parse(cell.getValue());
                             const timestamp = new Date(d);
@@ -123,16 +124,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         },
                     },
                     { 
-                        title:"Actions",
+                        title:"",
                         field:"type",
-                        width: 100,
                         formatter:"html",
                         headerSort: false,
                     },    
                 ],
-                rows: [{
-                    height: 33
-                }],
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
                         this.changePaginationButtonText();
@@ -152,8 +149,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 downloadRowRange: 'selected',
                 autoColumns: this.autoColumns,
                 columns:[
-
-
                 ],
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
@@ -182,7 +177,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         };
 
                           this.submissionsTable.addColumn({
-                              title: "Actions",
+                              title: "",
                               width: 55,
                               align: 'center',
                               field: 'no_display_1',
@@ -226,50 +221,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         }
                         this.submissionsTable.addColumn(dateCol, true);
                         this.submissionsTable.addColumn(idCol, true);
-                        /*  this.submissionsTable.deleteColumn('actions');
-                          this.submissionsTable.addColumn({
-                              title: "actions",
-                              field: "actions",
-                              width: 100,
-                              formatter: "html",
-                              align: 'center',
-                              download: false,
-                              headerSort:false,
-                          });*/
-
-                      /*  this.submissionsTable.addColumn(     {
-                            title:
-                                '<label id="select_all_wrapper" class="button-container select-all-icon">' +
-                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
-                                '<span class="checkmark" id="select_all_checkmark"></span>' +
-                                '</label>',
-                            align: 'center',
-                            field: 'no_display_1',
-                            resizable: false,
-                            headerSort: false,
-                            sortable:false,
-                            formatter: 'responsiveCollapse',
-                            visible: true,
-                        }, true);*/
-                        /*this.submissionsTable.addColumn({
-                            title:'<label id="select_all_wrapper" class="button-container select-all-icon">' +
-                                '<input type="checkbox" id="select_all" name="select_all" value="select_all">' +
-                                '<span class="checkmark" id="select_all_checkmark"></span>' +
-                                '</label>',
-                        }, true);*/
-
-
-
-                        // if (this._('#select_all')) {
-                        //     let boundSelectHandler = this.selectAllSubmissions.bind(this);
-                        //     this._('#select_all').addEventListener('click', boundSelectHandler);
-                        // }
-
-                       // this.addToggleEvent();
-
                         this.updateTableHeaderList();
-                       // this.createHeaderList();
-
                     }
                 },
             });        
@@ -504,8 +456,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let entry = data["hydra:member"][x];
             try {
 
-                //let id = entry["@id"];
-
                 let name = entry["form"];
 
                 if (!name || courses.length > 0 && courses.includes(name)) {
@@ -513,9 +463,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
                 let date = entry["dateCreated"];
 
-                const button_tag = this.getScopedTagName('dbp-loading-button');
-                let button = `<${button_tag} name="" class="" id="courses-btn">` + i18n.t('show-registrations.show-submission-btn-text') + `</${button_tag}>`;
+                const button_tag = this.getScopedTagName('dbp-button');
+                const icon_tag = this.getScopedTagName('dbp-icon');
+                let button = `<${button_tag} name="" class="button" id="courses-btn">` +
+                    `<${icon_tag} name="chevron-right"></${icon_tag}>` + `</${button_tag}>`;
                 let div = getShadowRootDocument(this).createElement('div');
+                div.classList.add('button-wrapper');
                 div.innerHTML = button;
 
                 div.firstChild.addEventListener("click", event => {
@@ -582,6 +535,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     async requestAllCourseSubmissions(name) {
         let dataList2 = [];
         let response = await this.getAllSubmissions();
+        if (!response)
+            return;
         let data = await response.json();
         let headerExists = this.autoColumns;
 
@@ -697,7 +652,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let operator = this._('#search-operator');
 
         console.log(filter, search, operator);
-        if (!filter || !search || !operator)
+        if (!filter || !search || !operator || !this.submissionsTable)
             return;
 
         filter = filter.value;
@@ -709,30 +664,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        //custom filter function
-        function matchAny(data, filterParams) {
-            var match = false;
-
-            let searchKey = filterParams.value.toLowerCase();
-
-            for (var key in data) {
-                //console.log("key: " + key + "; data[key]: " + data[key]);
-                let data_lowecase = String(data[key]).toLowerCase();
-                if (data_lowecase.includes(searchKey)) {
-                    match = true;
-                }
-            }
-
-            return match;
-        }
-
-        this.submissionsTable.setFilter(matchAny, {value: filter});
+        let filterArray = [];
+        this.submissionsColumns.forEach(col => {
+            filterArray.push({field:col.field, type:operator, value:filter});
+        });
+        this.submissionsTable.setFilter([filterArray]);
     }
 
     async updateTableHeaderList() {
         if (!this.submissionsTable)
             return;
         let columns = this.submissionsTable.getColumns();
+        this.submissionsColumns = [];
         columns.forEach((col) => {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
@@ -758,7 +701,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     dragStart(e) {
-        console.log("---------e", e.originalTarget.firstElementChild);
         this.dragStartIndex = +e.originalTarget.getAttribute('data-index');
         +e.originalTarget.firstElementChild.classList.add('dragstart');
 
@@ -869,14 +811,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-    showSearchModal() {
-        //TODO
-    }
-
-    showExportModal() {
-        //TODO
-    }
-
     showDetailedModal() {
         let modal = this._('#detailed-submission-modal');
         if (modal) {
@@ -905,6 +839,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
+
+    pressEnterAndSubmitSearch(event) {
+        console.log("key", event.keyCode);
+        if (event.keyCode === 13) {
+                // Cancel the default action, if needed
+                event.preventDefault();
+                // Trigger the button element with a click
+                this.filterTable();
+                this.hideAdditionalSearchMenu(event);
+        }
+    }
+
+
     hideAdditionalMenu() {
         if (this.initateOpenAdditionalMenu) {
             this.initateOpenAdditionalMenu = false;
@@ -924,33 +871,38 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         menu.classList.remove('hidden');
 
         if (!menu.classList.contains('hidden')) {
+            console.log("add");
             // add event listener for clicking outside of menu
             document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
+            document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
             this.initateOpenAdditionalSearchMenu = true;
         }
 
     }
 
     hideAdditionalSearchMenu(e) {
-        console.log(e);
         if (this.initateOpenAdditionalSearchMenu) {
             this.initateOpenAdditionalSearchMenu = false;
             return;
         }
-console.log(e);
-        if(e.originalTarget && e.originalTarget.parentElement &&
-            (e.originalTarget.parentElement.classList.contains('extended-menu') ||
+
+        if(e.type !== "keyup" && e.keyCode !== 13
+            && (e.originalTarget && e.originalTarget.parentElement
+            && (e.originalTarget.parentElement.classList.contains('extended-menu') ||
                 e.originalTarget.parentElement.id === 'search-operator' ||
                 e.originalTarget.parentElement.id === 'search-operator' ||
-                e.originalTarget.parentElement.id === 'search-select') ||
-            e.originalTarget && e.originalTarget.id === 'searchbar-menu' ||
-            e.originalTarget && e.originalTarget.id === 'searchbar') {
+                e.originalTarget.parentElement.id === 'search-select')
+            || e.originalTarget && e.originalTarget.id === 'searchbar-menu'
+            || e.originalTarget && e.originalTarget.id === 'searchbar')) {
             return;
         }
+
         const menu = this._('#extendable-searchbar .extended-menu');
         if (menu && !menu.classList.contains('hidden')) {
             menu.classList.add('hidden');
             document.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
+            document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+
         }
     }
 
@@ -1265,10 +1217,6 @@ console.log(e);
                  padding: 0;
              }
  
-             #courses-table .tabulator-cell {
-                 height: 33px;
-             }
- 
              span.first {
                  margin-left: -6px;
              }
@@ -1349,9 +1297,9 @@ console.log(e);
 
             .frozen-table-divider{
                 position: absolute;
-                height: 86.5%;
+                height: calc(100% - 61px);
                 width: 3px;
-                top: 0px;
+                top: 10px;
                 right: 51px;
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
@@ -1447,7 +1395,19 @@ console.log(e);
                 }
             }
             
+            .button-wrapper{
+                display: flex;
+                height: 100%;
+                justify-content: center;
+                align-items: center;
+            }
             
+            .open-menu   {
+                height: 45px;
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+            }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -1544,6 +1504,7 @@ console.log(e);
                     border-radius: var(--dbp-border-radius);
                     padding: 0;
                     margin: 4px 0 0 0;
+                    min-width: 50%;
                 }
     
                 .extended-menu li.active {
@@ -1652,14 +1613,19 @@ console.log(e);
                                 <dbp-icon name="menu-dots" class="more-menu"></dbp-icon>
                             </a>
                             <ul class="extended-menu hidden">
-                                <li class="${classMap({active: false})}">
-                                    <a class="" @click="${this.showSearchModal}">
-                                        ${i18n.t('show-registrations.searchbar-placeholder')}
+                                <li class="open-menu ${classMap({active: false})}">
+                                    <a class="" @click="${() => {if (this.submissionsTable) {this.submissionsTable.download("csv", "data.csv");} }}">
+                                        CSV Export
                                     </a>
                                 </li>
-                                <li class="${classMap({active: false})}">
-                                    <a class="" @click="${this.showExportModal}">
-                                        ${i18n.t('show-registrations.default-export-select')}
+                                <li class="open-menu ${classMap({active: false})}">
+                                    <a class="" @click="${() => {this.exportXLSX();}}">
+                                        Excel Export
+                                    </a>
+                                </li>
+                                <li class="open-menu ${classMap({active: false})}">
+                                    <a class="" @click="${() => {this.exportPdf();}}">
+                                       PDF Export
                                     </a>
                                 </li>
                                 <li class="${classMap({active: false})}">
