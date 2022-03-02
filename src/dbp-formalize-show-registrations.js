@@ -1463,6 +1463,10 @@ console.log(e);
                     text-align: right;
                     padding: 10px 0 10px 0;
                 }
+
+                .element-left.first {
+                    margin-top: 10px;
+                }
                 
                 .btn-row-left {
                     display: flex;
@@ -1473,6 +1477,7 @@ console.log(e);
 
                 .detailed-submission-modal-content-wrapper {
                     grid-template-columns: auto;
+                    height: calc(100vH - 139px); /*TODO compute values*/
                 }
 
                 #detailed-submission-modal-box .modal-footer .modal-footer-btn {
