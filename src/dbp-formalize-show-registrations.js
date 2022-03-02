@@ -62,7 +62,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             showSubmissionsTable: { type: Boolean, attribute: false },
             submissionsColumns: { type: Array, attribute: false },
             submissionsColumnsUpdated: { type: Boolean, attribute: false },
-            dataList: { type: Array, attribute: false },
             autoColumns: {type: Boolean, attribute: 'auto-columns'}
         };
     }
@@ -96,7 +95,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         formatter: 'responsiveCollapse',
                     },
                     { 
-                        title:"Id", 
+                        title:"ID",
                         field:"id",
                         widthGrow: 1,
                     },
@@ -106,7 +105,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         widthGrow: 2,
                     },
                     { 
-                        title:"Date", 
+                        title: i18n.t('show-registrations.date'),
                         field:"date",
                         widthGrow: 2,
                         formatter: function (cell, formatterParams, onRendered) {
@@ -195,7 +194,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         let dateCol = {
                             minWidth: 150,
                             field: 'dateCreated',
-                            title: 'dateCreated',
+                            title: i18n.t('show-registrations.creation-date'),
                             align: 'left',
                             sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
                                 const a_timestamp = Date.parse(a);
@@ -464,7 +463,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 const button_tag = this.getScopedTagName('dbp-button');
                 const icon_tag = this.getScopedTagName('dbp-icon');
                 let button = `<${button_tag} name="" class="button" id="courses-btn">` +
-                    `<${icon_tag} name="chevron-right"></${icon_tag}>` + `</${button_tag}>`;
+                    `<${icon_tag} name="chevron-right" title="${i18n.t('show-registrations.open-forms')}"></${icon_tag}>` + `</${button_tag}>`;
                 let div = getShadowRootDocument(this).createElement('div');
                 div.classList.add('button-wrapper');
                 div.innerHTML = button;
@@ -573,7 +572,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 jsonFirst['dateCreated'] = date;
                 json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
-                console.log(div_id);
                 beautyId++;
             } catch(e) {
                  console.log('error');
@@ -626,7 +624,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     exportPdf() {
-        this.submissionsTable.download("pdf", "data.pdf", {
+        this.submissionsTable.download("pdf", this.activeCourse + ".pdf", {
             orientation:"portrait", //set page orientation to portrait
             autoTable:function(doc){
                 //doc - the jsPDF document object
@@ -647,7 +645,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     exportXLSX() {
         window.XLSX = XLSX;
-        this.submissionsTable.download("xlsx", "data.xlsx", {sheetName:"My Data"});
+        this.submissionsTable.download("xlsx", this.activeCourse + ".xlsx", {sheetName: this.activeCourse});
         delete window.XLSX;
     }
 
@@ -693,8 +691,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     getTableHeaderOptions() {
         if (!this.submissionsTable)
             return;
+        const i18n = this._i18n;
         let options = [];
-        options[0] = html`<option value="all">Alle Spalten</option>`;
+        options[0] = html`<option value="all">${i18n.t('show-registrations.all-columns')}</option>`;
         this.submissionsColumns.forEach((col, counter) => {
             if(col.visibility === 0) {
                 options[counter + 1]= html`<option disabled value="${col.field}">${col.name}</option>`;
@@ -1057,7 +1056,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  margin: 0 0 0 4px;
                  padding: 0 0 0.25% 0;
                  -webkit-mask-size: 100%;
-                 mask-size: 120%;name
+                 mask-size: 120%;
              }
  
              .back-navigation:hover {
@@ -1515,18 +1514,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
 
                 <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable })}">
-                    <h3>${this.activeCourse}</h3>
-                    <div class="options-nav ${classMap({hidden: !this.showSubmissionsTable})}">
-                        <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
-                            <a
-                                @click="${() => {
-                                    this.showSubmissionsTable = false;
-                                    this.submissionsTable.clearData();
-                                }}"
+                    <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
+                       <a @click="${() => {this.showSubmissionsTable = false;this.submissionsTable.clearData();}}"
                                 title="${i18n.t('show-registrations.back-text')}">
                                 ${i18n.t('show-registrations.back-text')}
-                            </a>
-                        </span>
+                       </a>
+                    </span>
+                    <h3>${this.activeCourse}</h3>
+                    <div class="options-nav ${classMap({hidden: !this.showSubmissionsTable})}">
+                        
                         <div class="additional-menu ${classMap({hidden: !this.showSubmissionsTable })}">
                             <a class="extended-menu-link"
                                 @click="${() => {
@@ -1560,35 +1556,34 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </div>
                     </div>
                     <div class="search-wrapper">
-                       
                             <div id="extendable-searchbar">
                                 <input type="text" id="searchbar" 
                                        placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"  
                                        @click="${() => {this.toggleSearchMenu();}}"/>
-                                <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.shearch-button')}"
+                                <dbp-button class="button" id="search-button" title="${i18n.t('show-registrations.search-button')}"
                                             class="button" @click="${() => { this.filterTable(); }}">
                                     <dbp-icon name="search"></dbp-icon>
 
                                 </dbp-button>
                                 <ul class="extended-menu hidden" id='searchbar-menu'>
-                                    <label for='search-select'>Search in colums:</label>
-                                    <select id="search-select">          
+                                    <label for='search-select'>${i18n.t('nextcloud-file-picker.search-in')}:</label>
+                                    <select id="search-select" title="${i18n.t('nextcloud-file-picker.search-in-column')}:">          
                                        ${this.getTableHeaderOptions()}
                                     </select>
 
-                                    <label for='search-operator'>Searchoperator:</label>
+                                    <label for='search-operator'>${i18n.t('nextcloud-file-picker.search-operator')}:</label>
                                     <select id="search-operator">
-                                        <option value="like">like</option>
-                                        <option value="=">equal</option>
-                                        <option value="!=">not equal</option>
-                                        <option value="starts">starts</option>
-                                        <option value="ends">ends</option>
-                                        <option value="<">less than</option>
-                                        <option value="<=">less than or euqal</option>
-                                        <option value=">">greater</option>
-                                        <option value=">=">greater or equal</option>
-                                        <option value="regex">Regex</option>
-                                        <option value="keywords">keywords</option>
+                                        <option value="like">${i18n.t('nextcloud-file-picker.search-operator-like')}</option>
+                                        <option value="=">${i18n.t('nextcloud-file-picker.search-operator-equal')}</option>
+                                        <option value="!=">${i18n.t('nextcloud-file-picker.search-operator-notequal')}</option>
+                                        <option value="starts">${i18n.t('nextcloud-file-picker.search-operator-starts')}</option>
+                                        <option value="ends">${i18n.t('nextcloud-file-picker.search-operator-ends')}</option>
+                                        <option value="<">${i18n.t('nextcloud-file-picker.search-operator-less')}</option>
+                                        <option value="<=">${i18n.t('nextcloud-file-picker.search-operator-lessthanorequal')}</option>
+                                        <option value=">">${i18n.t('nextcloud-file-picker.search-operator-greater')}</option>
+                                        <option value=">=">${i18n.t('nextcloud-file-picker.search-operator-greaterorequal')}</option>
+                                        <option value="regex">${i18n.t('nextcloud-file-picker.search-operator-regex')}</option>
+                                        <option value="keywords">${i18n.t('nextcloud-file-picker.search-operator-keywords')}</option>
                                     </select>
                                 </ul>
                             </div>
@@ -1596,7 +1591,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                            
                         </div>
                     <div class="export-buttons">
-                        <button class="button">
+                        <button class="button" title=" ${i18n.t('show-registrations.filter-options-button-text')}">
                             <a class="" @click="${this.openModal}">
                                 ${i18n.t('show-registrations.filter-options-button-text')}
                             </a>
@@ -1607,7 +1602,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
                             <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                         </select>
-                        <!--<dbp-loading-button id="download-pdf" @click="${() => {this.openModal();}}">${i18n.t('show-registrations.filter-options-button-text')}</dbp-loading-button>-->
                     </div>
                     <div class="scrollable-table-wrapper">   
                         <table id="submissions-table"></table>
@@ -1637,8 +1631,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     name="close"
                                     class="close-icon"></dbp-icon>
                             </button>
-                            <p id="submission-modal-title">
+                            <h3 id="submission-modal-title">
+                                ${i18n.t('show-registrations.header-settings')}
                                 Change Visibility and Order of table headers
+                            </h3>
+                            <p id="submission-modal-title">
+                                ${i18n.t('show-registrations.header-settings')}
                             </p>
                         </header>
                         <main class="modal-content" id="submission-modal-content">
@@ -1658,16 +1656,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                                    @click="${() => {
                                                        this.changeVisibility(i);
                                                    }}">
-                                                 <dbp-icon title="hide me" class="header-visibility-icon-hide ${classMap({hidden: i.visibility === 0})}"
+                                                 <dbp-icon title="${i18n.t('show-registrations.change-visability-off')}" class="header-visibility-icon-hide ${classMap({hidden: i.visibility === 0})}"
                                                            name="source_icons_eye-empty"></dbp-icon>
-                                                 <dbp-icon title="show me" class="header-visibility-icon-show ${classMap({hidden: i.visibility === 1})}"
+                                                 <dbp-icon title="${i18n.t('show-registrations.change-visability-on')}" class="header-visibility-icon-show ${classMap({hidden: i.visibility === 1})}"
                                                            name="source_icons_eye-off"></dbp-icon>
                                              </span>
                                              <span class="header-move">
-                                                <div class="header-button" @click="${(e) => { this.moveHeaderUp(i, e); }}"><dbp-icon title="Move up"
-                                                       name="arrow-up"></dbp-icon></div>
-                                                 <div class="header-button"  @click="${(e) => { this.moveHeaderDown(i, e); }}"><dbp-icon title="Move down"
-                                                       name="arrow-down"></dbp-icon></div>
+                                                <div class="header-button" @click="${(e) => { this.moveHeaderUp(i, e); }}"
+                                                    title='${i18n.t('show-registrations.move-up')}'>
+                                                    <dbp-icon name="arrow-up"></dbp-icon></div>
+                                                 <div class="header-button"  @click="${(e) => { this.moveHeaderDown(i, e); }}"
+                                                    title='${i18n.t('show-registrations.move-down')}'>
+                                                     <dbp-icon name="arrow-down"></dbp-icon></div>
                                              </span>
                                          </div>
                                     </li>
@@ -1677,7 +1677,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
                                 <button class="check-btn button is-primary" id="check" @click="${() => {this.updateTableHeader();}}">
-                                    Save Headers
+                                    ${i18n.t('show-registrations.save-columns')}
                                 </button>
                             </div>
                         </footer>

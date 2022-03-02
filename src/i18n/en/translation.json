@@ -13,6 +13,20 @@
         "filter-options-button-text": "Filter Options",
         "back-text": "Back to course list",
         "search-button": "Search",
+        "search-in": "Search in colums",
+        "search-in-column": "Select column",
+        "search-operator": "Searchoperator",
+        "search-operator-like": "like",
+        "search-operator-equal": "equal",
+        "search-operator-notequal": "not equal",
+        "search-operator-starts": "starts with",
+        "search-operator-ends": "ends with",
+        "search-operator-less": "less than",
+        "search-operator-lessthanorequal": "less than or equal",
+        "search-operator-greater": "greater than",
+        "search-operator-greaterorequal": "greater than or equal",
+        "search-operator-regex": "regular expression",
+        "search-operator-keywords": "keyword search",
         "show-submission-btn-text": "Show",
         "pagination-btn-first": "First",
         "pagination-btn-next": "Next",
@@ -21,7 +35,21 @@
         "search-all-columns": "All columns",
         "detailed-submission-dialog-title": "Submission: {{name}}",
         "last-entry-btn-title": "Last entry",
-        "next-entry-btn-title": "Next entry"
+        "next-entry-btn-title": "Next entry",
+        "date": "Date",
+        "date": "Creation Date",
+        "open-forms": "Show form submissions",
+        "all-columns": "All columns",
+        "header-settings": "Column setting",
+        "header-settings-description": "The visibility and the order of the columns can be changed here",
+        "change-visability-on": "Show column",
+        "change-visability-off": "Hide column",
+        "move-up": "Move column up",
+        "move-down": "Move column down",
+        "save-columns": "Save column settings"
+
+
+
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."
