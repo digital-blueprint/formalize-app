@@ -1408,6 +1408,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
                 align-items: center;
             }
+
+            .additional-menu{
+                display: none;
+            }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -1521,7 +1525,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     cursor: default;
                 }
 
-                .nextcloud-nav {
+                .options-nav {
                     display: flex;
                     flex-direction: row;
                     justify-content: space-between;
@@ -1593,7 +1597,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable })}">
                     <h3>${this.activeCourse}</h3>
-                    <div class="nextcloud-nav ${classMap({hidden: !this.showSubmissionsTable})}">
+                    <div class="options-nav ${classMap({hidden: !this.showSubmissionsTable})}">
                         <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
                             <a
                                 @click="${() => {
@@ -1673,7 +1677,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                            
                         </div>
                     <div class="export-buttons">
-                        
+                        <button class="button">
+                            <a class="" @click="${this.openModal}">
+                                ${i18n.t('show-registrations.filter-options-button-text')}
+                            </a>
+                        </button>
                         <select id="export-select">
                             <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
                             <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
