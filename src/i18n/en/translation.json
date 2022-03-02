@@ -19,7 +19,7 @@
         "pagination-btn-prev": "Prev",
         "pagination-btn-last": "Last",
         "search-all-columns": "All columns",
-        "detailed-submission-dialog-title": "Submission: {{lastName}} {{firstName}}"
+        "detailed-submission-dialog-title": "Submission: {{name}}, sent at {{date}}"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."

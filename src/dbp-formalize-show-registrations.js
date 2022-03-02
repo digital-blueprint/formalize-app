@@ -1,8 +1,8 @@
 import {createInstance} from './i18n.js';
-import {css, html} from 'lit';
+import {css, unsafeCSS, html} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {Icon, MiniSpinner, LoadingButton, getShadowRootDocument} from '@dbp-toolkit/common';
+import {Icon, MiniSpinner, LoadingButton, getShadowRootDocument, getIconSVGURL} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -640,18 +640,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let data = await response.json();
 
         let json = JSON.parse(data["dataFeedElement"]);
-        this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', {lastName: json["last_name"], firstName: json["first_name"]});
+        this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', {name: this.activeCourse, date: json["datepicker-1"]});
+        this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
+        // console.log('number of elements: ', Object.keys(json).length);
+        // console.log('elements: ', Object.keys(json));
+
+        let first = true;
         Object.keys(json).forEach(key => {
-            this._('.detailed-submission-modal-content-wrapper > div.left').innerHTML += `<div class="element-left">` + key + `:</div>`;
+            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;
             if (json[key] !== '') {
-                this._('.detailed-submission-modal-content-wrapper > div.right').innerHTML += `<div class="element-right">` + json[key] + `</div>`;
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + json[key] + `</div>`;
             } else {
-                this._('.detailed-submission-modal-content-wrapper > div.right').innerHTML += `<div class="element-right">/</div>`;
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right"></div>`;
+            }
+
+            if (first) {
+                this._('.detailed-submission-modal-content-wrapper > .element-left').classList.add('first');
+                this._('.detailed-submission-modal-content-wrapper > .element-right').classList.add('first');
+                first = false;
             }
         });
 
-        this.showDetailedModal();
+        this.showDetailedModal();    
     }
 
     exportPdf() {
@@ -1049,6 +1060,57 @@ console.log(e);
             ${fileHandlingStyles.getDragListCss()}
             ${commonStyles.getButtonCSS()}
 
+
+            #detailed-submission-modal-title {
+                margin-bottom: 10px; /*TODO*/
+            }
+
+            #detailed-submission-modal-content {
+                padding: 0 20px 10px 20px; /*top 10px bottom 20px*/
+            }
+
+            #detailed-submission-modal-box {
+                height: auto;
+                width: auto;
+                overflow-y: hidden;
+            }
+
+            .btn-row-left {
+                margin-top: 6px;
+            }
+
+            .next-btn, .back-btn  {
+                -moz-appearance: none;
+                -webkit-appearance: none;
+                /*background-size: 10%;*/
+                background-size: 13px;
+                border: var(--dbp-border);
+                border-radius: var(--dbp-border-radius);
+                color: var(--dbp-content);
+                padding-bottom: calc(.375em - 1px);
+                padding-top: calc(.375em - 1px);
+            }
+
+            .back-btn {
+                background: calc(100% - 0.2rem) center no-repeat url("${unsafeCSS(
+                    getIconSVGURL('chevron-left')
+                )}");
+                background-position-x: 0.4rem;
+                padding-right: calc(.625em - 1px);
+                padding-left: 1.3rem;
+                background-size: 13px;
+            }
+
+            .next-btn {
+                background: calc(100% - 0.2rem) center no-repeat url("${unsafeCSS(
+                    getIconSVGURL('chevron-right')
+                )}");
+                background-position-x: calc(100% - 0.4rem);
+                padding-left: calc(.625em - 1px);
+                padding-right: 1.3rem;
+                background-size: 13px;
+            }
+
             .open-modal-icon {
                 font-size: 1.5em;
             }
@@ -1059,35 +1121,30 @@ console.log(e);
 
             .detailed-submission-modal-content-wrapper {
                 display: grid;
-                grid-template-columns: min-content auto;
-                /*grid-template-rows: auto;
-                grid-gap: 5px;*/
-                margin: 10px 60px 0 60px;
+                grid-template-columns: min-content 70%;
                 grid-template-rows: auto;
-            }
-
-            .detailed-submission-modal-content-wrapper div.left {
-                background-color: var(--dbp-primary-surface);
-                color: var(--dbp-on-primary-surface);
-                padding: 10px 20px 0 20px;
-                text-align: right;
-            }
-
-            .detailed-submission-modal-content-wrapper div.right {
-                padding: 10px 0 0 0;
-                text-align: left;
-                margin-left: 12px;
+                /*margin: 10px 0 0 0;*/
             }
 
             .element-left {
-                padding: 2px 0px;
+                background-color: var(--dbp-primary-surface);
+                color: var(--dbp-on-primary-surface);
+                padding: 0 20px 12px 40px; /*left: 20px*/
+                text-align: right;
             }
-            
+
             .element-right {
-                padding-top: 2px;
-                padding-bottom: 2px;
-                /*padding-bottom: 1px;
-                border-bottom: 1px dotted var(--dbp-primary-surface);*/
+                text-align: left;
+                margin-left: 12px;
+                padding: 0 0 12px 0;
+            }
+
+            .element-left.first {
+                padding-top: 12px;
+            }
+
+            .element-right.first {
+                padding-top: 12px;
             }
 
             .hideWithoutDisplay {
@@ -1164,9 +1221,12 @@ console.log(e);
              }
              
              .modal-footer-btn {
-                 float: right;
                  padding-right: 20px;
+                 padding-left: 20px;
                  padding-bottom: 30px;
+                 display: flex;
+                 flex-direction: row;
+                 justify-content: space-between;
              }
  
              .export-buttons {
@@ -1390,20 +1450,54 @@ console.log(e);
             
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
+
+                .element-left {
+                    text-align: left;
+                    padding: 10px 5px 10px 5px;
+                    /*background-color: inherit;
+                    color: inherit;
+                    font-style: italic;*/
+                }
+
+                .element-right {
+                    text-align: right;
+                    padding: 10px 0 10px 0;
+                }
+                
+                .btn-row-left {
+                    display: flex;
+                    justify-content: space-between;
+                    flex-direction: row;
+                    gap: 4px;
+                }
+
+                .detailed-submission-modal-content-wrapper {
+                    grid-template-columns: auto;
+                }
+
+                #detailed-submission-modal-box .modal-footer .modal-footer-btn {
+                    padding: 6px 12px 6px 12px;
+                    flex-direction: column;
+                    gap: 6px;
+                }
+
+                #detailed-submission-modal-box .modal-content {
+                    overflow: auto;
+                }
  
                  .export-buttons {
-                     display: none;
+                    display: none;
                  }
  
                  .select-all-icon {
-                     height: 32px;
+                    height: 32px;
                  }
  
                  .additional-menu {
-                     display: block;
-                     white-space: nowrap;
-                     height: 33px;
-                     position: inherit; /** absolute */
+                    display: block;
+                    white-space: nowrap;
+                    height: 33px;
+                    position: inherit; /** absolute */
                     /** margin-right: -12px; */
                 }
 
@@ -1722,18 +1816,22 @@ console.log(e);
                         </header>
                         <main class="modal-content" id="detailed-submission-modal-content">
                             <div class="detailed-submission-modal-content-wrapper">
-                                <div class="left"></div>
-                                <div class="right"></div>
+                                <!-- <div class="left"></div>
+                                <div class="right"></div> -->
                             </div>
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
-                            <select id="modal-export-select">
-                                <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
-                                <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
-                                <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
-                                <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
-                            </select>
+                                <div class="btn-row-left">
+                                    <dbp-button class="button back-btn" title="Vorheriger Eintrag">Vorheriger Eintrag</dbp-button>
+                                    <dbp-button class="button next-btn" title="Nächster Eintrag">Nächster Eintrag</dbp-button>
+                                </div>
+                                <select id="modal-export-select">
+                                    <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
+                                    <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
+                                    <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
+                                    <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
+                                </select>
                             </div>
                         </footer>
                     </div>
