@@ -194,6 +194,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             field: 'id',
                             title: 'ID',
                             align: 'left',
+                            formatter: 'html',
                         };
                         let dateCol = {
                             minWidth: 150,
@@ -546,6 +547,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
+        let beautyId = 1;
         for(let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data["hydra:member"].length) {
                 this.submissionsTable.setData(dataList2);
@@ -554,8 +556,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 return;
             }
             let entry = data["hydra:member"][x];
-            let id = entry["@id"].split('/')[3]; //TODO
+            let id = entry["@id"].split('/')[3];
             let date = entry["dateCreated"];
+
+            let div_id = getShadowRootDocument(this).createElement('div');
+            div_id.innerHTML = `<span submission-id="${id}">${beautyId}</span>`;
 
             try {
                 if(entry && entry["form"] !== name)
@@ -568,10 +573,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     headerExists = true;
                 }
                 let jsonFirst = {};
-                jsonFirst['id'] = id;
+                jsonFirst['id'] = div_id;
                 jsonFirst['dateCreated'] = date;
                 json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
+                console.log(div_id);
+                beautyId++;
             } catch(e) {
                  console.log('error');
             }
