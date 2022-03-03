@@ -10,14 +10,24 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 // import {humanFileSize} from '@dbp-toolkit/common/i18next';
 import Tabulator from 'tabulator-tables';
-import * as XLSX from 'xlsx';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 
-window.XLSX = XLSX;
 
+async function importXLSX()
+{
+    return await import('xlsx');
+}
+
+async function importJsPDF()
+{
+    let jspdf = await import('jspdf');
+    let autotable = await import('jspdf-autotable');
+    autotable.applyPlugin(jspdf.jsPDF);
+    return jspdf.jsPDF;
+}
 
 class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
@@ -633,7 +643,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.showDetailedModal();
     }
 
-    exportPdf() {
+    async exportPdf() {
+        window.jsPDF = await importJsPDF();
         this.submissionsTable.download("pdf", this.activeCourse + ".pdf", {
             orientation:"portrait", //set page orientation to portrait
             autoTable:function(doc){
@@ -650,11 +661,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 };
             },
         });
-
+        delete window.jsPDF;
     }
 
-    exportXLSX() {
-        window.XLSX = XLSX;
+    async exportXLSX() {
+        window.XLSX = await importXLSX();
         this.submissionsTable.download("xlsx", this.activeCourse + ".xlsx", {sheetName: this.activeCourse});
         delete window.XLSX;
     }
