@@ -6,9 +6,7 @@ import {Icon, MiniSpinner, LoadingButton, getShadowRootDocument, getIconSVGURL} 
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
-// import { send } from '@dbp-toolkit/common/notification';
 import {Activity} from './activity.js';
-// import {humanFileSize} from '@dbp-toolkit/common/i18next';
 import Tabulator from 'tabulator-tables';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
@@ -617,13 +615,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        // console.log('number of elements: ', Object.keys(json).length);
-        // console.log('elements: ', Object.keys(json));
-
         for (let i = 1; i < Object.keys(data).length; i++) {
             let key = Object.keys(data)[i];
-            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;
-            
+
+            if (key.includes('no_display')) {
+                continue;
+            }
+
+            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;            
+          
             if (data[key] !== '') {
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + data[key] + `</div>`;
             } else {
