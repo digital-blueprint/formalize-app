@@ -176,8 +176,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             let button = `<${icon_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${icon_tag}>`; //enter
                             let div = getShadowRootDocument(that).createElement('div');
                             div.innerHTML = button;
+                            div.classList.add('open-detailed-modal-btn');
 
-                            div.firstChild.addEventListener("click", event => {
+                            div.addEventListener("click", event => {
                                 that.requestDetailedSubmission(cell);
                                 let path = '';
                                 if (id === event.target.id) {
@@ -963,6 +964,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
             ${commonStyles.getButtonCSS()}
 
+            .open-detailed-modal-btn {
+                width: 33px;
+                height: 33px;
+            }
 
             #detailed-submission-modal-title {
                 margin-bottom: 10px; /*TODO*/
@@ -980,6 +985,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .btn-row-left {
                 margin-top: 6px;
+                display: flex;
+                gap: 4px;
             }
 
             .next-btn, .back-btn  {
@@ -1024,10 +1031,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .detailed-submission-modal-content-wrapper {
                 display: grid;
-                grid-template-columns: min-content 70%;
+                grid-template-columns: min-content auto;
                 grid-template-rows: auto;
                 height: calc(100vH - 97.8px); /*TODO calculate values*/
                 overflow-y: auto;
+                width: 100%;
             }
 
             .element-left {
