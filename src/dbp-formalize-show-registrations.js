@@ -50,6 +50,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.autoColumns = true;
         this.currentCell = null;
         this.currentBeautyId = 0;
+        this.totalNumberOfItems = 0;
         this.isPrevEnabled = false;
         this.isNextEnabled = false;
     }
@@ -101,7 +102,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 resizableColumns: false,
                 pagination: 'local',
                 paginationSize: 10,
-                columns:[
+                locale: true,
+                columns: [
                     {
                         align: 'center',
                         resizable: false,
@@ -142,10 +144,35 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         headerSort: false,
                     },    
                 ],
-                dataLoaded: () => {
-                    if (this.submissionsTable !== null) {
-                        this.changePaginationButtonText();
+                langs: {
+                    "en": {
+                        "pagination":{
+                            "first":"First", 
+                            "first_title":"First Page",
+                            "last":"Last",
+                            "last_title":"Last Page",
+                            "prev":"Prev",
+                            "prev_title":"Prev Page",
+                            "next":"Next",
+                            "next_title":"Next Page",
+                        },
+                    },
+                    "de": {
+                        "pagination":{
+                            "first":"Erste", 
+                            "first_title":"Erste Seite",
+                            "last":"Letzte",
+                            "last_title":"Letzte Seite",
+                            "prev":"Vorherige",
+                            "prev_title":"Vorherige Seite",
+                            "next":"Nächste",
+                            "next_title":"Nächste Seite",
+                        },
                     }
+                },
+                dataLoaded: () => {
+                    if (this.coursesTable !== null)
+                        this.coursesTable.setLocale(this.lang);
                 }
             });
 
@@ -160,14 +187,41 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 paginationSize: 10,
                 autoColumns: this.autoColumns,
                 downloadRowRange:"selected",
-                columns:[
+                locale: true,
+                columns: [
                 ],
+                langs: {
+                    "en": {
+                        "pagination":{
+                            "first":"First", 
+                            "first_title":"First Page",
+                            "last":"Last",
+                            "last_title":"Last Page",
+                            "prev":"Prev",
+                            "prev_title":"Prev Page",
+                            "next":"Next",
+                            "next_title":"Next Page",
+                        },
+                    },
+                    "de": {
+                        "pagination":{
+                            "first":"Erste", 
+                            "first_title":"Erste Seite",
+                            "last":"Letzte",
+                            "last_title":"Letzte Seite",
+                            "prev":"Vorherige",
+                            "prev_title":"Vorherige Seite",
+                            "next":"Nächste",
+                            "next_title":"Nächste Seite",
+                        },
+                    }
+                },
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
 
-                        this.changePaginationButtonText();
-
                         const that = this;
+
+                        this.submissionsTable.setLocale(this.lang);
 
                         const openIcon = function(cell, formatterParams) {
 
@@ -298,6 +352,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             switch (propName) {
                 case 'lang':
                     this._i18n.changeLanguage(this.lang);
+                    if (this.coursesTable)
+                        this.coursesTable.setLocale(this.lang);
+                    if (this.submissionsTable)
+                        this.submissionsTable.setLocale(this.lang);
                     break;
                 case 'auth':
                     this._updateAuth();
@@ -312,48 +370,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return this.shadowRoot === null
             ? this.querySelectorAll(selector)
             : this.shadowRoot.querySelectorAll(selector);
-    }
-
-    changePaginationButtonText() {
-        const i18n = this._i18n;
-        
-        let elements = [
-            this._('#courses-table > .tabulator-footer > .tabulator-paginator').childNodes,
-            this._('#submissions-table > .tabulator-footer > .tabulator-paginator').childNodes
-        ];
-        
-        for (let j = 0; j < elements.length; j++) {
-
-            let buttonList = elements[j];
-            // console.log(buttonList);
-
-            for (let i = 0; i < buttonList.length; i++) {
-                let button = buttonList[i];
-                let value = button.getAttribute('data-page');
-                switch (value) {
-                    case 'first': {
-                        button.innerText = i18n.t('show-registrations.pagination-btn-first');
-                        break;
-                    }
-                    case 'prev': {
-                        button.innerText = i18n.t('show-registrations.pagination-btn-prev');
-                        break;
-                    }
-                    case 'next': {
-                        button.innerText = i18n.t('show-registrations.pagination-btn-next');
-                        break;
-                    }
-                    case 'last': {
-                        button.innerText = i18n.t('show-registrations.pagination-btn-last');
-                        break;
-                    }
-                    default:
-                        // console.log('number button detected');
-                        break;
-                }
-            }
-            // }
-        }
     }
 
     /**
@@ -602,6 +618,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  console.log('error');
             }
 
+        this.totalNumberOfItems = beautyId - 1;
         }
     }
 
@@ -616,13 +633,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     requestDetailedSubmission(cell) {
-
-
         let data = cell.getData();
         let identifier = data['id_'];
 
-        //const i18n = this._i18n;
-        //this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
         if (!this._('.detailed-submission-modal-content-wrapper'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
@@ -631,6 +644,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let key = Object.keys(data)[i];
 
             if (key.includes('no_display') || key.includes('id')) {
+                continue;
+            } else if (key.includes('dateCreated') && (data[key] !== '')) {
+                const d = Date.parse(data[key]);
+                const timestamp = new Date(d);
+                const year = timestamp.getFullYear();
+                const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
+                const date = ('0' + timestamp.getDate()).slice(-2);
+                const hours = ('0' + timestamp.getHours()).slice(-2);
+                const minutes = ('0' + timestamp.getMinutes()).slice(-2);
+                let value = date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+                
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + value + `</div>`;
+
                 continue;
             }
             
@@ -1047,6 +1074,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .btn-row-left {
                 display: flex;
+                justify-content: space-between;
                 gap: 4px;
             }
 
@@ -1198,9 +1226,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  padding-right: 20px;
                  padding-left: 20px;
                  padding-bottom: 30px;
-                 display: flex;
-                 flex-direction: row;
-                 justify-content: end;
                  padding-top: 10px;
              }
  
@@ -1865,8 +1890,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     name="close"
                                     class="close-icon"></dbp-icon>
                             </button>
-                            <!--<h3 id="detailed-submission-modal-title">
-                            </h3>-->
+                            <h3 id="detailed-submission-modal-title">${i18n.t('show-registrations.detailed-submission-dialog-title')}</h3>
                         </header>
                         <main class="modal-content" id="detailed-submission-modal-content">
                             <div class="detailed-submission-modal-content-wrapper"></div>
@@ -1879,6 +1903,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         ?disabled="${!this.isPrevEnabled}">
                                         ${i18n.t('show-registrations.last-entry-btn-title')}
                                     </dbp-button>
+                                    <div>${i18n.t('show-registrations.detailed-submission-dialog-id', {id: this.currentBeautyId, nItems: this.totalNumberOfItems})}</div>
                                     <dbp-button class="button next-btn" title="${i18n.t('show-registrations.next-entry-btn-title')}"
                                         @click="${this.showNextEntry}"
                                         ?disabled="${!this.isNextEnabled}">
