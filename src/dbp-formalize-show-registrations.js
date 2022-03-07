@@ -156,8 +156,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 resizableColumns: false,
                 pagination: 'local',
                 paginationSize: 10,
-                downloadRowRange: 'selected',
                 autoColumns: this.autoColumns,
+                downloadRowRange:"selected",
                 columns:[
                 ],
                 dataLoaded: () => {
@@ -204,7 +204,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             field: 'id',
                             title: 'ID',
                             align: 'left',
-                            formatter: 'html',
+                            download: false,
+                            visible: false,
+
+                        };
+                        let beautyIdCol = {
+                            field: 'id_',
+                            title: 'ID',
+                            align: 'left',
                         };
                         let dateCol = {
                             minWidth: 150,
@@ -230,9 +237,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         if (this.autoColumns) {
                             this.submissionsTable.deleteColumn('dateCreated');
                             this.submissionsTable.deleteColumn('id');
+                            this.submissionsTable.deleteColumn('id_');
                         }
                         this.submissionsTable.addColumn(dateCol, true);
                         this.submissionsTable.addColumn(idCol, true);
+                        this.submissionsTable.addColumn(beautyIdCol, true);
                         this.updateTableHeaderList();
                     }
                 },
@@ -569,9 +578,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let id = entry["@id"].split('/')[3];
             let date = entry["dateCreated"];
 
-            let div_id = getShadowRootDocument(this).createElement('div');
-            div_id.innerHTML = `<span submission-id="${id}">${beautyId}</span>`;
-
             try {
                 if(entry && entry["form"] !== name)
                     continue;
@@ -583,7 +589,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     headerExists = true;
                 }
                 let jsonFirst = {};
-                jsonFirst['id'] = div_id;
+                jsonFirst['id'] = id;
+                jsonFirst['id_'] = beautyId;
                 jsonFirst['dateCreated'] = date;
                 json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
@@ -609,15 +616,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         const i18n = this._i18n;
 
         let data = cell.getData();
-        let identifier = data['id'].childNodes[0].textContent;
+        let identifier = data['id_'];
 
         this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
+        console.log(data);
 
-        for (let i = 1; i < Object.keys(data).length; i++) {
+        for (let i = 0; i < Object.keys(data).length; i++) {
             let key = Object.keys(data)[i];
 
-            if (key.includes('no_display')) {
+            if (key.includes('no_display') || key.includes('id')) {
                 continue;
             }
             
@@ -643,28 +651,66 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.showDetailedModal();
     }
 
+    async exportSubmissionTable(e) {
+        let exportInput = this._('#export-select');
+        if (!exportInput)
+            return;
+
+        let exportValue = exportInput.value;
+
+        if (!exportValue || exportValue === "")
+            return;
+
+        e.stopPropagation();
+
+        switch (exportValue) {
+            case "csv":
+                this.exportCSV();
+                break;
+            case "pdf":
+                this.exportPdf();
+                break;
+            case "excel":
+                this.exportXLSX();
+                break;
+            default:
+                break;
+        }
+
+        exportInput.value = "-";
+
+    }
+
+    async exportCSV() {
+        console.log("export csv");
+        this.submissionsTable.download("csv", "data.csv");
+    }
+
     async exportPdf() {
+        let selected = this.submissionsTable.getSelectedRows().length;
+        let all = "selected";
+        if (selected === 0) {
+            all = "active";
+        }
+
         window.jsPDF = await importJsPDF();
         this.submissionsTable.download("pdf", this.activeCourse + ".pdf", {
-            orientation:"portrait", //set page orientation to portrait
-            autoTable:function(doc){
-                //doc - the jsPDF document object
-
-                //add some text to the top left corner of the PDF
-                doc.text("SOME TEXT", 1, 1);
-
-                //return the autoTable config options object
-                return {
-                    styles: {
-                        fillColor: [200, 0o0, 0o0]
-                    },
-                };
+            title: this.activeCourse,
+            autoTable:{ //advanced table styling
+                theme: 'grid',
+                styles: {
+                    fontSize: 8
+                },
+                margin: {top: 60},
+                pageBreak: 'auto',
             },
-        });
+        }, all);
         delete window.jsPDF;
     }
 
     async exportXLSX() {
+        console.log("export xlsx");
+
         window.XLSX = await importXLSX();
         this.submissionsTable.download("xlsx", this.activeCourse + ".xlsx", {sheetName: this.activeCourse});
         delete window.XLSX;
@@ -703,9 +749,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         columns.forEach((col) => {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
-            if (field && !field.includes('no_display')) {
-                this.submissionsColumns.push({name: name, field: field, visibility: 1});
+            let visible = col.getDefinition().visible;
+
+            if (visible !== false) {
+                if (field && !field.includes('no_display') || field && visible) {
+                    this.submissionsColumns.push({name: name, field: field, visibility: 1});
+                }
             }
+
         });
     }
 
@@ -1031,6 +1082,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             #modal-export-select {
                 height: 33px;
             }
+            
+            #export-select, #search-select, #search-operator {
+                background-size: auto 50%;
+                padding-bottom: calc(0.375em - 1px);
+                padding-left: 0.75em;
+                padding-right: 1.3rem;
+                padding-top: calc(0.375em - 1px);
+                cursor: pointer;
+                background-position-x: calc(100% - 0.4rem);
+            }
 
             .detailed-submission-modal-content-wrapper {
                 display: grid;
@@ -1167,14 +1228,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              span.first {
                  margin-left: -6px;
              }
- 
-             select:not(.select) {
-                 background-size: 13px;
-                 background-position-x: calc(100% - 0.4rem);
-                 padding-right: 1.3rem;
-                 height: 26px;
-             }
- 
+             
              select[disabled] {
                  opacity: 0.4;
                  cursor: not-allowed;
@@ -1229,8 +1283,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              
              #search-select, #search-operator {
                 margin-bottom: 10px;
-                height: 40px;
                 box-sizing: border-box;
+                 text-align: left;
              }
              
              .scrollable-table-wrapper {
@@ -1517,6 +1571,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 .search-wrapper{
                     width: 100%;
                 }
+
+                 #search-select, #search-operator {
+                     height: 40px;
+                 }
                 
                 #extendable-searchbar .extended-menu {
                     top: 40px;
@@ -1610,7 +1668,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </a>
                             <ul class="extended-menu hidden">
                                 <li class="open-menu ${classMap({active: false})}">
-                                    <a class="" @click="${() => {if (this.submissionsTable) {this.submissionsTable.download("csv", "data.csv");} }}">
+                                    <a class="" @click="${() => {this.exportCSV();}}">
                                         CSV Export
                                     </a>
                                 </li>
@@ -1647,12 +1705,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </dbp-button>
                                 <ul class="extended-menu hidden" id='searchbar-menu'>
                                     <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
-                                    <select id="search-select" title="${i18n.t('show-registrations.search-in-column')}:">          
+                                    <select id="search-select" class='button' title="${i18n.t('show-registrations.search-in-column')}:">          
                                        ${this.getTableHeaderOptions()}
                                     </select>
 
                                     <label for='search-operator'>${i18n.t('show-registrations.search-operator')}:</label>
-                                    <select id="search-operator">
+                                    <select id="search-operator" class='button'>
                                         <option value="like">${i18n.t('show-registrations.search-operator-like')}</option>
                                         <option value="=">${i18n.t('show-registrations.search-operator-equal')}</option>
                                         <option value="!=">${i18n.t('show-registrations.search-operator-notequal')}</option>
@@ -1677,12 +1735,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     ${i18n.t('show-registrations.filter-options-button-text')}
                                 </a>
                             </button>
-                            <select id="export-select">
-                                <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
-                                <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
-                                <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
-                                <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
+                            <select id="export-select" class='dropdown-menu' @change='${this.exportSubmissionTable}'>
+                                <option value="-" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
+                                <option value="csv">CSV</option>
+                                <option value="excel" >Excel</option>
+                                <option value="pdf">PDF</option>
                             </select>
+                           
                         </div>
                     </div>
                     <div class="scrollable-table-wrapper">   
@@ -1809,7 +1868,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </div>
                                 <select id="modal-export-select">
                                     <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
-                                    <option value="csv" @click="${() => { this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
+                                    <option value="csv" @change="${() => { console.log("huiiii"); this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
                                     <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
                                     <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
                                 </select>
