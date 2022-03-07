@@ -645,8 +645,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.currentCell = cell;
         this.currentBeautyId = identifier;
-        this.isPrevEnabled = identifier === '1' ? false : true;
-        this.isNextEnabled = (parseInt(identifier) + 1) <= this.submissionsTable.getDataCount();
+        this.isPrevEnabled = identifier === 1 ? false : true;
+        this.isNextEnabled = (identifier + 1) <= this.submissionsTable.getDataCount();
 
         this.showDetailedModal();
     }
@@ -800,9 +800,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     showDetailedModal() {
         let modal = this._('#detailed-submission-modal');
         if (modal) {
-            MicroModal.show(modal, {
-
-            });
+            MicroModal.show(modal);
         }
     }
 
@@ -1024,11 +1022,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             #detailed-submission-modal-title {
-                margin-bottom: 10px; /*TODO*/
+                margin-bottom: 10px;
             }
 
             #detailed-submission-modal-content {
-                padding: 0 20px 10px 20px; /*top 10px bottom 20px*/
+                padding: 0 20px 10px 20px;
             }
 
             #detailed-submission-modal-box {
