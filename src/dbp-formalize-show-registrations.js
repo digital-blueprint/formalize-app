@@ -1029,6 +1029,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             #detailed-submission-modal-title {
                 margin-bottom: 10px;
             }
+            
+            #submission-modal-title {
+                margin-top: unset;
+            }
 
             #detailed-submission-modal-content {
                 padding: 0 20px 10px 20px;
