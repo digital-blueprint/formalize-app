@@ -12,7 +12,7 @@ import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
-
+import xss from 'xss';
 
 async function importXLSX()
 {
@@ -611,7 +611,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let data = cell.getData();
         let identifier = data['id'].childNodes[0].textContent;
 
-        // TODO: no_display nicht anzeigen!
         this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
@@ -621,11 +620,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             if (key.includes('no_display')) {
                 continue;
             }
-
-            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;            
-          
+            
+            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + xss(key) + `:</div>`;
+            
             if (data[key] !== '') {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + data[key] + `</div>`;
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + xss(data[key]) + `</div>`;
             } else {
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right"></div>`;
             }
@@ -964,6 +963,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
             ${commonStyles.getButtonCSS()}
 
+            .next-btn, .back-btn, #modal-export-select {
+                min-height: 33px;
+            }
+
             .open-detailed-modal-btn {
                 width: 33px;
                 height: 33px;
@@ -981,10 +984,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: auto;
                 width: auto;
                 overflow-y: hidden;
+                min-height: 0;
             }
 
             .btn-row-left {
-                margin-top: 6px;
                 display: flex;
                 gap: 4px;
             }
@@ -1022,7 +1025,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .open-modal-icon {
-                font-size: 1.2em;
+                font-size: 1.3em;
             }
 
             #modal-export-select {
@@ -1033,7 +1036,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: grid;
                 grid-template-columns: min-content auto;
                 grid-template-rows: auto;
-                height: calc(100vH - 97.8px); /*TODO calculate values*/
+                max-height: calc(100vH - 97.8px); /*TODO calculate values*/
                 overflow-y: auto;
                 width: 100%;
             }
@@ -1329,21 +1332,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             }
             
-            .button-wrapper{
+            .button-wrapper {
                 display: flex;
                 height: 100%;
                 justify-content: center;
                 align-items: center;
             }
             
-            .open-menu   {
+            .open-menu {
                 height: 45px;
                 box-sizing: border-box;
                 display: flex;
                 align-items: center;
             }
 
-            .additional-menu{
+            .additional-menu {
                 display: none;
             }
             
@@ -1385,7 +1388,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 .detailed-submission-modal-content-wrapper {
                     grid-template-columns: auto;
-                    height: calc(100vH - 139px); /*TODO calculate values*/
+                    max-height: calc(100vH - 139px); /*TODO calculate values*/
                 }
 
                 #detailed-submission-modal-box .modal-footer .modal-footer-btn {
