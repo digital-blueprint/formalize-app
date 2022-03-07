@@ -1200,7 +1200,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  padding-bottom: 30px;
                  display: flex;
                  flex-direction: row;
-                 justify-content: space-between;
+                 justify-content: end;
+                 padding-top: 10px;
              }
  
              .border-wrapper {
@@ -1324,6 +1325,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 margin: 0px;
                 list-style-type: none;
                 padding: 0px;
+                display: grid;
             }
             
  
@@ -1360,6 +1362,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 text-overflow: ellipsis;
                 overflow: hidden;
                 padding-left: 5px;
+                text-align: left;
             }
             
             .header-order{
@@ -1417,6 +1420,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .tabulator .tabulator-tableHolder .tabulator-placeholder span {
                 margin-left: 0px;
             }
+
+            #submission-modal-box {
+                width: unset;
+                min-width: unset;
+            }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -1454,6 +1462,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     grid-template-columns: auto;
                     max-height: calc(100vH - 139px); /*TODO calculate values*/
                 }
+
+       
 
                 #detailed-submission-modal-box .modal-footer .modal-footer-btn {
                     padding: 6px 12px 6px 12px;
@@ -1609,6 +1619,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                  .search-wrapper {
                      min-width: unset;
+                 }
+                 
+                 .headers{
+                    display: initial;
                  }
                
             }
