@@ -213,6 +213,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             title: 'ID',
                             align: 'center',
                         };
+
                         let dateCol = {
                             minWidth: 150,
                             field: 'dateCreated',
@@ -750,7 +751,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let visible = col.getDefinition().visible;
 
             if (visible !== false) {
-                if (field && !field.includes('no_display') || field && visible) {
+                if (field && !field.includes('no_display')) {
                     this.submissionsColumns.push({name: name, field: field, visibility: 1});
                 }
             }
@@ -1771,9 +1772,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     name="close"
                                     class="close-icon"></dbp-icon>
                             </button>
-                            <h3 id="submission-modal-title">
-                                ${i18n.t('show-registrations.header-settings')}
-                            </h3>
                             <p id="submission-modal-title">
                                 ${i18n.t('show-registrations.header-settings')}
                             </p>
