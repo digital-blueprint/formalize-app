@@ -1630,14 +1630,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             ${this.activity.getDescription(this.lang)}
                         </slot>
                     </p>
-                    <slot name="additional-information">
-                        <p>
-                            ${i18n.t('show-registrations.additional-information')}
-                        </p>
-                    </slot>
+                    <slot name="additional-information"></slot>
                 </div>
-
-                <div class="border-wrapper"></div>
 
                 <div class="table-wrapper ${classMap({hidden: this.showSubmissionsTable })}">
                     <table id="courses-table"></table>
