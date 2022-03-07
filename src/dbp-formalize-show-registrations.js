@@ -53,6 +53,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.totalNumberOfItems = 0;
         this.isPrevEnabled = false;
         this.isNextEnabled = false;
+        this.storeSession = true;
+        this.activeCourseChecked = true;
+        this.loading = false;
     }
 
     static get scopedElements() {
@@ -299,12 +302,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.submissionsTable.addColumn(dateCol, true);
                         this.submissionsTable.addColumn(idCol, true);
                         this.submissionsTable.addColumn(beautyIdCol, true);
-                        this.updateTableHeaderList();
+                        if (this.storeSession) {
+                            this.getSubmissionTableSettings();
+                        } else {
+                            this.updateTableHeaderList();
+
+                        }
                     }
                 },
             });        
 
-            
         });
     }
 
@@ -343,6 +350,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     async firstUpdated() {
         // Give the browser a chance to paint
+
         await new Promise((r) => setTimeout(r, 0));
 
     }
@@ -383,9 +391,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.requestUpdate();
         }
         this._loginState = newLoginState;
+        this.loginCallback();
     }
 
-    /**
+    loginCallback() {
+        if (this.isLoggedIn() && !this.activeCourseChecked && this.storeSession) {
+            this.loadActiveCourse();
+            this.activeCourseChecked = true;
+        }
+    }
+
+
+/**
      * Returns if a person is set in or not
      *
      * @returns {boolean} true or false
@@ -454,23 +471,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {object} response
      */
     async getListOfAllCourses() {
-        /*const i18n = this._i18n;
-        
-        const button_tag = this.getScopedTagName('dbp-loading-button');
-        let button = `<${button_tag} name="" class="" id="summercourses-btn">` + i18n.t('show-registrations.show-submission-btn-text') + `</${button_tag}>`;
-        let div = getShadowRootDocument(this).createElement('div');
-        div.innerHTML = button;*/
-
-        // Simulate fetching table data (xml)
-        /*var tabledata = [
-            {id:1, name:"Sommerkurse", date:"01/03/2022", type:div}
-        ];
-        
-        div.firstChild.addEventListener("click", event => {
-            this.requestAllCourseSubmissions();
-            event.stopPropagation();
-        });
-        return tabledata;*/
 
         //TODO cache this data
         let dataList = [];
@@ -567,7 +567,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     async requestCourses() {
-
         await this.getListOfAllCourses();
         //this.coursesTable.setData(this.getListOfAllCourses());
     }
@@ -575,9 +574,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     async requestAllCourseSubmissions(name) {
         let dataList2 = [];
         let response = await this.getAllSubmissions();
+        this.submissionsColumns = [];
+        let data = [];
         if (!response)
             return;
-        let data = await response.json();
+        try{
+            data = await response.json();
+        }catch(e) {
+            return;
+        }
         let headerExists = this.autoColumns;
 
         if (!data || !data["hydra:member"]) {
@@ -590,6 +595,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             if (x === data["hydra:member"].length) {
                 this.submissionsTable.setData(dataList2);
                 this.activeCourse = name;
+                if (
+                    this.storeSession &&
+                    this.isLoggedIn()
+                ) {
+                    const publicId = this.auth['person-id'];
+                    localStorage.setItem('dbp-formalize-activeCourse-' + publicId, name);
+                }
+                if (!this.getSubmissionTableSettings()) {
+                    this.updateTableHeaderList();
+                }
+                this.updateTableHeader();
+
                 this.showSubmissionsTable = true;
                 return;
             }
@@ -751,7 +768,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let search = this._('#search-select');
         let operator = this._('#search-operator');
 
-        console.log(filter, search, operator);
         if (!filter || !search || !operator || !this.submissionsTable)
             return;
 
@@ -772,6 +788,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     async updateTableHeaderList() {
+        console.log("update");
         if (!this.submissionsTable)
             return;
         let columns = this.submissionsTable.getColumns();
@@ -786,8 +803,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     this.submissionsColumns.push({name: name, field: field, visibility: 1});
                 }
             }
-
         });
+
     }
 
     getTableHeaderOptions() {
@@ -854,7 +871,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     pressEnterAndSubmitSearch(event) {
-        console.log("key", event.keyCode);
         if (event.keyCode === 13) {
                 // Cancel the default action, if needed
                 event.preventDefault();
@@ -883,7 +899,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         menu.classList.remove('hidden');
 
         if (!menu.classList.contains('hidden')) {
-            console.log("add");
             // add event listener for clicking outside of menu
             document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
@@ -929,24 +944,77 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-    async updateTableHeader() {
+    async updateTableHeader(close = true) {
         let cols = this.submissionsTable.getColumns();
         let lastCol = cols[0];
         this.submissionsColumns.slice().forEach((col, counter) => {
 
             let sub_col = this.submissionsTable.getColumn(col.field);
-            if (col.visibility === 1) {
-                sub_col.show();
-            } else {
-                sub_col.hide();
+            if(sub_col) {
+                if (col.visibility === 1) {
+                    sub_col.show();
+                } else {
+                    sub_col.hide();
+                }
+                if(col.field !== cols[0].field) {
+                    this.submissionsTable.moveColumn(col.field, lastCol, true);
+                    lastCol = col.field;
+                }
             }
-            if(col.field !== cols[0].field) {
-                this.submissionsTable.moveColumn(col.field, lastCol, true);
-                lastCol = col.field;
-            }
-        });
 
-        this.closeModal();
+        });
+        if (close)
+            this.closeModal();
+    }
+
+    getSubmissionTableSettings() {
+        if (
+            this.storeSession &&
+            this.isLoggedIn()
+        ) {
+
+            const publicId = this.auth['person-id'];
+            let optionsString = localStorage.getItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId);
+
+            if (!optionsString)
+                return false;
+
+            try{
+
+                let options = JSON.parse(optionsString);
+                if (options) {
+                    this.submissionsColumns = [...options];
+                    this.updateTableHeader(false);
+                }
+
+            } catch(e)
+            {
+                console.log(e);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    setSubmissionTableSettings() {
+        if (
+            this.storeSession &&
+            this.isLoggedIn()
+        ) {
+            const publicId = this.auth['person-id'];
+            localStorage.setItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId, JSON.stringify(this.submissionsColumns));
+        }
+    }
+
+    async loadActiveCourse() {
+        const publicId = this.auth['person-id'];
+        let activeCourse = localStorage.getItem('dbp-formalize-activeCourse-' + publicId);
+
+        if (!activeCourse)
+            return false;
+
+        this.requestAllCourseSubmissions(activeCourse);
     }
 
     moveHeaderUp(i, e) {
@@ -1427,7 +1495,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .button-wrapper {
                 display: flex;
                 height: 100%;
-                justify-content: center;
+                justify-content: end;
                 align-items: center;
             }
             
@@ -1696,7 +1764,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable })}">
                     <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
-                       <a @click="${() => {this.showSubmissionsTable = false;this.submissionsTable.clearData();}}"
+                       <a @click="${() => {
+                                    this.showSubmissionsTable = false;
+                                    this.submissionsColumns = [];
+                                    this.submissionsTable.clearData();}}"
                                 title="${i18n.t('show-registrations.back-text')}">
                                 <dbp-icon name="chevron-left"></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
@@ -1860,7 +1931,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
-                                <button class="check-btn button is-primary" id="check" @click="${() => {this.updateTableHeader();}}">
+                                <button class="check-btn button is-primary" id="check" @click="${() => {this.updateTableHeader(); this.setSubmissionTableSettings();}}">
                                     ${i18n.t('show-registrations.save-columns')}
                                 </button>
                             </div>
