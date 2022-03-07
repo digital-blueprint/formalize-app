@@ -112,6 +112,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         title:"ID",
                         field:"id",
                         widthGrow: 1,
+                        maxWidth: 50,
                     },
                     { 
                         title:"Name", 
@@ -132,6 +133,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             const minutes = ('0' + timestamp.getMinutes()).slice(-2);
                             return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
                         },
+                        visible: false,
                     },
                     { 
                         title:"",
@@ -189,7 +191,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                           this.submissionsTable.addColumn({
                               title: "",
-                              width: 55,
                               align: 'center',
                               field: 'no_display_1',
                               download: false,
@@ -203,7 +204,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         let idCol = {
                             field: 'id',
                             title: 'ID',
-                            align: 'left',
                             download: false,
                             visible: false,
 
@@ -211,7 +211,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         let beautyIdCol = {
                             field: 'id_',
                             title: 'ID',
-                            align: 'left',
+                            align: 'center',
                         };
                         let dateCol = {
                             minWidth: 150,
@@ -1009,14 +1009,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             
             ${commonStyles.getButtonCSS()}
-
+            
             .next-btn, .back-btn, #modal-export-select {
                 min-height: 33px;
             }
 
             .open-detailed-modal-btn {
                 width: 33px;
-                height: 33px;
+                position: absolute;
+                margin: auto;
+                left: 10px;
             }
 
             #detailed-submission-modal-title {
@@ -1133,7 +1135,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  overflow: auto;
                  white-space: nowrap;
              }
- 
+
+            .tabulator .tabulator-footer {
+                text-align: center;
+            }
  
              .back-navigation {
                  padding-top: 1rem;
@@ -1292,7 +1297,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: calc(100% - 61px);
                 width: 3px;
                 top: 10px;
-                right: 51px;
+                right: 38px;
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0;
@@ -1592,6 +1597,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     padding-top: 8px;
                     min-width: 40px;
                 }
+
+                 .search-wrapper {
+                     min-width: unset;
+                 }
                
             }
         `;
