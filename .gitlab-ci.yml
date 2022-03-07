@@ -56,3 +56,27 @@ deploy_development:
     DEPLOY_HOST: vpu01-dev.tugraz.at
     DEPLOY_KEY: "$DEPLOY_SSH_KEY"
   <<: *deploy_defaults
+
+deploy_demo:
+  only:
+    refs:
+      - demo
+  environment:
+    name: demo
+    url: https://dbp-demo.tugraz.at/apps/formalize
+  variables:
+    DEPLOY_HOST: vpu01-demo.tugraz.at
+    DEPLOY_KEY: "$DEPLOY_SSH_KEY"
+  <<: *deploy_defaults
+
+deploy_production:
+  only:
+    refs:
+      - production
+  environment:
+    name: production
+    url: https://formulare.tugraz.at
+  variables:
+    DEPLOY_HOST: mw01-prod.tugraz.at
+    DEPLOY_KEY: "$DEPLOY_SSH_KEY"
+  <<: *deploy_defaults

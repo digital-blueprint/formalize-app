@@ -32,6 +32,16 @@ host('development')
     ->hostname('mw@vpu01-dev.tugraz.at')
     ->set('deploy_path', '/home/mw/dev/deploy/apps/formalize');
 
+host('demo')
+    ->stage('demo')
+    ->hostname('mw@vpu01-demo.tugraz.at')
+    ->set('deploy_path', '/home/mw/demo/deploy/apps/formalize');
+
+host('production')
+    ->stage('production')
+    ->hostname('mw@mw01-prod.tugraz.at')
+    ->set('deploy_path', '/home/mw/prod_formulare/deploy');
+
 task('build', function () {
     $stage = get('stage');
     runLocally("yarn install");
