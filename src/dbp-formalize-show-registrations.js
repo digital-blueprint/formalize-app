@@ -620,7 +620,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
-        console.log(data);
+        // console.log(data);
 
         for (let i = 0; i < Object.keys(data).length; i++) {
             let key = Object.keys(data)[i];
@@ -635,13 +635,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + xss(data[key]) + `</div>`;
             } else {
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right"></div>`;
-            }
-            
-            if (i === 1) {
-                this._('.detailed-submission-modal-content-wrapper > .element-left').classList.add('first');
-                this._('.detailed-submission-modal-content-wrapper > .element-right').classList.add('first');
-            }
+            }    
         }
+        this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
+        this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
 
         this.currentCell = cell;
         this.currentBeautyId = identifier;
