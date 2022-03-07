@@ -1866,11 +1866,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
                                     </dbp-button>
                                 </div>
-                                <select id="modal-export-select">
-                                    <option value="" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
-                                    <option value="csv" @change="${() => { console.log("huiiii"); this.submissionsTable.download("csv", "data.csv"); }}">CSV</option>
-                                    <option value="excel" @click="${() => { this.exportXLSX(); }}">Excel</option>
-                                    <option value="pdf" @click="${() => { this.exportPdf(); }}">PDF</option>
+                                <select id="modal-export-select" class='dropdown-menu' @change='${this.exportSubmissionTable()}'>
+                                    <option value="-" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
+                                    <option value="csv">CSV</option>
+                                    <option value="excel" >Excel</option>
+                                    <option value="pdf">PDF</option>
                                 </select>
                             </div>
                         </footer>
