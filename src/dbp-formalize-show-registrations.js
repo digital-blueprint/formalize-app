@@ -212,6 +212,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             field: 'id_',
                             title: 'ID',
                             align: 'center',
+                            visible: false,
+                            download: false,
                         };
 
                         let dateCol = {
@@ -614,14 +616,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     requestDetailedSubmission(cell) {
-        const i18n = this._i18n;
+
 
         let data = cell.getData();
         let identifier = data['id_'];
 
-        this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
+        //const i18n = this._i18n;
+        //this._('#detailed-submission-modal-title').innerText = i18n.t('show-registrations.detailed-submission-dialog-title', { id: identifier });
+        if (!this._('.detailed-submission-modal-content-wrapper'))
+            return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
-        // console.log(data);
 
         for (let i = 0; i < Object.keys(data).length; i++) {
             let key = Object.keys(data)[i];
@@ -1843,8 +1847,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     name="close"
                                     class="close-icon"></dbp-icon>
                             </button>
-                            <h3 id="detailed-submission-modal-title">
-                            </h3>
+                            <!--<h3 id="detailed-submission-modal-title">
+                            </h3>-->
                         </header>
                         <main class="modal-content" id="detailed-submission-modal-content">
                             <div class="detailed-submission-modal-content-wrapper"></div>
@@ -1863,12 +1867,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
                                     </dbp-button>
                                 </div>
-                                <select id="modal-export-select" class='dropdown-menu' @change='${this.exportSubmissionTable()}'>
-                                    <option value="-" disabled selected>${i18n.t('show-registrations.default-export-select')}</option>
-                                    <option value="csv">CSV</option>
-                                    <option value="excel" >Excel</option>
-                                    <option value="pdf">PDF</option>
-                                </select>
                             </div>
                         </footer>
                     </div>
