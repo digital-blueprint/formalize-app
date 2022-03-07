@@ -661,7 +661,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (!exportValue || exportValue === "")
             return;
 
-        e.stopPropagation();
+        if (e)
+            e.stopPropagation();
 
         switch (exportValue) {
             case "csv":
@@ -1081,7 +1082,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: 33px;
             }
             
-            #export-select, #search-select, #search-operator {
+            #export-select, #search-select, #search-operator, .dropdown-menu, #modal-export-select {
                 background-size: auto 50%;
                 padding-bottom: calc(0.375em - 1px);
                 padding-left: 0.75em;
@@ -1703,12 +1704,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </dbp-button>
                                 <ul class="extended-menu hidden" id='searchbar-menu'>
                                     <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
-                                    <select id="search-select" class='button' title="${i18n.t('show-registrations.search-in-column')}:">          
+                                    <select id="search-select" class='button dropdown-menu' title="${i18n.t('show-registrations.search-in-column')}:">          
                                        ${this.getTableHeaderOptions()}
                                     </select>
 
                                     <label for='search-operator'>${i18n.t('show-registrations.search-operator')}:</label>
-                                    <select id="search-operator" class='button'>
+                                    <select id="search-operator" class='button dropdown-menu'>
                                         <option value="like">${i18n.t('show-registrations.search-operator-like')}</option>
                                         <option value="=">${i18n.t('show-registrations.search-operator-equal')}</option>
                                         <option value="!=">${i18n.t('show-registrations.search-operator-notequal')}</option>
