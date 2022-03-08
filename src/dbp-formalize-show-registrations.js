@@ -1154,6 +1154,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
             ${commonStyles.getButtonCSS()}
 
+            .table-wrapper.submissions {
+                padding-top: 0.5rem;
+            }
+
+            .table-header.submissions {
+                margin-top: 0.5rem;
+            }
+
             .btn-row-left > *  {
                 display: flex;
                 align-items: center;
@@ -1187,6 +1195,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 width: auto;
                 overflow-y: hidden;
                 min-height: 0;
+                max-width: 800px;
+                min-width: 320px;
             }
 
             .btn-row-left {
@@ -1806,9 +1816,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     height: 100vh;
                     max-height: 100vh;
                     width: 100vh;
-                    min-width: 100%;
                     max-width: 100%;
-                    
                 }
                 
                 #submission-modal-content, #detailed-submission-modal-content {
@@ -1874,7 +1882,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-mini-spinner text=${i18n.t('loading-message')}></dbp-mini-spinner>
                         </span>
                 </div>
-                <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable })}">
+                <div class="table-wrapper submissions${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable })}">
                     <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
                        <a @click="${() => {
                                     this.loadingCourseTable = true;
@@ -1886,7 +1894,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 <dbp-icon name="chevron-left"></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
                     </span>
-                    <div class='table-header'>
+                    <div class='table-header submissions'>
                         <h3>${this.activeCourse}</h3>
                         <div class="options-nav ${classMap({hidden: !this.showSubmissionsTable})}">
                         
