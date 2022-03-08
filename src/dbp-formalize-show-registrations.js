@@ -90,6 +90,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
     }
 
     humanReadableDate(value) {
@@ -311,8 +312,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         }
                     }
                 },
-            });        
-
+            });
+            document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
     }
 
@@ -906,11 +907,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     pressEnterAndSubmitSearch(event) {
         if (event.keyCode === 13) {
-                // Cancel the default action, if needed
-                event.preventDefault();
-                // Trigger the button element with a click
-                this.filterTable();
-                this.hideAdditionalSearchMenu(event);
+                const activeElement = this.shadowRoot.activeElement;
+                if(activeElement && activeElement.id === 'searchbar') {
+                    event.preventDefault();
+                    this.filterTable();
+                    this.hideAdditionalSearchMenu(event);
+                }
         }
     }
 
@@ -935,7 +937,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (!menu.classList.contains('hidden')) {
             // add event listener for clicking outside of menu
             document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
-            document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
             this.initateOpenAdditionalSearchMenu = true;
         }
 
@@ -962,8 +963,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (menu && !menu.classList.contains('hidden')) {
             menu.classList.add('hidden');
             document.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
-            document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
-
         }
     }
 
