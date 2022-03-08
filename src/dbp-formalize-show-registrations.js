@@ -1338,28 +1338,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  border-top: var(--dbp-border);
              }
  
-             .button-container input[type="checkbox"] {
-                 position: inherit;
-             }
- 
-             .button-container .checkmark::after {
-                 left: 6px;
-                 top: 2px;
-                 width: 5px;
-                 height: 11px;
-             }
- 
-             select-all-icon {
-                 height: 30px;
-             }
- 
-             .checkmark {
-                 height: 20px;
-                 width: 20px;
-                 left: 11px;
-                 top: 1px; 
-             }
- 
              #courses-table .tabulator-cell[tabulator-field="type"] {
                  padding: 0;
              }
@@ -1558,7 +1536,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             
             .button-container {
                 text-align: left;
-                padding-left: 29px;
                 margin-bottom: 10px;
             }
             
@@ -1648,6 +1625,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     justify-content: space-between;
                     flex-direction: row;
                     gap: 4px;
+                    height: 40px;
                 }
 
                 .detailed-submission-modal-content-wrapper {
@@ -1665,6 +1643,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 #detailed-submission-modal-box .modal-content {
                     overflow: auto;
+                    align-items: flex-start;
                 }
  
                  .export-buttons {
@@ -1815,11 +1794,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  
                  .headers{
                     display: initial;
+                    width: 100%;
                  }
                  
-                  #submission-modal-box {
+                  #submission-modal-box, #detailed-submission-modal-box {
+                      height: 100vh;
+                      max-height: 100vh;
+                      width: 100vh;
+                      min-width: 100%;
+                      max-width: 100%;
+                     
                     }
-            
+                    
+                    #submission-modal-content, #detailed-submission-modal-content {
+                        height: 100%;
+                    }
+
+                 .btn-row-left > *  {
+                     display: flex;
+                     align-items: center;
+                 }
                
             }
         `;
