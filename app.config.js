@@ -40,7 +40,7 @@ export default {
         entryPointURL: 'https://api.tugraz.at',
         keyCloakBaseURL: 'https://auth.tugraz.at/auth',
         keyCloakRealm: 'tugraz',
-        keyCloakClientId: 'dbp-formalize',
+        keyCloakClientId: 'formulare_tugraz_at',
         matomoUrl: 'https://analytics.tugraz.at/',
         matomoSiteId: 131,
     },
