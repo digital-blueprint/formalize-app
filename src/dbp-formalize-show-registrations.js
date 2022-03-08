@@ -1153,6 +1153,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             
             ${commonStyles.getButtonCSS()}
+
+            .btn-row-left > *  {
+                display: flex;
+                align-items: center;
+            }
             
             .next-btn, .back-btn, #modal-export-select {
                 min-height: 33px;
@@ -1634,14 +1639,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     gap: 4px;
                     height: 40px;
                 }
-
-                .detailed-submission-modal-content-wrapper {
-                    grid-template-columns: auto;
-                    max-height: calc(100vH - 139px); /*TODO calculate values*/
-                }
-
        
-
                 #detailed-submission-modal-box .modal-footer .modal-footer-btn {
                     padding: 6px 12px 6px 12px;
                     flex-direction: column;
@@ -1804,24 +1802,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     width: 100%;
                  }
                  
-                  #submission-modal-box, #detailed-submission-modal-box {
-                      height: 100vh;
-                      max-height: 100vh;
-                      width: 100vh;
-                      min-width: 100%;
-                      max-width: 100%;
-                     
-                    }
+                #submission-modal-box, #detailed-submission-modal-box {
+                    height: 100vh;
+                    max-height: 100vh;
+                    width: 100vh;
+                    min-width: 100%;
+                    max-width: 100%;
                     
-                    #submission-modal-content, #detailed-submission-modal-content {
-                        height: 100%;
-                    }
-
-                 .btn-row-left > *  {
-                     display: flex;
-                     align-items: center;
-                 }
-               
+                }
+                
+                #submission-modal-content, #detailed-submission-modal-content {
+                    height: 100%;
+                }
             }
         `;
     }
