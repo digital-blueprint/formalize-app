@@ -92,6 +92,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         super.disconnectedCallback();
     }
 
+    humanReadableDate(value) {
+        const d = Date.parse(value);
+        const timestamp = new Date(d);
+        const year = timestamp.getFullYear();
+        const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
+        const date = ('0' + timestamp.getDate()).slice(-2);
+        const hours = ('0' + timestamp.getHours()).slice(-2);
+        const minutes = ('0' + timestamp.getMinutes()).slice(-2);
+        return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+    }
+
     connectedCallback() {
         super.connectedCallback();
         const i18n = this._i18n;
@@ -99,6 +110,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this._loginState = [];
 
         this.updateComplete.then(() => {
+            const that = this;
             // see: http://tabulator.info/docs/4.7
             this.coursesTable = new Tabulator(this._('#courses-table'), {
                 layout: 'fitColumns',
@@ -133,14 +145,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         field:"date",
                         widthGrow: 2,
                         formatter: function (cell, formatterParams, onRendered) {
-                            const d = Date.parse(cell.getValue());
-                            const timestamp = new Date(d);
-                            const year = timestamp.getFullYear();
-                            const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
-                            const date = ('0' + timestamp.getDate()).slice(-2);
-                            const hours = ('0' + timestamp.getHours()).slice(-2);
-                            const minutes = ('0' + timestamp.getMinutes()).slice(-2);
-                            return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+                            return that.humanReadableDate(cell.getValue());
                         },
                         visible: false,
                     },
@@ -287,14 +292,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 return a_timestamp - b_timestamp;
                             },
                             formatter: function (cell, formatterParams, onRendered) {
-                                const d = Date.parse(cell.getValue());
-                                const timestamp = new Date(d);
-                                const year = timestamp.getFullYear();
-                                const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
-                                const date = ('0' + timestamp.getDate()).slice(-2);
-                                const hours = ('0' + timestamp.getHours()).slice(-2);
-                                const minutes = ('0' + timestamp.getMinutes()).slice(-2);
-                                return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+                                return that.humanReadableDate(cell.getValue());
                             },
                         };
                         if (this.autoColumns) {
@@ -665,41 +663,61 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     requestDetailedSubmission(cell) {
-        let data = cell.getData();
-        let identifier = data['id_'];
 
         if (!this._('.detailed-submission-modal-content-wrapper'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        for (let i = 0; i < Object.keys(data).length; i++) {
-            let key = Object.keys(data)[i];
+        if (!this._('#apply-col-settings'))
+            return;
+        let colSettings = this._('#apply-col-settings').checked;
 
-            if (key.includes('no_display') || key.includes('id')) {
-                continue;
-            } else if (key.includes('dateCreated') && (data[key] !== '')) {
-                const d = Date.parse(data[key]);
-                const timestamp = new Date(d);
-                const year = timestamp.getFullYear();
-                const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
-                const date = ('0' + timestamp.getDate()).slice(-2);
-                const hours = ('0' + timestamp.getHours()).slice(-2);
-                const minutes = ('0' + timestamp.getMinutes()).slice(-2);
-                let value = date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
-                
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + key + `:</div>`;
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + value + `</div>`;
+        let row = cell.getRow();
+        let identifier = cell.getData()['id_'];
 
-                continue;
+        if (!colSettings) {
+            let cells = row.getData();
+
+            for (let i = 0; i < Object.keys(cells).length; i++) {
+                let key = Object.keys(cells)[i];
+                if (key.includes('no_display') || key.includes('id')) {
+                    continue;
+                } else if (key.includes('dateCreated') && (cells[key] !== '')) {
+                    let title = this.submissionsTable.getColumn('dateCreated').getDefinition().title;
+                    title = title === '' ? key : title;
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + title + `:</div>`;
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + this.humanReadableDate(cells[key]); + `</div>`;
+                    continue;
+                }
+
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + xss(key) + `:</div>`;
+
+                if (cells[key] !== '') {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + xss(cells[key]) + `</div>`;
+                } else {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right"></div>`;
+                }
             }
-            
-            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + xss(key) + `:</div>`;
-            
-            if (data[key] !== '') {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + xss(data[key]) + `</div>`;
-            } else {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right"></div>`;
-            }    
+       } else {
+            // If checkbox checked
+            let cells = row.getCells();
+            for (let i = 0; i < cells.length; i++) {
+                let cell = cells[i];
+                let col = cell.getColumn();
+                let key = col.getField();
+                let data = cell.getElement().textContent;
+
+                if (key.includes('no_display') || key.includes('id') || !col.getVisibility()) {
+                    continue;
+                }
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
+
+                if (data !== '') {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(data) + `</div>`;
+                } else {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'></div>`;
+                }
+            }
         }
         this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
         this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
@@ -710,6 +728,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.isNextEnabled = (identifier + 1) <= this.submissionsTable.getDataCount();
 
         this.showDetailedModal();
+
     }
 
     async exportSubmissionTable(e) {
@@ -1145,7 +1164,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             #detailed-submission-modal-content {
-                padding: 0 20px 10px 20px;
+                padding: 0 20px 0px 20px;
             }
 
             #detailed-submission-modal-box {
@@ -1534,6 +1553,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 min-width: unset;
                 min-height: unset;
                 height: unset;
+            }
+            
+            .button-container {
+                text-align: left;
+                padding-left: 29px;
+                margin-bottom: 10px;
+            }
+            
+            .checkmark {
+                left: 0px
             }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
@@ -2002,7 +2031,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <div class="detailed-submission-modal-content-wrapper"></div>
                         </main>
                         <footer class="modal-footer">
+                            
                             <div class="modal-footer-btn">
+                                <label class="button-container">
+                                    ${i18n.t('show-registrations.apply-col-settings')}
+                                    <input
+                                        type="checkbox"
+                                        id="apply-col-settings"
+                                        name="apply-col-settings"
+                                        @click="${() => {
+                                            this.requestDetailedSubmission(this.currentCell);
+                                        }}" />
+                                    <span class="checkmark"></span>
+                                </label>
                                 <div class="btn-row-left">
                                     <dbp-button class="button back-btn" title="${i18n.t('show-registrations.last-entry-btn-title')}"
                                         @click="${this.showLastEntry}"

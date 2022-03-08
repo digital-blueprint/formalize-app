@@ -35,8 +35,8 @@
         "search-all-columns": "Alle Spalten",
         "detailed-submission-dialog-title": "Detailansicht",
         "detailed-submission-dialog-id": "{{id}} von {{nItems}}",
-        "last-entry-btn-title": "Vorheriger Eintrag",
-        "next-entry-btn-title": "Nächster Eintrag",
+        "last-entry-btn-title": "Vorheriger",
+        "next-entry-btn-title": "Nächster",
         "date": "Datum",
         "creation-date": "Erstelldatum",
         "open-forms": "Formulareinträge anzeigen",
@@ -45,7 +45,8 @@
         "header-settings-description": "Hier können die Sichtbarkeit und die Reihenfolge der Spalten verändert werden.",
         "change-visability-on": "Spalte einblenden",
         "change-visability-off": "Spalte ausblende",
-        "save-columns": "Spalteneinstellungen speichern"
+        "save-columns": "Spalteneinstellungen speichern",
+        "apply-col-settings": "Spalteneinstellungen übernehmen"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."
