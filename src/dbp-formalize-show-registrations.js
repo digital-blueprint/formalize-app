@@ -1814,6 +1814,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 #submission-modal-content, #detailed-submission-modal-content {
                     height: 100%;
                 }
+
+                .detailed-submission-modal-content-wrapper {
+                    grid-template-columns: auto;
+                }
             }
         `;
     }
