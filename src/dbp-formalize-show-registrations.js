@@ -58,6 +58,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.loadingCourseTable = false;
         this.loadingSubmissionTable = false;
         this.dataLoaded = false;
+        this.modalContentHeight = 0;
     }
 
     static get scopedElements() {
@@ -84,7 +85,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             isNextEnabled: { type: Boolean, attribute: false },
             currentBeautyId: { type: Number, attribute: false },
             loadingCourseTable: { type: Boolean, attribute: false },
-            loadingSubmissionTable: { type: Boolean, attribute: false }
+            loadingSubmissionTable: { type: Boolean, attribute: false },
+            modalContentHeight: { type: Number, attribute: false },
         };
     }
 
@@ -730,6 +732,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.showDetailedModal();
 
+        this.modalContentHeight = this._('#detailed-submission-modal-box > .modal-header').offsetHeight +
+            this._('#detailed-submission-modal-box > .modal-footer').offsetHeight;
+        this._('.detailed-submission-modal-content-wrapper').setAttribute('style', 'max-height: calc(100vH - ' + this.getModalContentHeight() + 'px);');
     }
 
     async exportSubmissionTable(e) {
@@ -1130,6 +1135,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
+    getModalContentHeight() {
+        return this.modalContentHeight;
+    }
+
     static get styles() {
         // language=css
         return css`
@@ -1235,7 +1244,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: grid;
                 grid-template-columns: min-content auto;
                 grid-template-rows: auto;
-                max-height: calc(100vH - 97.8px); /*TODO calculate values*/
+                max-height: calc(100vH - 149px);
                 overflow-y: auto;
                 width: 100%;
             }
@@ -1243,7 +1252,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .element-left {
                 background-color: var(--dbp-primary-surface);
                 color: var(--dbp-on-primary-surface);
-                padding: 0 20px 12px 40px; /*left: 20px*/
+                padding: 0 20px 12px 40px;
                 text-align: right;
             }
 
@@ -1394,8 +1403,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-
-                 
              }
              
              #search-select, #search-operator {
@@ -2066,6 +2073,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 aria-label="Close modal"
                                 @click="${() => {
                                     MicroModal.close(this._('#detailed-submission-modal'));
+                                    this._('.detailed-submission-modal-content-wrapper').removeAttribute('style');
                                 }}">
                                 <dbp-icon
                                     title="${i18n.t('show-registrations.modal-close')}"
