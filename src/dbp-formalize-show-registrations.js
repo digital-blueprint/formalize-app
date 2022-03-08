@@ -55,7 +55,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.isNextEnabled = false;
         this.storeSession = true;
         this.activeCourseChecked = true;
-        this.loading = false;
+        this.loadingCourseTable = false;
+        this.loadingSubmissionTable = false;
+        this.dataLoaded = false;
     }
 
     static get scopedElements() {
@@ -80,7 +82,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             autoColumns: {type: Boolean, attribute: 'auto-columns'},
             isPrevEnabled: { type: Boolean, attribute: false },
             isNextEnabled: { type: Boolean, attribute: false },
-            currentBeautyId: { type: Number, attribute: false }
+            currentBeautyId: { type: Number, attribute: false },
+            loadingCourseTable: { type: Boolean, attribute: false },
+            loadingSubmissionTable: { type: Boolean, attribute: false }
         };
     }
 
@@ -181,7 +185,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout:"fitDataFill",
-                movableColumns: true,
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -491,6 +494,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             if (x === data["hydra:member"].length) {
                 this.coursesTable.setData(dataList);
+                this.dataLoaded = true;
                 return;
             }
             let entry = data["hydra:member"][x];
@@ -567,11 +571,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     async requestCourses() {
-        await this.getListOfAllCourses();
-        //this.coursesTable.setData(this.getListOfAllCourses());
+        if (!this.dataLoaded) {
+            this.loadingCourseTable = true;
+            await this.getListOfAllCourses();
+            this.loadingCourseTable = false;
+        }
+
     }
     
     async requestAllCourseSubmissions(name) {
+        this.loadingSubmissionTable = true;
         let dataList2 = [];
         let response = await this.getAllSubmissions();
         this.submissionsColumns = [];
@@ -605,9 +614,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 if (!this.getSubmissionTableSettings()) {
                     this.updateTableHeaderList();
                 }
-                this.updateTableHeader();
-
+                this.updateTableHeader(false);
+                this.loadingSubmissionTable = false;
                 this.showSubmissionsTable = true;
+                const that = this;
+                setTimeout(function () {
+                    if (that._(".back-navigation")) {
+                        that._(".subheadline").scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 10);
                 return;
             }
             let entry = data["hydra:member"][x];
@@ -691,7 +706,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.currentCell = cell;
         this.currentBeautyId = identifier;
-        this.isPrevEnabled = identifier === 1 ? false : true;
+        this.isPrevEnabled = identifier !== 1;
         this.isNextEnabled = (identifier + 1) <= this.submissionsTable.getDataCount();
 
         this.showDetailedModal();
@@ -1517,6 +1532,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             #submission-modal-box {
                 width: unset;
                 min-width: unset;
+                min-height: unset;
+                height: unset;
             }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
@@ -1717,6 +1734,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                  .headers{
                     display: initial;
                  }
+                 
+                  #submission-modal-box {
+                    }
+            
                
             }
         `;
@@ -1758,16 +1779,30 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <slot name="additional-information"></slot>
                 </div>
 
-                <div class="table-wrapper ${classMap({hidden: this.showSubmissionsTable })}">
+
+                <div class="control ${classMap({hidden: this.showSubmissionsTable || !this.loadingCourseTable})}">
+                        <span class="loading">
+                            <dbp-mini-spinner text=${i18n.t('loading-message')}></dbp-mini-spinner>
+                        </span>
+                </div>
+                <div class="table-wrapper ${classMap({hidden: this.showSubmissionsTable || this.loadingCourseTable || this.loadingSubmissionTable})}">
                     <table id="courses-table"></table>
                 </div>
 
-                <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable })}">
+
+                <div class="control ${classMap({hidden: !this.loadingSubmissionTable})}">
+                        <span class="loading">
+                            <dbp-mini-spinner text=${i18n.t('loading-message')}></dbp-mini-spinner>
+                        </span>
+                </div>
+                <div class="table-wrapper ${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable })}">
                     <span class="back-navigation ${classMap({hidden: !this.showSubmissionsTable })}">
                        <a @click="${() => {
+                                    this.loadingCourseTable = true;
                                     this.showSubmissionsTable = false;
                                     this.submissionsColumns = [];
-                                    this.submissionsTable.clearData();}}"
+                                    this.submissionsTable.clearData();
+                                    this.loadingCourseTable = false;}}"
                                 title="${i18n.t('show-registrations.back-text')}">
                                 <dbp-icon name="chevron-left"></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
