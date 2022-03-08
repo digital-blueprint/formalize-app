@@ -246,11 +246,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                             div.addEventListener("click", event => {
                                 that.requestDetailedSubmission(cell);
-                                let path = '';
-                                if (id === event.target.id) {
-                                 path = id;
-                             }
-                             event.stopPropagation();
+                                event.stopPropagation();
                             });
                             return div;
                         };
@@ -438,6 +434,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
+    /**
+     * 
+     * @returns {boolean} true if all items are selected, false otherwise
+     */
     checkAllSelected() {
         if (this.submissionsTable) {
             let maxSelected = this.submissionsTable.getRows().length;
@@ -882,7 +882,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     showDetailedModal() {
         let modal = this._('#detailed-submission-modal');
         if (modal) {
-            MicroModal.show(modal);
+            MicroModal.show(modal, {
+                disableScroll: true
+            });
         }
     }
 
@@ -1565,6 +1567,58 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
+
+                button[data-page="prev"] {
+                    display: block;
+                    width: 40px!important;
+                    background: 50% center no-repeat url("${unsafeCSS(
+                        getIconSVGURL('chevron-left')
+                    )}")!important;
+                    background-size: 1.5rem!important;
+                    text-indent: 100px;
+                    white-space: nowrap!important;
+                    overflow: hidden;
+                    line-height: 0;
+                }
+
+                button[data-page="next"] {
+                    display: block;
+                    width: 40px!important;
+                    background: 50% center no-repeat url("${unsafeCSS(
+                        getIconSVGURL('chevron-right')
+                    )}")!important;
+                    background-size: 1.5rem!important;
+                    text-indent: 100px;
+                    white-space: nowrap!important;
+                    overflow: hidden;
+                    line-height: 0;
+                }
+
+                button[data-page="first"] {
+                    display: block;
+                    width: 50px!important;
+                    background: 50% center no-repeat url("${unsafeCSS(
+                        getIconSVGURL('angle-double-left')
+                    )}")!important;
+                    background-size: 1.5rem!important;
+                    text-indent: 100px;
+                    white-space: nowrap!important;
+                    overflow: hidden;
+                    line-height: 0;
+                }
+
+                button[data-page="last"] {
+                    display: block;
+                    width: 50px!important;
+                    background: 50% center no-repeat url("${unsafeCSS(
+                        getIconSVGURL('angle-double-right')
+                    )}")!important;
+                    background-size: 1.5rem!important;
+                    text-indent: 100px;
+                    white-space: nowrap!important;
+                    overflow: hidden;
+                    line-height: 0;
+                }
 
                 .element-right {
                     /*padding: 10px 0 10px 0;*/
