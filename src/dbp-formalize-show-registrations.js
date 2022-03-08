@@ -867,6 +867,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let modal = this._('#submission-modal');
         if (modal) {
             MicroModal.show(modal, {
+                disableScroll: true
             });
         }
 
@@ -1195,8 +1196,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 width: auto;
                 overflow-y: hidden;
                 min-height: 0;
-                max-width: 800px;
-                min-width: 320px;
+                max-width: 768px;
+                min-width: 768px;
             }
 
             .btn-row-left {
@@ -1347,6 +1348,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
              #submission-modal-content {
                  overflow: auto;
                  align-items: baseline;
+                 height: 100%;
              }
              
              .modal-footer-btn {
@@ -1553,7 +1555,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 width: unset;
                 min-width: unset;
                 min-height: unset;
-                height: unset;
             }
             
             .button-container {
@@ -1649,8 +1650,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     gap: 4px;
                     height: 40px;
                 }
-       
-                #detailed-submission-modal-box .modal-footer .modal-footer-btn {
+
+                 #detailed-submission-modal-box {
+                     min-width: 320px;
+                 }
+
+                 #detailed-submission-modal-box .modal-footer .modal-footer-btn {
                     padding: 6px 12px 6px 12px;
                     flex-direction: column;
                     gap: 6px;
