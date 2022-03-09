@@ -59,6 +59,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.loadingSubmissionTable = false;
         this.dataLoaded = false;
         this.modalContentHeight = 0;
+        this.loadCourses = true;
     }
 
     static get scopedElements() {
@@ -87,6 +88,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             loadingCourseTable: { type: Boolean, attribute: false },
             loadingSubmissionTable: { type: Boolean, attribute: false },
             modalContentHeight: { type: Number, attribute: false },
+            loadCourses: { type: Boolean, attribute: false }
         };
     }
 
@@ -402,7 +404,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
 
-/**
+    /**
      * Returns if a person is set in or not
      *
      * @returns {boolean} true or false
@@ -475,19 +477,24 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {object} response
      */
     async getListOfAllCourses() {
+        const i18n = this._i18n;
 
         //TODO cache this data
         let dataList = [];
         let response = await this.getAllSubmissions();
+
+        if (response.status !== 200) {
+            this.showSubmissionsTable = true;
+            // this.dataLoaded = true;
+            return;
+        }
+
         let data = await response.json();
 
         if (!data || !data["hydra:member"]) {
             this.showSubmissionsTable = true;
             return;
         }
-
-        const i18n = this._i18n;
-
 
         let id = 1;
         let courses = [];
@@ -1002,7 +1009,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     lastCol = col.field;
                 }
             }
-
         });
         if (close)
             this.closeModal();
@@ -1534,6 +1540,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: 100%;
                 justify-content: end;
                 align-items: center;
+                padding-right: 2px;
             }
             
             .open-menu {
@@ -1695,7 +1702,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
                 
                 .extended-menu-link dbp-icon{
-                    top: 0px;
+                    top: -3px;
                 }
 
                 .extended-breadcrumb-menu li a {
@@ -1842,8 +1849,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             'tabulator-tables/css/tabulator.min.css'
         );
 
-        if (this.coursesTable && this.isLoggedIn()) {
-            this.requestCourses();
+        if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
+            this.requestCourses().then(() => {
+                console.log("requested");
+                this.loadCourses = false;
+            });
         }
 
         return html`

@@ -44,7 +44,7 @@
         "move-up": "Move column up",
         "move-down": "Move column down",
         "save-columns": "Save column settings",
-        "apply-col-settings": "Apply column settings"
+        "apply-col-settings": "Apply filter options"
     },
     "error-login-message": "You need to be logged in to use this function!",
     "loading-message": "Loading..."

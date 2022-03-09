@@ -21,7 +21,7 @@
         "search-operator-notequal": "nicht enthalten",
         "search-operator-starts": "fängt an mit",
         "search-operator-ends": "endet mit",
-        "search-operator-less": "größer als",
+        "search-operator-less": "kleiner als",
         "search-operator-lessthanorequal": "kleinergleich",
         "search-operator-greater": "größer als",
         "search-operator-greaterorequal": "größergleich",
@@ -42,7 +42,7 @@
         "change-visability-on": "Spalte einblenden",
         "change-visability-off": "Spalte ausblende",
         "save-columns": "Spalteneinstellungen speichern",
-        "apply-col-settings": "Spalteneinstellungen übernehmen"
+        "apply-col-settings": "Filteroptionen übernehmen"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."
