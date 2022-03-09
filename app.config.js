@@ -42,6 +42,6 @@ export default {
         keyCloakRealm: 'tugraz',
         keyCloakClientId: 'formulare_tugraz_at',
         matomoUrl: 'https://analytics.tugraz.at/',
-        matomoSiteId: 131,
+        matomoSiteId: 171,
     },
 };
