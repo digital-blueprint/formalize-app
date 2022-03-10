@@ -29,6 +29,20 @@ linting:
     - yarn install
     - yarn run lint
 
+publish:
+  stage: deploy
+  only:
+    refs:
+      - main
+  script:
+    # https://www.npmjs.com/settings/dbp-deploy/tokens
+    # NPM_TOKEN needs to be a "Publish" token with 2FA disabled!
+    - echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > ~/.npmrc
+    - yarn install
+    - yarn run build
+    # yarn always reports "https://registry.yarnpkg.com/@dbp-topics%2fsignature - Not found", so we are using npm directly
+    - npm run do-publish
+
 .deploy_defaults: &deploy_defaults
   except:
     - schedules
