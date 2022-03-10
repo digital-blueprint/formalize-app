@@ -1,6 +1,8 @@
 # Formalize Application
 
-[GitLab Repository](https://gitlab.tugraz.at/dbp/formalize/formalize)
+[GitLab Repository](https://gitlab.tugraz.at/dbp/formalize/formalize) |
+[npmjs package](https://www.npmjs.com/package/@dbp-topics/formalize) |
+[Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/)
 
 ## Local development
 
