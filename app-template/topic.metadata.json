@@ -1,0 +1,19 @@
+{
+    "name": {
+        "de": "Elektronische Formulare",
+        "en": "Electronic Forms"
+    },
+    "short_name": {
+        "de": "Elektronische Formulare",
+        "en": "Electronic Forms"
+    },
+    "description": {
+        "de": "Verwalten Sie Kursanmeldungen.",
+        "en": "Manage course registrations."
+    },
+    "routing_name": "show-registrations",
+    "activities": [
+        {"path": "dbp-formalize-show-registrations.metadata.json"}
+    ],
+    "attributes": []
+}
