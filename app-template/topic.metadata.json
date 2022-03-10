@@ -13,7 +13,7 @@
     },
     "routing_name": "show-registrations",
     "activities": [
-        {"path": "dbp-formalize-show-registrations.metadata.json"}
+        {"path": "/app/dbp-formalize-show-registrations.metadata.json"}
     ],
     "attributes": []
 }
