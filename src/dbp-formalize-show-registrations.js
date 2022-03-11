@@ -105,7 +105,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         const date = ('0' + timestamp.getDate()).slice(-2);
         const hours = ('0' + timestamp.getHours()).slice(-2);
         const minutes = ('0' + timestamp.getMinutes()).slice(-2);
-        return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+        // return date + '.' + month + '.' + year + ' ' + hours + ':' + minutes;
+        return year + '-' + month + '-' + date  + ' ' + hours + ':' + minutes;
     }
 
     connectedCallback() {
@@ -194,7 +195,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout:"fitDataFill",
+                layout:"fitData",
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -719,7 +720,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 if (key.includes('no_display') || key.includes('id') || !col.getVisibility()) {
                     continue;
+                } else if (key.includes('dateCreated') && (cells[key] !== '')) {
+                    let title = this.submissionsTable.getColumn('dateCreated').getDefinition().title;
+                    title = title === '' ? key : title;
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + title + `:</div>`;
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + xss(data); + `</div>`;
+                    continue;
                 }
+
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
 
                 if (data !== '') {
@@ -1567,10 +1575,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .button-container {
                 text-align: left;
                 margin-bottom: 10px;
+                padding-left: 30px;
             }
             
             .checkmark {
-                left: 0px
+                left: 0px;
+                height: 20px;
+                width: 20px;
+            }
+
+            .button-container .checkmark::after {
+                left: 8px;
+                top: 2px;
             }
             
              @media only screen and (orientation: portrait) and (max-width: 768px) {
@@ -1628,7 +1644,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 .element-right {
-                    /*padding: 10px 0 10px 0;*/
                     margin-left: 12px;
                     padding: 0 0 12px 0;
                 }
@@ -1701,7 +1716,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     align-items: center;
                 }
                 
-                .extended-menu-link dbp-icon{
+                .extended-menu-link dbp-icon {
                     top: -3px;
                 }
 
@@ -1808,7 +1823,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     margin-bottom: 0.5em;
                 }
                 
-                
                 .courses-btn {
                     min-height: 40px;
                     padding-top: 8px;
@@ -1837,6 +1851,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 .detailed-submission-modal-content-wrapper {
                     grid-template-columns: auto;
+                }
+
+                .button-container .checkmark::after {
+                    left: 8px;
+                    top: 2px;
+                    width: 5px;
+                    height: 11px;
+                }
+
+                .button-container .checkmark {
+                    top: 10px;
+                }
+
+                .button-container {
+                    padding-left: 30px;
                 }
             }
         `;
@@ -2115,7 +2144,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         name="apply-col-settings"
                                         @click="${() => {
                                             this.requestDetailedSubmission(this.currentCell);
-                                        }}" />
+                                        }}" 
+                                        checked />
                                     <span class="checkmark"></span>
                                 </label>
                                 <div class="btn-row-left">
