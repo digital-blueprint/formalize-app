@@ -47,5 +47,6 @@
         "apply-col-settings": "Apply filter options"
     },
     "error-login-message": "You need to be logged in to use this function!",
+    "error-permission-message": "You do not have the permissions to use this function!",
     "loading-message": "Loading..."
 }

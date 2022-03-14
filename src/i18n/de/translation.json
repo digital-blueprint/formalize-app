@@ -45,5 +45,6 @@
         "apply-col-settings": "Filteroptionen übernehmen"
     },
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
+    "error-permission-message": "Sie besitzen nicht die Berechtigungen, um diese Funktion nutzen zu können!",
     "loading-message": "Lädt..."
 }

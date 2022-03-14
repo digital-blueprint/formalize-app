@@ -60,6 +60,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.dataLoaded = false;
         this.modalContentHeight = 0;
         this.loadCourses = true;
+        this.hasPermissions = true;
     }
 
     static get scopedElements() {
@@ -88,7 +89,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             loadingCourseTable: { type: Boolean, attribute: false },
             loadingSubmissionTable: { type: Boolean, attribute: false },
             modalContentHeight: { type: Number, attribute: false },
-            loadCourses: { type: Boolean, attribute: false }
+            loadCourses: { type: Boolean, attribute: false },
+            hasPermissions: { type: Boolean, attribute: false }
         };
     }
 
@@ -486,7 +488,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (!response) {
             return;
         }
+        
         if (response.status !== 200) {
+            if (response.status === 403) {
+                this.hasPermissions = false;
+            }
             return;
         }
 
@@ -603,6 +609,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
         if (response.status !== 200) {
+            if (response.status === 403) {
+                this.hasPermissions = false;
+            }
             return;
         }
         
@@ -1906,7 +1915,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </span>
             </div>
 
-            <div class="${classMap({hidden: !this.isLoggedIn() || this.isLoading()})}">
+            <div class="notification is-danger ${classMap({hidden: this.hasPermissions || !this.isLoggedIn() || this.isLoading()})}">
+                ${i18n.t('error-permission-message')}
+            </div>
+
+            <div class="${classMap({hidden: !this.isLoggedIn() || this.isLoading() || !this.hasPermissions })}">
                 
                 <h2>${this.activity.getName(this.lang)}</h2>
 
