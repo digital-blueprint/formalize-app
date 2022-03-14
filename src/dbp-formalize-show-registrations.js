@@ -803,9 +803,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     async exportCSV() {
         console.log("export csv");
-        this.submissionsTable.selectRow(this.submissionsTable.getRows());
-        this.submissionsTable.download("csv", "data.csv");
-        this.submissionsTable.getSelectedRows().forEach((row) => row.deselect());
+        let selected = this.submissionsTable.getSelectedRows().length;
+        let all = "selected";
+        if (selected === 0) {
+            all = "active";
+        }
+        this.submissionsTable.download("csv", "data.csv", {}, all);
     }
 
     async exportPdf() {
@@ -834,10 +837,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         console.log("export xlsx");
 
         window.XLSX = await importXLSX();
-        
-        this.submissionsTable.selectRow(this.submissionsTable.getRows());
-        this.submissionsTable.download("xlsx", this.activeCourse + ".xlsx", {sheetName: this.activeCourse});
-        this.submissionsTable.getSelectedRows().forEach((row) => row.deselect());
+
+        let selected = this.submissionsTable.getSelectedRows().length;
+        let all = "selected";
+        if (selected === 0) {
+            all = "active";
+        }
+        this.submissionsTable.download("xlsx", this.activeCourse + ".xlsx", {sheetName: this.activeCourse}, all);
         
         delete window.XLSX;
     }
