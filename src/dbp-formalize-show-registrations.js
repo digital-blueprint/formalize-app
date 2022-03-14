@@ -205,7 +205,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 pagination: 'local',
                 paginationSize: 10,
                 autoColumns: this.autoColumns,
-                downloadRowRange:"selected",
+                downloadRowRange: 'selected',
                 locale: true,
                 columns: [
                 ],
@@ -803,7 +803,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     async exportCSV() {
         console.log("export csv");
+        this.submissionsTable.selectRow(this.submissionsTable.getRows());
         this.submissionsTable.download("csv", "data.csv");
+        this.submissionsTable.getSelectedRows().forEach((row) => row.deselect());
     }
 
     async exportPdf() {
@@ -832,7 +834,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         console.log("export xlsx");
 
         window.XLSX = await importXLSX();
+        
+        this.submissionsTable.selectRow(this.submissionsTable.getRows());
         this.submissionsTable.download("xlsx", this.activeCourse + ".xlsx", {sheetName: this.activeCourse});
+        this.submissionsTable.getSelectedRows().forEach((row) => row.deselect());
+        
         delete window.XLSX;
     }
 
@@ -1702,7 +1708,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 #detailed-submission-modal-box .modal-content {
-                    overflow: auto;
+                    /*overflow: auto;*/
                     align-items: flex-start;
                 }
  
