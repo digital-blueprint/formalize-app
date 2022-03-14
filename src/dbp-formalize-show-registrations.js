@@ -404,7 +404,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-
     /**
      * Returns if a person is set in or not
      *
@@ -484,16 +483,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let dataList = [];
         let response = await this.getAllSubmissions();
 
+        if (!response) {
+            return;
+        }
         if (response.status !== 200) {
-            this.showSubmissionsTable = true;
-            // this.dataLoaded = true;
             return;
         }
 
-        let data = await response.json();
+        let data = [];
+        try {
+            data = await response.json();
+        } catch(e) {
+            return;
+        }
 
         if (!data || !data["hydra:member"]) {
-            this.showSubmissionsTable = true;
             return;
         }
 
@@ -585,20 +589,27 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             await this.getListOfAllCourses();
             this.loadingCourseTable = false;
         }
-
     }
     
     async requestAllCourseSubmissions(name) {
         this.loadingSubmissionTable = true;
         let dataList2 = [];
+
         let response = await this.getAllSubmissions();
+
         this.submissionsColumns = [];
-        let data = [];
-        if (!response)
+        
+        if (!response) {
             return;
-        try{
+        }
+        if (response.status !== 200) {
+            return;
+        }
+        
+        let data = [];
+        try {
             data = await response.json();
-        }catch(e) {
+        } catch(e) {
             return;
         }
         let headerExists = this.autoColumns;
@@ -670,7 +681,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             col.field = header;
             this.submissionsTable.addColumn(col);
         }
-
     }
 
     requestDetailedSubmission(cell) {
@@ -780,7 +790,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         exportInput.value = "-";
-
     }
 
     async exportCSV() {
