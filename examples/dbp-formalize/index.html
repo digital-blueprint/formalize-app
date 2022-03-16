@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="white"/>
+
+    <!-- Favicons -->
+    <link rel="shortcut icon" type="image/x-icon" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/icon/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/icon/favicon.svg" sizes="any">
+
+    <!-- PWA manfiest file -->
+    <link rel="manifest" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/dbp-formalize.manifest.json">
+
+    <!-- PWA iphone -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/icon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/icon/favicon-16x16.png">
+    <link rel="mask-icon" href="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/icon/safari-pinned-tab.svg" color="#e4154b">
+
+    <!-- PWA Windows -->
+    <meta name="msapplication-config" content="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/dbp-formalize.browserconfig.xml">
+
+    <!-- Loading spinner -->
+    <script type="module">
+        import {Spinner} from 'https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/spinner.js';
+        customElements.define('dbp-loading-spinner', Spinner);
+    </script>
+
+    <!-- App bundles-->
+    <script type="module" src="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/dbp-formalize.js"></script>
+
+    <!-- Prevent Chrome/Edge from suggesting to translate the page -->
+    <meta name="google" content="notranslate">
+
+    <!-- Font related CSS -->
+    <style>
+        @import "https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/fonts/source-sans-pro/300.css";
+        @import "https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/fonts/source-sans-pro/400.css";
+        @import "https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/fonts/source-sans-pro/600.css";
+
+        body {
+            font-family: 'Source Sans Pro', 'Calibri', 'Arial', 'sans-serif';
+            font-weight: 300;
+            margin: 0;
+            background-color: var(--dbp-override-base, white);
+            color: var(--dbp-override-text, black);
+        }
+
+        /* style override */
+        html {
+        }
+
+        .light-theme{
+            /* You must not fill out all vars, if they are not filled in, it would take an appropriate default value */
+            --dbp-override-base: white;
+            --dbp-override-base-inverted: black;
+            --dbp-override-text: black;
+            --dbp-override-text-inverted: white;
+            --dbp-override-text-muted: #767676;
+            --dbp-override-accent: #c24f68;
+            --dbp-override-primary-base: #2a4491;
+            --dbp-override-primary-text: white;
+            --dbp-override-primary-border: 1px solid #2a4491;
+            --dbp-override-secondary-base: white;
+            --dbp-override-secondary-text: black;
+            --dbp-override-secondary-border: 1px solid black;
+            --dbp-override-info: #2a4491;
+            --dbp-override-success: #188018;
+            --dbp-override-warning-as-text: #c15500;
+            --dbp-override-warning-text: black;
+            --dbp-override-warning: #ffad4d;
+            --dbp-override-danger: #de3535;
+            --dbp-override-border: 1px solid black;
+            --dbp-override-border-radius: 0px;
+
+            /* Remove hover vars if you don't want a hover effect */
+            --dbp-override-hover-base: black;
+            --dbp-override-hover-text: white;
+        }
+
+        .dark-theme{
+            /* If you don't want to use an additional theme, then delete the "themes" attribute */
+            /* You have to fill out all vars, if you want to use the dark theme, the default values would be the light theme. */
+
+            --dbp-override-base: #151515;
+            --dbp-override-base-inverted: white;
+            --dbp-override-text: white;
+            --dbp-override-text-inverted: #151515;
+            --dbp-override-text-muted: #666666;
+            --dbp-override-accent: #c24f68;
+            --dbp-override-primary-base: #8ca4eb;
+            --dbp-override-primary-text: #151515;
+            --dbp-override-primary-border: 1px solid #8ca4eb;
+            --dbp-override-secondary-base: #151515;
+            --dbp-override-secondary-text: white;
+            --dbp-override-secondary-border: 1px solid white;
+            --dbp-override-info: #8ca4eb;
+            --dbp-override-success: #7acc79;
+            --dbp-override-warning-as-text: #f99a41;
+            --dbp-override-warning-text: black;
+            --dbp-override-warning: #ffad4d;
+            --dbp-override-danger: #de3535;
+            --dbp-override-border: 1px solid white;
+            --dbp-override-border-radius: 0px;
+
+            /* Remove hover vars if you don't want a hover effect */
+            --dbp-override-hover-base: white;
+            --dbp-override-hover-text: #151515;
+        }
+    </style>
+
+    <!-- Preloading/Preconnecting -->
+    <link rel="preconnect" href="https://api-dev.tugraz.at">
+    <link rel="preconnect" href="https://auth-dev.tugraz.at/auth">
+    <script type="module" src="https://auth-dev.tugraz.at/auth/js/keycloak.min.js"></script>
+</head>
+
+<body>
+<dbp-formalize
+        provider-root
+        lang="de"
+        entry-point-url="https://api-dev.tugraz.at"
+        src="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/dbp-formalize.topic.metadata.json"
+        base-path="/"
+        keycloak-config='{"url": "https://auth-dev.tugraz.at/auth", "realm": "tugraz-vpu", "clientId": "auth-dev-mw-frontend-local", "silentCheckSsoRedirectUri": "./silent-check-sso.html"}'
+        no-welcome-page
+><dbp-loading-spinner></dbp-loading-spinner></dbp-formalize>
+
+<!-- Error handling for too old browsers -->
+<script src="https://unpkg.com/@dbp-topics/formalize@1.0.5/dist/local/@dbp-topics/formalize/browser-check.js" defer></script>
+<noscript>Diese Applikation benötigt Javascript / This application requires Javascript</noscript>
+</body>
+</html>
