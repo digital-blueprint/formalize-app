@@ -61,6 +61,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.modalContentHeight = 0;
         this.loadCourses = true;
         this.hasPermissions = true;
+        this.hiddenColumns = false;
     }
 
     static get scopedElements() {
@@ -90,7 +91,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             loadingSubmissionTable: { type: Boolean, attribute: false },
             modalContentHeight: { type: Number, attribute: false },
             loadCourses: { type: Boolean, attribute: false },
-            hasPermissions: { type: Boolean, attribute: false }
+            hasPermissions: { type: Boolean, attribute: false },
+            hiddenColumns: { type: Boolean, attribute: false },
         };
     }
 
@@ -808,7 +810,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (selected === 0) {
             all = "active";
         }
-        this.submissionsTable.download("csv", "data.csv", {}, all);
+        this.submissionsTable.download("csv", this.activeCourse + ".csv", {}, all);
     }
 
     async exportPdf() {
@@ -1033,13 +1035,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     async updateTableHeader(close = true) {
         let cols = this.submissionsTable.getColumns();
         let lastCol = cols[0];
+        let countHiddenColumns = 0;
         this.submissionsColumns.slice().forEach((col, counter) => {
-
             let sub_col = this.submissionsTable.getColumn(col.field);
             if(sub_col) {
                 if (col.visibility === 1) {
                     sub_col.show();
                 } else {
+                    countHiddenColumns++;
                     sub_col.hide();
                 }
                 if(col.field !== cols[0].field) {
@@ -1048,6 +1051,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             }
         });
+        if (countHiddenColumns > 0) {
+            this.hiddenColumns = true;
+        } else {
+            this.hiddenColumns = false;
+        }
         if (close)
             this.closeModal();
     }
@@ -1173,6 +1181,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     showNextEntry() {
         if (this.currentCell !== null) {
             let row = this.currentCell.getRow().getNextRow();
+            //let currentRow = this.currentCell.getRow()//.getNextRow();
+            //let nextIndex = currentRow.getPosition() + 1;
+            //row = this.submissionsTable.getRow(nextIndex);
+
+            // let nextRow;
+            // this.submissionsTable.getRows().forEach((row) => {
+            //     if (row.getPosition() === nextIndex) {
+            //         nextRow = row;
+            //     }
+            // });
+
+            // if (nextRow) {
+            //     this.requestDetailedSubmission(nextRow.getCells()[0]);
+            // }
             
             if (row) {
                 this.requestDetailedSubmission(row.getCells()[0]);
@@ -2170,7 +2192,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <footer class="modal-footer">
                             
                             <div class="modal-footer-btn">
-                                <label class="button-container">
+                                <label class="button-container ${classMap({hidden: !this.hiddenColumns})}">
                                     ${i18n.t('show-registrations.apply-col-settings')}
                                     <input
                                         type="checkbox"
