@@ -48,7 +48,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.activeCourse = '';
         this.autoColumns = true;
-        this.currentCell = null;
+        this.currentRow = null;
         this.currentBeautyId = 0;
         this.totalNumberOfItems = 0;
         this.isPrevEnabled = false;
@@ -199,7 +199,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout:"fitData",
+                layout:"fitDataFill",
                 selectable: this.maxSelectedItems,
                 selectableRangeMode: 'drag',
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -254,23 +254,23 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             div.classList.add('open-detailed-modal-btn');
 
                             div.addEventListener("click", event => {
-                                that.requestDetailedSubmission(cell);
+                                that.requestDetailedSubmission(cell.getRow(), cell.getRow().getData());
                                 event.stopPropagation();
                             });
                             return div;
                         };
 
-                          this.submissionsTable.addColumn({
-                              title: "",
-                              align: 'center',
-                              field: 'no_display_1',
-                              download: false,
-                              headerSort:false,
-                              sortable:false,
-                              visible: true,
-                              formatter: openIcon,
-                              frozen: true,
-                          }, false);
+                        this.submissionsTable.addColumn({
+                            title: "",
+                            align: 'center',
+                            field: 'no_display_1',
+                            download: false,
+                            headerSort:false,
+                            sortable:false,
+                            visible: true,
+                            formatter: openIcon,
+                            frozen: true,
+                        }, false);
 
                         let idCol = {
                             field: 'id',
@@ -287,6 +287,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             download: false,
                         };
 
+                        var customAccessor = function(value, data, type, params, column, row){
+                            return that.humanReadableDate(value);
+                        }
+
                         let dateCol = {
                             minWidth: 150,
                             field: 'dateCreated',
@@ -300,6 +304,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             formatter: function (cell, formatterParams, onRendered) {
                                 return that.humanReadableDate(cell.getValue());
                             },
+                            accessorParams:{},
+                            accessor:customAccessor
                         };
                         if (this.autoColumns) {
                             this.submissionsTable.deleteColumn('dateCreated');
@@ -694,7 +700,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-    requestDetailedSubmission(cell) {
+    requestDetailedSubmission(row, data) {
 
         if (!this._('.detailed-submission-modal-content-wrapper'))
             return;
@@ -703,12 +709,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (!this._('#apply-col-settings'))
             return;
         let colSettings = this._('#apply-col-settings').checked;
+        let identifier = data['id_'];
 
-        let row = cell.getRow();
-        let identifier = cell.getData()['id_'];
-
-        if (!colSettings) {
-            let cells = row.getData();
+       if (!colSettings) {
+            let cells = data;
 
             for (let i = 0; i < Object.keys(cells).length; i++) {
                 let key = Object.keys(cells)[i];
@@ -732,36 +736,44 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
        } else {
             // If checkbox checked
-            let cells = row.getCells();
-            for (let i = 0; i < cells.length; i++) {
-                let cell = cells[i];
-                let col = cell.getColumn();
-                let key = col.getField();
-                let data = cell.getElement().textContent;
+            let cells = data;
 
-                if (key.includes('no_display') || key.includes('id') || !col.getVisibility()) {
+            for (let i = 0; i < Object.keys(cells).length; i++) {
+                let key = Object.keys(cells)[i];
+                console.log('in else, row element: ', row.getElement());
+
+                let isVisible = true;
+                if (this.submissionsTable.getColumn(key)) {
+                    console.log('in else, row display:', window.getComputedStyle(this.submissionsTable.getColumn(key).getElement()).display);
+                    isVisible = window.getComputedStyle(this.submissionsTable.getColumn(key).getElement()).display === 'none' ? false : true;
+                }
+
+                if (key.includes('no_display') || key.includes('id') || !isVisible) {
+                    console.log('ignore ', key);
                     continue;
                 } else if (key.includes('dateCreated') && (cells[key] !== '')) {
                     let title = this.submissionsTable.getColumn('dateCreated').getDefinition().title;
                     title = title === '' ? key : title;
                     this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-left">` + title + `:</div>`;
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + xss(data); + `</div>`;
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class="element-right">` + this.humanReadableDate(cells[key]); + `</div>`;
                     continue;
                 }
 
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
 
-                if (data !== '') {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(data) + `</div>`;
+                if (cells[key]  !== '') {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(cells[key] ) + `</div>`;
                 } else {
                     this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'></div>`;
                 }
             }
         }
-        this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
-        this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
+        if (this._('.detailed-submission-modal-content-wrapper > div:first-child'))
+            this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
+        if (this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)'))
+            this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
 
-        this.currentCell = cell;
+        this.currentRow = row;
         this.currentBeautyId = identifier;
         this.isPrevEnabled = identifier !== 1;
         this.isNextEnabled = (identifier + 1) <= this.submissionsTable.getDataCount();
@@ -1169,35 +1181,38 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     showLastEntry() {
-        if (this.currentCell !== null) {
-            let row = this.currentCell.getRow().getPrevRow();
-     
-            if (row) {
-                this.requestDetailedSubmission(row.getCells()[0]);
+        if (this.currentRow !== null) {
+            let currentRow = this.currentRow;
+            let nextIndex = currentRow.getPosition() - 1;
+
+            let nextRow;
+            this.submissionsTable.getRows().forEach((row) => {
+                if (row.getPosition() === nextIndex) {
+                    nextRow = row;
+                }
+            });
+
+            if (nextRow) {
+                this.requestDetailedSubmission(nextRow, nextRow.getData());
             }
         }
     }
 
     showNextEntry() {
-        if (this.currentCell !== null) {
-            let row = this.currentCell.getRow().getNextRow();
-            //let currentRow = this.currentCell.getRow()//.getNextRow();
-            //let nextIndex = currentRow.getPosition() + 1;
-            //row = this.submissionsTable.getRow(nextIndex);
+        if (this.currentRow !== null) {
+            let currentRow = this.currentRow;
+            let nextIndex = currentRow.getPosition() + 1;
 
-            // let nextRow;
-            // this.submissionsTable.getRows().forEach((row) => {
-            //     if (row.getPosition() === nextIndex) {
-            //         nextRow = row;
-            //     }
-            // });
+            let nextRow;
+            this.submissionsTable.getRows().forEach((row) => {
+                if (row.getPosition() === nextIndex) {
+                    nextRow = row;
+                    console.log('next row:', nextRow);
+                }
+            });
 
-            // if (nextRow) {
-            //     this.requestDetailedSubmission(nextRow.getCells()[0]);
-            // }
-            
-            if (row) {
-                this.requestDetailedSubmission(row.getCells()[0]);
+            if (nextRow) {
+                this.requestDetailedSubmission(nextRow, nextRow.getData());
             }
         }
     }
@@ -1220,6 +1235,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             
             ${commonStyles.getButtonCSS()}
+
+            .tabulator[tabulator-layout=fitDataFill] .tabulator-tableHolder .tabulator-table {
+                min-width: calc(100% - 41px);
+            }
 
             .table-wrapper.submissions {
                 padding-top: 0.5rem;
@@ -2199,7 +2218,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         id="apply-col-settings"
                                         name="apply-col-settings"
                                         @click="${() => {
-                                            this.requestDetailedSubmission(this.currentCell);
+                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData());
                                         }}" 
                                         checked />
                                     <span class="checkmark"></span>
