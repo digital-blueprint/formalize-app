@@ -239,88 +239,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 },
                 dataLoaded: () => {
                     if (this.submissionsTable !== null) {
-
-                        const that = this;
-
-                        this.submissionsTable.setLocale(this.lang);
-
-                        const openIcon = function(cell, formatterParams) {
-
-                            const icon_tag = that.getScopedTagName('dbp-icon');
-                            let id = cell.getData()['id'];
-                            let button = `<${icon_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${icon_tag}>`; //enter
-                            let div = getShadowRootDocument(that).createElement('div');
-                            div.innerHTML = button;
-                            div.classList.add('open-detailed-modal-btn');
-
-                            div.addEventListener("click", event => {
-                                that.requestDetailedSubmission(cell.getRow(), cell.getRow().getData());
-                                event.stopPropagation();
-                            });
-                            return div;
-                        };
-
-                        this.submissionsTable.addColumn({
-                            title: "",
-                            align: 'center',
-                            field: 'no_display_1',
-                            download: false,
-                            headerSort:false,
-                            sortable:false,
-                            visible: true,
-                            formatter: openIcon,
-                            frozen: true,
-                        }, false);
-
-                        let idCol = {
-                            field: 'id',
-                            title: 'ID',
-                            download: false,
-                            visible: false,
-
-                        };
-                        let beautyIdCol = {
-                            field: 'id_',
-                            title: 'ID',
-                            align: 'center',
-                            visible: false,
-                            download: false,
-                        };
-
-                        var customAccessor = function(value, data, type, params, column, row){
-                            return that.humanReadableDate(value);
-                        }
-
-                        let dateCol = {
-                            minWidth: 150,
-                            field: 'dateCreated',
-                            title: i18n.t('show-registrations.creation-date'),
-                            align: 'left',
-                            sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
-                                const a_timestamp = Date.parse(a);
-                                const b_timestamp = Date.parse(b);
-                                return a_timestamp - b_timestamp;
-                            },
-                            formatter: function (cell, formatterParams, onRendered) {
-                                return that.humanReadableDate(cell.getValue());
-                            },
-                            accessorParams:{},
-                            accessor:customAccessor
-                        };
-                        if (this.autoColumns) {
-                            this.submissionsTable.deleteColumn('dateCreated');
-                            this.submissionsTable.deleteColumn('id');
-                            this.submissionsTable.deleteColumn('id_');
-                        }
-                        this.submissionsTable.addColumn(dateCol, true);
-                        this.submissionsTable.addColumn(idCol, true);
-                        this.submissionsTable.addColumn(beautyIdCol, true);
-                        if (this.storeSession) {
-                            this.getSubmissionTableSettings();
-                        } else {
+                        if (!this.getSubmissionTableSettings()) {
                             this.updateTableHeaderList();
-
                         }
+                        this.updateSubmissionTable();
                     }
                 },
             });
@@ -375,8 +297,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     this._i18n.changeLanguage(this.lang);
                     if (this.coursesTable)
                         this.coursesTable.setLocale(this.lang);
-                    if (this.submissionsTable)
-                        this.submissionsTable.setLocale(this.lang);
+                    if (this.submissionsTable) {
+                        // Update column translations
+                        this.updateSubmissionTable();
+                    }
                     break;
                 case 'auth':
                     this._updateAuth();
@@ -639,8 +563,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let beautyId = 1;
         for(let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data["hydra:member"].length) {
-                this.submissionsTable.setData(dataList2);
                 this.activeCourse = name;
+                this.submissionsTable.setData(dataList2);
                 if (
                     this.storeSession &&
                     this.isLoggedIn()
@@ -648,10 +572,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     const publicId = this.auth['person-id'];
                     localStorage.setItem('dbp-formalize-activeCourse-' + publicId, name);
                 }
-                if (!this.getSubmissionTableSettings()) {
-                    this.updateTableHeaderList();
-                }
-                this.updateTableHeader(false);
                 this.loadingSubmissionTable = false;
                 this.showSubmissionsTable = true;
                 const that = this;
@@ -886,7 +806,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissionsTable.setFilter([filterArray]);
     }
 
-    async updateTableHeaderList() {
+    updateTableHeaderList() {
         console.log("update");
         if (!this.submissionsTable)
             return;
@@ -895,12 +815,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         columns.forEach((col) => {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
-            let visible = col.getDefinition().visible;
-
-            if (visible !== false) {
-                if (field && !field.includes('no_display')) {
-                    this.submissionsColumns.push({name: name, field: field, visibility: 1});
-                }
+            let visibility = col.isVisible();
+            if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
+                this.submissionsColumns.push({name: name, field: field, visibility: visibility});
             }
         });
 
@@ -913,7 +830,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let options = [];
         options[0] = html`<option value="all">${i18n.t('show-registrations.all-columns')}</option>`;
         this.submissionsColumns.forEach((col, counter) => {
-            if(col.visibility === 0) {
+            if(!col.visibility) {
                 options[counter + 1]= html`<option disabled value="${col.field}">${col.name}</option>`;
             } else {
                 options[counter + 1]= html`<option value="${col.field}">${col.name}</option>`;
@@ -923,6 +840,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     openModal() {
+        // XXX: this is just to update the translations
+        this.updateTableHeaderList();
+
         let modal = this._('#submission-modal');
         if (modal) {
             MicroModal.show(modal, {
@@ -1034,8 +954,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     changeVisibility(item) {
-        item.visibility = item.visibility === 1 ? 0 : 1;
-        if (item.visibility === 1) {
+        item.visibility = !item.visibility;
+        if (item.visibility) {
            this._("." + item.field + ' .header-visibility-icon-hide').classList.remove('hidden');
            this._("." + item.field + ' .header-visibility-icon-show').classList.add('hidden');
         } else {
@@ -1044,32 +964,125 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-    async updateTableHeader(close = true) {
-        let cols = this.submissionsTable.getColumns();
-        let lastCol = cols[0];
-        let countHiddenColumns = 0;
-        this.submissionsColumns.slice().forEach((col, counter) => {
-            let sub_col = this.submissionsTable.getColumn(col.field);
-            if(sub_col) {
-                if (col.visibility === 1) {
-                    sub_col.show();
-                } else {
-                    countHiddenColumns++;
-                    sub_col.hide();
-                }
-                if(col.field !== cols[0].field) {
-                    this.submissionsTable.moveColumn(col.field, lastCol, true);
-                    lastCol = col.field;
-                }
+    updateSubmissionTable() {
+        const i18n = this._i18n;
+
+        this.submissionsTable.setLocale(this.lang);
+
+        // Add all known colums in the right order
+        let newDefs = [];
+        let addedFields = [];
+        for(let spec of this.submissionsColumns) {
+            let col = this.submissionsTable.getColumn(spec.field);
+            if(!col) {
+                continue;
             }
-        });
-        if (countHiddenColumns > 0) {
-            this.hiddenColumns = true;
-        } else {
-            this.hiddenColumns = false;
+            addedFields.push(spec.field);
+            newDefs.push(col.getDefinition());
         }
-        if (close)
-            this.closeModal();
+
+        // Append everything we didn't know about
+        for (let col of this.submissionsTable.getColumns()) {
+            let def = col.getDefinition();
+            if (addedFields.indexOf(def.field) === -1) {
+                newDefs.push(def);
+                addedFields.push(def.field);
+            }
+        }
+
+        // Update the date created column
+        let customAccessor = (value, data, type, params, column, row) => {
+            return this.humanReadableDate(value);
+        };
+        let dateCol = {
+            minWidth: 150,
+            field: 'dateCreated',
+            title: i18n.t('show-registrations.creation-date'),
+            align: 'left',
+            sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
+                const a_timestamp = Date.parse(a);
+                const b_timestamp = Date.parse(b);
+                return a_timestamp - b_timestamp;
+            },
+            formatter: (cell, formatterParams, onRendered) => {
+                return this.humanReadableDate(cell.getValue());
+            },
+            accessorParams:{},
+            accessor: customAccessor,
+        };
+        newDefs[addedFields.indexOf(dateCol.field)] = dateCol;
+
+        // Update the ID columns
+        let idCol = {
+            field: 'id',
+            title: 'ID',
+            download: false,
+            visible: false,
+
+        };
+        newDefs[addedFields.indexOf(idCol.field)] = idCol;
+
+        let beautyIdCol = {
+            field: 'id_',
+            title: 'ID',
+            align: 'center',
+            visible: false,
+            download: false,
+        };
+        newDefs[addedFields.indexOf(beautyIdCol.field)] = beautyIdCol;
+
+        // Add icon columns
+        const openIcon = (cell, formatterParams) => {
+
+            const icon_tag = this.getScopedTagName('dbp-icon');
+            let id = cell.getData()['id'];
+            let button = `<${icon_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${icon_tag}>`; //enter
+            let div = getShadowRootDocument(this).createElement('div');
+            div.innerHTML = button;
+            div.classList.add('open-detailed-modal-btn');
+
+            div.addEventListener("click", event => {
+                this.requestDetailedSubmission(cell.getRow(), cell.getRow().getData());
+                event.stopPropagation();
+            });
+            return div;
+        };
+
+        let openIconCol = {
+            title: "",
+            align: 'center',
+            field: 'no_display_1',
+            download: false,
+            headerSort:false,
+            sortable:false,
+            visible: true,
+            formatter: openIcon,
+            frozen: true,
+        };
+        if (addedFields.indexOf(openIconCol.field) == -1) {
+            newDefs.push(openIconCol);
+        } else {
+            newDefs[addedFields.indexOf(openIconCol.field)] = openIconCol;
+        }
+
+        // Replace all columns
+        this.submissionsTable.setColumns(newDefs);
+
+        // Set the visibility status
+        this.hiddenColumns = false;
+        for(let spec of this.submissionsColumns) {
+            let col = this.submissionsTable.getColumn(spec.field);
+            if(!col) {
+                col.hide();
+                continue;
+            }
+            if (spec.visibility) {
+                col.show();
+            } else {
+                col.hide();
+                this.hiddenColumns = true;
+            }
+        }
     }
 
     getSubmissionTableSettings() {
@@ -1089,7 +1102,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 let options = JSON.parse(optionsString);
                 if (options) {
                     this.submissionsColumns = [...options];
-                    this.updateTableHeader(false);
                 }
 
             } catch(e)
@@ -2152,9 +2164,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                                    @click="${() => {
                                                        this.changeVisibility(i);
                                                    }}">
-                                                 <dbp-icon title="${i18n.t('show-registrations.change-visability-off')}" class="header-visibility-icon-hide ${classMap({hidden: i.visibility === 0})}"
+                                                 <dbp-icon title="${i18n.t('show-registrations.change-visability-off')}" class="header-visibility-icon-hide ${classMap({hidden: !i.visibility})}"
                                                            name="source_icons_eye-empty"></dbp-icon>
-                                                 <dbp-icon title="${i18n.t('show-registrations.change-visability-on')}" class="header-visibility-icon-show ${classMap({hidden: i.visibility === 1})}"
+                                                 <dbp-icon title="${i18n.t('show-registrations.change-visability-on')}" class="header-visibility-icon-show ${classMap({hidden: i.visibility})}"
                                                            name="source_icons_eye-off"></dbp-icon>
                                              </span>
                                              <span class="header-move">
@@ -2172,7 +2184,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
-                                <button class="check-btn button is-primary" id="check" @click="${() => {this.updateTableHeader(); this.setSubmissionTableSettings();}}">
+                                <button class="check-btn button is-primary" id="check" @click="${() => {this.updateSubmissionTable(); this.closeModal(); this.setSubmissionTableSettings();}}">
                                     ${i18n.t('show-registrations.save-columns')}
                                 </button>
                             </div>
