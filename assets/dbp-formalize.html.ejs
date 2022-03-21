@@ -128,14 +128,21 @@
             padding: 0;
             margin-left: 1em;
             transition: background-color 0.15s ease 0s, color 0.15s ease 0s;
-            color: #6c757d;
+            color: var(--dbp-muted);
             cursor: pointer;
             text-decoration: none;
         }
 
-        .footer-links a:hover {
-            color: #fff;
-            background-color: #000;
+
+        input::-moz-focus-inner { border: 0; }
+
+        :focus-visible{
+            outline:none !important;
+            outline-width: 0 !important;
+            box-shadow: none;
+            -moz-box-shadow: none;
+            -webkit-box-shadow: none;
+            box-shadow: 0px 0px 4px 2px var(--dbp-accent);
         }
     </style>
     <dbp-translated subscribe="lang">
