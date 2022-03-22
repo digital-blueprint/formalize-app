@@ -22,6 +22,20 @@ export function getTabulatorStyles() {
             color: var(--dbp-accent);
         }        
         
+        .tabulator-row, .tabulator-row.tabulator-row-even, .tabulator-row.tabulator-row-odd{
+            padding-top: 0px;
+            padding-bottom: 0px;
+        }
+
+        .tabulator-row .tabulator-cell{
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .tabulator .tabulator-header .tabulator-frozen.tabulator-frozen-right, .tabulator-row .tabulator-frozen.tabulator-frozen-right{
+            background-color:  var(--dbp-background);
+            color: var(--dbp-content);
+        }
        
     `;
 }

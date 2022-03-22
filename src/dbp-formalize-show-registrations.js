@@ -1235,12 +1235,14 @@ _a(selector) {
             ${commonStyles.getRadioAndCheckboxCss()}
             ${commonStyles.getGeneralCSS(false)}
             ${fileHandlingStyles.getFileHandlingCss()}
-            ${tabulatorStyles.getTabulatorStyles()}
+            
             
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
             
             ${commonStyles.getButtonCSS()}
+
+            ${tabulatorStyles.getTabulatorStyles()}
 
             .tabulator .tabulator-footer .tabulator-paginator {
                 text-align: center;
@@ -1536,13 +1538,6 @@ _a(selector) {
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0;
-            }
-            
-            tabulator-row,
-            .tabulator-row.tabulator-row-even,
-            .tabulator-row.tabulator-row-odd {
-                padding-top: 10px;
-                padding-bottom: 10px;
             }
             
             .headers{
