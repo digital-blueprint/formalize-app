@@ -128,19 +128,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 layout: 'fitColumns',
                 selectable: false,
                 placeholder: i18n.t('show-registrations.no-data'),
-                responsiveLayout: 'collapse',
-                responsiveLayoutCollapseStartOpen: false,
                 resizableColumns: false,
-                pagination: 'local',
+                pagination:true,
+                paginationMode:'local',
                 paginationSize: 10,
                 locale: true,
                 columns: [
-                    {
-                        align: 'center',
-                        resizable: false,
-                        headerSort: false,
-                        formatter: 'responsiveCollapse',
-                    },
                     { 
                         title:"ID",
                         field:"id",
