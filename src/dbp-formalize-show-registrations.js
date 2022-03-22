@@ -11,6 +11,7 @@ import {Tabulator} from 'tabulator-tables';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
+import * as tabulatorStyles from './tabulator-table-styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 import xss from 'xss';
 
@@ -46,6 +47,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
+        this.boundDataLodaedFunction = this.dataLoadedFunction.bind(this);
         this.activeCourse = '';
         this.autoColumns = true;
         this.currentRow = null;
@@ -199,18 +201,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout:"fitDataFill",
+                layout:'fitDataFill',
                 selectable: this.maxSelectedItems,
-                selectableRangeMode: 'drag',
+                selectablePersistence:false,
                 placeholder: i18n.t('show-registrations.no-data'),
-                resizableColumns: false,
-                pagination: 'local',
+                columnDefaults:{
+                    resizable:'header',
+                },
+                pagination:true,
+                paginationMode:'local',
                 paginationSize: 10,
                 autoColumns: this.autoColumns,
                 downloadRowRange: 'selected',
                 locale: true,
-                columns: [
-                ],
                 langs: {
                     "en": {
                         "pagination":{
@@ -237,17 +240,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         },
                     }
                 },
-                dataLoaded: () => {
-                    if (this.submissionsTable !== null) {
-                        if (!this.getSubmissionTableSettings()) {
-                            this.updateTableHeaderList();
-                        }
-                        this.updateSubmissionTable();
-                    }
-                },
+            });
+
+            this.submissionsTable.on("dataLoaded", function(){
+
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
+    }
+
+    dataLoadedFunction() {
+        if (this.submissionsTable !== null) {
+            if (!this.getSubmissionTableSettings()) {
+                this.updateTableHeaderList();
+            }
+            this.updateSubmissionTable();
+        }
     }
 
     addToggleEvent() {
@@ -1242,6 +1250,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getRadioAndCheckboxCss()}
             ${commonStyles.getGeneralCSS(false)}
             ${fileHandlingStyles.getFileHandlingCss()}
+            ${tabulatorStyles.getTabulatorStyles()}
             
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
