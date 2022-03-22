@@ -240,6 +240,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.submissionsTable.on("dataLoaded", this.dataLoadedFunction.bind(this));
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
+
     }
 
     dataLoadedFunction() {
@@ -296,8 +297,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             switch (propName) {
                 case 'lang':
                     this._i18n.changeLanguage(this.lang);
-                    if (this.coursesTable)
+                    if (this.coursesTable) {
                         this.coursesTable.setLocale(this.lang);
+                    }
                     if (this.submissionsTable) {
                         // Update column translations
                         this.updateSubmissionTable();
@@ -480,7 +482,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             } catch(e) {
                 console.log('error');
             }
-
         }
     }
 
@@ -1248,6 +1249,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             
             ${commonStyles.getButtonCSS()}
+
+            .tabulator .tabulator-footer .tabulator-paginator {
+                text-align: center;
+            }
 
             .tabulator[tabulator-layout=fitDataFill] .tabulator-tableHolder .tabulator-table {
                 min-width: calc(100% - 41px);
