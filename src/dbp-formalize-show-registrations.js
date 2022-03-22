@@ -8,6 +8,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {TabulatorFull as Tabulator} from 'tabulator-tables';
+import {ExportModule} from 'tabulator-tables';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
@@ -25,7 +26,7 @@ async function importJsPDF()
     let jspdf = await import('jspdf');
     let autotable = await import('jspdf-autotable');
     autotable.applyPlugin(jspdf.jsPDF);
-    return jspdf.jsPDF;
+    return jspdf;
 }
 
 class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
@@ -753,7 +754,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             all = "active";
         }
 
-        window.jsPDF = await importJsPDF();
+        window.jspdf = await importJsPDF();
         this.submissionsTable.download("pdf", this.activeCourse + ".pdf", {
             title: this.activeCourse,
             autoTable:{ //advanced table styling
@@ -765,7 +766,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 pageBreak: 'auto',
             },
         }, all);
-        delete window.jsPDF;
+        delete window.jspdf;
     }
 
     async exportXLSX() {
