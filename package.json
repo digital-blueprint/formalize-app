@@ -48,6 +48,7 @@
         "i18next": "^21.4.2",
         "jspdf": "^2.5.1",
         "jspdf-autotable": "^3.5.23",
+        "tabulator-tables": "^5.1.7",
         "lit": "^2.0.0",
         "xlsx": "^0.18.2",
         "xss": "^1.0.11"

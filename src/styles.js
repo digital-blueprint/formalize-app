@@ -171,24 +171,7 @@ export function getFileHandlingCss() {
             font-weight: normal;
             font-size: 1rem;
         }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='asc']
-            .tabulator-col-content
-            .tabulator-arrow,
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='none']
-            .tabulator-col-content
-            .tabulator-arrow,
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='desc']
-            .tabulator-col-content
-            .tabulator-arrow {
-            padding-bottom: 6px;
-        }
+        
 
         .tabulator .tabulator-header,
         .tabulator .tabulator-header,
@@ -223,51 +206,7 @@ export function getFileHandlingCss() {
         .tabulator .tabulator-header .tabulator-col .tabulator-col-content {
             display: inline-flex;
         }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='desc']
-            .tabulator-col-content
-            .tabulator-arrow {
-            top: 16px;
-        }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='asc']
-            .tabulator-col-content
-            .tabulator-arrow {
-            border-top: none;
-            border-bottom: 4px solid var(--dbp-muted);
-        }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='none']
-            .tabulator-col-content
-            .tabulator-arrow {
-            border-top: none;
-            border-bottom: 4px solid var(--dbp-muted);
-        }
-
-        .tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-arrow {
-            border-left: 4px solid transparent;
-            border-right: 4px solid transparent;
-        }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='desc']
-            .tabulator-col-content
-            .tabulator-arrow,
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='desc']
-            .tabulator-col-content
-            .tabulator-arrow {
-            border-top: 4px solid var(--dbp-muted);
-            border-bottom: none;
-        }
+        
 
         .tabulator-row,
         .tabulator-row.tabulator-row-even {
@@ -282,24 +221,6 @@ export function getFileHandlingCss() {
 
         .tabulator-row.tabulator-row-even.tabulator-selected {
             color: var(--dbp-hover-color, var(--dbp-on-content-surface));
-        }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='asc']
-            .tabulator-col-content
-            .tabulator-col-sorter
-            .tabulator-arrow {
-            border-bottom-color: var(--dbp-content);
-        }
-
-        .tabulator
-            .tabulator-header
-            .tabulator-col.tabulator-sortable[aria-sort='none']
-            .tabulator-col-content
-            .tabulator-col-sorter
-            .tabulator-arrow {
-            border-bottom-color: var(--dbp-muted);
         }
 
         .tabulator-header .tabulator-col {
