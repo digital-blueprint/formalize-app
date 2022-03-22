@@ -129,204 +129,267 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 layout: 'fitColumns',
                 selectable: false,
                 placeholder: i18n.t('show-registrations.no-data'),
-                pagination:true,
-                paginationMode:'local',
+                pagination: true,
+                paginationMode: 'local',
                 paginationSize: 10,
                 locale: true,
                 columns: [
-                    { 
-                        title:"ID",
-                        field:"id",
+                    {
+                        title: "ID",
+                        field: "id",
                         widthGrow: 1,
                         maxWidth: 50,
                         resizable: false,
                     },
-                    { 
-                        title:"Name", 
-                        field:"name",
+                    {
+                        title: "Name",
+                        field: "name",
                         widthGrow: 2,
                         resizable: false,
                     },
-                    { 
+                    {
                         title: i18n.t('show-registrations.date'),
-                        field:"date",
+                        field: "date",
                         widthGrow: 2,
-                        formatter: function (cell, formatterParams, onRendered) {
+                        formatter: function(cell, formatterParams, onRendered) {
                             return that.humanReadableDate(cell.getValue());
                         },
                         visible: false,
                         resizable: false,
                     },
-                    { 
-                        title:"",
-                        field:"type",
-                        formatter:"html",
+                    {
+                        title: "",
+                        field: "type",
+                        formatter: "html",
                         headerSort: false,
                         resizable: false,
-                    },    
+                    },
                 ],
                 langs: {
                     "en": {
-                        "pagination":{
-                            "first":"First", 
-                            "first_title":"First Page",
-                            "last":"Last",
-                            "last_title":"Last Page",
-                            "prev":"Prev",
-                            "prev_title":"Prev Page",
-                            "next":"Next",
-                            "next_title":"Next Page",
+                        "pagination": {
+                            "first": "First",
+                            "first_title": "First Page",
+                            "last": "Last",
+                            "last_title": "Last Page",
+                            "prev": "Prev",
+                            "prev_title": "Prev Page",
+                            "next": "Next",
+                            "next_title": "Next Page",
                         },
                     },
                     "de": {
-                        "pagination":{
-                            "first":"Erste", 
-                            "first_title":"Erste Seite",
-                            "last":"Letzte",
-                            "last_title":"Letzte Seite",
-                            "prev":"Vorherige",
-                            "prev_title":"Vorherige Seite",
-                            "next":"Nächste",
-                            "next_title":"Nächste Seite",
+                        "pagination": {
+                            "first": "Erste",
+                            "first_title": "Erste Seite",
+                            "last": "Letzte",
+                            "last_title": "Letzte Seite",
+                            "prev": "Vorherige",
+                            "prev_title": "Vorherige Seite",
+                            "next": "Nächste",
+                            "next_title": "Nächste Seite",
                         },
                     }
                 },
             });
 
+            const openIcon = (cell, formatterParams) => {
+
+                const icon_tag = this.getScopedTagName('dbp-icon');
+                let id = cell.getData()['id'];
+                let button = `<${icon_tag} name='keyword-research' class='open-modal-icon' id='` + id + `'></${icon_tag}>`; //enter
+                let div = getShadowRootDocument(this).createElement('div');
+                div.innerHTML = button;
+                div.classList.add('open-detailed-modal-btn');
+
+                div.addEventListener("click", event => {
+                    this.requestDetailedSubmission(cell.getRow(), cell.getRow().getData());
+                    event.stopPropagation();
+                });
+                return div;
+            };
+
+            let customAccessor = (value, data, type, params, column, row) => {
+                return this.humanReadableDate(value);
+            };
+
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
-                layout:'fitDataFill',
+                layout: 'fitDataFill',
                 selectable: this.maxSelectedItems,
-                selectablePersistence:false,
+                selectablePersistence: false,
                 placeholder: i18n.t('show-registrations.no-data'),
-                columnDefaults:{
-                    resizable:'header',
+                columnDefaults: {
+                    vertAlign: 'middle',
                 },
-                pagination:true,
-                paginationMode:'local',
+                pagination: true,
+                paginationMode: 'local',
                 paginationSize: 10,
                 autoColumns: this.autoColumns,
                 downloadRowRange: 'selected',
                 locale: true,
                 langs: {
                     "en": {
-                        "pagination":{
-                            "first":"First", 
-                            "first_title":"First Page",
-                            "last":"Last",
-                            "last_title":"Last Page",
-                            "prev":"Prev",
-                            "prev_title":"Prev Page",
-                            "next":"Next",
-                            "next_title":"Next Page",
+                        "pagination": {
+                            "first": "First",
+                            "first_title": "First Page",
+                            "last": "Last",
+                            "last_title": "Last Page",
+                            "prev": "Prev",
+                            "prev_title": "Prev Page",
+                            "next": "Next",
+                            "next_title": "Next Page",
                         },
                     },
                     "de": {
-                        "pagination":{
-                            "first":"Erste", 
-                            "first_title":"Erste Seite",
-                            "last":"Letzte",
-                            "last_title":"Letzte Seite",
-                            "prev":"Vorherige",
-                            "prev_title":"Vorherige Seite",
-                            "next":"Nächste",
-                            "next_title":"Nächste Seite",
+                        "pagination": {
+                            "first": "Erste",
+                            "first_title": "Erste Seite",
+                            "last": "Letzte",
+                            "last_title": "Letzte Seite",
+                            "prev": "Vorherige",
+                            "prev_title": "Vorherige Seite",
+                            "next": "Nächste",
+                            "next_title": "Nächste Seite",
                         },
                     }
                 },
+                autoColumnsDefinitions: [
+                        {
+                            title: "",
+                            hozAlign: 'center',
+                            field: 'no_display_1',
+                            download: false,
+                            headerSort: false,
+                            visible: true,
+                            formatter: openIcon,
+                            frozen: true
+                        },
+                        {
+                            minWidth: 150,
+                            field: 'dateCreated',
+                            title: i18n.t('show-registrations.creation-date'),
+                            hozAlign: 'left',
+                            sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
+                                const a_timestamp = Date.parse(a);
+                                const b_timestamp = Date.parse(b);
+                                return a_timestamp - b_timestamp;
+                            },
+                            formatter: (cell, formatterParams, onRendered) => {
+                                return this.humanReadableDate(cell.getValue());
+                            },
+                            accessorParams: {},
+                            accessor: customAccessor,
+                        },
+                        {
+                            field: 'id',
+                            title: 'ID',
+                            download: false,
+                            visible: false,
+                        },
+                        {
+                            field: 'id_',
+                            title: 'ID',
+                            hozAlign: 'center',
+                            visible: false,
+                            download: false,
+                        }
+                    ],
             });
+
 
             this.coursesTable.on("dataLoaded", this.dataLoadedCourseTableFunction.bind(this));
 
             this.submissionsTable.on("dataLoaded", this.dataLoadedSubmissionTableFunction.bind(this));
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
-
     }
 
-    dataLoadedCourseTableFunction() {
-        if (this.coursesTable !== null)
-            this.coursesTable.setLocale(this.lang);
-    }
 
-    dataLoadedSubmissionTableFunction() {
-        if (this.submissionsTable !== null) {
-            if (!this.getSubmissionTableSettings()) {
-                this.updateTableHeaderList();
-            }
-        }
-    }
 
-    addToggleEvent() {
+dataLoadedCourseTableFunction() {
+  if (this.coursesTable !== null)
+      this.coursesTable.setLocale(this.lang);
+}
 
-        const that = this;
-        setTimeout(function () {
-            if (that._('.tabulator-responsive-collapse-toggle-open')) {
-                that._a('.tabulator-responsive-collapse-toggle-open').forEach(
-                    (element) =>
-                        element.addEventListener(
-                            'click',
-                            that.toggleCollapse.bind(that)
-                        )
-                );
-            }
+dataLoadedSubmissionTableFunction() {
+  if (this.submissionsTable !== null) {
+      if (!this.getSubmissionTableSettings()) {
+          this.updateTableHeaderList();
+      }
+  }
+}
 
-            if (that._('.tabulator-responsive-collapse-toggle-close')) {
-                that._a('.tabulator-responsive-collapse-toggle-close').forEach(
-                    (element) =>
-                        element.addEventListener(
-                            'click',
-                            that.toggleCollapse.bind(that)
-                        )
-                );
-            }
-        }, 0);
-    }
+addToggleEvent() {
 
-    toggleCollapse(e) {
-        const table = this.submissionsTable;
-        setTimeout(function () {
-            table.redraw();
-        }, 0);
-    }
+  const that = this;
+  setTimeout(function () {
+      if (that._('.tabulator-responsive-collapse-toggle-open')) {
+          that._a('.tabulator-responsive-collapse-toggle-open').forEach(
+              (element) =>
+                  element.addEventListener(
+                      'click',
+                      that.toggleCollapse.bind(that)
+                  )
+          );
+      }
 
-    async firstUpdated() {
-        // Give the browser a chance to paint
+      if (that._('.tabulator-responsive-collapse-toggle-close')) {
+          that._a('.tabulator-responsive-collapse-toggle-close').forEach(
+              (element) =>
+                  element.addEventListener(
+                      'click',
+                      that.toggleCollapse.bind(that)
+                  )
+          );
+      }
+  }, 0);
+}
 
-        await new Promise((r) => setTimeout(r, 0));
+toggleCollapse(e) {
+  const table = this.submissionsTable;
+  setTimeout(function () {
+      table.redraw();
+  }, 0);
+}
 
-    }
+async firstUpdated() {
+  // Give the browser a chance to paint
 
-    update(changedProperties) {
-        changedProperties.forEach((oldValue, propName) => {
-            switch (propName) {
-                case 'lang':
-                    this._i18n.changeLanguage(this.lang);
-                    if (this.coursesTable) {
-                        this.coursesTable.setLocale(this.lang);
-                    }
-                    if (this.submissionsTable) {
-                        // Update column translations
-                        this.updateSubmissionTable();
-                    }
-                    break;
-                case 'auth':
-                    this._updateAuth();
-                    break;
-            }
-        });
+  await new Promise((r) => setTimeout(r, 0));
 
-        super.update(changedProperties);
-    }
+}
 
-    _a(selector) {
-        return this.shadowRoot === null
-            ? this.querySelectorAll(selector)
-            : this.shadowRoot.querySelectorAll(selector);
-    }
+update(changedProperties) {
+  changedProperties.forEach((oldValue, propName) => {
+      switch (propName) {
+          case 'lang':
+              this._i18n.changeLanguage(this.lang);
+              if (this.coursesTable) {
+                  this.coursesTable.setLocale(this.lang);
+              }
+              if (this.submissionsTable) {
+                  // Update column translations
+                  this.updateSubmissionTable();
+              }
+              break;
+          case 'auth':
+              this._updateAuth();
+              break;
+      }
+  });
 
-    /**
-     *  Request a re-render every time isLoggedIn()/isLoading() changes
-     */
+  super.update(changedProperties);
+}
+
+_a(selector) {
+  return this.shadowRoot === null
+      ? this.querySelectorAll(selector)
+      : this.shadowRoot.querySelectorAll(selector);
+}
+
+/**
+*  Request a re-render every time isLoggedIn()/isLoading() changes
+*/
     _updateAuth() {
         this._loginStatus = this.auth['login-status'];
 
@@ -606,6 +669,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
                 let jsonFirst = {};
                 jsonFirst['id'] = id;
+                jsonFirst['no_display_1'] = "";
                 jsonFirst['id_'] = itemsCount + 1;
                 jsonFirst['dateCreated'] = date;
                 json = Object.assign(jsonFirst, json);
@@ -973,7 +1037,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     updateSubmissionTable() {
-        const i18n = this._i18n;
 
         this.submissionsTable.setLocale(this.lang);
 
@@ -998,80 +1061,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         }
 
-        // Update the date created column
-        let customAccessor = (value, data, type, params, column, row) => {
-            return this.humanReadableDate(value);
-        };
-        let dateCol = {
-            minWidth: 150,
-            field: 'dateCreated',
-            title: i18n.t('show-registrations.creation-date'),
-            hozAlign: 'left',
-            sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
-                const a_timestamp = Date.parse(a);
-                const b_timestamp = Date.parse(b);
-                return a_timestamp - b_timestamp;
-            },
-            formatter: (cell, formatterParams, onRendered) => {
-                return this.humanReadableDate(cell.getValue());
-            },
-            accessorParams:{},
-            accessor: customAccessor,
-        };
-        newDefs[addedFields.indexOf(dateCol.field)] = dateCol;
-
-        // Update the ID columns
-        let idCol = {
-            field: 'id',
-            title: 'ID',
-            download: false,
-            visible: false,
-
-        };
-        newDefs[addedFields.indexOf(idCol.field)] = idCol;
-
-        let beautyIdCol = {
-            field: 'id_',
-            title: 'ID',
-            hozAlign: 'center',
-            visible: false,
-            download: false,
-        };
-        newDefs[addedFields.indexOf(beautyIdCol.field)] = beautyIdCol;
-
-        // Add icon columns
-        const openIcon = (cell, formatterParams) => {
-
-            const icon_tag = this.getScopedTagName('dbp-icon');
-            let id = cell.getData()['id'];
-            let button = `<${icon_tag} name="keyword-research" class="open-modal-icon" id="` + id + `"></${icon_tag}>`; //enter
-            let div = getShadowRootDocument(this).createElement('div');
-            div.innerHTML = button;
-            div.classList.add('open-detailed-modal-btn');
-
-            div.addEventListener("click", event => {
-                this.requestDetailedSubmission(cell.getRow(), cell.getRow().getData());
-                event.stopPropagation();
-            });
-            return div;
-        };
-
-        let openIconCol = {
-            title: "",
-            hozAlign: 'center',
-            field: 'no_display_1',
-            download: false,
-            headerSort:false,
-            visible: true,
-            formatter: openIcon,
-            frozen: true,
-        };
-        if (addedFields.indexOf(openIconCol.field) == -1) {
-            newDefs.push(openIconCol);
-        } else {
-            newDefs[addedFields.indexOf(openIconCol.field)] = openIconCol;
-        }
-
         // Replace all columns
         this.submissionsTable.setColumns(newDefs);
 
@@ -1089,9 +1078,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.hiddenColumns = true;
             }
         }
-
-        console.log("visibility updatet");
-
     }
 
     getSubmissionTableSettings() {
