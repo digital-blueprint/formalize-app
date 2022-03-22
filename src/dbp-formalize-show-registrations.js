@@ -7,7 +7,7 @@ import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
-import Tabulator from 'tabulator-tables';
+import {Tabulator} from 'tabulator-tables';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
