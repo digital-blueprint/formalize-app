@@ -128,7 +128,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 layout: 'fitColumns',
                 selectable: false,
                 placeholder: i18n.t('show-registrations.no-data'),
-                resizableColumns: false,
                 pagination:true,
                 paginationMode:'local',
                 paginationSize: 10,
@@ -139,11 +138,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         field:"id",
                         widthGrow: 1,
                         maxWidth: 50,
+                        resizable: false,
                     },
                     { 
                         title:"Name", 
                         field:"name",
                         widthGrow: 2,
+                        resizable: false,
                     },
                     { 
                         title: i18n.t('show-registrations.date'),
@@ -153,12 +154,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             return that.humanReadableDate(cell.getValue());
                         },
                         visible: false,
+                        resizable: false,
                     },
                     { 
                         title:"",
                         field:"type",
                         formatter:"html",
                         headerSort: false,
+                        resizable: false,
                     },    
                 ],
                 langs: {
