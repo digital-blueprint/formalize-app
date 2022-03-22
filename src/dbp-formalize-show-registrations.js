@@ -896,6 +896,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     pressEnterAndSubmitSearch(event) {
         if (event.keyCode === 13) {
                 const activeElement = this.shadowRoot.activeElement;
+            console.log("yes");
                 if(activeElement && activeElement.id === 'searchbar') {
                     event.preventDefault();
                     this.filterTable();
