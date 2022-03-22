@@ -193,8 +193,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
 
-            //this.submissionsTable.on("dataLoaded", this.boundDataLodaedFunction);
-
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout:'fitDataFill',
                 selectable: this.maxSelectedItems,
@@ -248,7 +246,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             if (!this.getSubmissionTableSettings()) {
                 this.updateTableHeaderList();
             }
-            this.updateSubmissionTable();
         }
     }
 
@@ -562,7 +559,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        let beautyId = 1;
+        let itemsCount = 0;
+
         for(let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data["hydra:member"].length) {
                 this.activeCourse = name;
@@ -574,11 +572,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     const publicId = this.auth['person-id'];
                     localStorage.setItem('dbp-formalize-activeCourse-' + publicId, name);
                 }
+                this.updateSubmissionTable();
                 this.loadingSubmissionTable = false;
                 this.showSubmissionsTable = true;
                 const that = this;
                 setTimeout(function () {
-                    if (that._(".back-navigation")) {
+                    if (that._(".subheadline")) {
                         that._(".subheadline").scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 }, 10);
@@ -600,16 +599,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
                 let jsonFirst = {};
                 jsonFirst['id'] = id;
-                jsonFirst['id_'] = beautyId;
+                jsonFirst['id_'] = itemsCount + 1;
                 jsonFirst['dateCreated'] = date;
                 json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
-                beautyId++;
+                itemsCount ++;
             } catch(e) {
                  console.log('error');
             }
 
-        this.totalNumberOfItems = beautyId - 1;
+        this.totalNumberOfItems = itemsCount;
         }
     }
 
@@ -822,7 +821,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.submissionsColumns.push({name: name, field: field, visibility: visibility});
             }
         });
-
     }
 
     getTableHeaderOptions() {
@@ -1000,7 +998,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             minWidth: 150,
             field: 'dateCreated',
             title: i18n.t('show-registrations.creation-date'),
-            align: 'left',
+            hozAlign: 'left',
             sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
                 const a_timestamp = Date.parse(a);
                 const b_timestamp = Date.parse(b);
@@ -1027,7 +1025,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let beautyIdCol = {
             field: 'id_',
             title: 'ID',
-            align: 'center',
+            hozAlign: 'center',
             visible: false,
             download: false,
         };
@@ -1052,11 +1050,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         let openIconCol = {
             title: "",
-            align: 'center',
+            hozAlign: 'center',
             field: 'no_display_1',
             download: false,
             headerSort:false,
-            sortable:false,
             visible: true,
             formatter: openIcon,
             frozen: true,
@@ -1084,6 +1081,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.hiddenColumns = true;
             }
         }
+
+        console.log("visibility updatet");
+
     }
 
     getSubmissionTableSettings() {
@@ -1540,7 +1540,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 height: calc(100% - 61px);
                 width: 3px;
                 top: 10px;
-                right: 38px;
+                right: 37px;
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0;
