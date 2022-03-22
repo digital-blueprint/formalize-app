@@ -100,6 +100,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.submissionsTable.off("dataProcessed");
+        this.coursesTable.off("dataProcessed");
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
     }
 
@@ -190,10 +191,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         },
                     }
                 },
-                dataLoaded: () => {
-                    if (this.coursesTable !== null)
-                        this.coursesTable.setLocale(this.lang);
-                }
             });
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
@@ -238,13 +235,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 },
             });
 
-            this.submissionsTable.on("dataLoaded", this.dataLoadedFunction.bind(this));
+            this.coursesTable.on("dataLoaded", this.dataLoadedCourseTableFunction.bind(this));
+
+            this.submissionsTable.on("dataLoaded", this.dataLoadedSubmissionTableFunction.bind(this));
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
 
     }
 
-    dataLoadedFunction() {
+    dataLoadedCourseTableFunction() {
+        if (this.coursesTable !== null)
+            this.coursesTable.setLocale(this.lang);
+    }
+
+    dataLoadedSubmissionTableFunction() {
         if (this.submissionsTable !== null) {
             if (!this.getSubmissionTableSettings()) {
                 this.updateTableHeaderList();
