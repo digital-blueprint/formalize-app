@@ -220,6 +220,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 placeholder: i18n.t('show-registrations.no-data'),
                 columnDefaults: {
                     vertAlign: 'middle',
+                    resizable: false,
                 },
                 pagination: true,
                 paginationMode: 'local',
@@ -732,16 +733,13 @@ _a(selector) {
 
             for (let i = 0; i < Object.keys(cells).length; i++) {
                 let key = Object.keys(cells)[i];
-                console.log('in else, row element: ', row.getElement());
 
                 let isVisible = true;
                 if (this.submissionsTable.getColumn(key)) {
-                    console.log('in else, row display:', window.getComputedStyle(this.submissionsTable.getColumn(key).getElement()).display);
                     isVisible = window.getComputedStyle(this.submissionsTable.getColumn(key).getElement()).display === 'none' ? false : true;
                 }
 
                 if (key.includes('no_display') || key.includes('id') || !isVisible) {
-                    console.log('ignore ', key);
                     continue;
                 } else if (key.includes('dateCreated') && (cells[key] !== '')) {
                     let title = this.submissionsTable.getColumn('dateCreated').getDefinition().title;
