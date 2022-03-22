@@ -47,7 +47,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
-        this.boundDataLodaedFunction = this.dataLoadedFunction.bind(this);
         this.activeCourse = '';
         this.autoColumns = true;
         this.currentRow = null;
@@ -100,6 +99,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.submissionsTable.off("dataProcessed");
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
     }
 
@@ -193,6 +193,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
 
+            //this.submissionsTable.on("dataLoaded", this.boundDataLodaedFunction);
+
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout:'fitDataFill',
                 selectable: this.maxSelectedItems,
@@ -235,9 +237,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 },
             });
 
-            this.submissionsTable.on("dataLoaded", function(){
-
-            });
+            this.submissionsTable.on("dataLoaded", this.dataLoadedFunction.bind(this));
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
     }
