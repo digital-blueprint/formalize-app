@@ -23,50 +23,6 @@ Note that you will need a Keycloak server along with a client id for the domain 
 You use templates tags to inject slots into the activity.
 These templates will be converted to div containers when the page is loaded and will not show up before that.
 
-##### description
-
-The content of this slot will be shown below the headline and can be used to provide
-further information about the page.
-
-Example:
-
-```html
-<dbp-formalize-show-registrations lang="de">
-  <template slot="description">
-    <dbp-translated subscribe="lang">
-      <div slot="de">
-        Verwalten Sie Kursanmeldungen.
-      </div>
-      <div slot="en">
-        Manage course registrations.
-      </div>
-    </dbp-translated>
-  </template>
-</dbp-formalize-show-registrations>
-```
-
-##### additional-information
-
-The content of this slot will be shown below the other text and can be used to provide
-further information about the activity.
-
-Example:
-
-```html
-<dbp-formalize-show-registrations lang="de">
-  <template slot="additional-information">
-    <dbp-translated subscribe="lang">
-      <div slot="de">
-          Hier steht weitere Information.
-      </div>
-      <div slot="en">
-          You'll find more information here.
-      </div>
-    </dbp-translated>
-  </template>
-</dbp-formalize-show-registrations>
-```
-
 ## Design Note
 
 To ensure a uniform and responsive design these activities should occupy 100% width of the window when the activities' width are under 768 px.
@@ -81,6 +37,7 @@ you need to manually add these attributes so that the topic will work properly:
     auth
     requested-login-status
     analytics-event
+    entry-point-url
 >
 </dbp-formalize>
 ```
