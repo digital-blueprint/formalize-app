@@ -36,6 +36,14 @@ export function getTabulatorStyles() {
             background-color:  var(--dbp-background);
             color: var(--dbp-content);
         }
+
+        .tabulator .tabulator-footer .tabulator-paginator {
+            text-align: center;
+        }
+
+        .tabulator[tabulator-layout=fitDataFill] .tabulator-tableHolder .tabulator-table {
+            min-width: calc(100% - 41px);
+        }
        
     `;
 }
