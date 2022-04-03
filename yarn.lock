@@ -2423,9 +2423,9 @@ escape-string-regexp@^1.0.5:
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
 eslint-plugin-jsdoc@^38.0.0:
-  version "38.1.4"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-38.1.4.tgz#d0828af1a56c8083fdfaefdac45b7fd6337f2c5a"
-  integrity sha512-x4sG6oJ+wj7aOGXtTaUeA4EL6kkgGsaFyIf+237/cdSXmC5zKKROccZxNZVUkaXE5QEiBGi7pyRfWNZYf+2OFg==
+  version "38.1.6"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-38.1.6.tgz#7dfa2a6d38f550935c6a3668a1fc5a05b19e4069"
+  integrity sha512-n4s95oYlg0L43Bs8C0dkzIldxYf8pLCutC/tCbjIdF7VDiobuzPI+HZn9Q0BvgOvgPNgh5n7CSStql25HUG4Tw==
   dependencies:
     "@es-joy/jsdoccomment" "~0.22.1"
     comment-parser "1.3.1"
@@ -4402,9 +4402,9 @@ prelude-ls@^1.2.1:
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
 prettier@^2.5.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.6.1.tgz#d472797e0d7461605c1609808e27b80c0f9cfe17"
-  integrity sha512-8UVbTBYGwN37Bs9LERmxCPjdvPxlEowx2urIL6urHzdb3SDq4B/Z6xLFCblrSnE4iKWcS6ziJ3aOYrc1kz/E2A==
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.6.2.tgz#e26d71a18a74c3d0f0597f55f01fb6c06c206032"
+  integrity sha512-PkUpF+qoXTqhOeWL9fu7As8LXsIUZ1WYaJiY/a7McAQzxjk82OF0tibkFXVCDImZtWxbvojFjerkiLb0/q8mew==
 
 printj@~1.2.2:
   version "1.2.3"
@@ -5248,9 +5248,9 @@ tabulator-tables@^4.8.4:
   integrity sha512-iwwQqAEGGxlgrBpcmJJvMJrfjGLcCXOB3AOb/DGkXqBy1YKoYA36hIl7qXGp6Jo8dSkzFAlDT6pKLZgyhs9OnQ==
 
 tabulator-tables@^5.1.7:
-  version "5.1.7"
-  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.1.7.tgz#5440b3a632b92f7c2c51335633ca67ef525bed26"
-  integrity sha512-5p/I5WxJpDzP7noyZeGeY71t+aCH4BmESJ754vZjmSHNqOMBpDxW11hTUjd6gaU7MdQs2cjWUYEEiT55qoUeOQ==
+  version "5.1.8"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.1.8.tgz#0d2b576ed75099c426d756153e369fb476d678d3"
+  integrity sha512-5ah2ftxNEKiSF5QaAETA4gX49OHiv+kFZLaD+s++LOx2oSvH0J0CujxH570Ou4Bo4Zq6MmI4T7idRS0jhq/VfA==
 
 terser@^5.0.0:
   version "5.12.1"
