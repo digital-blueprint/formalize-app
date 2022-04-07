@@ -1293,6 +1293,11 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
+"@webcomponents/scoped-custom-element-registry@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@webcomponents/scoped-custom-element-registry/-/scoped-custom-element-registry-0.0.5.tgz#96377f6a5587c76479b90d13deb7674b51b82603"
+  integrity sha512-vtlIyf+b657A1MWY69uTTJaGYwqUS3Lnm0+n2vLyuVf5MYOwSOB3Mx42AyBxz/6t9gw+IDelm1HQFOiA1xZCEQ==
+
 "@yarn-tool/resolve-package@^1.0.40":
   version "1.0.46"
   resolved "https://registry.yarnpkg.com/@yarn-tool/resolve-package/-/resolve-package-1.0.46.tgz#db7354380e5ca7682294af59e5ab0f7fce640ac1"
