@@ -44,7 +44,7 @@
         "@dbp-toolkit/language-select": "^0.3.0",
         "@dbp-toolkit/notification": "^0.3.0",
         "@dbp-toolkit/person-profile": "^0.2.2",
-        "@open-wc/scoped-elements": "^2.0.0",
+        "@open-wc/scoped-elements": "^2.1.0",
         "i18next": "^21.4.2",
         "jspdf": "^2.5.1",
         "jspdf-autotable": "^3.5.23",

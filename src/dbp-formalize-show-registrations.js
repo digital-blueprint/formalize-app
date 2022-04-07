@@ -2,7 +2,7 @@ import {createInstance} from './i18n.js';
 import {css, unsafeCSS, html} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {Icon, MiniSpinner, LoadingButton, getShadowRootDocument, getIconSVGURL} from '@dbp-toolkit/common';
+import {Icon, MiniSpinner, LoadingButton, getIconSVGURL} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -209,7 +209,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             const actionsButtons = (cell, formatterParams) => {
                 let id = cell.getData()['id'];
-                let btn = getShadowRootDocument(this).createElement('dbp-icon');
+                let btn = this.createScopedElement('dbp-icon');
                 btn.setAttribute('name', 'keyword-research');
                 btn.setAttribute('id', id);
                 btn.classList.add('open-modal-icon');
@@ -218,7 +218,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     event.stopPropagation();
                 });
 
-                let div = getShadowRootDocument(this).createElement('div');
+                let div = this.createScopedElement('div');
                 div.appendChild(btn);
                 div.classList.add('actions-buttons');
 
@@ -527,10 +527,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 let date = entry['dateCreated'];
 
                 // create 'show form' button
-                let icon = getShadowRootDocument(this).createElement('dbp-icon');
+                let icon = this.createScopedElement('dbp-icon');
                 icon.setAttribute('name', 'chevron-right');
                 icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
-                let btn = getShadowRootDocument(this).createElement('dbp-button');
+                let btn = this.createScopedElement('dbp-button');
                 btn.classList.add('button', 'courses-btn');
                 btn.addEventListener('click', async event => {
                     this.loadingSubmissionTable = true;
@@ -540,7 +540,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 });
                 btn.appendChild(icon);
 
-                let div = getShadowRootDocument(this).createElement('div');
+                let div = this.createScopedElement('div');
                 div.classList.add('button-wrapper');
                 div.appendChild(btn);
 
