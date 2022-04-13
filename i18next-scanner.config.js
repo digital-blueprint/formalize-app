@@ -3,6 +3,7 @@ module.exports = {
     output: './',
     options: {
         debug: false,
+        sort: true,
         removeUnusedKeys: true,
         lngs: ['en', 'de'],
         func: {
