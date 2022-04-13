@@ -448,7 +448,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         send({
             summary: i18n.t('show-registrations.something-went-wrong-title'),
-            body: i18n.t('show-registrations.omething-went-wrong-body'),
+            body: i18n.t('show-registrations.something-went-wrong-body'),
             type: 'danger',
             timeout: 5
         });
