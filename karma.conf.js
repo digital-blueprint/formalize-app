@@ -1,5 +1,5 @@
 module.exports = async function (config) {
-    const {installBrowsersForNpmInstall, registry} = require('playwright-core/lib/utils/registry');
+    const {installBrowsersForNpmInstall, registry} = require('playwright-core/lib/server');
     await installBrowsersForNpmInstall(['firefox', 'chromium']);
     process.env.FIREFOX_BIN = registry.findExecutable('firefox').executablePath();
     process.env.CHROME_BIN = registry.findExecutable('chromium').executablePath();
