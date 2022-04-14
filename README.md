@@ -24,6 +24,11 @@ yarn test
 
 Jump to <https://localhost:8001>, and you should get a Single Sign On login page.
 
+## Prerequisites
+
+- You need the [API server](https://gitlab.tugraz.at/dbp/relay/dbp-relay-server-template) running
+- You need the [DbpRelayFormalizeBundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle) for the API server to persist and fetch submissions
+
 ## Using this app as pre-built package
 
 ### Install app
