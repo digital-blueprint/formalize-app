@@ -945,6 +945,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissionsTable.setFilter([filterArray]);
     }
 
+    /*
+     * Clear Filer
+     */
+    clearFilter() {
+        let filter = this._('#searchbar');
+        let search = this._('#search-select');
+
+        if (!filter || !search || !this.submissionsTable)
+            return;
+
+        filter.value = '';
+        search.value = 'all';
+        this.submissionsTable.clearFilter();
+    }
+
     /**
      * Updates the this.submissionColumns Array based on the actual columns of the this.submissionTable
      *
@@ -2103,6 +2118,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                            this.loadingCourseTable = true;
                            this.showSubmissionsTable = false;
                            this.submissionsColumns = [];
+                           this.clearFilter();
                            this.submissionsTable.setData([{id: 1}]);
                            this.submissionsTable.clearData();
                            this.loadingCourseTable = false;
