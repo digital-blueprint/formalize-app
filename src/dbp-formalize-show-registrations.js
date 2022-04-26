@@ -108,7 +108,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.submissionsTable.off('dataLoaded');
+        this.submissionsTable.off('dataProcesseds');
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
     }
 
@@ -313,7 +313,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 ]
             });
 
-            this.submissionsTable.on('dataLoaded', this.dataLoadedSubmissionTableFunction.bind(this));
+            this.submissionsTable.on('dataProcessed', this.dataProcessedSubmissionTableFunction.bind(this));
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
     }
@@ -324,12 +324,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * if we cant load table settings, then update the header list
      *
      */
-    dataLoadedSubmissionTableFunction() {
+    dataProcessedSubmissionTableFunction() {
         if (this.submissionsTable !== null) {
             if (!this.getSubmissionTableSettings()) {
                 this.updateTableHeaderList();
+
             }
+
         }
+        console.log("DATALOADED\n");
+
     }
 
 
@@ -967,6 +971,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     updateTableHeaderList() {
         if (!this.submissionsTable)
             return;
+        console.log("upadte header list", this.submissionsTable);
         let columns = this.submissionsTable.getColumns();
         this.submissionsColumns = [];
         columns.forEach((col) => {
@@ -1457,15 +1462,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .open-modal-icon {
                 font-size: 1.3em;
             }
+            
+            .export-buttons{
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+            }
 
             #export-select, #search-select, #search-operator, .dropdown-menu {
-                background-size: auto 50%;
+                background-size: auto 45%;
                 padding-bottom: calc(0.375em - 1px);
                 padding-left: 0.75em;
-                padding-right: 1.3rem;
+                padding-right: 1.5rem;
                 padding-top: calc(0.375em - 1px);
                 cursor: pointer;
                 background-position-x: calc(100% - 0.4rem);
+                box-sizing: content-box;
             }
 
             .detailed-submission-modal-content-wrapper {
@@ -1584,6 +1596,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 border: var(--dbp-border);
                 padding: calc(0.375em - 1px) 10px calc(0.375em - 1px) 10px;
                 border-radius: var(--dbp-border-radius);
+                min-height: 33px;
             }
 
             #extendable-searchbar {
