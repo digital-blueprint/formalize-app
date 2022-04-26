@@ -182,25 +182,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 langs: {
                     'en': {
                         'pagination': {
-                            'first': 'First',
+                            'first': '<span class="mobile-hidden">First</span>',
                             'first_title': 'First Page',
-                            'last': 'Last',
+                            'last': '<span class="mobile-hidden">Last</span>',
                             'last_title': 'Last Page',
-                            'prev': 'Prev',
+                            'prev': '<span class="mobile-hidden">Prev</span>',
                             'prev_title': 'Prev Page',
-                            'next': 'Next',
+                            'next': '<span class="mobile-hidden">Next</span>',
                             'next_title': 'Next Page'
                         }
                     },
                     'de': {
                         'pagination': {
-                            'first': 'Erste',
+                            'first': '<span class="mobile-hidden">Erste</span>',
                             'first_title': 'Erste Seite',
-                            'last': 'Letzte',
+                            'last': '<span class="mobile-hidden">Letzte</span>',
                             'last_title': 'Letzte Seite',
-                            'prev': 'Vorherige',
+                            'prev': '<span class="mobile-hidden">Vorherige</span>',
                             'prev_title': 'Vorherige Seite',
-                            'next': 'Nächste',
+                            'next': '<span class="mobile-hidden">Nächste</span>',
                             'next_title': 'Nächste Seite'
                         }
                     }
@@ -247,25 +247,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 langs: {
                     'en': {
                         'pagination': {
-                            'first': 'First',
+                            'first': '<span class="mobile-hidden">First</span>',
                             'first_title': 'First Page',
-                            'last': 'Last',
+                            'last': '<span class="mobile-hidden">Last</span>',
                             'last_title': 'Last Page',
-                            'prev': 'Prev',
+                            'prev': '<span class="mobile-hidden">Prev</span>',
                             'prev_title': 'Prev Page',
-                            'next': 'Next',
+                            'next': '<span class="mobile-hidden">Next</span>',
                             'next_title': 'Next Page'
                         }
                     },
                     'de': {
                         'pagination': {
-                            'first': 'Erste',
+                            'first': '<span class="mobile-hidden">Erste</span>',
                             'first_title': 'Erste Seite',
-                            'last': 'Letzte',
+                            'last': '<span class="mobile-hidden">Letzte</span>',
                             'last_title': 'Letzte Seite',
-                            'prev': 'Vorherige',
+                            'prev': '<span class="mobile-hidden">Vorherige</span>',
                             'prev_title': 'Vorherige Seite',
-                            'next': 'Nächste',
+                            'next': '<span class="mobile-hidden">Nächste</span>',
                             'next_title': 'Nächste Seite'
                         }
                     }
@@ -328,12 +328,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (this.submissionsTable !== null) {
             if (!this.getSubmissionTableSettings()) {
                 this.updateTableHeaderList();
-
             }
-
         }
         console.log("DATALOADED\n");
-
     }
 
 
@@ -932,7 +929,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         if (!filter || !search || !operator || !this.submissionsTable)
             return;
-
+                    
         filter = filter.value;
         search = search.value;
         operator = operator.value;
@@ -971,7 +968,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     updateTableHeaderList() {
         if (!this.submissionsTable)
             return;
-        console.log("upadte header list", this.submissionsTable);
         let columns = this.submissionsTable.getColumns();
         this.submissionsColumns = [];
         columns.forEach((col) => {
@@ -1784,11 +1780,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
+                .mobile-hidden {
+                    display: none;
+                }
 
                 button[data-page="prev"], button[data-page="next"], button[data-page="first"], button[data-page="last"] {
                     display: block;
-                    width: 40px !important;
-                    text-indent: -100px;
                     white-space: nowrap !important;
                     overflow: hidden;
                     line-height: 0;
@@ -1801,7 +1798,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     mask-repeat: no-repeat;
                     -webkit-mask-position: center center;
                     mask-position: center center;
-                    margin: 0 0 0 30px;
                     padding: 0 0 0.25% 0;
                     -webkit-mask-size: 1.5rem !important;
                     mask-size: 1.4rem !important;
@@ -1815,8 +1811,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 button[data-page="next"]:after {
-                    margin: 0 0 0 46px;
-
                     -webkit-mask-image: url("${unsafeCSS(
                             getIconSVGURL('chevron-right')
                     )}");
@@ -1827,8 +1821,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 button[data-page="first"]:after {
                     content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    margin: 0 0 0 60px;
-
                     -webkit-mask-image: url("${unsafeCSS(
                             getIconSVGURL('angle-double-left')
                     )}");
@@ -1839,8 +1831,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 button[data-page="last"]:after {
                     content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    margin: 0 0 0 54px;
-
                     -webkit-mask-image: url("${unsafeCSS(
                             getIconSVGURL('angle-double-right')
                     )}");
