@@ -234,10 +234,6 @@ export function getFileHandlingCss() {
             width: 100%;
             justify-content: center;
         }
-        
-     
-
-   
 
         .tabulator .tabulator-tableHolder .tabulator-placeholder span {
             font-size: inherit;
@@ -376,6 +372,20 @@ export function getFileHandlingCss() {
             min-height: 40px;
         }
 
+        .tabulator .tabulator-footer .tabulator-paginator .tabulator-page-size {
+            box-sizing: border-box;
+            border: var(--dbp-border);
+            border-radius: var(--dbp-border-radius);
+            padding-left: 0.75em;
+            padding-right: 1.7em;
+            padding-top: calc(0.375em - 1px);
+            padding-bottom: calc(0.375em - 1px);
+            cursor: pointer;
+            background-position-x: calc(100% - 0.4rem);
+            background-size: auto 45%;
+            min-height: 40px;
+        }
+
         .tabulator .tabulator-footer .tabulator-paginator .tabulator-page[disabled] {
             opacity: 0.4;
         }
@@ -410,7 +420,21 @@ export function getFileHandlingCss() {
         .tabulator-row .tabulator-frozen.tabulator-frozen-right {
             border-left: unset;
         }
+
+        .tabulator .tabulator-footer .tabulator-paginator label {
+            color: var(--dbp-content);
+            font-weight: 400;
+        }
+
+        .tabulator .tabulator-footer .tabulator-paginator {
+            flex-direction: row;
+            display: flex;
+            align-items: center;
+        }
         
+        .tabulator .tabulator-footer .tabulator-footer-contents {
+            flex-direction: column;
+        }
 
         @media only screen and (orientation: portrait) and (max-width: 768px) {
             .tabulator .tabulator-tableHolder {
@@ -467,6 +491,15 @@ export function getFileHandlingCss() {
 
             .modal-nav .nav-icon {
                 height: 20px;
+            }
+
+            .tabulator .tabulator-footer .tabulator-paginator label {
+                display: none;
+            }
+
+            .tabulator .tabulator-footer .tabulator-paginator .tabulator-page-size {
+                padding-right: 1.5em;
+                background-size: auto 40%;
             }
         }
 

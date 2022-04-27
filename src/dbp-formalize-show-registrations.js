@@ -146,6 +146,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 pagination: true,
                 paginationMode: 'local',
                 paginationSize: 10,
+                paginationSizeSelector: true,
                 locale: true,
                 columns: [
                     {
@@ -182,6 +183,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 langs: {
                     'en': {
                         'pagination': {
+                            'page_size': 'Page size',
+                            'page_size_title': 'Page size',
                             'first': '<span class="mobile-hidden">First</span>',
                             'first_title': 'First Page',
                             'last': '<span class="mobile-hidden">Last</span>',
@@ -194,6 +197,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     },
                     'de': {
                         'pagination': {
+                            'page_size': 'Einträge pro Seite',
+                            'page_size_title': 'Einträge pro Seite',
                             'first': '<span class="mobile-hidden">Erste</span>',
                             'first_title': 'Erste Seite',
                             'last': '<span class="mobile-hidden">Letzte</span>',
@@ -241,12 +246,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 pagination: true,
                 paginationMode: 'local',
                 paginationSize: 10,
+                paginationSizeSelector: true,
                 autoColumns: true,
                 downloadRowRange: 'selected',
                 locale: true,
                 langs: {
                     'en': {
                         'pagination': {
+                            'page_size': 'Page size',
+                            'page_size_title': 'Page size',
                             'first': '<span class="mobile-hidden">First</span>',
                             'first_title': 'First Page',
                             'last': '<span class="mobile-hidden">Last</span>',
@@ -259,6 +267,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     },
                     'de': {
                         'pagination': {
+                            'page_size': 'Einträge pro Seite',
+                            'page_size_title': 'Einträge pro Seite',
                             'first': '<span class="mobile-hidden">Erste</span>',
                             'first_title': 'Erste Seite',
                             'last': '<span class="mobile-hidden">Letzte</span>',
@@ -513,6 +523,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             if (x === data['hydra:member'].length) {
                 this.coursesTable.setData(dataList);
+                this.coursesTable.setLocale(this.lang);
                 this.dataLoaded = true;
                 return;
             }
@@ -662,6 +673,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             if (x === data['hydra:member'].length) {
                 this.activeCourse = name;
                 this.submissionsTable.setData(dataList2);
+                this.submissionsTable.setLocale(this.lang);
                 this.updateSubmissionTable();
                 this.loadingSubmissionTable = false;
                 this.showSubmissionsTable = true;
