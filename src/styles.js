@@ -378,8 +378,8 @@ export function getFileHandlingCss() {
             border-radius: var(--dbp-border-radius);
             padding-left: 0.75em;
             padding-right: 1.7em;
-            padding-top: calc(0.375em - 1px);
-            padding-bottom: calc(0.375em - 1px);
+            padding-top: calc(0.5em - 1px);
+            padding-bottom: calc(0.5em - 1px);
             cursor: pointer;
             background-position-x: calc(100% - 0.4rem);
             background-size: auto 45%;
