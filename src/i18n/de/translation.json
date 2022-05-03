@@ -16,7 +16,7 @@
         "filter-options-button-text": "Filteroptionen",
         "header-settings": "Spalteneinstellungen",
         "last-entry-btn-title": "Vorheriger",
-        "load-courses-no-permission-body": "",
+        "load-courses-no-permission-body": "Sie besitzen nicht die Berechtigungen, um diese Funktion nutzen zu können!",
         "load-courses-no-permission-title": "Keine Berechtigung",
         "modal-close": "Dialog schließen",
         "more-menu": "Mehr",
@@ -34,7 +34,7 @@
         "search-operator-equal": "gleich",
         "search-operator-greater": "größer als",
         "search-operator-greaterorequal": "größergleich",
-        "search-operator-keywords": "Schlagwort suche",
+        "search-operator-keywords": "Schlagwortsuche",
         "search-operator-less": "kleiner als",
         "search-operator-lessthanorequal": "kleinergleich",
         "search-operator-like": "in Wort enthalten",
@@ -42,7 +42,7 @@
         "search-operator-regex": "Regular Expression",
         "search-operator-starts": "fängt an mit",
         "searchbar-placeholder": "Suchen",
-        "something-went-wrong-body": "",
-        "something-went-wrong-title": "Etwas ist schief gelaufen."
+        "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
+        "something-went-wrong-title": "Fehler!"
     }
 }

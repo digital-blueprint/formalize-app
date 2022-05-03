@@ -16,7 +16,7 @@
         "filter-options-button-text": "Filter Options",
         "header-settings": "Column setting",
         "last-entry-btn-title": "Last entry",
-        "load-courses-no-permission-body": "",
+        "load-courses-no-permission-body": "You do not have the permissions to use this function!",
         "load-courses-no-permission-title": "No permissions",
         "modal-close": "Close dialog",
         "more-menu": "More",
@@ -42,7 +42,7 @@
         "search-operator-regex": "regular expression",
         "search-operator-starts": "starts with",
         "searchbar-placeholder": "Search",
-        "something-went-wrong-body": "",
-        "something-went-wrong-title": "Something went wrong"
+        "something-went-wrong-body": "We're sorry, something went wrong.",
+        "something-went-wrong-title": "Error!"
     }
 }
