@@ -501,6 +501,17 @@ export function getFileHandlingCss() {
                 padding-right: 1.5em;
                 background-size: auto 40%;
             }
+
+            .tabulator-footer {
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+            }
+
+            .tabulator {
+                overflow: visible;
+            }
+
         }
 
         /**************************\\
