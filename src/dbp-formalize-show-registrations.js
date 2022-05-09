@@ -234,6 +234,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 return this.humanReadableDate(value);
             };
 
+            let paginationElement = this._('.tabulator-paginator');
+
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout: 'fitDataFill',
                 selectable: true,
@@ -247,6 +249,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 paginationMode: 'local',
                 paginationSize: 10,
                 paginationSizeSelector: true,
+                paginationElement: paginationElement,
                 autoColumns: true,
                 downloadRowRange: 'selected',
                 locale: true,
@@ -1525,11 +1528,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .tabulator-table {
-                overflow: auto;
                 white-space: nowrap;
             }
 
-            .tabulator .tabulator-footer {
+            .tabulator-footer {
                 text-align: center;
             }
 
@@ -1850,6 +1852,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     mask-image: url("${unsafeCSS(
                             getIconSVGURL('angle-double-right')
                     )}");
+                }
+
+                .tabulator .tabulator-footer .tabulator-footer-contents .tabulator-paginator .tabulator-pages {
+                    display: none;
                 }
 
                 .element-right {
@@ -2262,6 +2268,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <div class='scrollable-table-wrapper'>
                         <table id='submissions-table'></table>
                         <div class='frozen-table-divider'></div>
+                        <div class='tabulator'>
+                            <div class='tabulator-footer'>
+                                <div class='tabulator-footer-contents'>
+                                    <span class='tabulator-paginator'></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
