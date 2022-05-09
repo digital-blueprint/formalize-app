@@ -2268,7 +2268,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <div class='scrollable-table-wrapper'>
                         <table id='submissions-table'></table>
                         <div class='frozen-table-divider'></div>
-                        <div class='tabulator'>
+                        <div class='tabulator' id='custom-pagination'>
                             <div class='tabulator-footer'>
                                 <div class='tabulator-footer-contents'>
                                     <span class='tabulator-paginator'></span>

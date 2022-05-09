@@ -512,6 +512,12 @@ export function getFileHandlingCss() {
                 overflow: visible;
             }
 
+            #custom-pagination {
+                position: sticky;
+                bottom: 0;
+                z-index: 10;
+            }
+
         }
 
         /**************************\\
