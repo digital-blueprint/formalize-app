@@ -327,6 +327,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
 
             this.submissionsTable.on('dataProcessed', this.dataProcessedSubmissionTableFunction.bind(this));
+            this.submissionsTable.on("pageLoaded", function(pageno){
+                if (that._('#searchbar')) {
+                    that._('#searchbar').scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         });
     }
