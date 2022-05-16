@@ -1037,11 +1037,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let modal = this._('#submission-modal');
         if (modal) {
             MicroModal.show(modal, {
-                disableScroll: true
+                disableScroll: true,
+                disableFocus: false,
             });
         }
 
-        // Scroll list to top
+        // Scroll list to topdisableScroll: true
         let scrollWrapper = this._('#submission-modal-content');
         if (scrollWrapper) {
             scrollWrapper.scrollTo(0, 0);
@@ -1068,7 +1069,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let modal = this._('#detailed-submission-modal');
         if (modal) {
             MicroModal.show(modal, {
-                disableScroll: true
+                disableScroll: true,
+                disableFocus: false,
             });
         }
     }
@@ -1777,7 +1779,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 margin-left: 0px;
             }
 
-            #submission-modal-box {
+            #filer-modal-box {
                 width: unset;
                 min-width: unset;
                 min-height: unset;
@@ -2051,10 +2053,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     width: 100%;
                 }
 
-                #submission-modal-box, #detailed-submission-modal-box {
-                    height: 100vh;
-                    max-height: 100vh;
-                    width: 100vh;
+                #filer-modal-box, #detailed-submission-modal-box {
+                    width: 100%;
+                    height: 100%;
                     max-width: 100%;
                 }
 
@@ -2295,7 +2296,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 <div class='modal-overlay' tabindex='-2' data-micromodal-close>
                     <div
                         class='modal-container'
-                        id='submission-modal-box'
+                        id='filer-modal-box'
                         role='dialog'
                         aria-modal='true'
                         aria-labelledby='submission-modal-title'>
