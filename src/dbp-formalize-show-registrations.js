@@ -141,6 +141,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             // see: http://tabulator.info/docs/5.1
             this.coursesTable = new Tabulator(this._('#courses-table'), {
                 layout: 'fitColumns',
+                rowHeight:60,
                 selectable: false,
                 placeholder: i18n.t('show-registrations.no-data'),
                 pagination: true,
@@ -238,6 +239,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout: 'fitDataFill',
+                rowHeight:60,
                 selectable: true,
                 selectablePersistence: false,
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -1453,7 +1455,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 margin: auto;
                 left: 10px;
             }
-
+            
             #detailed-submission-modal-title {
                 margin-bottom: 10px;
             }
