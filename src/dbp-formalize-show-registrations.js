@@ -109,6 +109,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.submissionsTable.off('dataProcesseds');
+        this.submissionsTable.off('pageLoaded');
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
     }
 
@@ -176,7 +177,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     },
                     {
                         title: '',
-                        maxWidth: 60,
+                        maxWidth: 42,
                         field: 'actionButton',
                         formatter: 'html',
                         headerSort: false,
@@ -331,8 +332,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             this.submissionsTable.on('dataProcessed', this.dataProcessedSubmissionTableFunction.bind(this));
             this.submissionsTable.on("pageLoaded", function(pageno){
+                console.log("--- ", pageno);
                 if (that._('#searchbar')) {
-                    that._('#searchbar').scrollIntoView({ behavior: "smooth", block: "start" });
+                    that._('#searchbar').scrollIntoView(true);
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
