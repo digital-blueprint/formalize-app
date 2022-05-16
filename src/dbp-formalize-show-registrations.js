@@ -149,19 +149,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 paginationSize: 10,
                 paginationSizeSelector: true,
                 locale: true,
+                columnDefaults: {
+                    vertAlign: 'middle',
+                    resizable: false
+                },
                 columns: [
                     {
                         title: 'ID',
                         field: 'id',
                         widthGrow: 1,
                         maxWidth: 50,
-                        resizable: false
                     },
                     {
                         title: 'Name',
                         field: 'name',
                         widthGrow: 2,
-                        resizable: false
                     },
                     {
                         title: i18n.t('show-registrations.date'),
@@ -171,14 +173,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             return that.humanReadableDate(cell.getValue());
                         },
                         visible: false,
-                        resizable: false
                     },
                     {
                         title: '',
-                        field: 'type',
+                        maxWidth: 60,
+                        field: 'actionButton',
                         formatter: 'html',
                         headerSort: false,
-                        resizable: false
                     }
                 ],
                 langs: {
@@ -566,7 +567,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 div.classList.add('button-wrapper');
                 div.appendChild(btn);
 
-                let course = {id: id, name: name, date: date, type: div};
+                let course = {id: id, name: name, date: date, actionButton: div};
                 id++;
                 courses.push(name);
 
@@ -1799,6 +1800,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 top: 2px;
             }
 
+            .tabulator-row .tabulator-cell{
+                padding: 0px;
+            }
+
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
                 .mobile-hidden {
@@ -2069,7 +2074,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 .button-container .checkmark {
-                    top: 10px;
+                    top: 0px;
                 }
 
                 .button-container {
