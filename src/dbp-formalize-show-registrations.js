@@ -334,7 +334,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.submissionsTable.on("pageLoaded", function(pageno){
                 console.log("--- ", pageno);
                 if (that._('#searchbar')) {
-                    that._('#searchbar').scrollIntoView(true);
+                    setTimeout(function () {
+                        that._('#searchbar').scrollIntoView({behavior: 'smooth', block: 'start'});
+                    }, 10);
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
@@ -693,7 +695,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 const that = this;
                 setTimeout(function() {
                     if (that._('.subheadline')) {
-                        that._('.subheadline').scrollIntoView({behavior: 'smooth', block: 'start'});
+                      //  that._('.subheadline').scrollIntoView({behavior: 'smooth', block: 'start'});
                     }
                 }, 10);
                 return;
