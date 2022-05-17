@@ -142,7 +142,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             // see: http://tabulator.info/docs/5.1
             this.coursesTable = new Tabulator(this._('#courses-table'), {
                 layout: 'fitColumns',
-                rowHeight:60,
                 selectable: false,
                 placeholder: i18n.t('show-registrations.no-data'),
                 pagination: true,
@@ -177,7 +176,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     },
                     {
                         title: '',
-                        maxWidth: 42,
+                        maxWidth: 45,
                         field: 'actionButton',
                         formatter: 'html',
                         headerSort: false,
@@ -241,7 +240,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout: 'fitDataFill',
-                rowHeight:60,
                 selectable: true,
                 selectablePersistence: false,
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -332,11 +330,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             this.submissionsTable.on('dataProcessed', this.dataProcessedSubmissionTableFunction.bind(this));
             this.submissionsTable.on("pageLoaded", function(pageno){
-                console.log("--- ", pageno);
                 if (that._('#searchbar')) {
                     setTimeout(function () {
                         that._('#searchbar').scrollIntoView({behavior: 'smooth', block: 'start'});
-                    }, 10);
+                    }, 0);
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
@@ -1601,7 +1598,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding-top: 10px;
             }
 
-            #courses-table .tabulator-cell[tabulator-field="type"] {
+            #courses-table .tabulator-cell[tabulator-field="actionButton"] {
                 padding: 0;
             }
 
@@ -1805,10 +1802,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 left: 8px;
                 top: 2px;
             }
-
-            .tabulator-row .tabulator-cell{
-                padding: 0px;
-            }
+            
 
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -2064,6 +2058,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 #submission-modal-content, #detailed-submission-modal-content {
+                    height: 100%;
                     height: 100%;
                 }
 
