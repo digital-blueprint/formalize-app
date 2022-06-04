@@ -3292,9 +3292,9 @@ i18next-parser@^6.3.0:
     vue-template-compiler "^2.6.11"
 
 i18next@^21.2.0, i18next@^21.4.2:
-  version "21.8.5"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-21.8.5.tgz#b7615f107d9a1492c771dc0e0b8742a80c1d9bec"
-  integrity sha512-uI5LVG10SBHLVOclr6yY1aCimmrzeZ0dwD73Sio61E8gQEwRmKI7/M8RKM084mNNy7VscKtxzSwELrso8BKv1g==
+  version "21.8.8"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-21.8.8.tgz#725a05f2529689d059bce17221cf86fcdccf7665"
+  integrity sha512-iN/5JuWStyivyBgmUgy5BRiFs0lZrgCRaeV9q4yVH/eR9NID7pZSMt3rpF8C16GplchoEjDP0JalKwZMJ1CJAA==
   dependencies:
     "@babel/runtime" "^7.17.2"
 
@@ -3699,9 +3699,9 @@ jsonfile@^6.0.1:
     graceful-fs "^4.1.6"
 
 jspdf-autotable@^3.5.23:
-  version "3.5.24"
-  resolved "https://registry.yarnpkg.com/jspdf-autotable/-/jspdf-autotable-3.5.24.tgz#993822d1aed091a95458cb5b3a0025e039967d2c"
-  integrity sha512-RbsFZcsEGN34KWaiXADK8CGyivAx2tmvIXgQze7vQn/Y9YHVPMMVhEBKwIVwRzXQMwEL0pCdA6mWPG0676wHvA==
+  version "3.5.25"
+  resolved "https://registry.yarnpkg.com/jspdf-autotable/-/jspdf-autotable-3.5.25.tgz#c87faf474d3b4e3fa158c44b70af5dd07d37a02f"
+  integrity sha512-BIbDd/cilRbVm5PmR+ZonolSqRtm0AvZDpTz+rrWed7BnFj5mqF7x7lkxDAMzPudLapktHUk6cxipcvUzal8cg==
 
 jspdf@^2.5.1:
   version "2.5.1"
@@ -5043,9 +5043,9 @@ rollup-pluginutils@^2.6.0:
     estree-walker "^0.6.1"
 
 rollup@^2.18.1, rollup@^2.19.0, rollup@^2.33.3:
-  version "2.75.3"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.75.3.tgz#11bd3e8ace526911feea8af17f2a286fbfdb4cf8"
-  integrity sha512-YA29fLU6MAYSaDxIQYrGGOcbXlDmG96h0krGGYObroezcQ0KgEPM3+7MtKD/qeuUbFuAJXvKZee5dA1dpwq1PQ==
+  version "2.75.5"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.75.5.tgz#7985c1962483235dd07966f09fdad5c5f89f16d0"
+  integrity sha512-JzNlJZDison3o2mOxVmb44Oz7t74EfSd1SQrplQk0wSaXV7uLQXtVdHbxlcT3w+8tZ1TL4r/eLfc7nAbz38BBA==
   optionalDependencies:
     fsevents "~2.3.2"
 
@@ -5492,9 +5492,9 @@ symlink-or-copy@^1.1.8, symlink-or-copy@^1.2.0, symlink-or-copy@^1.3.1:
   integrity sha512-0K91MEXFpBUaywiwSSkmKjnGcasG/rVBXFLJz5DrgGabpYD6N+3yZrfD6uUIfpuTu65DZLHi7N8CizHc07BPZA==
 
 tabulator-tables@^5.1.7:
-  version "5.2.5"
-  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.2.5.tgz#dbec061f2cac3c01c07cf0f61ae61a03eac6fd52"
-  integrity sha512-e+0ymRlfcOCBolJB657eFxD2C5H7rgjza/za+PapiNTSTq244DrPMjyzcDQLXE+bafCSqolZCuF63S9KLqHm7Q==
+  version "5.2.6"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.2.6.tgz#f817b3dfb199d3c090de776f4510549cc0cacad8"
+  integrity sha512-4uproic0QtJxOkarp5JpOh1xU9JJUXf1FDDfisj9nI10fQiKH6Xp91LkGeCSYoJEwL6T+A67HivaZ8Vqowto1g==
 
 terser@^5.0.0:
   version "5.13.1"
@@ -6124,9 +6124,9 @@ xlsx@^0.18.2:
     word "~0.3.0"
 
 xss@^1.0.11:
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/xss/-/xss-1.0.11.tgz#211cb82e95b5071d4c75d597283c021157ebe46a"
-  integrity sha512-EimjrjThZeK2MO7WKR9mN5ZC1CSqivSl55wvUK5EtU6acf0rzEE1pN+9ZDrFXJ82BRp3JL38pPE6S4o/rpp1zQ==
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/xss/-/xss-1.0.12.tgz#623ca33102853a2fc5cb1d10542b492dd0296a73"
+  integrity sha512-8pXgz5BUUfKMrb81tmcbvLNA97ab4d6HdoBHYF5XYHa8oarc2s64hF+oqI4FhBHVBWvEM1wHGy+vqt8kZhCaNw==
   dependencies:
     commander "^2.20.3"
     cssfilter "0.0.10"
