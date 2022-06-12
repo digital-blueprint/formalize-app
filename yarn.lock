@@ -4986,9 +4986,9 @@ rollup-plugin-emit-ejs@^3.1.0:
     fs-extra "^8.1.0"
 
 rollup-plugin-license@^2.1.0:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-license/-/rollup-plugin-license-2.8.0.tgz#ac5acb991f0fd55f978e9b1823b558c97bda12dc"
-  integrity sha512-P+CM6tlgahnpnOFKeirABCcs3Eez4AQsm2fC7rvVR3aMIWd/KgSNAImmcfGS+Pmd0dGFmjE1tYgflnTINxNpIQ==
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-license/-/rollup-plugin-license-2.8.1.tgz#3709ef8b59675e0162a27ea7bba10ee523f8289e"
+  integrity sha512-VYd9pzaNL7NN6xQp93XiiCV2UoduXgSmTcz6rl9bHPdiifT6yH3Zw/omEr73Rq8TIyN4nqJACBbKIT/2eE66wg==
   dependencies:
     commenting "~1.1.0"
     glob "~7.2.0"
@@ -6078,7 +6078,7 @@ wrap-ansi@^7.0.0:
 wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
-  integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
+  integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
 
 ws@~8.2.3:
   version "8.2.3"
