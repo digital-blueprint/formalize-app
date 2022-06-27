@@ -109,10 +109,11 @@ you need to manually add these attributes so that the topic will work properly:
 ```
 
 ### Design
+
 For frontend design customizations, such as logo, colors, font, favicon, and more, take a look at the [theming documentation](https://dbp-demo.tugraz.at/dev-guide/frontend/theming/).
 
-## "dbp-formalize" Slots
+## "dbp-formalize" slots
 
-These are common slots for the app-shell. You can find the documentation of these slot in the [app-shell documentation](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell).
+These are common slots for the app-shell. You can find the documentation of these slots in the [app-shell documentation](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell).
 For the app specific slots take a look at the [formalize activities](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/src).
 
