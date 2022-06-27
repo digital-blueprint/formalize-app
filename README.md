@@ -1,9 +1,16 @@
 # Formalize Application
 
+Management of form entries that have been created via external systems.
+
 [GitLab Repository](https://gitlab.tugraz.at/dbp/formalize/formalize) |
 [npmjs package](https://www.npmjs.com/package/@dbp-topics/formalize) |
 [Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/) |
 [Formalize Bundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle)
+
+## Prerequisites
+
+- You need the [API server](https://gitlab.tugraz.at/dbp/relay/dbp-relay-server-template) running
+- You need the [DbpRelayFormalizeBundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle) for the API server to persist and fetch submissions
 
 ## Local development
 
@@ -25,16 +32,11 @@ yarn test
 
 Jump to <https://localhost:8001>, and you should get a Single Sign On login page.
 
-## Prerequisites
-
-- You need the [API server](https://gitlab.tugraz.at/dbp/relay/dbp-relay-server-template) running
-- You need the [DbpRelayFormalizeBundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle) for the API server to persist and fetch submissions
-
 ## Using this app as pre-built package
 
 ### Install app
 
-If you want to install the DBP formalize App in a new folder `formalize-app` you can call:
+If you want to install the dbp formalize app in a new folder `formalize-app` you can call:
 
 ```bash
 npx @digital-blueprint/cli install-app formalize formalize-app /
@@ -57,7 +59,7 @@ Note that you will need a Keycloak server along with a client id for the domain 
 
 ### Update app
 
-If you want to update the DBP formalize App in the current folder you can call:
+If you want to update the dbp formalize app in the current folder you can call:
 
 ```bash
 npx @digital-blueprint/cli update-app formalize
@@ -82,12 +84,12 @@ You can add multiple attributes to the `<dbp-formalize>` tag.
 
 | attribute name | value | description |
 |----------------|-------| ------------|
-| `provider-root` | Boolean | [appshell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
+| `provider-root` | Boolean | [app-shell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
 | `lang`         | String | [language-select](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/language-select) | 
-| `entry-point-url` | String | [appshell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
-| `keycloak-config` | Object | [appshell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
-| `base-path` | String | [appshell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
-| `src` | String | [appshell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
+| `entry-point-url` | String | [app-shell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
+| `keycloak-config` | Object | [app-shell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
+| `base-path` | String | [app-shell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
+| `src` | String | [app-shell](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell) |
 | `html-overrides` | String | [common](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/common) |
 | `themes` | Array | [theme-switcher](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/theme-switcher) |
 | `darkModeThemeOverride` | String | [theme-switcher](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/theme-switcher) |
@@ -111,6 +113,6 @@ For frontend design customizations, such as logo, colors, font, favicon, and mor
 
 ## "dbp-formalize" Slots
 
-These are common slots for the appshell. You can find the documentation of these slot in the [appshell documentation](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell).
+These are common slots for the app-shell. You can find the documentation of these slot in the [app-shell documentation](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell).
 For the app specific slots take a look at the [formalize activities](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/src).
 
