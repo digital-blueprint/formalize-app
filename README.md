@@ -1,11 +1,11 @@
 # Formalize Application
 
-Management of form entries that have been created via external systems.
-
 [GitLab Repository](https://gitlab.tugraz.at/dbp/formalize/formalize) |
 [npmjs package](https://www.npmjs.com/package/@dbp-topics/formalize) |
 [Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/) |
 [Formalize Bundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle)
+
+Management of form entries that have been created via external systems.
 
 ## Prerequisites
 
