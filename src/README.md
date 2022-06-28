@@ -2,9 +2,10 @@
 
 Here you can find the individual activities of the `formalize` app. If you want to use the whole app look at [formalize](https://gitlab.tugraz.at/dbp/formalize/formalize).
 
-<!-- ## Usage of an activity
-TODO add description how to only use an activity alone here
--->
+## Usage of an activity
+
+You can use every activity alone. Take a look at our examples [here](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/examples).
+
 ## Activities
 
 ### dbp-formalize-show-registrations
