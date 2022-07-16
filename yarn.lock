@@ -3291,9 +3291,9 @@ i18next-parser@^6.3.0:
     vue-template-compiler "^2.6.11"
 
 i18next@^21.2.0, i18next@^21.4.2:
-  version "21.8.13"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-21.8.13.tgz#e5583bfe333bc41716b5a14693615d94a3dfd2cf"
-  integrity sha512-DpzwrJq7Y8tjUHxx6ByOkUIjrGYdQI5Mfv4XEI7q2RWdknQ7TaO9bKi8hS/LqYD6pBV5YGxJLReyLkOCxIpouA==
+  version "21.8.14"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-21.8.14.tgz#03a3a669ef4520aadd9d152c80596f600e287c6a"
+  integrity sha512-4Yi+DtexvMm/Yw3Q9fllzY12SgLk+Mcmar+rCAccsOPul/2UmnBzoHbTGn/L48IPkFcmrNaH7xTLboBWIbH6pw==
   dependencies:
     "@babel/runtime" "^7.17.2"
 
@@ -4570,9 +4570,9 @@ pkg-dir@^4.1.0:
     find-up "^4.0.0"
 
 playwright-core@^1.20.2:
-  version "1.23.2"
-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.23.2.tgz#ddc15b3251e42ee0eed82a96ece3f7b2641d75a4"
-  integrity sha512-UGbutIr0nBALDHWW/HcXfyK6ZdmefC99Moo4qyTr89VNIkYZuDrW8Sw554FyFUamcFSdKOgDPk6ECSkofGIZjQ==
+  version "1.23.3"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.23.3.tgz#f27ad80fbf0ba9b53d142d94f052b010eaa0527b"
+  integrity sha512-x35yzsXDyo0BIXYimLnUFNyb42c//NadUNH6IPGOteZm96oTGA1kn4Hq6qJTI1/f9wEc1F9O1DsznXIgXMil7A==
 
 posix-character-classes@^0.1.0:
   version "0.1.1"
