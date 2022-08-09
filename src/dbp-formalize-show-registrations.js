@@ -687,7 +687,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.submissionsTable.setData(dataList2);
                 this.submissionsTable.setLocale(this.lang);
                 this.updateSubmissionTable();
-                this.loadingSubmissionTable = false;
                 this.showSubmissionsTable = true;
                 const that = this;
                 setTimeout(function() {
