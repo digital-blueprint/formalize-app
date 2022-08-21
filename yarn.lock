@@ -5495,9 +5495,9 @@ symlink-or-copy@^1.1.8, symlink-or-copy@^1.2.0, symlink-or-copy@^1.3.1:
   integrity sha512-0K91MEXFpBUaywiwSSkmKjnGcasG/rVBXFLJz5DrgGabpYD6N+3yZrfD6uUIfpuTu65DZLHi7N8CizHc07BPZA==
 
 tabulator-tables@^5.1.7:
-  version "5.3.1"
-  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.3.1.tgz#33975a4d824ba3df86434492b2dd61b1608d5dc7"
-  integrity sha512-NVZqClCftIfw1+XawNjBFytiZmUJ6nbcEB4NEahVbcXvQ6W9bOZizX/ZGTjtL30fYA0Oe97iZylCcSeTIGWDOg==
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.3.2.tgz#4f17a09f4072334c88008a36600cf6c612b82ef7"
+  integrity sha512-gF2z76lSkkGET+WjJsAXeECnxvrvGzEF3eKWNB076j7f40qOuohDuwn90FfuyOGNMpEyJpGsyqCwsuSeXhUtMQ==
 
 terser@^5.0.0:
   version "5.14.2"
