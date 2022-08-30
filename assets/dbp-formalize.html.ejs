@@ -5,27 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="white"/>
 
+    <!-- Meta Data for Search Engines -->
+    <meta title="Elektronische Formulare | TU Graz">
+    <meta name="description" content="Verwalten Sie unterschiedliche Kursanmeldungen." />
+
+    <!-- Meta Data for open graph(facebook & co) -->
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Elektronische Formulare | TU Graz" />
+    <meta property="og:description" content="Verwalten Sie unterschiedliche Kursanmeldungen." />
+    <!-- <meta property="og:url" content="https://tugraz.at/" /> -->
+    <meta property="og:site_name" content="Elektronische Formulare" />
+
     <!-- Favicons -->
     <link rel="shortcut icon" type="image/x-icon" href="<%= getPrivateUrl('icon/favicon.ico') %>">
-    <link rel="icon" type="image/svg+xml" href="<%= getPrivateUrl('icon/favicon.svg') %>" sizes="any">
-
-    <!-- PWA manfiest file -->
-    <link rel="manifest" href="<%= getUrl(name + '.manifest.json') %>">
-
-    <!-- PWA iphone -->
+    <link rel="icon" type="image/svg+xml" href="<%= getPrivateUrl('icon/favicon.svg') %>">
     <link rel="apple-touch-icon" sizes="180x180" href="<%= getPrivateUrl('icon/apple-touch-icon.png') %>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<%= getPrivateUrl('icon/icon-32x32.png') %>">
-    <link rel="icon" type="image/png" sizes="16x16" href="<%= getPrivateUrl('icon/icon-16x16.png') %>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<%= getPrivateUrl('icon/favicon-32x32.png') %>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<%= getPrivateUrl('icon/favicon-16x16.png') %>">
+    <link rel="manifest" href="<%= getUrl(name + '.webmanifest') %>">
     <link rel="mask-icon" href="<%= getPrivateUrl('icon/safari-pinned-tab.svg') %>" color="#e4154b">
+    <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-status-bar-style" content="white">
-
-    <!-- PWA Windows -->
-    <meta name="msapplication-config" content="<%= getUrl(name + '.browserconfig.xml') %>">
 
     <!-- Loading spinner -->
     <script type="module">
-        import {Spinner} from '<%= getPrivateUrl('spinner.js') %>';
-        customElements.define('dbp-loading-spinner', Spinner);
+        import {Spinner} from '<%= getPrivateUrl('tug_spinner.js') %>';
+        customElements.define('tug-spinner', Spinner);
     </script>
 
     <!-- App bundles-->
@@ -40,14 +46,19 @@
         @import "<%= getPrivateUrl('fonts/source-sans-pro/400.css') %>";
         @import "<%= getPrivateUrl('fonts/source-sans-pro/600.css') %>";
 
-        html {
+        body {
             font-family: 'Source Sans Pro', 'Calibri', 'Arial', 'sans-serif';
             font-weight: 300;
             font-size: 16px;
+            margin: 0;
         }
 
-        body {
-            margin: 0;
+        #spinner{
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* TU-Graz style override */
@@ -97,7 +108,7 @@
     build-url='<%= buildInfo.url %>'
     build-time='<%= buildInfo.time %>'
     env='<%= buildInfo.env %>'
-><dbp-loading-spinner></dbp-loading-spinner>
+><tug-spinner id='spinner'></tug-spinner>
 <template slot="name">
     TU Graz<br />
     <dbp-translated subscribe="lang">
