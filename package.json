@@ -1,7 +1,7 @@
 {
     "name": "@dbp-topics/formalize",
     "internalName": "dbp-formalize",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "main": "src/dbp-formalize.js",
     "license": "LGPL-2.1-or-later",
     "private": true,
