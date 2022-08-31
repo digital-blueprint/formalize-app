@@ -62,7 +62,7 @@
         }
 
         /* TU-Graz style override */
-        html {
+        .light-theme {
             --dbp-override-background: white;
             --dbp-override-content: black;
 
@@ -78,11 +78,11 @@
             --dbp-override-success: #138800;
             --dbp-override-warning: #af6405;
             --dbp-override-warning-surface: #ffad4d;
+            --dbp-override-warning-surface-border-color: #ffad4d;
             --dbp-override-on-warning-surface: black;
             --dbp-override-danger: #e4154b;
 
             --dbp-override-border: 1px solid black;
-
 
             --dbp-override-image-nextcloud: url(<%= getUrl('') %>images/nextcloud.svg);
         }
@@ -108,6 +108,7 @@
     build-url='<%= buildInfo.url %>'
     build-time='<%= buildInfo.time %>'
     env='<%= buildInfo.env %>'
+    themes='[{"class": "light-theme", "icon": "sun", "name": "Light Mode"}]'
 ><tug-spinner id='spinner'></tug-spinner>
 <template slot="name">
     TU Graz<br />
