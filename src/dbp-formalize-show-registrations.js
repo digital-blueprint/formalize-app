@@ -2186,15 +2186,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <div class='table-header submissions'>
                         <h3>${this.activeCourse}</h3>
                         <div class='options-nav ${classMap({hidden: !this.showSubmissionsTable})}'>
-
+   <button class='button is-icon' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
+                                        @click='${() => {this.openModal(); console.log("why!");}}'>
+                                    <dbp-icon name='iconoir_settings'></dbp-icon>
+                                </button>
                             <div class='additional-menu ${classMap({hidden: !this.showSubmissionsTable})}'>
                                 <a class='extended-menu-link'
                                    @click='${() => {
-                                       this.toggleMoreMenu();
-                                   }}'
+                                        this.toggleMoreMenu();
+                                    }}'
                                    title='${i18n.t('show-registrations.more-menu')}'>
                                     <dbp-icon name='menu-dots' class='more-menu'></dbp-icon>
                                 </a>
+                             
+                                
                                 <ul class='extended-menu hidden'>
                                     <li class='open-menu ${classMap({active: false})}'>
                                         <a class='' @click='${() => {
@@ -2215,11 +2220,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                             this.exportPdf();
                                         }}'>
                                             PDF Export
-                                        </a>
-                                    </li>
-                                    <li class='${classMap({active: false})}'>
-                                        <a class='' @click='${this.openModal}'>
-                                            ${i18n.t('show-registrations.filter-options-button-text')}
                                         </a>
                                     </li>
                                 </ul>
@@ -2284,10 +2284,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </div>
                         <div class='export-buttons'>
 
-                            <button class='button' title=' ${i18n.t('show-registrations.filter-options-button-text')}'>
-                                <a class='' @click='${this.openModal}'>
-                                    ${i18n.t('show-registrations.filter-options-button-text')}
-                                </a>
+                            <button class='button is-icon' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
+                                    @click='${() => {this.openModal(); console.log("why!");}}'>
+                                <dbp-icon name='iconoir_settings'></dbp-icon>
                             </button>
                             <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
                                 <option value='-' disabled selected>
