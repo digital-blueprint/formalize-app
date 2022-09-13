@@ -52,7 +52,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.coursesTable = null;
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
+        this.submissionsColumnsInitial = [];
         this.submissionsColumns = [];
+        this.submissionsColumnsTmp = [];
         this.submissionsColumnsUpdated = false;
         this.initateOpenAdditionalMenu = false;
         this.initateOpenAdditionalSearchMenu = false;
@@ -337,6 +339,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+
+            //add eventlistener left and right for detailed modal
+            this._('#detailed-submission-modal-box').addEventListener('keydown', ({key}) => {
+                if (key === 'ArrowLeft') {
+                    let backBtn = this._('#detailed-submission-modal-box .back-btn');
+                    if(backBtn && !backBtn.disabled)
+                    {
+                        this.showLastEntry();
+                    }
+                }
+                if (key === 'ArrowRight') {
+                    //and modal is open and left is not disabled
+                    let nextBtn = this._('#detailed-submission-modal-box .next-btn');
+                    if(nextBtn && !nextBtn.disabled)
+                    {
+                        this.showNextEntry();
+                    }
+                }
+            });
         });
     }
 
@@ -641,6 +662,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let response = await this.getAllSubmissions();
 
         this.submissionsColumns = [];
+        this.submissionsColumnsInitial = [];
 
         if (!response) {
             this.sendErrorAnalyticsEvent('requestAllCourseSubmissions', 'NoResponse', '');
@@ -686,8 +708,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.activeCourse = name;
                 this.submissionsTable.setData(dataList2);
                 this.submissionsTable.setLocale(this.lang);
+                this.setInitalSubmissionTableOrder();
                 this.updateSubmissionTable();
                 this.showSubmissionsTable = true;
+
                 const that = this;
                 setTimeout(function() {
                     if (that._('.subheadline')) {
@@ -730,71 +754,38 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     requestDetailedSubmission(row, data) {
 
-        if (!this._('.detailed-submission-modal-content-wrapper'))
+        if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        if (!this._('#apply-col-settings'))
-            return;
-        let colSettings = this._('#apply-col-settings').checked;
         let identifier = data['id_'];
 
-        if (!colSettings) {
-            let cells = data;
+        let columns = [];
 
-            for (let i = 0; i < Object.keys(cells).length; i++) {
-                let key = Object.keys(cells)[i];
-                if (key.includes('no_display') || key.includes('id')) {
-                    continue;
-                } else if (key.includes('dateCreated') && (cells[key] !== '')) {
-                    let title = this.submissionsTable.getColumn('dateCreated').getDefinition().title;
-                    title = title === '' ? key : title;
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + title + `:</div>`;
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(cells[key]);
-                    +`</div>`;
-                    continue;
-                }
-
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
-
-                if (cells[key] !== '') {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(cells[key]) + `</div>`;
-                } else {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'></div>`;
-                }
-            }
+        if (!this._('#apply-col-settings').checked) {
+            columns = this.submissionsColumnsInitial;
         } else {
-            // If checkbox checked
-            let cells = data;
+            columns = this.submissionsColumns;
+        }
 
-            for (let i = 0; i < Object.keys(cells).length; i++) {
-                let key = Object.keys(cells)[i];
+        for(const col of columns) {
+            let field = col.field;
+            let name = col.name === '' ? field : col.name;
+            let cell = row.getCell(field);
+            if(!cell || !col.visibility) {
+                continue;
+            }
 
-                let isVisible = true;
-                if (this.submissionsTable.getColumn(key)) {
-                    isVisible = window.getComputedStyle(this.submissionsTable.getColumn(key).getElement()).display === 'none' ? false : true;
-                }
 
-                if (key.includes('no_display') || key.includes('id') || !isVisible) {
-                    continue;
-                } else if (key.includes('dateCreated') && (cells[key] !== '')) {
-                    let title = this.submissionsTable.getColumn('dateCreated').getDefinition().title;
-                    title = title === '' ? key : title;
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + title + `:</div>`;
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(cells[key]);
-                    +`</div>`;
-                    continue;
-                }
+            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(name) + `:</div>`;
 
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
-
-                if (cells[key] !== '') {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(cells[key]) + `</div>`;
-                } else {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'></div>`;
-                }
+            if (field.includes('dateCreated')) {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(cell.getValue());
+            } else {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(cell.getValue()) + `</div>`;
             }
         }
+
         if (this._('.detailed-submission-modal-content-wrapper > div:first-child'))
             this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
         if (this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)'))
@@ -1005,7 +996,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Creates options for a select box of the t
-     * his.submissionColumns Array (all possible cols of active table)
+     * this.submissionColumns Array (all possible cols of active table)
      *
      * @returns {Array<html>} options
      */
@@ -1033,6 +1024,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     openModal() {
+
+        this.submissionsColumnsTmp =  JSON.parse(JSON.stringify(this.submissionsColumns));
 
         let modal = this._('#submission-modal');
         if (modal) {
@@ -1193,6 +1186,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this._('.' + item.field + ' .header-visibility-icon-hide').classList.add('hidden');
             this._('.' + item.field + ' .header-visibility-icon-show').classList.remove('hidden');
         }
+        this.submissionsColumnsUpdated = !this.submissionsColumnsUpdated;
     }
 
     /**
@@ -1238,6 +1232,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.hiddenColumns = true;
             }
         }
+    }
+
+    setInitalSubmissionTableOrder() {
+        if (!this.submissionsTable)
+            return;
+        let columns = this.submissionsTable.getColumns();
+        this.submissionsColumnsInitial = [];
+        columns.forEach((col) => {
+            let name = col.getDefinition().title;
+            let field = col.getDefinition().field;
+            let visibility = col.isVisible();
+            if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
+                this.submissionsColumnsInitial.push({name: name, field: field, visibility: visibility});
+            }
+        });
     }
 
     /**
@@ -1395,7 +1404,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.submissionsTable.getRows().forEach((row) => {
                 if (row.getPosition() === nextIndex) {
                     nextRow = row;
-                    console.log('next row:', nextRow);
                 }
             });
 
@@ -1465,6 +1473,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             #submission-modal-title {
                 margin-top: unset;
+                margin-bottom: unset;
             }
 
             #detailed-submission-modal-content {
@@ -1683,6 +1692,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 list-style-type: none;
                 padding: 0px;
                 display: grid;
+                width: 100%;
             }
 
 
@@ -1779,10 +1789,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 margin-left: 0px;
             }
 
-            #filer-modal-box {
-                width: unset;
-                min-width: unset;
+            #filter-modal-box {
+                min-width: 300px;
                 min-height: unset;
+            }
+            
+            #filter-modal-box .modal-footer-btn{
+                display: flex;
+                justify-content: space-between;
             }
 
             .button-container {
@@ -2050,7 +2064,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     width: 100%;
                 }
 
-                #filer-modal-box, #detailed-submission-modal-box {
+                #filter-modal-box, #detailed-submission-modal-box {
                     width: 100%;
                     height: 100%;
                     max-width: 100%;
@@ -2078,6 +2092,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 .button-container {
                     padding-left: 30px;
+                }
+
+                #filter-modal-box .modal-footer-btn {
+                    flex-direction: column;
+                    gap: 5px;
+                }
+
+                #filter-modal-box .modal-footer-btn div{
+                    display: flex;
+                    justify-content: space-between;
                 }
             }
         `;
@@ -2294,7 +2318,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 <div class='modal-overlay' tabindex='-2' data-micromodal-close>
                     <div
                         class='modal-container'
-                        id='filer-modal-box'
+                        id='filter-modal-box'
                         role='dialog'
                         aria-modal='true'
                         aria-labelledby='submission-modal-title'>
@@ -2305,6 +2329,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 aria-label='Close modal'
                                 @click='${() => {
                                     MicroModal.close(this._('#submission-modal'));
+                                    this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
                                 }}'>
                                 <dbp-icon
                                     title='${i18n.t('show-registrations.modal-close')}'
@@ -2318,7 +2343,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <main class='modal-content' id='submission-modal-content'>
                             <ul class='headers'>
                                 ${this.submissionsColumns.map((i, counter) => {
-
                                     let classes = '';
                                     classes += counter === 0 ? 'first-header ' : '';
                                     classes += counter === this.submissionsColumns.length - 1 ? 'last-header ' : '';
@@ -2358,7 +2382,31 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </ul>
                         </main>
                         <footer class='modal-footer'>
+       
                             <div class='modal-footer-btn'>
+                                <div>
+                                    <button
+                                        title='${i18n.t('show-registrations.abort')}'
+                                        class='check-btn button is-secondary'
+                                        @click='${() => {
+                                            MicroModal.close(this._('#submission-modal'));
+                                            this.submissionsColumns = [];
+                                            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
+                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+                                        }}'>
+                                        ${i18n.t('show-registrations.abort')}
+                                    </button>
+                                    <button
+                                        title='${i18n.t('show-registrations.reset-filter')}'
+                                        class='check-btn button is-secondary'
+                                        @click='${() => {
+                                            this.submissionsColumns = [];
+                                            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
+                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+                                        }}'>
+                                        ${i18n.t('show-registrations.reset-filter')}
+                                    </button>
+                                </div>
                                 <button class='check-btn button is-primary' id='check' @click='${() => {
                                     this.updateSubmissionTable();
                                     this.closeModal();

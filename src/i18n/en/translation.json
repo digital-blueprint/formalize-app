@@ -3,6 +3,7 @@
     "error-permission-message": "You do not have the permissions to use this function!",
     "loading-message": "Loading...",
     "show-registrations": {
+        "abort": "Cancel",
         "all-columns": "All columns",
         "apply-col-settings": "Apply filter options",
         "back-text": "Back to course list",
@@ -25,7 +26,8 @@
         "next-entry-btn-title": "Next entry",
         "no-data": "No data available",
         "open-forms": "Show form submissions",
-        "save-columns": "Save column settings",
+        "reset-filter": "Reset all",
+        "save-columns": "Save",
         "search-button": "Search",
         "search-in": "Search in colums",
         "search-in-column": "Select column",

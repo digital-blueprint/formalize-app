@@ -3,6 +3,7 @@
     "error-permission-message": "Sie besitzen nicht die Berechtigungen, um diese Funktion nutzen zu können!",
     "loading-message": "Lädt...",
     "show-registrations": {
+        "abort": "Abbrechen",
         "all-columns": "Alle Spalten",
         "apply-col-settings": "Filteroptionen übernehmen",
         "back-text": "Zurück zur Kursübersicht",
@@ -25,7 +26,8 @@
         "next-entry-btn-title": "Nächster",
         "no-data": "Keine Daten vorhanden",
         "open-forms": "Formulareinträge anzeigen",
-        "save-columns": "Spalteneinstellungen speichern",
+        "reset-filter": "Alle zurücksetzen",
+        "save-columns": "Speichern",
         "search-button": "Suchen",
         "search-in": "In Spalten suchen",
         "search-in-column": "Spalte auswählen",
