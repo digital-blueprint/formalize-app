@@ -89,7 +89,8 @@ export function getFileHandlingCss() {
             grid-template-areas: 'sidebar header' 'sidebar main';
             position: relative;
 
-            background-color: #fff;
+            background-color: var(--dbp-override-background);
+            color: var(--dbp-override-content);
             max-width: 600px;
             max-height: 100vh;
             min-width: 60%;

@@ -1500,6 +1500,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             #export-select, #search-select, #search-operator, .dropdown-menu {
+                background-color: var(--dbp-secondary-surface);
+                color: var(--dbp-on-secondary-surface);
+                border-color: var(--dbp-secondary-surface-border-color);
                 background-size: auto 45%;
                 padding-bottom: calc(0.375em - 1px);
                 padding-left: 0.75em;
@@ -1626,6 +1629,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding: calc(0.375em - 1px) 10px calc(0.375em - 1px) 10px;
                 border-radius: var(--dbp-border-radius);
                 min-height: 33px;
+                background-color: var(--dbp-background);
+                color: var(--dbp-content);
             }
 
             #extendable-searchbar {
@@ -1654,7 +1659,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 width: 100%;
                 position: absolute;
                 right: 0px;
-                background-color: white;
+                background-color: var(--dbp-background);
                 padding: 10px;
                 box-sizing: border-box;
                 top: 33px;
@@ -2186,7 +2191,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <div class='table-header submissions'>
                         <h3>${this.activeCourse}</h3>
                         <div class='options-nav ${classMap({hidden: !this.showSubmissionsTable})}'>
-   <button class='button is-icon' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
+                                <button class='additional-menu button is-icon  ${classMap({hidden: !this.showSubmissionsTable})}' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
                                         @click='${() => {this.openModal(); console.log("why!");}}'>
                                     <dbp-icon name='iconoir_settings'></dbp-icon>
                                 </button>
