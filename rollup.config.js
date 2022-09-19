@@ -105,8 +105,6 @@ export default (async () => {
                 },
             }),
             resolve({
-                // ignore node_modules from vendored packages
-                moduleDirectories: [path.join(process.cwd(), 'node_modules')],
                 browser: true,
                 preferBuiltins: true,
             }),
