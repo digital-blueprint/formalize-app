@@ -61,6 +61,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
+        this.navigateBetweenDetailedSubmissionsHandler = this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeCourse = '';
         this.currentRow = null;
         this.currentBeautyId = 0;
@@ -75,6 +76,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.loadCourses = true;
         this.hasPermissions = true;
         this.hiddenColumns = false;
+        this.currentDetailPosition = 0;
+        this.openPage = 0;
     }
 
     static get scopedElements() {
@@ -99,6 +102,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             isPrevEnabled: {type: Boolean, attribute: false},
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
+            totalNumberOfItems: {type: Number, attribute: false},
             loadingCourseTable: {type: Boolean, attribute: false},
             loadingSubmissionTable: {type: Boolean, attribute: false},
             modalContentHeight: {type: Number, attribute: false},
@@ -223,7 +227,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 btn.setAttribute('id', id);
                 btn.classList.add('open-modal-icon');
                 btn.addEventListener('click', event => {
-                    this.requestDetailedSubmission(cell.getRow(), cell.getRow().getData());
+                    let row = cell.getRow();
+                    let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
+                    let index = previousPageItems + row.getPosition();
+                    this.openPage = this.submissionsTable.getPage();
+                    this.requestDetailedSubmission(row, row.getData(), index);
                     event.stopPropagation();
                 });
 
@@ -339,25 +347,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
-
-            //add eventlistener left and right for detailed modal
-            this._('#detailed-submission-modal-box').addEventListener('keydown', ({key}) => {
-                if (key === 'ArrowLeft') {
-                    let backBtn = this._('#detailed-submission-modal-box .back-btn');
-                    if(backBtn && !backBtn.disabled)
-                    {
-                        this.showLastEntry();
-                    }
-                }
-                if (key === 'ArrowRight') {
-                    //and modal is open and left is not disabled
-                    let nextBtn = this._('#detailed-submission-modal-box .next-btn');
-                    if(nextBtn && !nextBtn.disabled)
-                    {
-                        this.showNextEntry();
-                    }
-                }
-            });
         });
     }
 
@@ -711,7 +700,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.setInitalSubmissionTableOrder();
                 this.updateSubmissionTable();
                 this.showSubmissionsTable = true;
-
+                this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
                 const that = this;
                 setTimeout(function() {
                     if (that._('.subheadline')) {
@@ -742,7 +731,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'ErrorInDataCreation', e);
             }
 
-            this.totalNumberOfItems = itemsCount;
+
         }
     }
 
@@ -752,13 +741,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param row
      * @param data
      */
-    requestDetailedSubmission(row, data) {
+    requestDetailedSubmission(row, data, pos) {
 
         if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
-
-        let identifier = data['id_'];
 
         let columns = [];
 
@@ -772,7 +759,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let field = col.field;
             let name = col.name === '' ? field : col.name;
             let cell = row.getCell(field);
-            if(!cell || !col.visibility) {
+            if (!cell || !col.visibility) {
                 continue;
             }
 
@@ -792,9 +779,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
 
         this.currentRow = row;
-        this.currentBeautyId = identifier;
-        this.isPrevEnabled = identifier !== 1;
-        this.isNextEnabled = (identifier + 1) <= this.submissionsTable.getDataCount();
+        this.currentDetailPosition = row.getPosition();
+        this.currentBeautyId = pos;
+        this.isPrevEnabled = pos !== 1;
+        this.isNextEnabled = (pos + 1) <= this.submissionsTable.getDataCount("active");
 
         this.showDetailedModal();
 
@@ -943,7 +931,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         if (!filter || !search || !operator || !this.submissionsTable)
             return;
-                    
+
+        if (filter.value === "") {
+            this.submissionsTable.clearFilter();
+            this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
+            return;
+        }
         filter = filter.value;
         search = search.value;
         operator = operator.value;
@@ -958,6 +951,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             filterArray.push({field: col.field, type: operator, value: filter});
         });
         this.submissionsTable.setFilter([filterArray]);
+        this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
     }
 
     /*
@@ -973,6 +967,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         filter.value = '';
         search.value = 'all';
         this.submissionsTable.clearFilter();
+        this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
     }
 
     /**
@@ -1023,11 +1018,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * Opens submission Columns Modal
      *
      */
-    openModal() {
+    openColumnOptionsModal() {
 
         this.submissionsColumnsTmp =  JSON.parse(JSON.stringify(this.submissionsColumns));
 
-        let modal = this._('#submission-modal');
+        let modal = this._('#column-options-modal');
         if (modal) {
             MicroModal.show(modal, {
                 disableScroll: true,
@@ -1044,13 +1039,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
+     * Close Column Options Modal
+     *
+     */
+    closeColumnOptionsModal() {
+        let modal = this._('#column-options-modal');
+        if (modal) {
+            MicroModal.close(modal);
+        }
+    }
+
+    /**
      * Close submission Columns Modal
      *
      */
-    closeModal() {
-        let modal = this._('#submission-modal');
+    closeDetailModal() {
+        let modal = this._('#detailed-submission-modal');
         if (modal) {
             MicroModal.close(modal);
+            if (this._('.detailed-submission-modal-content-wrapper'))
+                this._('.detailed-submission-modal-content-wrapper').removeAttribute('style');
+            if (this.submissionsTable && this.openPage <= this.submissionsTable.getPageMax()) {
+                this.submissionsTable.setPage(this.openPage);
+            }
         }
     }
 
@@ -1063,7 +1074,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (modal) {
             MicroModal.show(modal, {
                 disableScroll: true,
-                disableFocus: false,
+                onClose: () => {document.removeEventListener('keydown', this.navigateBetweenDetailedSubmissionsHandler);},
+                onShow: () => {document.addEventListener('keydown', this.navigateBetweenDetailedSubmissionsHandler);}
             });
         }
     }
@@ -1103,6 +1115,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 event.preventDefault();
                 this.filterTable();
                 this.hideAdditionalSearchMenu(event);
+            }
+        }
+    }
+
+    /**
+     * Keydown Event function if left or right pressed, then we can change the detailed submissions
+     *
+     * @param event
+     */
+    navigateBetweenDetailedSubmissions(event) {
+        if (event.keyCode === 37) {
+            let backBtn = this._('#detailed-submission-modal-box .back-btn');
+            if (backBtn && !backBtn.disabled)
+            {
+                this.showEntryOfPos(this.currentDetailPosition - 1, "previous");
+            }
+        }
+        if (event.keyCode === 39) {
+            //and modal is open and left is not disabled
+            let nextBtn = this._('#detailed-submission-modal-box .next-btn');
+            if (nextBtn && !nextBtn.disabled)
+            {
+                this.showEntryOfPos(this.currentDetailPosition + 1, "next");
             }
         }
     }
@@ -1369,46 +1404,41 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         setTimeout(removeClass.bind(swapElem2), 400);
     }
 
-    /**
-     * Shows last entry of this.submissionTable
-     *
-     */
-    showLastEntry() {
-        if (this.currentRow !== null) {
-            let currentRow = this.currentRow;
-            let nextIndex = currentRow.getPosition() - 1;
-
-            let nextRow;
-            this.submissionsTable.getRows().forEach((row) => {
-                if (row.getPosition() === nextIndex) {
-                    nextRow = row;
-                }
-            });
-
-            if (nextRow) {
-                this.requestDetailedSubmission(nextRow, nextRow.getData());
-            }
-        }
-    }
 
     /**
-     * Shows next entry of this.submissionTable
+     * Shows entry of a specific position of this.submissionTable
      *
+     * @param {number} positionToShow
+     * @param {"next"|"previous"} direction
      */
-    showNextEntry() {
-        if (this.currentRow !== null) {
-            let currentRow = this.currentRow;
-            let nextIndex = currentRow.getPosition() + 1;
+    async showEntryOfPos(positionToShow, direction) {
+        if (!this.submissionsTable)
+            return;
 
-            let nextRow;
-            this.submissionsTable.getRows().forEach((row) => {
-                if (row.getPosition() === nextIndex) {
-                    nextRow = row;
-                }
-            });
+        let pageSize = this.submissionsTable.getPageSize();
+        let previousPageItems = (this.submissionsTable.getPage() - 1) * pageSize;
+        let nextIndex = previousPageItems + positionToShow;
 
-            if (nextRow) {
-                this.requestDetailedSubmission(nextRow, nextRow.getData());
+        if (nextIndex > this.totalNumberOfItems || nextIndex < 1)
+            return;
+
+        let nextRow;
+        if (positionToShow > 0 && positionToShow <= pageSize)
+            nextRow = this.submissionsTable.getRowFromPosition(positionToShow);
+
+        if (nextRow) {
+            this.requestDetailedSubmission(nextRow._row, nextRow.getData(), nextIndex);
+        } else {
+            switch(direction){
+                case "next":
+                    await this.submissionsTable.nextPage();
+                    this.showEntryOfPos(1);
+                    break;
+
+                case "previous":
+                    await this.submissionsTable.previousPage();
+                    this.showEntryOfPos(this.submissionsTable.getPageSize());
+                    break;
             }
         }
     }
@@ -2192,7 +2222,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <h3>${this.activeCourse}</h3>
                         <div class='options-nav ${classMap({hidden: !this.showSubmissionsTable})}'>
                                 <button class='additional-menu button is-icon  ${classMap({hidden: !this.showSubmissionsTable})}' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
-                                        @click='${() => {this.openModal(); console.log("why!");}}'>
+                                        @click='${() => {this.openColumnOptionsModal();}}'>
                                     <dbp-icon name='iconoir_settings'></dbp-icon>
                                 </button>
                             <div class='additional-menu ${classMap({hidden: !this.showSubmissionsTable})}'>
@@ -2290,7 +2320,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <div class='export-buttons'>
 
                             <button class='button is-icon' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
-                                    @click='${() => {this.openModal(); console.log("why!");}}'>
+                                    @click='${() => {this.openColumnOptionsModal(); }}'>
                                 <dbp-icon name='iconoir_settings'></dbp-icon>
                             </button>
                             <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
@@ -2318,7 +2348,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
             </div>
 
-            <div class='modal micromodal-slide' id='submission-modal' aria-hidden='true'>
+            <div class='modal micromodal-slide' id='column-options-modal' aria-hidden='true'>
                 <div class='modal-overlay' tabindex='-2' data-micromodal-close>
                     <div
                         class='modal-container'
@@ -2332,7 +2362,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 class='modal-close'
                                 aria-label='Close modal'
                                 @click='${() => {
-                                    MicroModal.close(this._('#submission-modal'));
+                                    this.closeColumnOptionsModal();
                                     this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
                                 }}'>
                                 <dbp-icon
@@ -2393,7 +2423,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         title='${i18n.t('show-registrations.abort')}'
                                         class='check-btn button is-secondary'
                                         @click='${() => {
-                                            MicroModal.close(this._('#submission-modal'));
+                                            this.closeColumnOptionsModal();
                                             this.submissionsColumns = [];
                                             this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
                                             this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
@@ -2413,7 +2443,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </div>
                                 <button class='check-btn button is-primary' id='check' @click='${() => {
                                     this.updateSubmissionTable();
-                                    this.closeModal();
+                                    this.closeColumnOptionsModal();
                                     this.setSubmissionTableSettings();
                                 }}'>
                                     ${i18n.t('show-registrations.save-columns')}
@@ -2438,8 +2468,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 class='modal-close'
                                 aria-label='Close modal'
                                 @click='${() => {
-                                    MicroModal.close(this._('#detailed-submission-modal'));
-                                    this._('.detailed-submission-modal-content-wrapper').removeAttribute('style');
+                                    this.closeDetailModal();
                                 }}'>
                                 <dbp-icon
                                     title='${i18n.t('show-registrations.modal-close')}'
@@ -2462,7 +2491,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         id='apply-col-settings'
                                         name='apply-col-settings'
                                         @click='${() => {
-                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData());
+                                            let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
+                                            let nextIndex = previousPageItems + this.currentRow.getPosition() + 1;
+                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData(), nextIndex);
                                         }}'
                                         checked />
                                     <span class='checkmark'></span>
@@ -2470,7 +2501,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 <div class='btn-row-left'>
                                     <dbp-button class='button back-btn'
                                                 title='${i18n.t('show-registrations.last-entry-btn-title')}'
-                                                @click='${this.showLastEntry}'
+                                                @click='${() => {this.showEntryOfPos(this.currentDetailPosition - 1, "previous");}}'
                                                 ?disabled='${!this.isPrevEnabled}'>
                                         <dbp-icon name='chevron-left'></dbp-icon>
                                         ${i18n.t('show-registrations.last-entry-btn-title')}
@@ -2482,7 +2513,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     </div>
                                     <dbp-button class='button next-btn'
                                                 title='${i18n.t('show-registrations.next-entry-btn-title')}'
-                                                @click='${this.showNextEntry}'
+                                                @click='${() => {this.showEntryOfPos(this.currentDetailPosition + 1, "next");}}'
                                                 ?disabled='${!this.isNextEnabled}'>
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
                                         <dbp-icon name='chevron-right'></dbp-icon>
