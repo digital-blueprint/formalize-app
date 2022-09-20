@@ -1125,6 +1125,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param event
      */
     navigateBetweenDetailedSubmissions(event) {
+        // left
         if (event.keyCode === 37) {
             let backBtn = this._('#detailed-submission-modal-box .back-btn');
             if (backBtn && !backBtn.disabled)
@@ -1132,6 +1133,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.showEntryOfPos(this.currentDetailPosition - 1, "previous");
             }
         }
+
+        //right
         if (event.keyCode === 39) {
             //and modal is open and left is not disabled
             let nextBtn = this._('#detailed-submission-modal-box .next-btn');
@@ -2221,10 +2224,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <div class='table-header submissions'>
                         <h3>${this.activeCourse}</h3>
                         <div class='options-nav ${classMap({hidden: !this.showSubmissionsTable})}'>
-                                <button class='additional-menu button is-icon  ${classMap({hidden: !this.showSubmissionsTable})}' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
-                                        @click='${() => {this.openColumnOptionsModal();}}'>
-                                    <dbp-icon name='iconoir_settings'></dbp-icon>
-                                </button>
                             <div class='additional-menu ${classMap({hidden: !this.showSubmissionsTable})}'>
                                 <a class='extended-menu-link'
                                    @click='${() => {
@@ -2257,6 +2256,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                             PDF Export
                                         </a>
                                     </li>
+                                    <li class='${classMap({active: false})}'>
+                                        <a class='' @click='${this.openColumnOptionsModal}'>
+                                            ${i18n.t('show-registrations.filter-options-button-text')}
+                                        </a>
+                                    </li>
+
                                 </ul>
                             </div>
                         </div>
