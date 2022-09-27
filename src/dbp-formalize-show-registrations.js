@@ -565,7 +565,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 icon.setAttribute('name', 'chevron-right');
                 icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
                 let btn = this.createScopedElement('dbp-button');
-                btn.classList.add('button', 'courses-btn');
+                btn.classList.add('button', 'courses-btn', 'is-icon');
                 btn.addEventListener('click', async event => {
                     this.loadingSubmissionTable = true;
                     await this.requestAllCourseSubmissions(name);
@@ -1458,6 +1458,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             ${commonStyles.getButtonCSS()}
             ${tabulatorStyles.getTabulatorStyles()}
+            
             .table-wrapper.submissions {
                 padding-top: 0.5rem;
             }
@@ -1638,7 +1639,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .modal-footer-btn {
                 padding-right: 20px;
                 padding-left: 20px;
-                padding-bottom: 30px;
+                padding-bottom: 20px;
                 padding-top: 10px;
             }
 
@@ -1661,7 +1662,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 border: var(--dbp-border);
                 padding: calc(0.375em - 1px) 10px calc(0.375em - 1px) 10px;
                 border-radius: var(--dbp-border-radius);
-                min-height: 33px;
+                min-height: 40px;
                 background-color: var(--dbp-background);
                 color: var(--dbp-content);
             }
@@ -1681,6 +1682,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 position: absolute;
                 right: 0px;
                 top: 0px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 1.2rem;
             }
 
             #extendable-searchbar .extended-menu {
@@ -1854,6 +1859,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 top: 2px;
             }
             
+            .button.courses-btn{
+                font-size: 1.2rem;
+                display: flex;
+                align-items: center;
+                top: 0px;
+            }
+            
 
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -1878,6 +1890,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     padding: 0 0 0.25% 0;
                     -webkit-mask-size: 1.5rem !important;
                     mask-size: 1.4rem !important;
+                }
+
+                .tabulator .tabulator-footer .tabulator-paginator .tabulator-page{
+                    border: none;
                 }
 
                 button[data-page="prev"]:after {
@@ -2062,7 +2078,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     top: 0px;
                     height: 40px;
                     box-sizing: border-box;
-                    padding-top: calc(0.6em - 1px);
                 }
 
                 .search-wrapper {
@@ -2275,7 +2290,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                        @click='${() => {
                                            this.toggleSearchMenu();
                                        }}' />
-                                <dbp-button class='button' id='search-button'
+                                <dbp-button class='button is-icon' id='search-button'
                                             title='${i18n.t('show-registrations.search-button')}'
                                             class='button' @click='${() => {
                                     this.filterTable();
