@@ -5558,9 +5558,9 @@ symlink-or-copy@^1.1.8, symlink-or-copy@^1.2.0, symlink-or-copy@^1.3.1:
   integrity sha512-0K91MEXFpBUaywiwSSkmKjnGcasG/rVBXFLJz5DrgGabpYD6N+3yZrfD6uUIfpuTu65DZLHi7N8CizHc07BPZA==
 
 tabulator-tables@^5.1.7:
-  version "5.4.1"
-  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.4.1.tgz#42803417785ddbe051fc9622c609b2d0cf5aa2c7"
-  integrity sha512-OvnOQj8QRXkouraR6zrBAxoZSnQ32+WvFLOSwRd+rI8Dn749FRiR5vUF3AT7OvnYxXt0AZRGALcJNkSrdE6fWg==
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/tabulator-tables/-/tabulator-tables-5.4.2.tgz#4d3adec28bfe9fe37b95df43a836ab7c7385a60d"
+  integrity sha512-HDrm9kk5KjkGkUrLSenIbWuhJggfMrQqo9h6ZfaPq8jgPh/DITiboCG3v2xk7xEXd/GecGGeTzqMP5LfzgqcRA==
 
 teex@^1.0.1:
   version "1.0.1"
