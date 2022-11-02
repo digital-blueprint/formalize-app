@@ -15,6 +15,7 @@
         "@rollup/plugin-commonjs": "^23.0.0",
         "@rollup/plugin-json": "^5.0.0",
         "@rollup/plugin-node-resolve": "^15.0.0",
+        "@rollup/plugin-terser": "^0.1.0",
         "@rollup/plugin-url": "^8.0.0",
         "can-npm-publish": "^1.3.6",
         "chai": "^4.2.0",
@@ -29,13 +30,12 @@
         "mocha": "^10.0.0",
         "playwright-core": "^1.20.2",
         "prettier": "^2.5.1",
-        "rollup": "^2.18.1",
+        "rollup": "^3.2.5",
         "rollup-plugin-copy": "^3.3.0",
         "rollup-plugin-delete": "^2.0.0",
         "rollup-plugin-emit-ejs": "^3.1.0",
         "rollup-plugin-license": "^3.0.0",
         "rollup-plugin-serve": "^2.0.0",
-        "@rollup/plugin-terser": "^0.1.0",
         "selfsigned": "^2.0.0"
     },
     "dependencies": {
@@ -58,17 +58,17 @@
         "xss": "^1.0.11"
     },
     "scripts": {
-        "build": "rollup -c",
+        "build": "rollup --bundleConfigAsCjs -c",
         "i18next": "i18next",
         "format": "yarn run format:eslint && yarn run format:prettier",
         "format:eslint": "eslint \"**/*.{js,ts}\" --fix",
         "format:prettier": "prettier \"**/*.{js,json,ts}\" --write",
-        "watch": "rollup -c --watch",
+        "watch": "rollup --bundleConfigAsCjs -c --watch",
         "watch-local": "yarn run watch",
-        "watch-full": "rollup -c --watch --environment FORCE_FULL",
-        "watch-bs": "rollup -c --watch --environment APP_ENV:bs",
-        "test": "rollup -c --environment APP_ENV:test && karma start --singleRun",
-        "test-full": "rollup -c --environment FORCE_FULL,APP_ENV:test && karma start --singleRun",
+        "watch-full": "rollup --bundleConfigAsCjs -c --watch --environment FORCE_FULL",
+        "watch-bs": "rollup --bundleConfigAsCjs -c --watch --environment APP_ENV:bs",
+        "test": "rollup --bundleConfigAsCjs -c --environment APP_ENV:test && karma start --singleRun",
+        "test-full": "rollup --bundleConfigAsCjs -c --environment FORCE_FULL,APP_ENV:test && karma start --singleRun",
         "lint": "eslint .",
         "do-publish": "sed -i 's/\"private\": true/\"private\": false/' package.json && can-npm-publish --verbose 2>&1 && npm publish --access public 2>&1; sed -i 's/\"private\": false/\"private\": true/' package.json"
     }
