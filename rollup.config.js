@@ -75,6 +75,10 @@ export default (async () => {
             if (warning.code === 'CIRCULAR_DEPENDENCY' && warning.message.includes('chai')) {
                 return;
             }
+            // keycloak bundled code uses eval
+            if (warning.code === 'EVAL' && warning.id.includes('sha256.js')) {
+                return;
+            }
 
             warn(warning);
         },
