@@ -174,15 +174,7 @@ export default (async () => {
                     {
                         src: await getPackagePath('tabulator-tables', 'dist/css'),
                         dest: 'dist/' + (await getDistPath(pkg.name, 'tabulator-tables')),
-                    },
-                    {
-                        src: await getPackagePath('jspdf', 'node_modules/'),
-                        dest: 'dist/' + (await getDistPath(pkg.name, 'jspdf.min.js')),
-                    },
-                    {
-                        src: await getPackagePath('jspdf-autotable', 'node_modules/jspdf-autotable/dist/'),
-                        dest: 'dist/' + (await getDistPath(pkg.name, 'jspdf.plugin.autotable.js')),
-                    },
+                    }
                 ],
             }),
             useBabel &&
