@@ -1,10 +1,10 @@
 # Formalize activities
 
-Here you can find the individual activities of the `formalize` app. If you want to use the whole app look at [formalize](https://gitlab.tugraz.at/dbp/formalize/formalize).
+Here you can find the individual activities of the `formalize` app. If you want to use the whole app look at [formalize](https://github.com/digital-blueprint/formalize-app).
 
 ## Usage of an activity
 
-You can use every activity alone. Take a look at our examples [here](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/examples).
+You can use every activity alone. Take a look at our examples [here](https://github.com/digital-blueprint/formalize-app/tree/main/examples).
 
 ## Activities
 

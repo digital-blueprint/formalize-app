@@ -1,6 +1,6 @@
 # Formalize Application
 
-[GitLab Repository](https://gitlab.tugraz.at/dbp/formalize/formalize) |
+[GitHub Repository](https://github.com/digital-blueprint/formalize-app) |
 [npmjs package](https://www.npmjs.com/package/@dbp-topics/formalize) |
 [Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/) |
 [Formalize Bundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle)
@@ -16,7 +16,7 @@ Management of form entries that have been created via external systems.
 
 ```bash
 # get the source
-git clone git@gitlab.tugraz.at:dbp/formalize/formalize.git
+git clone git@github.com:digital-blueprint/formalize-app.git
 cd formalize
 git submodule update --init
 
@@ -53,7 +53,7 @@ Also make sure to add all of your resources you are using (like your API and Key
 `Content-Security-Policy` in your `formalize-app/public/.htaccess`, so the browser allows access to those sites.
 
 You can also use this app directly from the [Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/)
-for example like this: [dbp-formalize/index.html](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/examples/dbp-formalize/index.html)
+for example like this: [dbp-formalize/index.html](https://github.com/digital-blueprint/formalize-app/tree/main/examples/dbp-formalize/index.html)
 
 Note that you will need a Keycloak server along with a client id for the domain you are running this html on.
 
@@ -74,7 +74,7 @@ This app has the following activity:
 
 - `dbp-show-registrations`
 
-You can find the documentation of the activity in the [formalize activities documentation](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/src).
+You can find the documentation of the activity in the [formalize activities documentation](https://github.com/digital-blueprint/formalize-app/tree/main/src).
 
 ## Adapt app
 
@@ -115,7 +115,7 @@ For frontend design customizations, such as logo, colors, font, favicon, and mor
 ## "dbp-formalize" slots
 
 These are common slots for the app-shell. You can find the documentation of these slots in the [app-shell documentation](https://gitlab.tugraz.at/dbp/web-components/toolkit/-/tree/master/packages/app-shell).
-For the app specific slots take a look at the [formalize activities](https://gitlab.tugraz.at/dbp/formalize/formalize/-/tree/main/src).
+For the app specific slots take a look at the [formalize activities](https://github.com/digital-blueprint/formalize-app/tree/main/src).
 
 ## Notice
 
