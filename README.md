@@ -3,14 +3,14 @@
 [GitHub Repository](https://github.com/digital-blueprint/formalize-app) |
 [npmjs package](https://www.npmjs.com/package/@digital-blueprint/formalize-app) |
 [Unpkg CDN](https://unpkg.com/browse/@digital-blueprint/formalize-app/) |
-[Formalize Bundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle)
+[Formalize Bundle](https://github.com/digital-blueprint/relay-formalize-bundle)
 
 Management of form entries that have been created via external systems.
 
 ## Prerequisites
 
 - You need the [API server](https://gitlab.tugraz.at/dbp/relay/dbp-relay-server-template) running
-- You need the [DbpRelayFormalizeBundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle) for the API server to persist and fetch submissions
+- You need the [DbpRelayFormalizeBundle](https://github.com/digital-blueprint/relay-formalize-bundle) for the API server to persist and fetch submissions
 
 ## Local development
 
