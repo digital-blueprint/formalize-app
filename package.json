@@ -1,7 +1,7 @@
 {
     "name": "@digital-blueprint/formalize-app",
     "internalName": "dbp-formalize",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "main": "src/dbp-formalize.js",
     "license": "LGPL-2.1-or-later",
     "private": true,
