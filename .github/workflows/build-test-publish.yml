@@ -20,6 +20,10 @@ jobs:
         with:
           submodules: true
 
+      - name: Set up git config
+        run: |
+          git config --global --add safe.directory "$(pwd)"
+
       - name: Set yarn cache path
         run: |
           yarn config set cache-folder "$YARN_CACHE_PATH"
