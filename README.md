@@ -5,6 +5,8 @@
 [Unpkg CDN](https://unpkg.com/browse/@digital-blueprint/formalize-app/) |
 [Formalize Bundle](https://github.com/digital-blueprint/relay-formalize-bundle)
 
+[![Build, Test and Publish](https://github.com/digital-blueprint/formalize-app/actions/workflows/build-test-publish.yml/badge.svg)](https://github.com/digital-blueprint/formalize-app/actions/workflows/build-test-publish.yml)
+
 Management of form entries that have been created via external systems.
 
 ## Prerequisites
