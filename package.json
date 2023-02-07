@@ -1,5 +1,5 @@
 {
-    "name": "@dbp-topics/formalize",
+    "name": "@digital-blueprint/formalize-app",
     "internalName": "dbp-formalize",
     "version": "1.0.12",
     "main": "src/dbp-formalize.js",

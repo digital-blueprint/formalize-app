@@ -1,8 +1,8 @@
 # Formalize Application
 
 [GitHub Repository](https://github.com/digital-blueprint/formalize-app) |
-[npmjs package](https://www.npmjs.com/package/@dbp-topics/formalize) |
-[Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/) |
+[npmjs package](https://www.npmjs.com/package/@digital-blueprint/formalize-app) |
+[Unpkg CDN](https://unpkg.com/browse/@digital-blueprint/formalize-app/) |
 [Formalize Bundle](https://gitlab.tugraz.at/dbp/formalize/dbp-relay-formalize-bundle)
 
 Management of form entries that have been created via external systems.
@@ -52,7 +52,7 @@ Make sure you are allowing `.htaccess` files in your Apache configuration.
 Also make sure to add all of your resources you are using (like your API and Keycloak servers) to the
 `Content-Security-Policy` in your `formalize-app/public/.htaccess`, so the browser allows access to those sites.
 
-You can also use this app directly from the [Unpkg CDN](https://unpkg.com/browse/@dbp-topics/formalize/)
+You can also use this app directly from the [Unpkg CDN](https://unpkg.com/browse/@digital-blueprint/formalize-app/)
 for example like this: [dbp-formalize/index.html](https://github.com/digital-blueprint/formalize-app/tree/main/examples/dbp-formalize/index.html)
 
 Note that you will need a Keycloak server along with a client id for the domain you are running this html on.
