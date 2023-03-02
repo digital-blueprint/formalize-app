@@ -37,7 +37,7 @@ let formalizePath;
 // development path
 let devPath = 'assets_uni/';
 // deployment path
-let deplyomentPath = '../';
+let deploymentPath = '../';
 
 // set whitelabel bool according to used environment
 if (appEnv.substring(appEnv.length - 3) == "TUG" || appEnv == "demo" || appEnv == "production") {
@@ -58,9 +58,9 @@ try {
 
         // load devconfig for deployment if present
         try {
-            console.log("Loading " + "./" + deplyomentPath + "app.config.json ...");
-            devConfig = require("./" + deplyomentPath + "app.config.json");
-            formalizePath = deplyomentPath;
+            console.log("Loading " + "./" + deploymentPath + "app.config.json ...");
+            devConfig = require("./" + deploymentPath + "app.config.json");
+            formalizePath = deploymentPath;
         } catch(e) {
             if (e.code == "MODULE_NOT_FOUND") {
                 console.warn("no dev-config found, use default whitelabel config instead ...");
