@@ -6,7 +6,7 @@
     "keyCloakRealm": "",
     "keyCloakClientId": "",
     "matomoUrl": "",
-    "matomoSiteId": -1,
+    "matomoSiteId": "-1",
     "universityShortName": "Test",
     "universityFullName": "Test Environment"
   },
@@ -17,7 +17,7 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "auth-dev-mw-frontend-local",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
+    "matomoSiteId": "131",
     "universityShortName": "dbp",
     "universityFullName": "Digital Blueprint"
   },
@@ -28,7 +28,7 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "auth-dev-mw-frontend-local",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
+    "matomoSiteId": "131",
     "universityShortName": "TU Graz",
     "universityFullName": "Technische Universität Graz"
   },
@@ -39,7 +39,7 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "dbp-formalize",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
+    "matomoSiteId": "131",
     "universityShortName": "dbp",
     "universityFullName": "Digital Blueprint"
   },
@@ -50,7 +50,7 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "dbp-formalize",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
+    "matomoSiteId": "131",
     "universityShortName": "TU Graz",
     "universityFullName": "Technische Universität Graz"
   },
@@ -61,9 +61,9 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "dbp-formalize",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
-    "universityShortName": "dbp",
-    "universityFullName": "Digital Blueprint"
+    "matomoSiteId": "131",
+    "universityShortName": "TU Graz",
+    "universityFullName": "Technische Universität Graz"
   },
   "demoTUG": {
     "basePath": "/apps/formalize/",
@@ -72,7 +72,7 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "dbp-formalize",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
+    "matomoSiteId": "131",
     "universityShortName": "TU Graz",
     "universityFullName": "Technische Universität Graz"
   },
@@ -83,7 +83,7 @@
     "keyCloakRealm": "tugraz",
     "keyCloakClientId": "formulare_tugraz_at",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 177,
+    "matomoSiteId": "177",
     "universityShortName": "TU Graz",
     "universityFullName": "Technische Universität Graz"
   },
@@ -94,7 +94,7 @@
     "keyCloakRealm": "tugraz-vpu",
     "keyCloakClientId": "auth-dev-mw-frontend-local",
     "matomoUrl": "https://analytics.tugraz.at/",
-    "matomoSiteId": 131,
+    "matomoSiteId": "131",
     "universityShortName": "bs",
     "universityFullName": "BS Environment"
   }
