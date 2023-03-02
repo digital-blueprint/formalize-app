@@ -6,15 +6,15 @@
     <meta name="theme-color" content="white"/>
 
     <!-- Meta Data for Search Engines -->
-    <meta title="Elektronische Formulare | TU Graz">
+    <meta title="Elektronische Formulare | <%= universityShortName %>">
     <meta name="description" content="Verwalten Sie unterschiedliche Kursanmeldungen." />
 
     <!-- Meta Data for open graph(facebook & co) -->
     <meta property="og:locale" content="de_DE" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Elektronische Formulare | TU Graz" />
+    <meta property="og:title" content="Elektronische Formulare | <%= universityShortName %>" />
     <meta property="og:description" content="Verwalten Sie unterschiedliche Kursanmeldungen." />
-    <!-- <meta property="og:url" content="https://tugraz.at/" /> -->
+    <!-- <meta property="og:url" content="https://..." /> -->
     <meta property="og:site_name" content="Elektronische Formulare" />
 
     <!-- Favicons -->
@@ -28,10 +28,10 @@
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-status-bar-style" content="white">
 
-    <!-- Loading spinner -->
+    <!--Loading spinner -->
     <script type="module">
-        import {Spinner} from '<%= getPrivateUrl('tug_spinner.js') %>';
-        customElements.define('tug-spinner', Spinner);
+        import {Spinner} from '<%= getPrivateUrl('org_spinner.js') %>';
+        customElements.define('org-spinner', Spinner);
     </script>
 
     <!-- App bundles-->
@@ -60,32 +60,6 @@
             justify-content: center;
             align-items: center;
         }
-
-        /* TU-Graz style override */
-        .light-theme {
-            --dbp-override-background: white;
-            --dbp-override-content: black;
-
-            --dbp-override-primary: #245b78;
-            --dbp-override-secondary: black;
-            --dbp-override-secondary-surface: white;
-            --dbp-override-on-secondary-surface: black;
-            --dbp-override-secondary-surface-border-color: black;
-
-            --dbp-override-muted: #5c5856;
-            --dbp-override-accent: #e4154b;
-            --dbp-override-info: #245b78;
-            --dbp-override-success: #138800;
-            --dbp-override-warning: #af6405;
-            --dbp-override-warning-surface: #ffad4d;
-            --dbp-override-warning-surface-border-color: #ffad4d;
-            --dbp-override-on-warning-surface: black;
-            --dbp-override-danger: #e4154b;
-
-            --dbp-override-border: 1px solid black;
-
-            --dbp-override-image-nextcloud: url(<%= getUrl('') %>images/nextcloud.svg);
-        }
     </style>
 
     <!-- Preloading/Preconnecting -->
@@ -108,69 +82,7 @@
     build-time='<%= buildInfo.time %>'
     env='<%= buildInfo.env %>'
     themes='[{"class": "light-theme", "icon": "sun", "name": "Light Mode"}]'
-><tug-spinner id='spinner'></tug-spinner>
-<template slot="name">
-    TU Graz<br />
-    <dbp-translated subscribe="lang">
-        <div slot="de">
-            Technische Universität Graz
-        </div>
-        <div slot="en">
-            Graz University of Technology
-        </div>
-    </dbp-translated>
-</template>
-<template slot="logo">
-    <style>
-        #main-logo {
-            padding: 0 50px 0 0;
-        }
-    </style>
-    <a href="https://www.tugraz.at" title="TU Graz Home" target="_blank" rel="noopener">
-        <tug-logo id="main-logo" subscribe="lang"></tug-logo>
-    </a>
-</template>
-<template slot="footer-links">
-    <style>
-        .footer-links {
-            margin-top: 0.5em;
-        }
-
-        .footer-links a {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-            padding: 0;
-            margin-left: 1em;
-            transition: background-color 0.15s ease 0s, color 0.15s ease 0s;
-            color: var(--dbp-muted);
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-
-        input::-moz-focus-inner { border: 0; }
-
-        :focus-visible{
-            outline:none !important;
-            outline-width: 0 !important;
-            box-shadow: none;
-            -moz-box-shadow: none;
-            -webkit-box-shadow: none;
-            box-shadow: 0px 0px 4px 2px var(--dbp-accent);
-        }
-    </style>
-    <dbp-translated subscribe="lang">
-        <div slot="de" class="footer-links">
-            <a target="_blank" rel="noopener" href="https://www.tugraz.at/ueber-diese-seite/datenschutzerklaerung/">Datenschutz</a>
-            <a target="_blank" rel="noopener" href="https://www.tugraz.at/ueber-diese-seite/impressum/">Impressum</a>
-            <a rel="noopener" href="mailto:it-support@tugraz.at">Kontakt</a>
-        </div>
-        <div slot="en" class="footer-links">
-            <a target="_blank" rel="noopener" href="https://www.tugraz.at/en/about-this-page/privacy-policy/">Privacy Policy</a>
-            <a target="_blank" rel="noopener" href="https://www.tugraz.at/en/about-this-page/legal-notice/">Legal Notice</a>
-            <a rel="noopener" href="mailto:it-support@tugraz.at">Contact</a>
-        </div>
-    </dbp-translated>
-</template>
+><org-spinner id='spinner'></org-spinner>
 </<%= name %>>
 
 

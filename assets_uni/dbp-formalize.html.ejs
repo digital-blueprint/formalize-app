@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="white"/>
+
+    <!-- Meta Data for Search Engines -->
+    <meta title="Elektronische Formulare | <%= universityShortName %>">
+    <meta name="description" content="Verwalten Sie unterschiedliche Kursanmeldungen." />
+
+    <!-- Meta Data for open graph(facebook & co) -->
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Elektronische Formulare | <%= universityShortName %>" />
+    <meta property="og:description" content="Verwalten Sie unterschiedliche Kursanmeldungen." />
+    <!-- <meta property="og:url" content="https://tugraz.at/" /> -->
+    <meta property="og:site_name" content="Elektronische Formulare" />
+
+    <!-- Favicons -->
+    <link rel="shortcut icon" type="image/x-icon" href="<%= getPrivateUrl('icon/favicon.ico') %>">
+    <link rel="icon" type="image/svg+xml" href="<%= getPrivateUrl('icon/favicon.svg') %>">
+    <link rel="apple-touch-icon" sizes="180x180" href="<%= getPrivateUrl('icon/apple-touch-icon.png') %>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<%= getPrivateUrl('icon/favicon-32x32.png') %>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<%= getPrivateUrl('icon/favicon-16x16.png') %>">
+    <link rel="manifest" href="<%= getUrl(name + '.webmanifest') %>">
+    <link rel="mask-icon" href="<%= getPrivateUrl('icon/safari-pinned-tab.svg') %>" color="#e4154b">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-status-bar-style" content="white">
+
+    <!-- Loading spinner -->
+    <script type="module">
+        import {Spinner} from '<%= getPrivateUrl('tug_spinner.js') %>';
+        customElements.define('tug-spinner', Spinner);
+    </script>
+
+    <!-- App bundles-->
+    <script type="module">
+        import '<%= getUrl(name + '.js') %>';
+        import {Logo} from '<%= getUrl('logo.js') %>';
+        customElements.define('tug-logo', Logo);
+    </script>
+
+    <!-- App bundles-->
+    <script type="module" src="<%= getUrl(name + '.js') %>"></script>
+
+    <!-- Prevent Chrome/Edge from suggesting to translate the page -->
+    <meta name="google" content="notranslate">
+
+    <!-- Font related CSS -->
+    <style>
+        @import "<%= getPrivateUrl('fonts/source-sans-pro/300.css') %>";
+        @import "<%= getPrivateUrl('fonts/source-sans-pro/400.css') %>";
+        @import "<%= getPrivateUrl('fonts/source-sans-pro/600.css') %>";
+
+        body {
+            font-family: 'Source Sans Pro', 'Calibri', 'Arial', 'sans-serif';
+            font-weight: 300;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        #spinner{
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* TU-Graz style override */
+        .light-theme {
+            --dbp-override-background: white;
+            --dbp-override-content: black;
+
+            --dbp-override-primary: #245b78;
+            --dbp-override-secondary: black;
+            --dbp-override-secondary-surface: white;
+            --dbp-override-on-secondary-surface: black;
+            --dbp-override-secondary-surface-border-color: black;
+
+            --dbp-override-muted: #5c5856;
+            --dbp-override-accent: #e4154b;
+            --dbp-override-info: #245b78;
+            --dbp-override-success: #138800;
+            --dbp-override-warning: #af6405;
+            --dbp-override-warning-surface: #ffad4d;
+            --dbp-override-warning-surface-border-color: #ffad4d;
+            --dbp-override-on-warning-surface: black;
+            --dbp-override-danger: #e4154b;
+
+            --dbp-override-border: 1px solid black;
+
+            --dbp-override-image-nextcloud: url(<%= getUrl('') %>images/nextcloud.svg);
+        }
+    </style>
+
+    <!-- Preloading/Preconnecting -->
+    <link rel="preconnect" href="<%= entryPointURL %>">
+    <link rel="preconnect" href="<%= keyCloakBaseURL %>">
+</head>
+
+<body>
+<<%= name %>
+    provider-root
+    lang="de"
+    entry-point-url="<%= entryPointURL %>"
+    src="<%= getUrl(name + '.topic.metadata.json') %>"
+    base-path="<%= getUrl('') %>"
+    keycloak-config='{"url": "<%= keyCloakBaseURL %>", "realm": "<%= keyCloakRealm %>", "clientId": "<%= keyCloakClientId %>", "silentCheckSsoRedirectUri": "<%= getUrl('silent-check-sso.html') %>"}'
+    matomo-url="<%= matomoUrl %>"
+    matomo-site-id="<%= matomoSiteId %>"
+    git-info='<%= buildInfo.info %>'
+    build-url='<%= buildInfo.url %>'
+    build-time='<%= buildInfo.time %>'
+    env='<%= buildInfo.env %>'
+    themes='[{"class": "light-theme", "icon": "sun", "name": "Light Mode"}]'
+><tug-spinner id='spinner'></tug-spinner>
+<template slot="name">
+    TU Graz<br />
+    <dbp-translated subscribe="lang">
+        <div slot="de">
+            Technische Universität Graz
+        </div>
+        <div slot="en">
+            Graz University of Technology
+        </div>
+    </dbp-translated>
+</template>
+<template slot="logo">
+    <style>
+        #main-logo {
+            padding: 0 50px 0 0;
+        }
+    </style>
+    <a href="https://www.tugraz.at" title="TU Graz Home" target="_blank" rel="noopener">
+        <tug-logo id="main-logo" subscribe="lang"></tug-logo>
+    </a>
+</template>
+<template slot="footer-links">
+    <style>
+        .footer-links {
+            margin-top: 0.5em;
+        }
+
+        .footer-links a {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+            padding: 0;
+            margin-left: 1em;
+            transition: background-color 0.15s ease 0s, color 0.15s ease 0s;
+            color: var(--dbp-muted);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+
+        input::-moz-focus-inner { border: 0; }
+
+        :focus-visible{
+            outline:none !important;
+            outline-width: 0 !important;
+            box-shadow: none;
+            -moz-box-shadow: none;
+            -webkit-box-shadow: none;
+            box-shadow: 0px 0px 4px 2px var(--dbp-accent);
+        }
+    </style>
+    <dbp-translated subscribe="lang">
+        <div slot="de" class="footer-links">
+            <a target="_blank" rel="noopener" href="https://www.tugraz.at/ueber-diese-seite/datenschutzerklaerung/">Datenschutz</a>
+            <a target="_blank" rel="noopener" href="https://www.tugraz.at/ueber-diese-seite/impressum/">Impressum</a>
+            <a rel="noopener" href="mailto:it-support@tugraz.at">Kontakt</a>
+        </div>
+        <div slot="en" class="footer-links">
+            <a target="_blank" rel="noopener" href="https://www.tugraz.at/en/about-this-page/privacy-policy/">Privacy Policy</a>
+            <a target="_blank" rel="noopener" href="https://www.tugraz.at/en/about-this-page/legal-notice/">Legal Notice</a>
+            <a rel="noopener" href="mailto:it-support@tugraz.at">Contact</a>
+        </div>
+    </dbp-translated>
+</template>
+</<%= name %>>
+
+
+<!-- Error handling for too old browsers -->
+<script src="<%= getPrivateUrl('browser-check.js') %>" defer></script>
+<noscript>Diese Applikation benötigt Javascript / This application requires Javascript</noscript>
+</body>
+</html>
