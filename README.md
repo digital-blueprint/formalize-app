@@ -19,7 +19,7 @@ Management of form entries that have been created via external systems.
 ```bash
 # get the source
 git clone git@github.com:digital-blueprint/formalize-app.git
-cd formalize
+cd formalize-app
 git submodule update --init
 
 # install dependencies

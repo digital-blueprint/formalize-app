@@ -11,7 +11,6 @@ import urlPlugin from '@rollup/plugin-url';
 import license from 'rollup-plugin-license';
 import del from 'rollup-plugin-delete';
 import emitEJS from 'rollup-plugin-emit-ejs';
-import appConfig from './app.config.js';
 import {getBabelOutputPlugin} from '@rollup/plugin-babel';
 import {
     getPackagePath,
@@ -31,11 +30,71 @@ let checkLicenses = buildFull;
 let treeshake = buildFull;
 let useHTTPS = true;
 
-let config;
-if (appEnv in appConfig) {
-    config = appConfig[appEnv];
+// if true, app assets and configs are whitelabel
+let whitelabel;
+// path to non whitelabel assets and configs
+let formalizePath;
+// development path
+let devPath = 'assets_uni/';
+// deployment path
+let deploymentPath = '../';
+
+// set whitelabel bool according to used environment
+if (appEnv.substring(appEnv.length - 3) == "TUG" || appEnv == "demo" || appEnv == "production") {
+    whitelabel = false;
 } else {
-    console.error(`Unknown build environment: '${appEnv}', use one of '${Object.keys(appConfig)}'`);
+    whitelabel = true;
+}
+
+// load devconfig for local development if present
+let devConfig;
+try {
+    console.log("Loading " + "./" + devPath + "app.config.json ...");
+    devConfig = require("./" + devPath + "app.config.json");
+    formalizePath = devPath;
+} catch(e) {
+    if (e.code == "MODULE_NOT_FOUND") {
+        console.warn("no dev-config found, try deployment config instead ...");
+
+        // load devconfig for deployment if present
+        try {
+            console.log("Loading " + "./" + deploymentPath + "app.config.json ...");
+            devConfig = require("./" + deploymentPath + "app.config.json");
+            formalizePath = deploymentPath;
+        } catch(e) {
+            if (e.code == "MODULE_NOT_FOUND") {
+                console.warn("no dev-config found, use default whitelabel config instead ...");
+            } else {
+                throw e;
+            }
+        }
+    } else {
+        throw e;
+    }
+}
+
+// decide on which configs to use
+let config;
+if ((devConfig != undefined && appEnv in devConfig)) {
+    // choose devConfig if available
+    if (devConfig != undefined && appEnv in devConfig) {
+        config = devConfig[appEnv];
+    }
+} else if (appEnv === 'test') {
+    config = {
+        basePath: '/',
+        entryPointURL: 'https://test',
+        keyCloakBaseURL: 'https://test',
+        keyCloakClientId: '',
+        keyCloakRealm: '',
+        matomoUrl: '',
+        matomoSiteId: -1,
+        searchQRString: '',
+        universityShortName: 'Test',
+        universityFullName: 'Test Environment',
+    };
+} else {
+    console.error(`Unknown build environment: '${appEnv}', use one of '${Object.keys(devConfig)}'`);
     process.exit(1);
 }
 
@@ -59,7 +118,12 @@ export default (async () => {
     return {
         input:
             appEnv != 'test'
-                ? ['src/' + appName + '.js', 'src/dbp-formalize-show-registrations.js']
+                ?
+                [
+                    'src/' + appName + '.js',
+                    'src/dbp-formalize-show-registrations.js',
+                    await getPackagePath('@tugraz/web-components', 'src/logo.js')
+                ]
                 : glob.sync('test/**/*.js'),
         output: {
             dir: 'dist',
@@ -69,7 +133,7 @@ export default (async () => {
             sourcemap: true,
         },
         treeshake: treeshake,
-        preserveEntrySignatures: false,
+        //preserveEntrySignatures: false,
         onwarn: function (warning, warn) {
             // ignore chai warnings
             if (warning.code === 'CIRCULAR_DEPENDENCY' && warning.message.includes('chai')) {
@@ -86,6 +150,32 @@ export default (async () => {
             del({
                 targets: 'dist/*',
             }),
+            !whitelabel &&
+            emitEJS({
+                src: formalizePath,
+                include: ['**/*.ejs', '**/.*.ejs'],
+                data: {
+                    getUrl: (p) => {
+                        return url.resolve(config.basePath, p);
+                    },
+                    getPrivateUrl: (p) => {
+                        return url.resolve(`${config.basePath}${privatePath}/`, p);
+                    },
+                    name: appName,
+                    entryPointURL: config.entryPointURL,
+                    basePath: config.basePath,
+                    keyCloakBaseURL: config.keyCloakBaseURL,
+                    keyCloakRealm: config.keyCloakRealm,
+                    keyCloakClientId: config.keyCloakClientId,
+                    CSP: config.CSP,
+                    matomoUrl: config.matomoUrl,
+                    matomoSiteId: config.matomoSiteId,
+                    buildInfo: getBuildInfo(appEnv),
+                    universityShortName: config.universityShortName,
+                    universityFullName: config.universityFullName
+                },
+            }),
+            whitelabel &&
             emitEJS({
                 src: 'assets',
                 include: ['**/*.ejs', '**/.*.ejs'],
@@ -106,6 +196,8 @@ export default (async () => {
                     matomoUrl: config.matomoUrl,
                     matomoSiteId: config.matomoSiteId,
                     buildInfo: getBuildInfo(appEnv),
+                    universityShortName: config.universityShortName,
+                    universityFullName: config.universityFullName
                 },
             }),
             resolve({
@@ -141,6 +233,44 @@ export default (async () => {
                 emitFiles: true,
                 fileName: 'shared/[name].[hash][extname]',
             }),
+            !whitelabel &&
+            copy({
+                targets: [
+                    {src: formalizePath + 'silent-check-sso.html', dest: 'dist'},
+                    {src: formalizePath + 'htaccess-shared', dest: 'dist/shared/', rename: '.htaccess'},
+                    {src: formalizePath + '*.css', dest: 'dist/' + (await getDistPath(pkg.name))},
+                    {src: formalizePath + '*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
+                    {src: formalizePath + 'icon/*', dest: 'dist/' + (await getDistPath(pkg.name, 'icon'))},
+                    {src: formalizePath + '*.metadata.json', dest: 'dist'},
+                    {src: formalizePath + 'site.webmanifest', dest: 'dist', rename: pkg.internalName + '.webmanifest'},
+                    {
+                        src: await getPackagePath('@tugraz/font-source-sans-pro', 'files/*'),
+                        dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/source-sans-pro')),
+                    },
+                    {
+                        src: await getPackagePath('@tugraz/web-components', 'src/spinner.js'),
+                        dest: 'dist/' + (await getDistPath(pkg.name)), rename: 'tug_spinner.js'
+                    },
+                    {
+                        src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
+                        dest: 'dist/' + (await getDistPath(pkg.name)),
+                    },
+                    {
+                        src: await getPackagePath('@dbp-toolkit/common', 'misc/browser-check.js'),
+                        dest: 'dist/' + (await getDistPath(pkg.name)),
+                    },
+                    {src: formalizePath + '*.metadata.json', dest: 'dist'},
+                    {
+                        src: await getPackagePath('@dbp-toolkit/common', 'assets/icons/*.svg'),
+                        dest: 'dist/' + (await getDistPath('@dbp-toolkit/common', 'icons')),
+                    },
+                    {
+                        src: await getPackagePath('tabulator-tables', 'dist/css'),
+                        dest: 'dist/' + (await getDistPath(pkg.name, 'tabulator-tables')),
+                    }
+                ],
+            }),
+            whitelabel &&
             copy({
                 targets: [
                     {src: 'assets/silent-check-sso.html', dest: 'dist'},
@@ -155,8 +285,8 @@ export default (async () => {
                         dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/source-sans-pro')),
                     },
                     {
-                        src: await getPackagePath('@tugraz/web-components', 'src/spinner.js'),
-                        dest: 'dist/' + (await getDistPath(pkg.name)), rename: 'tug_spinner.js'
+                        src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
+                        dest: 'dist/' + (await getDistPath(pkg.name)), rename: 'org_spinner.js'
                     },
                     {
                         src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),

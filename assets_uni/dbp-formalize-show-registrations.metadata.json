@@ -1,0 +1,18 @@
+{
+    "element": "dbp-formalize-show-registrations",
+    "module_src": "dbp-formalize-show-registrations.js",
+    "routing_name": "show-registrations",
+    "name": {
+        "de": "Kursanmeldungen anzeigen",
+        "en": "Show course registrations"
+    },
+    "short_name": {
+        "de": "Kursanmeldungen anzeigen",
+        "en": "Show course registrations"
+    },
+    "description": {
+        "de": "Zeigt eine Liste aller verfügbaren Kursanmeldungen.",
+        "en": "Shows a list of all available course submissions."
+    },
+    "subscribe": "lang,entry-point-url,auth,html-overrides"
+}
