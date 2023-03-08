@@ -35,7 +35,7 @@ let whitelabel;
 // path to non whitelabel assets and configs
 let formalizePath;
 // development path
-let devPath = 'assets_uni/';
+let devPath = 'assets_local/';
 // deployment path
 let deploymentPath = '../';
 
