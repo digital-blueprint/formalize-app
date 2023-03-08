@@ -21,7 +21,7 @@
     "universityShortName": "dbp",
     "universityFullName": "Digital Blueprint"
   },
-  "localTUG": {
+  "localCustom": {
     "basePath": "/dist/",
     "entryPointURL": "http://127.0.0.1:8000",
     "keyCloakBaseURL": "https://auth-dev.tugraz.at/auth",
@@ -43,7 +43,7 @@
     "universityShortName": "dbp",
     "universityFullName": "Digital Blueprint"
   },
-  "developmentTUG": {
+  "developmentCustom": {
     "basePath": "/tugapps/formalize/",
     "entryPointURL": "https://api-dev.tugraz.at",
     "keyCloakBaseURL": "https://auth-dev.tugraz.at/auth",
@@ -65,7 +65,7 @@
     "universityShortName": "TU Graz",
     "universityFullName": "Technische Universität Graz"
   },
-  "demoTUG": {
+  "demoCustom": {
     "basePath": "/tugapps/formalize/",
     "entryPointURL": "https://api-demo.tugraz.at",
     "keyCloakBaseURL": "https://auth-demo.tugraz.at/auth",

@@ -40,7 +40,7 @@ let devPath = 'assets_uni/';
 let deploymentPath = '../';
 
 // set whitelabel bool according to used environment
-if (appEnv.substring(appEnv.length - 3) == "TUG" || appEnv == "demo" || appEnv == "production") {
+if ((appEnv.length > 6 && appEnv.substring(appEnv.length - 6) == "Custom") || appEnv == "demo" || appEnv == "production") {
     whitelabel = false;
 } else {
     whitelabel = true;
@@ -118,12 +118,17 @@ export default (async () => {
     return {
         input:
             appEnv != 'test'
-                ?
-                [
-                    'src/' + appName + '.js',
-                    'src/dbp-formalize-show-registrations.js',
-                    await getPackagePath('@tugraz/web-components', 'src/logo.js')
-                ]
+                ? (appEnv.length > 6 && appEnv.substring(appEnv.length - 6) == "Custom") ?
+                    [
+                        'src/' + appName + '.js',
+                        'src/dbp-formalize-show-registrations.js',
+                        await getPackagePath('@tugraz/web-components', 'src/logo.js')
+                    ]
+                    :
+                    [
+                        'src/' + appName + '.js',
+                        'src/dbp-formalize-show-registrations.js'
+                    ]
                 : globSync('test/**/*.js'),
         output: {
             dir: 'dist',
