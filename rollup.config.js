@@ -33,7 +33,7 @@ let useHTTPS = true;
 // if true, app assets and configs are whitelabel
 let whitelabel;
 // path to non whitelabel assets and configs
-let formalizePath;
+let customAssetsPath;
 // development path
 let devPath = 'assets_local/';
 // deployment path
@@ -51,7 +51,7 @@ let devConfig = require("./app.config.json");
 try {
     console.log("Loading " + "./" + devPath + "app.config.json ...");
     devConfig = require("./" + devPath + "app.config.json");
-    formalizePath = devPath;
+    customAssetsPath = devPath;
 } catch(e) {
     if (e.code == "MODULE_NOT_FOUND") {
         console.warn("no dev-config found, try deployment config instead ...");
@@ -60,7 +60,7 @@ try {
         try {
             console.log("Loading " + "./" + deploymentPath + "app.config.json ...");
             devConfig = require("./" + deploymentPath + "app.config.json");
-            formalizePath = deploymentPath;
+            customAssetsPath = deploymentPath;
         } catch(e) {
             if (e.code == "MODULE_NOT_FOUND") {
                 console.warn("no dev-config found, use default whitelabel config instead ...");
@@ -157,7 +157,7 @@ export default (async () => {
             }),
             !whitelabel &&
             emitEJS({
-                src: formalizePath,
+                src: customAssetsPath,
                 include: ['**/*.ejs', '**/.*.ejs'],
                 data: {
                     getUrl: (p) => {
@@ -241,13 +241,13 @@ export default (async () => {
             !whitelabel &&
             copy({
                 targets: [
-                    {src: formalizePath + 'silent-check-sso.html', dest: 'dist'},
-                    {src: formalizePath + 'htaccess-shared', dest: 'dist/shared/', rename: '.htaccess'},
-                    {src: formalizePath + '*.css', dest: 'dist/' + (await getDistPath(pkg.name))},
-                    {src: formalizePath + '*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
-                    {src: formalizePath + 'icon/*', dest: 'dist/' + (await getDistPath(pkg.name, 'icon'))},
-                    {src: formalizePath + '*.metadata.json', dest: 'dist'},
-                    {src: formalizePath + 'site.webmanifest', dest: 'dist', rename: pkg.internalName + '.webmanifest'},
+                    {src: customAssetsPath + 'silent-check-sso.html', dest: 'dist'},
+                    {src: customAssetsPath + 'htaccess-shared', dest: 'dist/shared/', rename: '.htaccess'},
+                    {src: customAssetsPath + '*.css', dest: 'dist/' + (await getDistPath(pkg.name))},
+                    {src: customAssetsPath + '*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
+                    {src: customAssetsPath + 'icon/*', dest: 'dist/' + (await getDistPath(pkg.name, 'icon'))},
+                    {src: customAssetsPath + '*.metadata.json', dest: 'dist'},
+                    {src: customAssetsPath + 'site.webmanifest', dest: 'dist', rename: pkg.internalName + '.webmanifest'},
                     {
                         src: await getPackagePath('@tugraz/font-source-sans-pro', 'files/*'),
                         dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/source-sans-pro')),
@@ -264,7 +264,7 @@ export default (async () => {
                         src: await getPackagePath('@dbp-toolkit/common', 'misc/browser-check.js'),
                         dest: 'dist/' + (await getDistPath(pkg.name)),
                     },
-                    {src: formalizePath + '*.metadata.json', dest: 'dist'},
+                    {src: customAssetsPath + '*.metadata.json', dest: 'dist'},
                     {
                         src: await getPackagePath('@dbp-toolkit/common', 'assets/icons/*.svg'),
                         dest: 'dist/' + (await getDistPath('@dbp-toolkit/common', 'icons')),
@@ -286,8 +286,8 @@ export default (async () => {
                     {src: 'src/*.metadata.json', dest: 'dist'},
                     {src: 'assets/site.webmanifest', dest: 'dist', rename: pkg.internalName + '.webmanifest'},
                     {
-                        src: await getPackagePath('@tugraz/font-source-sans-pro', 'files/*'),
-                        dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/source-sans-pro')),
+                        src: await getPackagePath('@fontsource/nunito-sans', '*'),
+                        dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/nunito-sans')),
                     },
                     {
                         src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
