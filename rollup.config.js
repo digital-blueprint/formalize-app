@@ -47,7 +47,7 @@ if ((appEnv.length > 6 && appEnv.substring(appEnv.length - 6) == "Custom") || ap
 }
 
 // load devconfig for local development if present
-let devConfig;
+let devConfig = require("./app.config.json");
 try {
     console.log("Loading " + "./" + devPath + "app.config.json ...");
     devConfig = require("./" + devPath + "app.config.json");
