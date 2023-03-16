@@ -62,8 +62,8 @@
     "keyCloakClientId": "dbp-formalize",
     "matomoUrl": "https://analytics.tugraz.at/",
     "matomoSiteId": "131",
-    "universityShortName": "TU Graz",
-    "universityFullName": "Technische Universität Graz"
+    "universityShortName": "dbp",
+    "universityFullName": "Digital Blueprint"
   },
   "demoCustom": {
     "basePath": "/tugapps/formalize/",
