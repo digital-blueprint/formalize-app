@@ -8,6 +8,10 @@
     "workspaces": [
         "vendor/toolkit/packages/*"
     ],
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=7.0.0"
+    },
     "devDependencies": {
         "@babel/core": "^7.10.3",
         "@babel/preset-env": "^7.10.3",
@@ -63,7 +67,7 @@
         "build-wl": "rollup --bundleConfigAsCjs -c",
         "build-custom": "rollup --bundleConfigAsCjs -c --environment APP_ENV:localCustom",
         "i18next": "i18next",
-        "format": "yarn run format:eslint && yarn run format:prettier",
+        "format": "npm run format:eslint && npm run format:prettier",
         "format:eslint": "eslint \"**/*.{js,ts}\" --fix",
         "format:prettier": "prettier \"**/*.{js,json,ts}\" --write",
         "watch": "rollup --bundleConfigAsCjs -c --watch",
