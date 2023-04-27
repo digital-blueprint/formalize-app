@@ -77,9 +77,7 @@ try {
 let config;
 if ((devConfig != undefined && appEnv in devConfig)) {
     // choose devConfig if available
-    if (devConfig != undefined && appEnv in devConfig) {
-        config = devConfig[appEnv];
-    }
+    config = devConfig[appEnv];
 } else if (appEnv === 'test') {
     config = {
         basePath: '/',
@@ -118,7 +116,7 @@ export default (async () => {
     return {
         input:
             appEnv != 'test'
-                ? (appEnv.length > 6 && appEnv.substring(appEnv.length - 6) == "Custom") ?
+                ? !whitelabel ?
                     [
                         'src/' + appName + '.js',
                         'src/dbp-formalize-show-registrations.js',
