@@ -107,7 +107,7 @@
     entry-point-url="<%= entryPointURL %>"
     src="<%= getUrl(name + '.topic.metadata.json') %>"
     base-path="<%= getUrl('') %>"
-    keycloak-config='{"url": "<%= keyCloakBaseURL %>", "realm": "<%= keyCloakRealm %>", "clientId": "<%= keyCloakClientId %>", "silentCheckSsoRedirectUri": "<%= getUrl('silent-check-sso.html') %>"}'
+    keycloak-config='{"url": "<%= keyCloakBaseURL %>", "realm": "<%= keyCloakRealm %>", "clientId": "<%= keyCloakClientId %>", "noCheckLoginIframe": true}'
     matomo-url="<%= matomoUrl %>"
     matomo-site-id="<%= matomoSiteId %>"
     git-info='<%= buildInfo.info %>'
