@@ -5,5 +5,11 @@
     "lockFileMaintenance": {
         "enabled": true
     },
-    "cloneSubmodules": true
+    "cloneSubmodules": true,
+    "packageRules": [
+        {
+          "matchPackageNames": ["@open-wc/scoped-elements"],
+          "allowedVersions": "<3"
+        }
+    ]
 }
