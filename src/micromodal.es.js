@@ -321,37 +321,43 @@ var MicroModal = (function () {
             {
                 key: 'retainFocus',
                 value: function retainFocus(event) {
-                    var focusableNodes = this.getFocusableNodes(); // no focusable nodes
+                    // Focus retention doesn't work in web-components because document.activeElement can't look into them!
+                    // By disabling below code, we can still use the modal in web-components with tabs,
+                    // but the focus will jump out of the modal after the last element was reached.
+                    // See https://gitlab.tugraz.at/dbp/dispatch/dispatch/-/issues/3#note_152717
+                    return;
 
-                    if (focusableNodes.length === 0) return;
-                    /**
-                     * Filters nodes which are hidden to prevent
-                     * focus leak outside modal
-                     */
+                    // var focusableNodes = this.getFocusableNodes(); // no focusable nodes
 
-                    focusableNodes = focusableNodes.filter(function (node) {
-                        return node.offsetParent !== null;
-                    }); // if disableFocus is true
+                    // if (focusableNodes.length === 0) return;
+                    // /**
+                    //  * Filters nodes which are hidden to prevent
+                    //  * focus leak outside modal
+                    //  */
 
-                    if (!this.modal.contains(document.activeElement)) {
-                        focusableNodes[0].focus();
-                    } else {
-                        var focusedItemIndex = focusableNodes.indexOf(document.activeElement);
+                    // focusableNodes = focusableNodes.filter(function (node) {
+                    //     return node.offsetParent !== null;
+                    // }); // if disableFocus is true
 
-                        if (event.shiftKey && focusedItemIndex === 0) {
-                            focusableNodes[focusableNodes.length - 1].focus();
-                            event.preventDefault();
-                        }
+                    // if (!this.modal.contains(document.activeElement)) {
+                    //     focusableNodes[0].focus();
+                    // } else {
+                    //     var focusedItemIndex = focusableNodes.indexOf(document.activeElement);
 
-                        if (
-                            !event.shiftKey &&
-                            focusableNodes.length > 0 &&
-                            focusedItemIndex === focusableNodes.length - 1
-                        ) {
-                            focusableNodes[0].focus();
-                            event.preventDefault();
-                        }
-                    }
+                    //     if (event.shiftKey && focusedItemIndex === 0) {
+                    //         focusableNodes[focusableNodes.length - 1].focus();
+                    //         event.preventDefault();
+                    //     }
+
+                    //     if (
+                    //         !event.shiftKey &&
+                    //         focusableNodes.length > 0 &&
+                    //         focusedItemIndex === focusableNodes.length - 1
+                    //     ) {
+                    //         focusableNodes[0].focus();
+                    //         event.preventDefault();
+                    //     }
+                    // }
                 },
             },
         ]);
