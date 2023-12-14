@@ -605,7 +605,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         };
 
-        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions', options);
+        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?perPage=10000', options);
         return response;
     }
 
