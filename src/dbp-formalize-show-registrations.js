@@ -7,7 +7,8 @@ import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
-import {TabulatorFull as Tabulator} from 'tabulator-tables';
+//import {TabulatorFull as Tabulator} from 'tabulator-tables';
+import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
@@ -84,7 +85,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return {
             'dbp-icon': Icon,
             'dbp-mini-spinner': MiniSpinner,
-            'dbp-loading-button': LoadingButton
+            'dbp-loading-button': LoadingButton,
+            'dbp-tabulator-table': TabulatorTable,
         };
     }
 
@@ -146,7 +148,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.updateComplete.then(() => {
             const that = this;
             // see: http://tabulator.info/docs/5.1
-            this.coursesTable = new Tabulator(this._('#courses-table'), {
+            /*this.coursesTable = new Tabulator(this._('#courses-table'), {
                 layout: 'fitColumns',
                 selectable: false,
                 placeholder: i18n.t('show-registrations.no-data'),
@@ -218,7 +220,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         }
                     }
                 }
-            });
+            });*/
 
             const actionsButtons = (cell, formatterParams) => {
                 let id = cell.getData()['id'];
@@ -248,7 +250,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             let paginationElement = this._('.tabulator-paginator');
 
-            this.submissionsTable = new Tabulator(this._('#submissions-table'), {
+            /*this.submissionsTable = new Tabulator(this._('#submissions-table'), {
                 layout: 'fitDataFill',
                 selectable: true,
                 selectablePersistence: false,
@@ -336,7 +338,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         download: false
                     }
                 ]
-            });
+            });*/
 
             this.submissionsTable.on('dataProcessed', this.dataProcessedSubmissionTableFunction.bind(this));
             this.submissionsTable.on("pageLoaded", function(pageno){
@@ -2162,6 +2164,28 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     render() {
         const i18n = this._i18n;
+        let data = [
+            {id: 1, name: 'Oli Bob', age: '12', col: 'red', dob: ''},
+            {id: 2, name: 'Mary May', age: '1', col: 'blue', dob: '14/05/1982'},
+            {id: 3, name: 'Christine Lobowski', age: '42', col: 'green', dob: '22/05/1982'},
+            {id: 4, name: 'Brendon Philips', age: '95', col: 'orange', dob: '01/08/1980'},
+            {id: 5, name: 'Margret Marmajuke', age: '16', col: 'yellow', dob: '31/01/1999'},
+        ];
+
+        let options = {
+            layout: 'fitColumns',
+            columns: [
+                {title: 'Name', field: 'name', width: 150},
+                {title: 'Age', field: 'age', hozAlign: 'left', formatter: 'progress'},
+                {title: 'Favourite Color', field: 'col'},
+                {title: 'Date Of Birth', field: 'dob', sorter: 'date', hozAlign: 'center'},
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
         const tabulatorCss = commonUtils.getAssetURL(
             pkgName,
             'tabulator-tables/css/tabulator.min.css'
@@ -2174,7 +2198,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         return html`
-            <link rel='stylesheet' href='${tabulatorCss}' />
+            <div class="container">
+                <h3 class="demo-sub-title">Tabulator table - basic</h3>
+                <dbp-tabulator-table
+                        lang="${this.lang}"
+                        class="tabulator-table-demo"
+                        id="tabulator-table-demo-1"
+                        data=${JSON.stringify(data)}
+                        options=${JSON.stringify(options)}></dbp-tabulator-table>
+            </div>
+            <!---<link rel='stylesheet' href='${tabulatorCss}' />
             <div class='notification is-warning ${classMap({hidden: this.isLoggedIn() || this.isLoading()})}'>
                 ${i18n.t('error-login-message')}
             </div>
@@ -2543,7 +2576,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </footer>
                     </div>
                 </div>
-            </div>
+            </div>-->
         `;
     }
 }
