@@ -8,6 +8,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {TabulatorFull as Tabulator} from 'tabulator-tables';
+import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
@@ -50,6 +51,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.entryPointUrl = '';
         this.activity = new Activity(metadata);
         this.coursesTable = null;
+        this.forms = null;
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
         this.submissionsColumnsInitial = [];
@@ -84,7 +86,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return {
             'dbp-icon': Icon,
             'dbp-mini-spinner': MiniSpinner,
-            'dbp-loading-button': LoadingButton
+            'dbp-loading-button': LoadingButton,
+            'dbp-tabulator-table': TabulatorTable,
         };
     }
 
@@ -95,6 +98,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             coursesTable: {type: Object, attribute: false},
+            forms: {type: Array, attribute: false},
             submissionsTable: {type: Object, attribute: false},
             showSubmissionsTable: {type: Boolean, attribute: false},
             submissionsColumns: {type: Array, attribute: false},
@@ -146,6 +150,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.updateComplete.then(() => {
             const that = this;
             // see: http://tabulator.info/docs/5.1
+            this.updateComplete.then(() => {
+                this._a('.tabulator-table-demo').forEach((table) => {
+                    table.buildTable();
+                });
+            });
             this.coursesTable = new Tabulator(this._('#courses-table'), {
                 layout: 'fitColumns',
                 selectable: false,
@@ -347,6 +356,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+
         });
     }
 
@@ -605,7 +615,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         };
 
-        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=7432af11-6f1c-45ee-8aa3-e90b3395e29c&perPage=10000', options);
+        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions', options);
+        return response;
+    }
+
+    async getAllForms() {
+        let response;
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token
+            }
+        };
+
+        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/forms', options);
         return response;
     }
 
@@ -633,7 +658,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     async requestCourses() {
         if (!this.dataLoaded) {
             this.loadingCourseTable = true;
-            await this.getListOfAllCourses();
+            //await this.getListOfAllCourses();
+            let response;
+            response = await this.getAllForms();
+            let data = [];
+            data = await response.json();
+            this.forms = data['hydra:member'];
             this.loadingCourseTable = false;
         }
     }
@@ -2173,6 +2203,23 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
         }
 
+        let data = [
+            {id: 1, name: 'Oli Bob'},
+        ];
+
+        let options = {
+            layout: 'fitColumns',
+            columns: [
+                {title: 'Id', field: 'id', width: 150},
+                {title: 'Name', field: 'name', width: 150},
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
+
         return html`
             <link rel='stylesheet' href='${tabulatorCss}' />
             <div class='notification is-warning ${classMap({hidden: this.isLoggedIn() || this.isLoading()})}'>
@@ -2203,8 +2250,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <slot name='additional-information'></slot>
                 </div>
 
+                <div class="container">
+                    <h3 class="demo-sub-title">Tabulator table - basic</h3>
+                    <dbp-tabulator-table
+                            lang="${this.lang}"
+                            class="tabulator-table-demo"
+                            id="tabulator-table-demo-1"
+                            data=${JSON.stringify(data)}
+                            options=${JSON.stringify(options)}></dbp-tabulator-table>
+                </div>
 
-                <div class='control ${classMap({hidden: this.showSubmissionsTable || !this.loadingCourseTable})}'>
+
+                <!--<div class='control ${classMap({hidden: this.showSubmissionsTable || !this.loadingCourseTable})}'>
                         <span class='loading'>
                             <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
                         </span>
@@ -2543,7 +2600,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </footer>
                     </div>
                 </div>
-            </div>
+            </div>-->
         `;
     }
 }
