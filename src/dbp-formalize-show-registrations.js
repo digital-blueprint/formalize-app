@@ -663,7 +663,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             response = await this.getAllForms();
             let data = [];
             data = await response.json();
-            this.forms = data['hydra:member'];
+            /*this.forms = data['hydra:member'];
+            let name = this.forms[0].name;
+            console.log(name);*/
+            let names = [];
+            let formulars = data['hydra:member'];
+
+            for (const [index, form] of formulars.entries())
+            {
+                let id = index + 1;
+
+                let element = {id: id, name: form.name};
+                names.push(element);
+            }
+            this.forms = names;
+            //this.forms.push(data['hydra:member'][0].name);
+
             this.loadingCourseTable = false;
         }
     }
@@ -2251,12 +2266,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
 
                 <div class="container">
-                    <h3 class="demo-sub-title">Tabulator table - basic</h3>
                     <dbp-tabulator-table
                             lang="${this.lang}"
                             class="tabulator-table-demo"
                             id="tabulator-table-demo-1"
-                            data=${JSON.stringify(data)}
+                            data=${JSON.stringify(this.forms)}
                             options=${JSON.stringify(options)}></dbp-tabulator-table>
                 </div>
 
