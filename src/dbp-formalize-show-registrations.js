@@ -50,6 +50,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.entryPointUrl = '';
         this.activity = new Activity(metadata);
         this.coursesTable = null;
+        this.forms = null;
         this.submissionsTable = null;
         this.showSubmissionsTable = false;
         this.submissionsColumnsInitial = [];
@@ -84,7 +85,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return {
             'dbp-icon': Icon,
             'dbp-mini-spinner': MiniSpinner,
-            'dbp-loading-button': LoadingButton
+            'dbp-loading-button': LoadingButton,
         };
     }
 
@@ -95,6 +96,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             coursesTable: {type: Object, attribute: false},
+            forms: {type: Array, attribute: false},
             submissionsTable: {type: Object, attribute: false},
             showSubmissionsTable: {type: Boolean, attribute: false},
             submissionsColumns: {type: Array, attribute: false},
@@ -146,6 +148,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.updateComplete.then(() => {
             const that = this;
             // see: http://tabulator.info/docs/5.1
+
             this.coursesTable = new Tabulator(this._('#courses-table'), {
                 layout: 'fitColumns',
                 selectable: false,
@@ -175,7 +178,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         title: i18n.t('show-registrations.date'),
                         field: 'date',
                         widthGrow: 2,
-                        formatter: function(cell, formatterParams, onRendered) {
+                        formatter: function (cell, formatterParams, onRendered) {
                             return that.humanReadableDate(cell.getValue());
                         },
                         visible: false,
@@ -347,6 +350,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+
         });
     }
 
@@ -497,7 +501,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         //TODO cache this data
         let dataList = [];
-        let response = await this.getAllSubmissions();
+        let response = await this.getAllForms();
+
 
         if (!response) {
             this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'NoResponse', '');
@@ -544,6 +549,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         for (let x = 0; x <= data["hydra:member"].length; x++) {
 
             if (x === data['hydra:member'].length) {
+                //this sets the data in the table
                 this.coursesTable.setData(dataList);
                 this.coursesTable.setLocale(this.lang);
                 this.dataLoaded = true;
@@ -552,8 +558,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let entry = data['hydra:member'][x];
             try {
 
-                let name = entry['form'];
-
+                let name = entry['name'];
+                let form = entry['identifier'];
                 // Load form only one time
                 if (!name || courses.length > 0 && courses.includes(name)) {
                     continue;
@@ -568,7 +574,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 btn.classList.add('button', 'courses-btn', 'is-icon');
                 btn.addEventListener('click', async event => {
                     this.loadingSubmissionTable = true;
-                    await this.requestAllCourseSubmissions(name);
+                    await this.requestAllCourseSubmissions(name, form);
                     this.loadingSubmissionTable = false;
                     event.stopPropagation();
                 });
@@ -594,7 +600,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
-    async getAllSubmissions() {
+    async getAllSubmissions(form) {
         let response;
 
         const options = {
@@ -605,7 +611,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         };
 
-        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=7432af11-6f1c-45ee-8aa3-e90b3395e29c&perPage=10000', options);
+        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form, options);
+        return response;
+    }
+
+    async getAllForms() {
+        let response;
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token
+            }
+        };
+
+        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/forms', options);
         return response;
     }
 
@@ -643,12 +664,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @param {string} name
      */
-    async requestAllCourseSubmissions(name) {
+    async requestAllCourseSubmissions(name, form) {
         const i18n = this._i18n;
-
         let dataList2 = [];
 
-        let response = await this.getAllSubmissions();
+        let response = await this.getAllSubmissions(form);
 
         this.submissionsColumns = [];
         this.submissionsColumnsInitial = [];
@@ -714,9 +734,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let date = entry['dateCreated'];
 
             try {
-                if (entry && entry['form'] !== name)
-                    continue;
-
                 let json = JSON.parse(entry['dataFeedElement']);
 
                 let jsonFirst = {};
@@ -2159,7 +2176,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         `;
     }
-
     render() {
         const i18n = this._i18n;
         const tabulatorCss = commonUtils.getAssetURL(
@@ -2210,7 +2226,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </span>
                 </div>
                 <div
-                    class='table-wrapper ${classMap({hidden: this.showSubmissionsTable || this.loadingCourseTable || this.loadingSubmissionTable})}'>
+                    class='table-wrapper ${classMap({hidden: this.showSubmissionsTable || this.loadingCourseTable || this.loadingSubmissionTable})}'
                     <table id='courses-table'></table>
                 </div>
 
@@ -2224,14 +2240,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     class='table-wrapper submissions${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable})}'>
                     <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
                        <a @click='${() => {
-                           this.loadingCourseTable = true;
-                           this.showSubmissionsTable = false;
-                           this.submissionsColumns = [];
-                           this.clearFilter();
-                           this.submissionsTable.setData([{id: 1}]);
-                           this.submissionsTable.clearData();
-                           this.loadingCourseTable = false;
-                       }}'
+            this.loadingCourseTable = true;
+            this.showSubmissionsTable = false;
+            this.submissionsColumns = [];
+            this.clearFilter();
+            this.submissionsTable.setData([{id: 1}]);
+            this.submissionsTable.clearData();
+            this.loadingCourseTable = false;
+        }}'
                           title='${i18n.t('show-registrations.back-text')}'>
                                 <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
@@ -2242,8 +2258,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <div class='additional-menu ${classMap({hidden: !this.showSubmissionsTable})}'>
                                 <a class='extended-menu-link'
                                    @click='${() => {
-                                        this.toggleMoreMenu();
-                                    }}'
+            this.toggleMoreMenu();
+        }}'
                                    title='${i18n.t('show-registrations.more-menu')}'>
                                     <dbp-icon name='menu-dots' class='more-menu'></dbp-icon>
                                 </a>
@@ -2252,22 +2268,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 <ul class='extended-menu hidden'>
                                     <li class='open-menu ${classMap({active: false})}'>
                                         <a class='' @click='${() => {
-                                            this.exportCSV();
-                                        }}'>
+            this.exportCSV();
+        }}'>
                                             CSV Export
                                         </a>
                                     </li>
                                     <li class='open-menu ${classMap({active: false})}'>
                                         <a class='' @click='${() => {
-                                            this.exportXLSX();
-                                        }}'>
+            this.exportXLSX();
+        }}'>
                                             Excel Export
                                         </a>
                                     </li>
                                     <li class='open-menu ${classMap({active: false})}'>
                                         <a class='' @click='${() => {
-                                            this.exportPdf();
-                                        }}'>
+            this.exportPdf();
+        }}'>
                                             PDF Export
                                         </a>
                                     </li>
@@ -2288,13 +2304,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 <input type='text' id='searchbar'
                                        placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
                                        @click='${() => {
-                                           this.toggleSearchMenu();
-                                       }}' />
+            this.toggleSearchMenu();
+        }}' />
                                 <dbp-button class='button is-icon' id='search-button'
                                             title='${i18n.t('show-registrations.search-button')}'
                                             class='button' @click='${() => {
-                                    this.filterTable();
-                                }}'>
+            this.filterTable();
+        }}'>
                                     <dbp-icon name='search'></dbp-icon>
 
                                 </dbp-button>
@@ -2382,9 +2398,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 class='modal-close'
                                 aria-label='Close modal'
                                 @click='${() => {
-                                    this.closeColumnOptionsModal();
-                                    this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
-                                }}'>
+            this.closeColumnOptionsModal();
+            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
+        }}'>
                                 <dbp-icon
                                     title='${i18n.t('show-registrations.modal-close')}'
                                     name='close'
@@ -2397,19 +2413,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <main class='modal-content' id='submission-modal-content'>
                             <ul class='headers'>
                                 ${this.submissionsColumns.map((i, counter) => {
-                                    let classes = '';
-                                    classes += counter === 0 ? 'first-header ' : '';
-                                    classes += counter === this.submissionsColumns.length - 1 ? 'last-header ' : '';
-                                    classes += i.field;
-                                    return html`
+            let classes = '';
+            classes += counter === 0 ? 'first-header ' : '';
+            classes += counter === this.submissionsColumns.length - 1 ? 'last-header ' : '';
+            classes += i.field;
+            return html`
                                         <li class='header-fields ${classes}' data-index='${counter}'>
                                             <div class='header-field'>
                                                 <span class='header-button header-order'>${counter + 1}</span>
                                                 <span class='header-title'><strong>${i.name}</strong></span>
                                                 <span class='header-button header-visibility-icon'
                                                       @click='${() => {
-                                                          this.changeVisibility(i);
-                                                      }}'>
+                this.changeVisibility(i);
+            }}'>
                                                  <dbp-icon title='${i18n.t('show-registrations.change-visability-off')}'
                                                            class='header-visibility-icon-hide ${classMap({hidden: !i.visibility})}'
                                                            name='source_icons_eye-empty'></dbp-icon>
@@ -2419,20 +2435,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                              </span>
                                                 <span class='header-move'>
                                                 <div class='header-button' @click='${() => {
-                                                    this.moveHeaderUp(i);
-                                                }}'
+                this.moveHeaderUp(i);
+            }}'
                                                      title='${i18n.t('show-registrations.move-up')}'>
                                                     <dbp-icon name='arrow-up'></dbp-icon></div>
                                                  <div class='header-button' @click='${() => {
-                                                     this.moveHeaderDown(i);
-                                                 }}'
+                this.moveHeaderDown(i);
+            }}'
                                                       title='${i18n.t('show-registrations.move-down')}'>
                                                      <dbp-icon name='arrow-down'></dbp-icon></div>
                                              </span>
                                             </div>
                                         </li>
                                     `;
-                                })}
+        })}
                             </ul>
                         </main>
                         <footer class='modal-footer'>
@@ -2443,29 +2459,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         title='${i18n.t('show-registrations.abort')}'
                                         class='check-btn button is-secondary'
                                         @click='${() => {
-                                            this.closeColumnOptionsModal();
-                                            this.submissionsColumns = [];
-                                            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
-                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
-                                        }}'>
+            this.closeColumnOptionsModal();
+            this.submissionsColumns = [];
+            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
+            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+        }}'>
                                         ${i18n.t('show-registrations.abort')}
                                     </button>
                                     <button
                                         title='${i18n.t('show-registrations.reset-filter')}'
                                         class='check-btn button is-secondary'
                                         @click='${() => {
-                                            this.submissionsColumns = [];
-                                            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
-                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
-                                        }}'>
+            this.submissionsColumns = [];
+            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
+            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+        }}'>
                                         ${i18n.t('show-registrations.reset-filter')}
                                     </button>
                                 </div>
                                 <button class='check-btn button is-primary' id='check' @click='${() => {
-                                    this.updateSubmissionTable();
-                                    this.closeColumnOptionsModal();
-                                    this.setSubmissionTableSettings();
-                                }}'>
+            this.updateSubmissionTable();
+            this.closeColumnOptionsModal();
+            this.setSubmissionTableSettings();
+        }}'>
                                     ${i18n.t('show-registrations.save-columns')}
                                 </button>
                             </div>
@@ -2488,8 +2504,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 class='modal-close'
                                 aria-label='Close modal'
                                 @click='${() => {
-                                    this.closeDetailModal();
-                                }}'>
+            this.closeDetailModal();
+        }}'>
                                 <dbp-icon
                                     title='${i18n.t('show-registrations.modal-close')}'
                                     name='close'
@@ -2511,10 +2527,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         id='apply-col-settings'
                                         name='apply-col-settings'
                                         @click='${() => {
-                                            let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
-                                            let nextIndex = previousPageItems + this.currentRow.getPosition() + 1;
-                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData(), nextIndex);
-                                        }}'
+            let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
+            let nextIndex = previousPageItems + this.currentRow.getPosition() + 1;
+            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData(), nextIndex);
+        }}'
                                         checked />
                                     <span class='checkmark'></span>
                                 </label>
@@ -2527,9 +2543,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         ${i18n.t('show-registrations.last-entry-btn-title')}
                                     </dbp-button>
                                     <div>${i18n.t('show-registrations.detailed-submission-dialog-id', {
-                                        id: this.currentBeautyId,
-                                        nItems: this.totalNumberOfItems
-                                    })}
+            id: this.currentBeautyId,
+            nItems: this.totalNumberOfItems
+        })}
                                     </div>
                                     <dbp-button class='button next-btn'
                                                 title='${i18n.t('show-registrations.next-entry-btn-title')}'
