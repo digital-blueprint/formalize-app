@@ -559,7 +559,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             try {
 
                 let name = entry['name'];
-                console.log('name: ' + name);
+                let form = entry['identifier'];
                 // Load form only one time
                 if (!name || courses.length > 0 && courses.includes(name)) {
                     continue;
@@ -574,7 +574,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 btn.classList.add('button', 'courses-btn', 'is-icon');
                 btn.addEventListener('click', async event => {
                     this.loadingSubmissionTable = true;
-                    await this.requestAllCourseSubmissions(name);
+                    await this.requestAllCourseSubmissions(name, form);
                     this.loadingSubmissionTable = false;
                     event.stopPropagation();
                 });
@@ -600,7 +600,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
-    async getAllSubmissions() {
+    async getAllSubmissions(form) {
         let response;
 
         const options = {
@@ -611,7 +611,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         };
 
-        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=7432af11-6f1c-45ee-8aa3-e90b3395e29c&perPage=10000', options);
+        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form, options);
         return response;
     }
 
@@ -689,12 +689,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @param {string} name
      */
-    async requestAllCourseSubmissions(name) {
+    async requestAllCourseSubmissions(name, form) {
         const i18n = this._i18n;
-
         let dataList2 = [];
 
-        let response = await this.getAllSubmissions();
+        let response = await this.getAllSubmissions(form);
 
         this.submissionsColumns = [];
         this.submissionsColumnsInitial = [];
@@ -737,19 +736,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        let names = [];
-        let formulars = data['hydra:member'];
-
-        for (const [index, form] of formulars.entries())
-        {
-            let id = index + 1;
-
-            let element = {id: id, name: form.name};
-            names.push(element);
-        }
-        this.forms = names;
-
-        /*let itemsCount = 0;
+        let itemsCount = 0;
         for (let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data['hydra:member'].length) {
                 this.activeCourse = name;
@@ -769,13 +756,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             let entry = data['hydra:member'][x];
             let id = entry['@id'].split('/')[3];
+            console.log('id ' + id);
             let date = entry['dateCreated'];
 
             try {
-                if (entry && entry['form'] !== name)
+                if (entry && entry['form'] !== form)
                     continue;
 
-                let json = JSON.parse(entry['dataFeedElement']);
+                let json = JSON.parse(entry['data_feed_schema']);
 
                 let jsonFirst = {};
                 jsonFirst['id'] = id;
@@ -790,7 +778,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
 
-        }*/
+        }
     }
 
     /**
@@ -2272,7 +2260,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
 
 
-                <!--<div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
+                <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
                         <span class='loading'>
                             <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
                         </span>
@@ -2599,7 +2587,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </div>
                         </footer>
                     </div>
-                </div>-->
+                </div>
             </div>
         `;
     }
