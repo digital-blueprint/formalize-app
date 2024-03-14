@@ -178,7 +178,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         title: i18n.t('show-registrations.date'),
                         field: 'date',
                         widthGrow: 2,
-                        formatter: function(cell, formatterParams, onRendered) {
+                        formatter: function (cell, formatterParams, onRendered) {
                             return that.humanReadableDate(cell.getValue());
                         },
                         visible: false,
@@ -658,31 +658,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.loadingCourseTable = false;
         }
     }
-    /*async requestCourses() {
-        if (!this.dataLoaded) {
-            this.loadingCourseTable = true;
-            //await this.getListOfAllCourses();
-            let response;
-            response = await this.getAllForms();
-            let data = [];
-            data = await response.json();
-
-            let names = [];
-            let formulars = data['hydra:member'];
-
-            for (const [index, form] of formulars.entries())
-            {
-                let id = index + 1;
-
-                let element = {id: id, name: form.name};
-                names.push(element);
-            }
-            this.forms = names;
-            //this.forms.push(data['hydra:member'][0].name);
-
-            this.loadingCourseTable = false;
-        }
-    }*/
 
     /**
      * Gets the list of submissions for a specific course
@@ -756,7 +731,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             let entry = data['hydra:member'][x];
             let id = entry['@id'].split('/')[3];
-            console.log('id ' + id);
             let date = entry['dateCreated'];
 
             try {
