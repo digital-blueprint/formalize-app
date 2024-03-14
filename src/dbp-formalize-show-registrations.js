@@ -502,7 +502,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         //TODO cache this data
         let dataList = [];
         let response = await this.getAllForms();
-        console.log(response);
+
 
         if (!response) {
             this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'NoResponse', '');
@@ -558,8 +558,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let entry = data['hydra:member'][x];
             try {
 
-                let name = entry['form'];
-                console.log(name);
+                let name = entry['name'];
+                console.log('name: ' + name);
                 // Load form only one time
                 if (!name || courses.length > 0 && courses.includes(name)) {
                     continue;
@@ -737,7 +737,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        let itemsCount = 0;
+        let names = [];
+        let formulars = data['hydra:member'];
+
+        for (const [index, form] of formulars.entries())
+        {
+            let id = index + 1;
+
+            let element = {id: id, name: form.name};
+            names.push(element);
+        }
+        this.forms = names;
+
+        /*let itemsCount = 0;
         for (let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data['hydra:member'].length) {
                 this.activeCourse = name;
@@ -778,7 +790,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
 
-        }
+        }*/
     }
 
     /**
