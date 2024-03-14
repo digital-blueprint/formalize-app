@@ -760,9 +760,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let date = entry['dateCreated'];
 
             try {
-                if (entry && entry['form'] !== form)
-                    continue;
-
                 let json = JSON.parse(entry['data_feed_schema']);
 
                 let jsonFirst = {};
