@@ -15,6 +15,8 @@
         "detailed-submission-dialog-id": "{{id}} von {{nItems}}",
         "detailed-submission-dialog-title": "Detailansicht",
         "filter-options-button-text": "Filteroptionen",
+        "firstname": "Vorname",
+        "lastname": "Nachname",
         "header-settings": "Spalteneinstellungen",
         "last-entry-btn-title": "Vorheriger",
         "load-courses-no-permission-body": "Sie besitzen nicht die Berechtigungen, um diese Funktion nutzen zu können!",

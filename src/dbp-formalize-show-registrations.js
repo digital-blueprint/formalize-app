@@ -270,6 +270,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 locale: true,
                 langs: {
                     'en': {
+                        'columns': {
+                            'dateCreated': i18n.t('show-registrations.creation-date', { lng: 'en' }),
+                            'firstname': i18n.t('show-registrations.firstname', { lng: 'en' }),
+                            'lastname': i18n.t('show-registrations.lastname', { lng: 'en' }),
+                   },
                         'pagination': {
                             'page_size': 'Page size',
                             'page_size_title': 'Page size',
@@ -284,6 +289,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         }
                     },
                     'de': {
+                        'columns': {
+                           'dateCreated': i18n.t('show-registrations.creation-date', { lng: 'de' }),
+                            'firstname': i18n.t('show-registrations.firstname', { lng: 'de' }),
+                            'lastname': i18n.t('show-registrations.lastname', { lng: 'de' }),
+                },
                         'pagination': {
                             'page_size': 'Einträge pro Seite',
                             'page_size_title': 'Einträge pro Seite',
@@ -312,7 +322,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     {
                         minWidth: 150,
                         field: 'dateCreated',
-                        title: i18n.t('show-registrations.creation-date'),
+                        //title: i18n.t('show-registrations.creation-date'),
                         hozAlign: 'left',
                         sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
                             const a_timestamp = Date.parse(a);
