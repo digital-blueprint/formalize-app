@@ -274,7 +274,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             'dateCreated': i18n.t('show-registrations.creation-date', { lng: 'en' }),
                             'firstname': i18n.t('show-registrations.firstname', { lng: 'en' }),
                             'lastname': i18n.t('show-registrations.lastname', { lng: 'en' }),
-                   },
+                        },
                         'pagination': {
                             'page_size': 'Page size',
                             'page_size_title': 'Page size',
@@ -293,7 +293,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                            'dateCreated': i18n.t('show-registrations.creation-date', { lng: 'de' }),
                             'firstname': i18n.t('show-registrations.firstname', { lng: 'de' }),
                             'lastname': i18n.t('show-registrations.lastname', { lng: 'de' }),
-                },
+                        },
                         'pagination': {
                             'page_size': 'Einträge pro Seite',
                             'page_size_title': 'Einträge pro Seite',
