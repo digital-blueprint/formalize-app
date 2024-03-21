@@ -2204,49 +2204,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             });
         }
 
-        let data = [
-            {id: 1, name: 'Oli Bob', age: '12', col: 'red', dob: ''},
-            {id: 2, name: 'Mary May', age: '1', col: 'blue', dob: '14/05/1982'},
-            {id: 3, name: 'Christine Lobowski', age: '42', col: 'green', dob: '22/05/1982'},
-            {id: 4, name: 'Brendon Philips', age: '95', col: 'orange', dob: '01/08/1980'},
-            {id: 5, name: 'Margret Marmajuke', age: '16', col: 'yellow', dob: '31/01/1999'},
-        ];
-
-        let langs = {
-            'en': {
-                columns: {
-                    'name': i18n.t('name', {lng: 'en'}),
-                    'age': i18n.t('age', {lng: 'en'}),
-                    'col': i18n.t('col', {lng: 'en'}),
-                    'dob': i18n.t('dob', {lng: 'en'}),
-                },
-            },
-            'de': {
-                columns: {
-                    'name': i18n.t('name', {lng: 'de'}),
-                    'age': i18n.t('age', {lng: 'de'}),
-                    'col': i18n.t('col', {lng: 'de'}),
-                    'dob': i18n.t('dob', {lng: 'de'}),
-                },
-            },
-        };
-
-        let options = {
-            langs: langs,
-            layout: 'fitColumns',
-            columns: [
-                {field: 'name', width: 150},
-                {field: 'age', hozAlign: 'left', formatter: 'progress'},
-                {field: 'col'},
-                {field: 'dob', sorter: 'date', hozAlign: 'center'},
-            ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
-
         return html`
             <link rel='stylesheet' href='${tabulatorCss}' />
             <div class='notification is-warning ${classMap({hidden: this.isLoggedIn() || this.isLoading()})}'>
