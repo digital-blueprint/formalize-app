@@ -151,84 +151,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.updateComplete.then(() => {
             const that = this;
+            this.fetchCourses();
             // see: http://tabulator.info/docs/5.1
             this._a('.tabulator-table-demo').forEach((table) => {
                 table.buildTable();
 
-            });
-
-            this.coursesTable = new Tabulator(this._('#courses-table'), {
-                layout: 'fitColumns',
-                selectable: false,
-                placeholder: i18n.t('show-registrations.no-data'),
-                pagination: true,
-                paginationMode: 'local',
-                paginationSize: 10,
-                paginationSizeSelector: true,
-                locale: true,
-                columnDefaults: {
-                    vertAlign: 'middle',
-                    resizable: false
-                },
-                columns: [
-                    {
-                        title: 'ID',
-                        field: 'id',
-                        widthGrow: 1,
-                        maxWidth: 50,
-                    },
-                    {
-                        title: 'Name',
-                        field: 'name',
-                        widthGrow: 2,
-                    },
-                    {
-                        title: i18n.t('show-registrations.date'),
-                        field: 'date',
-                        widthGrow: 2,
-                        formatter: function (cell, formatterParams, onRendered) {
-                            return that.humanReadableDate(cell.getValue());
-                        },
-                        visible: false,
-                    },
-                    {
-                        title: '',
-                        maxWidth: 45,
-                        field: 'actionButton',
-                        formatter: 'html',
-                        headerSort: false,
-                    }
-                ],
-                langs: {
-                    'en': {
-                        'pagination': {
-                            'page_size': 'Page size',
-                            'page_size_title': 'Page size',
-                            'first': '<span class="mobile-hidden">First</span>',
-                            'first_title': 'First Page',
-                            'last': '<span class="mobile-hidden">Last</span>',
-                            'last_title': 'Last Page',
-                            'prev': '<span class="mobile-hidden">Prev</span>',
-                            'prev_title': 'Prev Page',
-                            'next': '<span class="mobile-hidden">Next</span>',
-                            'next_title': 'Next Page'
-                        }
-                    },
-                    'de': {
-                        'pagination': {
-                            'page_size': 'Einträge pro Seite',
-                            'page_size_title': 'Einträge pro Seite',
-                            'first': '<span class="mobile-hidden">Erste</span>',
-                            'first_title': 'Erste Seite',
-                            'last': '<span class="mobile-hidden">Letzte</span>',
-                            'last_title': 'Letzte Seite',
-                            'prev': '<span class="mobile-hidden">Vorherige</span>',
-                            'prev_title': 'Vorherige Seite',
-                            'next': '<span class="mobile-hidden">Nächste</span>',
-                            'next_title': 'Nächste Seite'
-                        }
-                    }
-                }
             });
 
             const actionsButtons = (cell, formatterParams) => {
@@ -368,7 +295,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
-
         });
     }
 
@@ -387,10 +313,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         //console.log("DATALOADED\n");
     }
 
+
+    initialize() {
+        super.initialize();
+        this.getCourses();
+    }
+
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
+
                     this._i18n.changeLanguage(this.lang);
                     if (this.coursesTable) {
                         this.coursesTable.setLocale(this.lang);
@@ -401,7 +334,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     break;
                 case 'auth':
                     this._updateAuth();
-                    this.getCourses();
+                    //this.getCourses();
                     break;
             }
         });
@@ -514,7 +447,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
-    /*async getListOfAllCourses() {
+    async getListOfAllCourses() {
         const i18n = this._i18n;
 
         //TODO cache this data
@@ -565,7 +498,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let id = 1;
         let courses = [];
         let allCourses = [];
-        this.allCourses = [];
+        //this.allCourses = [];
         for (let x = 0; x <= data["hydra:member"].length; x++) {
 
             if (x === data['hydra:member'].length) {
@@ -614,9 +547,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
 
         }
-        this.allCourses = dataList;
+        //this.allCourses = dataList;
 
-    }*/
+
+    }
 
     /**
      * Gets the list of submissions
@@ -653,44 +587,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return response;
     }
 
-    async getListOfAllCourses() {
-        const i18n = this._i18n;
 
-        //TODO cache this data
-        //let dataList = [];
-        let response = await this.getCourses();
-        if (!response) {
-            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'NoResponse', '');
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-    }
-
-    async getCourses() {
-        this.loadCourses = true;
+    async fetchCourses() {
         try {
+            this.loadCourses = true;
 
-            let response = await this.getAllForms();
+            const response = await fetch(this.entryPointUrl + '/formalize/forms/' + {
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: 'Bearer ' + this.auth.token,
+                },
+            });
+
+            //let response = await this.getAllForms();
 
             if (!response.ok) {
-                console.log('not ok');
-
-                //this.loadCourses = false;
+                this.disbleForm = true;
                 //this.handleErrorResponse(response);
             } else {
-                console.log('ok');
-                //this.loadCourses = true;
-                //this.allCourses = ["hydra:member"];
-                //this.allCourses = [];
-
-                this.allCourses = [
-                    {id: '1', name: 'LunchLoterryParticipants', link: ''},
-                ];
-
+                console.log(response);
             }
         } finally {
-            //this.loadCourses = false;
+            this.loadingPerson = false;
         }
+
+
+
     }
 
 
@@ -701,7 +623,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param identifier
      * @returns {object} response
      */
-    async getSubmissionForId(identifier) {
+    /*async getSubmissionForId(identifier) {
         const options = {
             method: 'GET',
             headers: {
@@ -711,7 +633,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         return await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions/' + identifier, options);
-    }
+    }*/
 
     /**
      * Initiate getListOfAllCourses and set Loading
@@ -2257,14 +2179,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             {id: '1', name: 'as'},
         ];
 
-        if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
+        /*if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.getCourses().then(() => {
 
                 data =  this.allCourses;
                 this.loadCourses = false;
                 this.setTableData(data);
             });
-        }
+        }*/
 
 
         let langs = {
