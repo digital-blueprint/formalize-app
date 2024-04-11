@@ -48,5 +48,7 @@
         "searchbar-placeholder": "Search",
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!"
-    }
+    },
+    "id": "ID",
+    "name": "Name"
 }

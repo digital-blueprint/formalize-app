@@ -2205,13 +2205,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let langs = {
             'en': {
                 columns: {
-                    'id': 'ID',
+                    'id': i18n.t('id', {lng: 'en'}),
                     'name': i18n.t('name', {lng: 'en'}),
                 },
             },
             'de': {
                 columns: {
-                    'id': 'ID',
+                    'id': i18n.t('id', {lng: 'de'}),
                     'name': i18n.t('name', {lng: 'de'}),
                 },
             },
@@ -2269,7 +2269,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
                         </span>
                 </div>
-                
+                <!--see about extra arrow column-->
                 <div class="container">
                     <dbp-tabulator-table
                             lang="${this.lang}"
