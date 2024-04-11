@@ -269,7 +269,7 @@ export default (async () => {
                     },
                     {
                         src: await getPackagePath('tabulator-tables', 'dist/css'),
-                        dest: 'dist/' + (await getDistPath(pkg.name, 'tabulator-tables')),
+                        dest: 'dist/' + (await getDistPath('@dbp-toolkit/tabulator-table', 'tabulator-tables')),
                     }
                 ],
             }),
@@ -306,7 +306,7 @@ export default (async () => {
                     },
                     {
                         src: await getPackagePath('tabulator-tables', 'dist/css'),
-                        dest: 'dist/' + (await getDistPath(pkg.name, 'tabulator-tables')),
+                        dest: 'dist/' + (await getDistPath('@dbp-toolkit/tabulator-table', 'tabulator-tables')),
                     }
                 ],
             }),
