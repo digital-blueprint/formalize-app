@@ -76,7 +76,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.loadingSubmissionTable = false;
         this.dataLoaded = false;
         this.modalContentHeight = 0;
-        this.loadCourses = true;
+        this.loadCourses = false;
         this.hasPermissions = true;
         this.hiddenColumns = false;
         this.currentDetailPosition = 0;
@@ -154,6 +154,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             // see: http://tabulator.info/docs/5.1
             this._a('.tabulator-table-demo').forEach((table) => {
                 table.buildTable();
+
             });
 
             this.coursesTable = new Tabulator(this._('#courses-table'), {
@@ -383,9 +384,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.updateTableHeaderList();
             }
         }
-        console.log("DATALOADED\n");
+        //console.log("DATALOADED\n");
     }
-
 
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
@@ -401,6 +401,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     break;
                 case 'auth':
                     this._updateAuth();
+                    this.getCourses();
                     break;
             }
         });
@@ -513,7 +514,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
-    async getListOfAllCourses() {
+    /*async getListOfAllCourses() {
         const i18n = this._i18n;
 
         //TODO cache this data
@@ -615,7 +616,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
         this.allCourses = dataList;
 
-    }
+    }*/
 
     /**
      * Gets the list of submissions
@@ -652,6 +653,48 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return response;
     }
 
+    async getListOfAllCourses() {
+        const i18n = this._i18n;
+
+        //TODO cache this data
+        //let dataList = [];
+        let response = await this.getCourses();
+        if (!response) {
+            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'NoResponse', '');
+            this.throwSomethingWentWrongNotification();
+            return;
+        }
+    }
+
+    async getCourses() {
+        this.loadCourses = true;
+        try {
+
+            let response = await this.getAllForms();
+
+            if (!response.ok) {
+                console.log('not ok');
+
+                //this.loadCourses = false;
+                //this.handleErrorResponse(response);
+            } else {
+                console.log('ok');
+                //this.loadCourses = true;
+                //this.allCourses = ["hydra:member"];
+                //this.allCourses = [];
+
+                this.allCourses = [
+                    {id: '1', name: 'LunchLoterryParticipants', link: ''},
+                ];
+
+            }
+        } finally {
+            //this.loadCourses = false;
+        }
+    }
+
+
+
     /**
      * Gets a submission for a given identifier
      *
@@ -673,13 +716,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Initiate getListOfAllCourses and set Loading
      */
-    async requestCourses() {
+    /*async requestCourses() {
         if (!this.dataLoaded) {
             this.loadingCourseTable = true;
             await this.getListOfAllCourses();
             this.loadingCourseTable = false;
         }
-    }
+    }*/
 
     /**
      * Gets the list of submissions for a specific course
@@ -1352,7 +1395,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             } catch (e) {
                 this.submissionsColumns = [];
-                console.log(e);
+                //console.log(e);
                 return false;
             }
             return true;
@@ -2198,6 +2241,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
         `;
     }
+
+    setTableData(data) {
+        let table = this._('#tabulator-table-demo-5');
+        table.setData(data);
+    }
+
     render() {
         const i18n = this._i18n;
         const tabulatorCss = commonUtils.getAssetURL(
@@ -2205,14 +2254,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             'tabulator-tables/css/tabulator.min.css'
         );
         let data = [
-            {id: '1', name: 'asdsa'},
+            {id: '1', name: 'as'},
         ];
 
         if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
-            this.requestCourses().then(() => {
-                console.log('data' + this.allCourses[0]['name']);
+            this.getCourses().then(() => {
+
                 data =  this.allCourses;
                 this.loadCourses = false;
+                this.setTableData(data);
             });
         }
 
@@ -2238,6 +2288,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             columns: [
                 {field: 'id', width: 150},
                 {field: 'name'},
+                {field: 'link'},
             ],
             columnDefaults: {
                 vertAlign: 'middle',
@@ -2283,21 +2334,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
                         </span>
                 </div>
-
+                
                 <div class="container">
                     <h3 class="demo-sub-title">Tabulator table - pagination-size:10</h3>
                     <dbp-tabulator-table
                             lang="${this.lang}"
                             class="tabulator-table-demo"
-                            id="tabulator-table-demo-4"
+                            id="tabulator-table-demo-5"
                             pagination-size="10"
                             pagination-enabled="true"
-                            data=${JSON.stringify(data)}
+                            data = ${this.allCourses}
                             options=${JSON.stringify(options)}></dbp-tabulator-table>
-                </div>
-                <div
-                    class='table-wrapper ${classMap({hidden: this.showSubmissionsTable || this.loadingCourseTable || this.loadingSubmissionTable})}'
-                    <table id='courses-table'></table>
                 </div>
 
 
