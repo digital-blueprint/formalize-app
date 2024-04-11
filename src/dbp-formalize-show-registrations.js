@@ -76,7 +76,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.loadingSubmissionTable = false;
         this.dataLoaded = false;
         this.modalContentHeight = 0;
-        this.loadCourses = false;
+        this.loadCourses = true;
         this.hasPermissions = true;
         this.hiddenColumns = false;
         this.currentDetailPosition = 0;
@@ -112,7 +112,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             loadingCourseTable: {type: Boolean, attribute: false},
             loadingSubmissionTable: {type: Boolean, attribute: false},
             modalContentHeight: {type: Number, attribute: false},
-            loadCourses: {type: Boolean, attribute: false},
+            loadCourses: {type: Boolean, attribute: true},
             hasPermissions: {type: Boolean, attribute: false},
             hiddenColumns: {type: Boolean, attribute: false}
         };
@@ -152,7 +152,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.updateComplete.then(() => {
             const that = this;
             // see: http://tabulator.info/docs/5.1
-            this._a('.tabulator-table-demo').forEach((table) => {
+            this._a('.tabulator-table').forEach((table) => {
                 table.buildTable();
 
             });
@@ -609,7 +609,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     return;
                 }
                 //console.log(data);
-                for (let x = 0; x <= data["hydra:member"].length; x++) {
+                for (let x = 0; x < data["hydra:member"].length; x++) {
                     let entry = data['hydra:member'][x];
                     let id = x + 1;
                     let name = entry['name'];
@@ -2178,7 +2178,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     setTableData(data) {
-        let table = this._('#tabulator-table-demo-5');
+        let table = this._('#tabulator-table-forms');
         table.setData(data);
     }
 
@@ -2192,10 +2192,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             {id: '1', name: 'as'},
         ];
 
-        if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
+        if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.fetchCourses().then(() => {
 
-                data =  this.allCourses;
+                data = this.allCourses;
                 //this.loadCourses = false;
                 this.setTableData(data);
             });
@@ -2271,11 +2271,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
                 
                 <div class="container">
-                    <h3 class="demo-sub-title">Tabulator table - pagination-size:10</h3>
                     <dbp-tabulator-table
                             lang="${this.lang}"
-                            class="tabulator-table-demo"
-                            id="tabulator-table-demo-5"
+                            class="tabulator-table"
+                            id="tabulator-table-forms"
                             pagination-size="10"
                             pagination-enabled="true"
                             data = ${this.allCourses}
