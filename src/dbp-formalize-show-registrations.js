@@ -151,7 +151,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.updateComplete.then(() => {
             const that = this;
-            this.fetchCourses();
             // see: http://tabulator.info/docs/5.1
             this._a('.tabulator-table-demo').forEach((table) => {
                 table.buildTable();
@@ -314,11 +313,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
 
-    initialize() {
-        super.initialize();
-        this.getCourses();
-    }
-
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
@@ -334,7 +328,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     break;
                 case 'auth':
                     this._updateAuth();
-                    //this.getCourses();
+                    //this.fetchCourses();
                     break;
             }
         });
@@ -592,7 +586,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         try {
             this.loadCourses = true;
 
-            const response = await fetch(this.entryPointUrl + '/formalize/forms/' + {
+            const response = await fetch(this.entryPointUrl + '/formalize/forms/', {
                 headers: {
                     'Content-Type': 'application/ld+json',
                     Authorization: 'Bearer ' + this.auth.token,
@@ -602,13 +596,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             //let response = await this.getAllForms();
 
             if (!response.ok) {
-                this.disbleForm = true;
                 //this.handleErrorResponse(response);
             } else {
-                console.log(response);
+                //console.log(response);
+                let data = [];
+                let forms = [];
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
+                    this.throwSomethingWentWrongNotification();
+                    return;
+                }
+                //console.log(data);
+                for (let x = 0; x <= data["hydra:member"].length; x++) {
+                    let entry = data['hydra:member'][x];
+                    let id = x + 1;
+                    let name = entry['name'];
+                    let link = '';
+                    let new_form = {id: id.toString(), name: name, link: link};
+                    forms.push(new_form);
+                    console.log(entry);
+                }
+                this.allCourses = forms;
             }
         } finally {
-            this.loadingPerson = false;
+            this.loadCourses = false;
         }
 
 
@@ -2179,14 +2192,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             {id: '1', name: 'as'},
         ];
 
-        /*if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
-            this.getCourses().then(() => {
+        if (this.coursesTable && this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
+            this.fetchCourses().then(() => {
 
                 data =  this.allCourses;
-                this.loadCourses = false;
+                //this.loadCourses = false;
                 this.setTableData(data);
             });
-        }*/
+        }
 
 
         let langs = {
