@@ -441,110 +441,62 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @returns {object} response
      */
+
     async getListOfAllCourses() {
         const i18n = this._i18n;
-
-        //TODO cache this data
-        let dataList = [];
-        let response = await this.getAllForms();
-
-
-        if (!response) {
-            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'NoResponse', '');
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-
-        if (response.status !== 200) {
-            if (response.status === 403) {
-                this.hasPermissions = false;
-
-                this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'NoPermission', '', response);
-                send({
-                    summary: i18n.t('show-registrations.load-courses-no-permission-title'),
-                    body: i18n.t('show-registrations.load-courses-no-permission-body'),
-                    type: 'danger',
-                    timeout: 5
-                });
-                return;
-            }
-            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'SomeWentWrong', '', response);
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-
-        let data = [];
         try {
-            data = await response.json();
-        } catch (e) {
-            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
+            this.loadCourses = true;
 
-        if (!data || !data['hydra:member']) {
-            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongData', '');
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
+            const response = await fetch(this.entryPointUrl + '/formalize/forms/', {
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: 'Bearer ' + this.auth.token,
+                },
+            });
 
+            //let response = await this.getAllForms();
 
-        let id = 1;
-        let courses = [];
-        let allCourses = [];
-        //this.allCourses = [];
-        for (let x = 0; x <= data["hydra:member"].length; x++) {
-
-            if (x === data['hydra:member'].length) {
-                //this sets the data in the table
-                this.coursesTable.setData(dataList);
-                this.coursesTable.setLocale(this.lang);
-                this.dataLoaded = true;
-                //return;
-            }
-            let entry = data['hydra:member'][x];
-            try {
-
-                let name = entry['name'];
-                let form = entry['identifier'];
-                // Load form only one time
-                if (!name || courses.length > 0 && courses.includes(name)) {
-                    continue;
+            if (!response.ok) {
+                //this.handleErrorResponse(response);
+            } else {
+                //console.log(response);
+                let data = [];
+                let forms = [];
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
+                    this.throwSomethingWentWrongNotification();
+                    return;
                 }
+                //console.log(data);
+                for (let x = 0; x < data["hydra:member"].length; x++) {
+                    let entry = data['hydra:member'][x];
+                    let id = x + 1;
+                    let name = entry['name'];
 
-                // create 'show form' button
-                let icon = this.createScopedElement('dbp-icon');
-                icon.setAttribute('name', 'chevron-right');
-                icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
-                let btn = this.createScopedElement('dbp-button');
-                btn.classList.add('button', 'courses-btn', 'is-icon');
-                btn.addEventListener('click', async event => {
-                    this.loadingSubmissionTable = true;
-                    await this.requestAllCourseSubmissions(name, form);
-                    this.loadingSubmissionTable = false;
-                    event.stopPropagation();
-                });
-                btn.appendChild(icon);
+                    let icon = this.createScopedElement('dbp-icon');
+                    icon.setAttribute('name', 'chevron-right');
+                    icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
+                    let btn = this.createScopedElement('dbp-button');
+                    btn.appendChild(icon);
 
-                let div = this.createScopedElement('div');
-                div.classList.add('button-wrapper');
-                div.appendChild(btn);
+                    let div = this.createScopedElement('div');
+                    div.classList.add('button-wrapper');
+                    div.appendChild(btn);
 
-                let course = {id: id, name: name};
-                id++;
-                courses.push(name);
-                allCourses.push(name);
-                dataList.push(course);
-            } catch (e) {
-                this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'ErrorInDataCreation', e);
+                    let new_form = {id: id, name: name, actionButton: btn};
+                    forms.push(new_form);
+                    console.log(entry);
+                }
+                this.allCourses = forms;
             }
-
-
+        } finally {
+            this.loadCourses = false;
         }
-        //this.allCourses = dataList;
-
 
     }
+
 
     /**
      * Gets the list of submissions
@@ -582,51 +534,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
 
-    async fetchCourses() {
-        try {
-            this.loadCourses = true;
 
-            const response = await fetch(this.entryPointUrl + '/formalize/forms/', {
-                headers: {
-                    'Content-Type': 'application/ld+json',
-                    Authorization: 'Bearer ' + this.auth.token,
-                },
-            });
-
-            //let response = await this.getAllForms();
-
-            if (!response.ok) {
-                //this.handleErrorResponse(response);
-            } else {
-                //console.log(response);
-                let data = [];
-                let forms = [];
-                try {
-                    data = await response.json();
-                } catch (e) {
-                    this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
-                    this.throwSomethingWentWrongNotification();
-                    return;
-                }
-                //console.log(data);
-                for (let x = 0; x < data["hydra:member"].length; x++) {
-                    let entry = data['hydra:member'][x];
-                    let id = x + 1;
-                    let name = entry['name'];
-                    let link = '';
-                    let new_form = {id: id.toString(), name: name, link: link};
-                    forms.push(new_form);
-                    console.log(entry);
-                }
-                this.allCourses = forms;
-            }
-        } finally {
-            this.loadCourses = false;
-        }
-
-
-
-    }
 
 
 
@@ -2193,7 +2101,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         ];
 
         if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
-            this.fetchCourses().then(() => {
+            this.getListOfAllCourses().then(() => {
 
                 data = this.allCourses;
                 //this.loadCourses = false;
@@ -2223,7 +2131,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             columns: [
                 {field: 'id', width: 150},
                 {field: 'name'},
-                {field: 'link'},
+                {field: 'actionButton', formatter:"html"},
             ],
             columnDefaults: {
                 vertAlign: 'middle',
