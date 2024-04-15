@@ -457,7 +457,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             //let response = await this.getAllForms();
 
             if (!response.ok) {
-                //this.handleErrorResponse(response);
+                this.handleErrorResponse(response);
             } else {
                 //console.log(response);
                 let data = [];
@@ -469,7 +469,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     this.throwSomethingWentWrongNotification();
                     return;
                 }
-                //console.log(data);
+
                 for (let x = 0; x < data["hydra:member"].length; x++) {
                     let entry = data['hydra:member'][x];
                     let id = x + 1;
@@ -532,11 +532,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         response = await this.httpGetAsync(this.entryPointUrl + '/formalize/forms', options);
         return response;
     }
-
-
-
-
-
 
     /**
      * Gets a submission for a given identifier
