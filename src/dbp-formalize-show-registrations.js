@@ -485,8 +485,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     btn.addEventListener('click', async event => {
                         this.showSubmissionsTable = true;
                         //await this.requestAllCourseSubmissions(name, form);
-                        let response_1 = await this.getAllSubmissions(form);
-                        console.log(response_1);
+                        await this.requestAllCourseSubmissions(name, form);
                     });
 
                     btn.appendChild(icon);
@@ -524,16 +523,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form, options);
-        let data = [];
-        try {
-            data = await response.json();
-        } catch (e) {
-            this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-        let entry = data['hydra:member'][0];
-        console.log('response ' + entry['dateCreated']);
+
         return response;
     }
 
@@ -637,12 +627,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         for (let x = 0; x <= data["hydra:member"].length; x++) {
             if (x === data['hydra:member'].length) {
                 this.activeCourse = name;
-                this.submissionsTable.setData(dataList2);
-                this.submissionsTable.setLocale(this.lang);
-                this.setInitalSubmissionTableOrder();
-                this.updateSubmissionTable();
+                //this.submissionsTable.setData(dataList2);
+                //this.submissionsTable.setLocale(this.lang);
+                //this.setInitalSubmissionTableOrder();
+                //this.updateSubmissionTable();
                 this.showSubmissionsTable = true;
-                this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
+                //this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
                 const that = this;
                 setTimeout(function() {
                     if (that._('.subheadline')) {
@@ -665,6 +655,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 jsonFirst['dateCreated'] = date;
                 json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
+                console.log('json ' + json.id);
                 itemsCount++;
             } catch (e) {
                 this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'ErrorInDataCreation', e);
