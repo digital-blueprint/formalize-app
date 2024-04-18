@@ -7,7 +7,6 @@ import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
-import {TabulatorFull as Tabulator} from 'tabulator-tables';
 import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
 import MicroModal from './micromodal.es';
 import {name as pkgName} from './../package.json';
@@ -49,8 +48,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.lang = this._i18n.language;
         this.allCourses = [];
         this.allCourseSubmissions = [];
-        this.form = null;
-        this.name = null;
         this.auth = {};
         this.entryPointUrl = '';
         this.activity = new Activity(metadata);
@@ -152,12 +149,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        const i18n = this._i18n;
         this._loginStatus = '';
         this._loginState = [];
 
         this.updateComplete.then(() => {
-            const that = this;
             // see: http://tabulator.info/docs/5.1
             this._a('.tabulator-table').forEach((table) => {
                 table.buildTable();
@@ -193,7 +188,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     break;
                 case 'auth':
                     this._updateAuth();
-                    //this.fetchCourses();
                     break;
             }
         });
@@ -319,8 +313,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 },
             });
 
-            //let response = await this.getAllForms();
-
             if (!response.ok) {
                 this.handleErrorResponse(response);
             } else {
@@ -351,8 +343,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                     btn.addEventListener('click', async event => {
                         this.showSubmissionsTable = true;
-                        this.name = name;
-                        this.form = form;
 
                         let resp = await this.requestAllCourseSubmissions(name, form);
                         console.log(resp);
@@ -413,35 +403,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         response = await this.httpGetAsync(this.entryPointUrl + '/formalize/forms', options);
         return response;
     }
-
-    /**
-     * Gets a submission for a given identifier
-     *
-     * @param identifier
-     * @returns {object} response
-     */
-    /*async getSubmissionForId(identifier) {
-        const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token
-            }
-        };
-
-        return await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions/' + identifier, options);
-    }*/
-
-    /**
-     * Initiate getListOfAllCourses and set Loading
-     */
-    /*async requestCourses() {
-        if (!this.dataLoaded) {
-            this.loadingCourseTable = true;
-            await this.getListOfAllCourses();
-            this.loadingCourseTable = false;
-        }
-    }*/
 
     /**
      * Gets the list of submissions for a specific course
@@ -1972,19 +1933,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.getListOfAllCourses().then(() => {
-
-                //this.loadCourses = false;
                 this.setTableData();
             });
-        };
+        }
 
         if (this.isLoggedIn() && !this.isLoading() && !this.loadCourses && this.showSubmissionsTable) {
-            //this.requestAllCourseSubmissions(this.name, this.form).then(() => {
                 this.setTableData2();
-            //});
-                //this.loadCourses = false;
-
-        };
+        }
 
 
         let langs_forms  = {
