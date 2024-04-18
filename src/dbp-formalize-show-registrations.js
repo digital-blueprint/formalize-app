@@ -340,7 +340,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     let id = x + 1;
                     let name = entry['name'];
                     let form = entry['identifier'];
-                    let resp = await this.getAllSubmissions(form);
+
 
                     let icon = this.createScopedElement('dbp-icon');
                     icon.setAttribute('name', 'chevron-right');
@@ -354,7 +354,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.name = name;
                         this.form = form;
 
-
+                        let resp = await this.requestAllCourseSubmissions(name, form);
+                        console.log(resp);
 
                         //await this.requestAllCourseSubmissions(name, form);
                     });
@@ -496,23 +497,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         let itemsCount = 0;
-        for (let x = 0; x <= data["hydra:member"].length; x++) {
-            if (x === data['hydra:member'].length) {
-                this.activeCourse = name;
-                //this.submissionsTable.setData(dataList2);
-                //this.submissionsTable.setLocale(this.lang);
-                //this.setInitalSubmissionTableOrder();
-                //this.updateSubmissionTable();
+        for (let x = 0; x < data["hydra:member"].length; x++) {
 
-                //this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
-                const that = this;
-                setTimeout(function() {
-                    if (that._('.subheadline')) {
-                        //  that._('.subheadline').scrollIntoView({behavior: 'smooth', block: 'start'});
-                    }
-                }, 10);
-                return;
-            }
             let entry = data['hydra:member'][x];
             let id = entry['@id'].split('/')[3];
             let date = entry['dateCreated'];
@@ -529,15 +515,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 dataList2.push(json);
 
                 //this.allCourseSubmissions = [{'creation-date': '2024-03-13', 'firstname': 'as', 'lastname': 'asas'}];
-                let entry = {'creation-date': date.toString(), 'firstname': json.firstname, 'lastname': json.lastname};
-                dataList.push(entry);
+                let submission = {'creation-date': date.toString(), 'firstname': json.firstname, 'lastname': json.lastname};
+                dataList.push(submission);
                 itemsCount++;
             } catch (e) {
                 this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'ErrorInDataCreation', e);
             }
             this.allCourseSubmissions = dataList;
         }
-        return response;
+        return dataList;
     }
 
     /**
