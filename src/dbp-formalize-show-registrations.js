@@ -333,7 +333,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     let name = entry['name'];
                     let form = entry['identifier'];
 
-
                     let icon = this.createScopedElement('dbp-icon');
                     icon.setAttribute('name', 'chevron-right');
                     icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
@@ -343,7 +342,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                     btn.addEventListener('click', async event => {
                         this.showSubmissionsTable = true;
-
+                        this.activeCourse = name;
                         let resp = await this.requestAllCourseSubmissions(name, form);
                         console.log(resp);
 
@@ -466,7 +465,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             try {
                 let json = JSON.parse(entry['dataFeedElement']);
-
                 let jsonFirst = {};
                 jsonFirst['id'] = id;
                 jsonFirst['no_display_1'] = '';
@@ -2061,6 +2059,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
 
                 <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
+                     <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
+                       <a @click='${() => {
+                           this.loadingCourseTable = true;
+                           this.showSubmissionsTable = false;
+                           this.submissionsColumns = [];
+                           this.clearFilter();
+                           this.loadingCourseTable = false;
+                       }}'
+                          title='${i18n.t('show-registrations.back-text')}'>
+                                <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
+                       </a>
+                       <h3>${this.activeCourse}</h3>
+                    </span>
+                    
+                        
+                    
                     <dbp-tabulator-table
                             lang="${this.lang}"
                             class="tabulator-table"
