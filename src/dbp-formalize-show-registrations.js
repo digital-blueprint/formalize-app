@@ -2057,7 +2057,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
                         </span>
                 </div>
-
+                <div class='table-buttons'>
                 <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
                      <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
                        <a @click='${() => {
@@ -2073,7 +2073,58 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                        <h3>${this.activeCourse}</h3>
                     </span>
                     
-                        
+                     <div class='search-wrapper'>
+                            <div id='extendable-searchbar'>
+                                <input type='text' id='searchbar'
+                                       placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
+                                       @click='${() => {
+            this.toggleSearchMenu();
+        }}' />
+                                <dbp-button class='button is-icon' id='search-button'
+                                            title='${i18n.t('show-registrations.search-button')}'
+                                            class='button' @click='${() => {
+            this.filterTable();
+        }}'>
+                                    <dbp-icon name='search'></dbp-icon>
+
+                                </dbp-button>
+                                <ul class='extended-menu hidden' id='searchbar-menu'>
+                                    <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
+                                    <select id='search-select' class='button dropdown-menu'
+                                            title='${i18n.t('show-registrations.search-in-column')}:'>
+                                        ${this.getTableHeaderOptions()}
+                                    </select>
+
+                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}
+                                        :</label>
+                                    <select id='search-operator' class='button dropdown-menu'>
+                                        <option value='like'>${i18n.t('show-registrations.search-operator-like')}
+                                        </option>
+                                        <option value='='>${i18n.t('show-registrations.search-operator-equal')}</option>
+                                        <option value='!='>${i18n.t('show-registrations.search-operator-notequal')}
+                                        </option>
+                                        <option value='starts'>${i18n.t('show-registrations.search-operator-starts')}
+                                        </option>
+                                        <option value='ends'>${i18n.t('show-registrations.search-operator-ends')}
+                                        </option>
+                                        <option value='<'>${i18n.t('show-registrations.search-operator-less')}</option>
+                                        <option value='<='>
+                                            ${i18n.t('show-registrations.search-operator-lessthanorequal')}
+                                        </option>
+                                        <option value='>'>${i18n.t('show-registrations.search-operator-greater')}
+                                        </option>
+                                        <option value='>='>
+                                            ${i18n.t('show-registrations.search-operator-greaterorequal')}
+                                        </option>
+                                        <option value='regex'>${i18n.t('show-registrations.search-operator-regex')}
+                                        </option>
+                                        <option value='keywords'>
+                                            ${i18n.t('show-registrations.search-operator-keywords')}
+                                        </option>
+                                    </select>
+                                </ul>
+                            </div>
+    
                     
                     <dbp-tabulator-table
                             lang="${this.lang}"
@@ -2083,7 +2134,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             pagination-enabled="true"
                             options=${JSON.stringify(options_submissions)}></dbp-tabulator-table>
                 </div>
-                
+                </div>
             </div>
             
         `;
