@@ -2058,22 +2058,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </span>
                 </div>
                 <div class='table-buttons'>
-                <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
-                     <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
+                    <div class="${classMap({hidden: !this.showSubmissionsTable})}">
+                        <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
                        <a @click='${() => {
-                           this.loadingCourseTable = true;
-                           this.showSubmissionsTable = false;
-                           this.submissionsColumns = [];
-                           this.clearFilter();
-                           this.loadingCourseTable = false;
-                       }}'
+                            this.loadingCourseTable = true;
+                            this.showSubmissionsTable = false;
+                            this.submissionsColumns = [];
+                            this.clearFilter();
+                            this.loadingCourseTable = false;
+                        }}'
                           title='${i18n.t('show-registrations.back-text')}'>
                                 <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
                        <h3>${this.activeCourse}</h3>
                     </span>
-                    
-                     <div class='search-wrapper'>
+                        
+                        <div class='search-wrapper'>
                             <div id='extendable-searchbar'>
                                 <input type='text' id='searchbar'
                                        placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
@@ -2124,18 +2124,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     </select>
                                 </ul>
                             </div>
-    
-                    
-                    <dbp-tabulator-table
-                            lang="${this.lang}"
-                            class="tabulator-table"
-                            id="tabulator-table-submissions"
-                            pagination-size="10"
-                            pagination-enabled="true"
-                            options=${JSON.stringify(options_submissions)}></dbp-tabulator-table>
-                </div>
-                </div>
-            </div>
+                            </div>
+
+                        <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
+                            <dbp-tabulator-table
+                                    lang="${this.lang}"
+                                    class="tabulator-table"
+                                    id="tabulator-table-submissions"
+                                    pagination-size="10"
+                                    pagination-enabled="true"
+                                    options=${JSON.stringify(options_submissions)}></dbp-tabulator-table>
+                        </div>
+                        
+                    </div>
             
         `;
     }
