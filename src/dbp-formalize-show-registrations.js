@@ -54,6 +54,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.coursesTable = null;
         this.forms = null;
         this.submissionsTable = null;
+        this.submissionsCols = null;
         this.showSubmissionsTable = false;
         this.submissionsColumnsInitial = [];
         this.submissionsColumns = [];
@@ -105,6 +106,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             coursesTable: {type: Object, attribute: false},
             forms: {type: Array, attribute: false},
             submissionsTable: {type: Object, attribute: false},
+            submissionsCols: {type: Array, attribute: false},
             emptyCoursesTable: {type: Boolean, attribute: true},
             showSubmissionsTable: {type: Boolean, attribute: false},
             submissionsColumns: {type: Array, attribute: false},
@@ -343,6 +345,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     btn.addEventListener('click', async event => {
                         this.showSubmissionsTable = true;
                         this.activeCourse = name;
+
                         let resp = await this.requestAllCourseSubmissions(name, form);
                         console.log(resp);
 
@@ -409,6 +412,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {string} name
      */
     async requestAllCourseSubmissions(name, form) {
+
         const i18n = this._i18n;
         let dataList = [];
         let dataList2 = [];
@@ -461,8 +465,34 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let first_entry = data['hydra:member'][0];
         let json = JSON.parse(first_entry['dataFeedElement']);
         let cols_header = [];
-        Object.keys(json).forEach((prop)=> cols_header.push(prop));
-        console.log('properties ' + cols_header);
+        Object.keys(json).forEach((prop)=> cols_header.push({prop: JSON.stringify(prop)}));
+
+        let options = {
+            layout: 'fitColumns',
+            columns: cols_header,
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
+
+        this.submissionsCols = {
+            'en': {
+                columns: {
+                    'id': i18n.t('id', {lng: 'en'}),
+                    'name': i18n.t('name', {lng: 'en'}),
+                },
+            },
+            'de': {
+                columns: {
+                    'id': i18n.t('id', {lng: 'de'}),
+                    'name': i18n.t('name', {lng: 'de'}),
+                },
+            },
+        };
+
+
 
         for (let x = 0; x < data["hydra:member"].length; x++) {
 
@@ -473,11 +503,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             try {
                 let json = JSON.parse(entry['dataFeedElement']);
                 let jsonFirst = {};
-                jsonFirst['id'] = id;
+                /*jsonFirst['id'] = id;
                 jsonFirst['no_display_1'] = '';
                 jsonFirst['id_'] = itemsCount + 1;
                 jsonFirst['dateCreated'] = date;
-                json = Object.assign(jsonFirst, json);
+                json = Object.assign(jsonFirst, json);*/
                 dataList2.push(json);
 
 
@@ -1926,29 +1956,28 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     setTableData2() {
         const i18n = this._i18n;
-        let langs_submissions  = {
+        let langs_forms = {
             'en': {
                 columns: {
-                    'creation-date': i18n.t('show-registrations.creation-date', {lng: 'en'}),
-                    'firstname': i18n.t('show-registrations.firstname', {lng: 'en'}),
-                    'lastname': i18n.t('show-registrations.lastname', {lng: 'en'}),
+                    'id': i18n.t('id', {lng: 'en'}),
+                    'name': i18n.t('name', {lng: 'en'}),
                 },
             },
             'de': {
                 columns: {
-                    'creation-date': i18n.t('show-registrations.creation-date', {lng: 'de'}),
-                    'firstname': i18n.t('show-registrations.firstname', {lng: 'de'}),
-                    'lastname': i18n.t('show-registrations.lastname', {lng: 'de'}),
+                    'id': i18n.t('id', {lng: 'de'}),
+                    'name': i18n.t('name', {lng: 'de'}),
                 },
             },
         };
-        let options_submissions = {
-            langs: langs_submissions,
+
+        let options_forms = {
+            langs: this.submissionsCols,
             layout: 'fitColumns',
             columns: [
-                {field: 'creation-date', width: 150},
-                {field: 'firstname'},
-                {field: 'lastname'},
+                {field: 'id', width: 150},
+                {field: 'name'},
+                {field: 'actionButton', formatter:"html"},
             ],
             columnDefaults: {
                 vertAlign: 'middle',
@@ -1956,9 +1985,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 resizable: false,
             },
         };
+
         let table = this._('#tabulator-table-submissions');
-        table.options = options_submissions;
-        table.setData(this.allCourseSubmissions);
+        table.options = options_forms;
+        table.setData(this.allCourses);
     }
 
     render() {
@@ -1980,7 +2010,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
 
-        let langs_forms  = {
+        let langs_forms = {
             'en': {
                 columns: {
                     'id': i18n.t('id', {lng: 'en'}),
@@ -1995,7 +2025,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
-        let langs_submissions  = {
+
+
+        /*let langs_submissions  = {
             'en': {
                 columns: {
                     'creation-date': i18n.t('show-registrations.creation-date', {lng: 'en'}),
@@ -2010,10 +2042,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     'lastname': i18n.t('show-registrations.lastname', {lng: 'de'}),
                 },
             },
-        };
+        };*/
 
         let options_forms = {
-            langs: langs_forms ,
+            langs: langs_forms,
             layout: 'fitColumns',
             columns: [
                 {field: 'id', width: 150},
@@ -2027,7 +2059,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
-        let options_submissions = {
+        /*let options_submissions = {
             langs: langs_submissions,
             layout: 'fitColumns',
             columns: [
@@ -2040,7 +2072,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
-        };
+        };*/
 
 
         return html`
@@ -2172,8 +2204,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     class="tabulator-table"
                                     id="tabulator-table-submissions"
                                     pagination-size="10"
-                                    pagination-enabled="true"
-                                    }></dbp-tabulator-table>
+                                    pagination-enabled="true" }></dbp-tabulator-table>
                         </div>
                         
                     </div>
