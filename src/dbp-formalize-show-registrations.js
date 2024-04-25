@@ -1916,8 +1916,39 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     setTableData2() {
+        const i18n = this._i18n;
+        let langs_submissions  = {
+            'en': {
+                columns: {
+                    'creation-date': i18n.t('show-registrations.creation-date', {lng: 'en'}),
+                    'firstname': i18n.t('show-registrations.firstname', {lng: 'en'}),
+                    'lastname': i18n.t('show-registrations.lastname', {lng: 'en'}),
+                },
+            },
+            'de': {
+                columns: {
+                    'creation-date': i18n.t('show-registrations.creation-date', {lng: 'de'}),
+                    'firstname': i18n.t('show-registrations.firstname', {lng: 'de'}),
+                    'lastname': i18n.t('show-registrations.lastname', {lng: 'de'}),
+                },
+            },
+        };
+        let options_submissions = {
+            langs: langs_submissions,
+            layout: 'fitColumns',
+            columns: [
+                {field: 'creation-date', width: 150},
+                {field: 'firstname'},
+                {field: 'lastname'},
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
         let table = this._('#tabulator-table-submissions');
-
+        table.options = options_submissions;
         table.setData(this.allCourseSubmissions);
     }
 
@@ -2133,7 +2164,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     id="tabulator-table-submissions"
                                     pagination-size="10"
                                     pagination-enabled="true"
-                                    options=${JSON.stringify(options_submissions)}></dbp-tabulator-table>
+                                    }></dbp-tabulator-table>
                         </div>
                         
                     </div>
