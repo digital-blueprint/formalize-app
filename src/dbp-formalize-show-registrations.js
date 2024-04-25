@@ -457,6 +457,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         let itemsCount = 0;
+
+        let first_entry = data['hydra:member'][0];
+        let json = JSON.parse(first_entry['dataFeedElement']);
+        let cols_header = [];
+        Object.keys(json).forEach((prop)=> cols_header.push(prop));
+        console.log('properties ' + cols_header);
+
         for (let x = 0; x < data["hydra:member"].length; x++) {
 
             let entry = data['hydra:member'][x];
@@ -473,6 +480,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 json = Object.assign(jsonFirst, json);
                 dataList2.push(json);
 
+
                 //this.allCourseSubmissions = [{'creation-date': '2024-03-13', 'firstname': 'as', 'lastname': 'asas'}];
                 let submission = {'creation-date': date.toString(), 'firstname': json.firstname, 'lastname': json.lastname};
                 dataList.push(submission);
@@ -481,6 +489,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'ErrorInDataCreation', e);
             }
             this.allCourseSubmissions = dataList;
+            console.log('all course submission ' + dataList2);
         }
         return dataList;
     }
