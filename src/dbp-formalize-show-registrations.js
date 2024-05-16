@@ -55,6 +55,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.forms = null;
         this.submissionsTable = null;
         this.submissionsCols = null;
+        this.submissions = null;
         this.showSubmissionsTable = false;
         this.submissionsColumnsInitial = [];
         this.submissionsColumns = [];
@@ -67,6 +68,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.navigateBetweenDetailedSubmissionsHandler = this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeCourse = '';
+        this.activeForm = '';
         this.currentRow = null;
         this.currentBeautyId = 0;
         this.totalNumberOfItems = 0;
@@ -107,6 +109,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             forms: {type: Array, attribute: false},
             submissionsTable: {type: Object, attribute: false},
             submissionsCols: {type: Array, attribute: false},
+            submissions: {type: Array, attribute: false},
             emptyCoursesTable: {type: Boolean, attribute: true},
             showSubmissionsTable: {type: Boolean, attribute: false},
             submissionsColumns: {type: Array, attribute: false},
@@ -343,11 +346,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
 
                     btn.addEventListener('click', async event => {
-                        this.showSubmissionsTable = true;
-                        this.activeCourse = name;
 
-                        let resp = await this.requestAllCourseSubmissions(name, form);
-                        console.log(resp);
+                        this.activeCourse = name;
+                        this.activeForm = form;
+                        this.showSubmissionsTable = true;
+
 
                         //await this.requestAllCourseSubmissions(name, form);
                     });
@@ -377,7 +380,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     async getAllSubmissions(form) {
         let response;
-
+        let data = [];
         const options = {
             method: 'GET',
             headers: {
@@ -387,6 +390,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form, options);
+
+        try {
+            data = await response.json();
+        } catch (e) {
+            this.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
+            this.throwSomethingWentWrongNotification();
+            return;
+        }
+
+        console.log(data);
+
+        for (let x = 0; x < data["hydra:member"].length; x++) {
+            let entry = data['hydra:member'][x]['dataFeedElement'];
+            console.log(entry);
+        };
 
         return response;
     }
@@ -414,114 +432,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     async requestAllCourseSubmissions(name, form) {
 
         const i18n = this._i18n;
-        let dataList = [];
-        let dataList2 = [];
-        let response = await this.getAllSubmissions(form);
-        this.showSubmissionsTable = true;
 
-        this.submissionsColumns = [];
-        this.submissionsColumnsInitial = [];
-
-        if (!response) {
-            this.sendErrorAnalyticsEvent('requestAllCourseSubmissions', 'NoResponse', '');
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-        if (response.status !== 200) {
-            if (response.status === 403) {
-                this.hasPermissions = false;
-                this.sendErrorAnalyticsEvent('requestAllCourseSubmissions', 'NoPermission', '', response);
-                send({
-                    summary: i18n.t('show-registrations.load-courses-no-permission-title'),
-                    body: i18n.t('show-registrations.load-courses-no-permission-body'),
-                    type: 'danger',
-                    timeout: 5
-                });
-                return;
-            }
-            this.sendErrorAnalyticsEvent('requestAllCourseSubmissions', 'NoResponse', '', response);
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-
-        let data = [];
-        try {
-            data = await response.json();
-        } catch (e) {
-            this.sendErrorAnalyticsEvent('requestAllCourseSubmissions', 'WrongResponse', e);
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-
-        if (!data || !data['hydra:member']) {
-            this.showSubmissionsTable = true;
-            this.sendErrorAnalyticsEvent('requestAllCourseSubmissions', 'WrongData', '');
-            this.throwSomethingWentWrongNotification();
-            return;
-        }
-
-        let itemsCount = 0;
-
-        let first_entry = data['hydra:member'][0];
-        let json = JSON.parse(first_entry['dataFeedElement']);
-        let cols_header = [];
-        Object.keys(json).forEach((prop)=> cols_header.push({prop: JSON.stringify(prop)}));
-
-        let options = {
-            layout: 'fitColumns',
-            columns: cols_header,
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
-
-        this.submissionsCols = {
-            'en': {
-                columns: {
-                    'id': i18n.t('id', {lng: 'en'}),
-                    'name': i18n.t('name', {lng: 'en'}),
-                },
-            },
-            'de': {
-                columns: {
-                    'id': i18n.t('id', {lng: 'de'}),
-                    'name': i18n.t('name', {lng: 'de'}),
-                },
-            },
-        };
+        let dataSub = [
+            {id: 1, name: 'Oli Bob', age: '12', col: 'red', dob: ''},
+            {id: 2, name: 'Mary May', age: '1', col: 'blue', dob: '14/05/1982'},
+            {id: 3, name: 'Christine Lobowski', age: '42', col: 'green', dob: '22/05/1982'},
+            {id: 4, name: 'Brendon Philips', age: '95', col: 'orange', dob: '01/08/1980'},
+            {id: 5, name: 'Margret Marmajuke', age: '16', col: 'yellow', dob: '31/01/1999'},
+        ];
 
 
+        return dataSub;
+        //this.setTableData2();
+        //this.showSubmissionsTable = true;
 
-        for (let x = 0; x < data["hydra:member"].length; x++) {
-
-            let entry = data['hydra:member'][x];
-            let id = entry['@id'].split('/')[3];
-            let date = entry['dateCreated'];
-
-            try {
-                let json = JSON.parse(entry['dataFeedElement']);
-                let jsonFirst = {};
-                /*jsonFirst['id'] = id;
-                jsonFirst['no_display_1'] = '';
-                jsonFirst['id_'] = itemsCount + 1;
-                jsonFirst['dateCreated'] = date;
-                json = Object.assign(jsonFirst, json);*/
-                dataList2.push(json);
-
-
-                //this.allCourseSubmissions = [{'creation-date': '2024-03-13', 'firstname': 'as', 'lastname': 'asas'}];
-                let submission = {'creation-date': date.toString(), 'firstname': json.firstname, 'lastname': json.lastname};
-                dataList.push(submission);
-                itemsCount++;
-            } catch (e) {
-                this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'ErrorInDataCreation', e);
-            }
-            this.allCourseSubmissions = dataList;
-            console.log('all course submission ' + dataList2);
-        }
-        return dataList;
     }
 
     /**
@@ -1954,41 +1878,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         table.setData(this.allCourses);
     }
 
-    setTableData2() {
-        const i18n = this._i18n;
-        let langs_forms = {
-            'en': {
-                columns: {
-                    'id': i18n.t('id', {lng: 'en'}),
-                    'name': i18n.t('name', {lng: 'en'}),
-                },
-            },
-            'de': {
-                columns: {
-                    'id': i18n.t('id', {lng: 'de'}),
-                    'name': i18n.t('name', {lng: 'de'}),
-                },
-            },
-        };
-
-        let options_forms = {
-            langs: this.submissionsCols,
-            layout: 'fitColumns',
-            columns: [
-                {field: 'id', width: 150},
-                {field: 'name'},
-                {field: 'actionButton', formatter:"html"},
-            ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
-
+    setTableData2(data) {
         let table = this._('#tabulator-table-submissions');
-        table.options = options_forms;
-        table.setData(this.allCourses);
+        table.setData(data);
     }
 
     render() {
@@ -1998,17 +1890,27 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             'tabulator-tables/css/tabulator.min.css'
         );
 
+        let data = [
+            {id: 1, name: 'Oli Bob', age: '12', col: 'red', dob: ''},
+            {id: 2, name: 'Mary May', age: '1', col: 'blue', dob: '14/05/1982'},
+            {id: 3, name: 'Christine Lobowski', age: '42', col: 'green', dob: '22/05/1982'},
+            {id: 4, name: 'Brendon Philips', age: '95', col: 'orange', dob: '01/08/1980'},
+            {id: 5, name: 'Margret Marmajuke', age: '16', col: 'yellow', dob: '31/01/1999'},
+        ];
 
         if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.getListOfAllCourses().then(() => {
                 this.setTableData();
+                this.setTableData2(data);
+            });
+
+        }
+
+        if(this.isLoggedIn() && !this.isLoading() && this.showSubmissionsTable) {
+            this.getAllSubmissions(this.activeForm).then(() => {
+                console.log('response');
             });
         }
-
-        if (this.isLoggedIn() && !this.isLoading() && !this.loadCourses && this.showSubmissionsTable) {
-                this.setTableData2();
-        }
-
 
         let langs_forms = {
             'en': {
@@ -2024,25 +1926,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 },
             },
         };
-
-
-
-        /*let langs_submissions  = {
-            'en': {
-                columns: {
-                    'creation-date': i18n.t('show-registrations.creation-date', {lng: 'en'}),
-                    'firstname': i18n.t('show-registrations.firstname', {lng: 'en'}),
-                    'lastname': i18n.t('show-registrations.lastname', {lng: 'en'}),
-                },
-            },
-            'de': {
-                columns: {
-                    'creation-date': i18n.t('show-registrations.creation-date', {lng: 'de'}),
-                    'firstname': i18n.t('show-registrations.firstname', {lng: 'de'}),
-                    'lastname': i18n.t('show-registrations.lastname', {lng: 'de'}),
-                },
-            },
-        };*/
 
         let options_forms = {
             langs: langs_forms,
@@ -2058,6 +1941,43 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 resizable: false,
             },
         };
+
+        let langs = {
+            'en': {
+                columns: {
+                    'name': i18n.t('name', {lng: 'en'}),
+                    'age': i18n.t('age', {lng: 'en'}),
+                    'col': i18n.t('col', {lng: 'en'}),
+                    'dob': i18n.t('dob', {lng: 'en'}),
+                },
+            },
+            'de': {
+                columns: {
+                    'name': i18n.t('name', {lng: 'de'}),
+                    'age': i18n.t('age', {lng: 'de'}),
+                    'col': i18n.t('col', {lng: 'de'}),
+                    'dob': i18n.t('dob', {lng: 'de'}),
+                },
+            },
+        };
+
+        let options = {
+            langs: langs,
+            layout: 'fitColumns',
+            columns: [
+                {field: 'name', width: 150},
+                {field: 'age', hozAlign: 'left', formatter: 'progress'},
+                {field: 'col'},
+                {field: 'dob', sorter: 'date', hozAlign: 'center'},
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
+
+
 
         /*let options_submissions = {
             langs: langs_submissions,
@@ -2122,92 +2042,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             pagination-enabled="true"
                             options=${JSON.stringify(options_forms)}></dbp-tabulator-table>
                 </div>
-
-
-                <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
-                        <span class='loading'>
-                            <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
-                        </span>
-                </div>
-                <div class='table-buttons'>
-                    <div class="${classMap({hidden: !this.showSubmissionsTable})}">
-                        <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
-                       <a @click='${() => {
-                            this.loadingCourseTable = true;
-                            this.showSubmissionsTable = false;
-                            this.submissionsColumns = [];
-                            this.clearFilter();
-                            this.loadingCourseTable = false;
-                        }}'
-                          title='${i18n.t('show-registrations.back-text')}'>
-                                <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
-                       </a>
-                       <h3>${this.activeCourse}</h3>
-                    </span>
-                        
-                        <div class='search-wrapper'>
-                            <div id='extendable-searchbar'>
-                                <input type='text' id='searchbar'
-                                       placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
-                                       @click='${() => {
-            this.toggleSearchMenu();
-        }}' />
-                                <dbp-button class='button is-icon' id='search-button'
-                                            title='${i18n.t('show-registrations.search-button')}'
-                                            class='button' @click='${() => {
-            this.filterTable();
-        }}'>
-                                    <dbp-icon name='search'></dbp-icon>
-
-                                </dbp-button>
-                                <ul class='extended-menu hidden' id='searchbar-menu'>
-                                    <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
-                                    <select id='search-select' class='button dropdown-menu'
-                                            title='${i18n.t('show-registrations.search-in-column')}:'>
-                                        ${this.getTableHeaderOptions()}
-                                    </select>
-
-                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}
-                                        :</label>
-                                    <select id='search-operator' class='button dropdown-menu'>
-                                        <option value='like'>${i18n.t('show-registrations.search-operator-like')}
-                                        </option>
-                                        <option value='='>${i18n.t('show-registrations.search-operator-equal')}</option>
-                                        <option value='!='>${i18n.t('show-registrations.search-operator-notequal')}
-                                        </option>
-                                        <option value='starts'>${i18n.t('show-registrations.search-operator-starts')}
-                                        </option>
-                                        <option value='ends'>${i18n.t('show-registrations.search-operator-ends')}
-                                        </option>
-                                        <option value='<'>${i18n.t('show-registrations.search-operator-less')}</option>
-                                        <option value='<='>
-                                            ${i18n.t('show-registrations.search-operator-lessthanorequal')}
-                                        </option>
-                                        <option value='>'>${i18n.t('show-registrations.search-operator-greater')}
-                                        </option>
-                                        <option value='>='>
-                                            ${i18n.t('show-registrations.search-operator-greaterorequal')}
-                                        </option>
-                                        <option value='regex'>${i18n.t('show-registrations.search-operator-regex')}
-                                        </option>
-                                        <option value='keywords'>
-                                            ${i18n.t('show-registrations.search-operator-keywords')}
-                                        </option>
-                                    </select>
-                                </ul>
-                            </div>
-                            </div>
-
-                        <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
-                            <dbp-tabulator-table
-                                    lang="${this.lang}"
-                                    class="tabulator-table"
-                                    id="tabulator-table-submissions"
-                                    pagination-size="10"
-                                    pagination-enabled="true" }></dbp-tabulator-table>
-                        </div>
-                        
+                <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
+                    <dbp-tabulator-table
+                            lang="${this.lang}"
+                            class="tabulator-table"
+                            id="tabulator-table-submissions"
+                            pagination-size="10"
+                            pagination-enabled="true"
+                            options=${JSON.stringify(options)}
+                            data=${JSON.stringify(data)}></dbp-tabulator-table>
+                </div>        
                     </div>
+
+            
             
         `;
     }
