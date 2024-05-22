@@ -105,7 +105,7 @@ function getOrigin(url) {
     return '';
 }
 
-config.CSP = `default-src 'self' 'unsafe-eval' 'unsafe-inline' \
+config.CSP = `default-src 'self' 'unsafe-inline' \
     ${getOrigin(config.matomoUrl)} ${getOrigin(config.keyCloakBaseURL)} ${getOrigin(
     config.entryPointURL
 )};\
