@@ -420,7 +420,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         // after this function, but still a TypeError will occur if .json() was already called before this function
         try {
             responseBody = await responseData.clone().json();
-        } catch (e) {
+        } catch {
             responseBody = responseData; // got already decoded data
         }
 
@@ -1029,7 +1029,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     getTableHeaderOptions() {
         if (!this.submissionsTable)
-            return;
+            return [];
         const i18n = this._i18n;
         let options = [];
         options[0] = html`
