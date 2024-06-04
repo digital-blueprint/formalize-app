@@ -2,7 +2,7 @@ import {createInstance} from './i18n.js';
 import {css, unsafeCSS, html} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {Icon, MiniSpinner, LoadingButton, getIconSVGURL} from '@dbp-toolkit/common';
+import {Icon, IconButton, MiniSpinner, LoadingButton, getIconSVGURL} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -85,6 +85,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     static get scopedElements() {
         return {
             'dbp-icon': Icon,
+            'dbp-icon-button': IconButton,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-loading-button': LoadingButton,
             'dbp-tabulator-table': TabulatorTable,
@@ -230,8 +231,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             const actionsButtons = (cell, formatterParams) => {
                 let id = cell.getData()['id'];
-                let btn = this.createScopedElement('dbp-icon');
-                btn.setAttribute('name', 'keyword-research');
+                let btn = this.createScopedElement('dbp-icon-button');
+                btn.setAttribute('icon-name', 'keyword-research');
+                btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
+                btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
                 btn.setAttribute('id', id);
                 btn.classList.add('open-modal-icon');
                 btn.addEventListener('click', event => {
@@ -1248,13 +1251,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} item
      */
     changeVisibility(item) {
+        const i18n = this._i18n;
         item.visibility = !item.visibility;
         if (item.visibility) {
-            this._('.' + item.field + ' .header-visibility-icon-hide').classList.remove('hidden');
-            this._('.' + item.field + ' .header-visibility-icon-show').classList.add('hidden');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('icon-name', 'source_icons_eye-empty');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('title', `${i18n.t('show-registrations.change-visability-off')}`);
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('aria-label', `${i18n.t('show-registrations.change-visability-off')}`);
         } else {
-            this._('.' + item.field + ' .header-visibility-icon-hide').classList.add('hidden');
-            this._('.' + item.field + ' .header-visibility-icon-show').classList.remove('hidden');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('icon-name', 'source_icons_eye-off');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('title', `${i18n.t('show-registrations.change-visability-on')}`);
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('aria-label', `${i18n.t('show-registrations.change-visability-on')}`);
         }
         this.submissionsColumnsUpdated = !this.submissionsColumnsUpdated;
     }
@@ -1490,7 +1496,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             ${commonStyles.getButtonCSS()}
             ${tabulatorStyles.getTabulatorStyles()}
-            
+
             .table-wrapper.submissions {
                 padding-top: 0.5rem;
             }
@@ -1527,12 +1533,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .actions-buttons {
-                width: 33px;
+                width: 40px;
                 position: absolute;
                 margin: auto;
-                left: 10px;
+                left: 0;
             }
-            
+
             #detailed-submission-modal-title {
                 margin-bottom: 10px;
             }
@@ -1558,7 +1564,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .open-modal-icon {
                 font-size: 1.3em;
             }
-            
+
             .export-buttons{
                 display: flex;
                 justify-content: space-between;
@@ -1752,10 +1758,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .frozen-table-divider {
                 position: absolute;
-                height: calc(100% - 61px);
+                height: calc(100% - 130px); /* table-header + pagination heights: 59px + 51px */
                 width: 3px;
-                top: 10px;
-                right: 37px;
+                top: 59px; /* table-header height */
+                right: 51px;
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0; /* transparent */
@@ -1868,7 +1874,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 min-width: 300px;
                 min-height: unset;
             }
-            
+
             #filter-modal-box .modal-footer-btn{
                 display: flex;
                 justify-content: space-between;
@@ -1890,14 +1896,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 left: 8px;
                 top: 2px;
             }
-            
+
             .button.courses-btn{
                 font-size: 1.2rem;
                 display: flex;
                 align-items: center;
                 top: 0px;
             }
-            
+
 
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -2251,7 +2257,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
                         </span>
                 </div>
-            
+
                 <div
                     class='table-wrapper submissions${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable})}'>
                     <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
@@ -2264,8 +2270,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             this.submissionsTable.clearData();
                             this.loadingCourseTable = false;
                         }}'
-                          title='${i18n.t('show-registrations.back-text')}'>
-                                <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
+                        title='${i18n.t('show-registrations.back-text')}'>
+                        <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
                     </span>
                     <div class='table-header submissions'>
@@ -2273,14 +2279,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <div class='options-nav ${classMap({hidden: !this.showSubmissionsTable})}'>
                             <div class='additional-menu ${classMap({hidden: !this.showSubmissionsTable})}'>
                                 <a class='extended-menu-link'
-                                   @click='${() => {
+                                    @click='${() => {
                                         this.toggleMoreMenu();
                                     }}'
-                                   title='${i18n.t('show-registrations.more-menu')}'>
+                                    title='${i18n.t('show-registrations.more-menu')}'>
                                     <dbp-icon name='menu-dots' class='more-menu'></dbp-icon>
                                 </a>
-                             
-                                
+
+
                                 <ul class='extended-menu hidden'>
                                     <li class='open-menu ${classMap({active: false})}'>
                                         <a class='' @click='${() => {
@@ -2318,18 +2324,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         <div class='search-wrapper'>
                             <div id='extendable-searchbar'>
                                 <input type='text' id='searchbar'
-                                       placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
-                                       @click='${() => {
-                                            this.toggleSearchMenu();
-                                        }}' />
-                                <dbp-button class='button is-icon' id='search-button'
-                                            title='${i18n.t('show-registrations.search-button')}'
-                                            class='button' @click='${() => {
-                                                this.filterTable();
-                                            }}'>
-                                    <dbp-icon name='search'></dbp-icon>
-
-                                </dbp-button>
+                                    placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
+                                    @click='${() => {
+                                        this.toggleSearchMenu();
+                                    }}' />
+                                <dbp-icon-button class='button is-icon' id='search-button'
+                                    title='${i18n.t('show-registrations.search-button')}'
+                                    aria-label='${i18n.t('show-registrations.search-button')}'
+                                    icon-name="search"
+                                    @click='${() => {
+                                        this.filterTable();
+                                    }}'></dbp-icon-button>
                                 <ul class='extended-menu hidden' id='searchbar-menu'>
                                     <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
                                     <select id='search-select' class='button dropdown-menu'
@@ -2370,11 +2375,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         </div>
                         <div class='export-buttons'>
-
-                            <button class='button is-icon' title=' ${i18n.t('show-registrations.filter-options-button-text')}'
-                                    @click='${() => {this.openColumnOptionsModal(); }}'>
-                                <dbp-icon name='iconoir_settings'></dbp-icon>
-                            </button>
+                            <dbp-icon-button title='${i18n.t('show-registrations.filter-options-button-text')}'
+                                aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
+                                icon-name='iconoir_settings'
+                                @click='${() => {this.openColumnOptionsModal(); }}'></dbp-icon-button>
                             <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
                                 <option value='-' disabled selected>
                                     ${i18n.t('show-registrations.default-export-select')}
@@ -2409,19 +2413,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         aria-modal='true'
                         aria-labelledby='submission-modal-title'>
                         <header class='modal-header'>
-                            <button
+                            <dbp-icon-button
                                 title='${i18n.t('show-registrations.modal-close')}'
+                                aria-label='${i18n.t('show-registrations.modal-close')}'
                                 class='modal-close'
-                                aria-label='Close modal'
+                                icon-name='close'
                                 @click='${() => {
                                     this.closeColumnOptionsModal();
                                     this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
-                                }}'>
-                                <dbp-icon
-                                    title='${i18n.t('show-registrations.modal-close')}'
-                                    name='close'
-                                    class='close-icon'></dbp-icon>
-                            </button>
+                                }}'></dbp-icon-button>
                             <p id='submission-modal-title'>
                                 ${i18n.t('show-registrations.header-settings')}
                             </p>
@@ -2438,29 +2438,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                             <div class='header-field'>
                                                 <span class='header-button header-order'>${counter + 1}</span>
                                                 <span class='header-title'><strong>${i.name}</strong></span>
-                                                <span class='header-button header-visibility-icon'
-                                                      @click='${() => {
-                                                    this.changeVisibility(i);
-                                                }}'>
-                                                 <dbp-icon title='${i18n.t('show-registrations.change-visability-off')}'
-                                                           class='header-visibility-icon-hide ${classMap({hidden: !i.visibility})}'
-                                                           name='source_icons_eye-empty'></dbp-icon>
-                                                 <dbp-icon title='${i18n.t('show-registrations.change-visability-on')}'
-                                                           class='header-visibility-icon-show ${classMap({hidden: i.visibility})}'
-                                                           name='source_icons_eye-off'></dbp-icon>
-                                             </span>
+                                                <dbp-icon-button class='header-button header-visibility-icon'
+                                                    @click='${() => {
+                                                        this.changeVisibility(i);
+                                                    }}'
+                                                    icon-name='source_icons_eye-empty'
+                                                    title='${i18n.t('show-registrations.change-visability-off')}'
+                                                    aria-label='${i18n.t('show-registrations.change-visability-off')}'></dbp-icon-button>
                                                 <span class='header-move'>
-                                                <div class='header-button' @click='${() => {
-                                                        this.moveHeaderUp(i);
-                                                    }}'
-                                                     title='${i18n.t('show-registrations.move-up')}'>
-                                                    <dbp-icon name='arrow-up'></dbp-icon></div>
-                                                 <div class='header-button' @click='${() => {
-                                                        this.moveHeaderDown(i);
-                                                    }}'
-                                                      title='${i18n.t('show-registrations.move-down')}'>
-                                                     <dbp-icon name='arrow-down'></dbp-icon></div>
-                                             </span>
+                                                    <dbp-icon-button class='header-button'
+                                                        @click='${() => {
+                                                            this.moveHeaderUp(i);
+                                                        }}'
+                                                        icon-name='arrow-up'
+                                                        title='${i18n.t('show-registrations.move-up')}'
+                                                        aria-label='${i18n.t('show-registrations.move-up')}'></dbp-icon-button>
+                                                    <dbp-icon-button class='header-button'
+                                                        @click='${() => {
+                                                            this.moveHeaderDown(i);
+                                                        }}'
+                                                        icon-name='arrow-down'
+                                                        title='${i18n.t('show-registrations.move-down')}'
+                                                        aria-label='${i18n.t('show-registrations.move-down')}'></dbp-icon-button>
+                                                </span>
                                             </div>
                                         </li>
                                     `;
@@ -2468,7 +2468,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </ul>
                         </main>
                         <footer class='modal-footer'>
-       
+
                             <div class='modal-footer-btn'>
                                 <div>
                                     <button
@@ -2518,12 +2518,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <button
                                 title='${i18n.t('show-registrations.modal-close')}'
                                 class='modal-close'
-                                aria-label='Close modal'
+                                aria-label='${i18n.t('show-registrations.modal-close')}'
                                 @click='${() => {
                                     this.closeDetailModal();
                                 }}'>
                                 <dbp-icon
                                     title='${i18n.t('show-registrations.modal-close')}'
+                                    aria-hidden='true'
                                     name='close'
                                     class='close-icon'></dbp-icon>
                             </button>
@@ -2555,7 +2556,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                                 title='${i18n.t('show-registrations.last-entry-btn-title')}'
                                                 @click='${() => {this.showEntryOfPos(this.currentDetailPosition - 1, "previous");}}'
                                                 ?disabled='${!this.isPrevEnabled}'>
-                                        <dbp-icon name='chevron-left'></dbp-icon>
+                                        <dbp-icon name='chevron-left' aria-hidden='true'></dbp-icon>
                                         ${i18n.t('show-registrations.last-entry-btn-title')}
                                     </dbp-button>
                                     <div>${i18n.t('show-registrations.detailed-submission-dialog-id', {
@@ -2568,7 +2569,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                                 @click='${() => {this.showEntryOfPos(this.currentDetailPosition + 1, "next");}}'
                                                 ?disabled='${!this.isNextEnabled}'>
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
-                                        <dbp-icon name='chevron-right'></dbp-icon>
+                                        <dbp-icon name='chevron-right' aria-hidden='true'></dbp-icon>
                                     </dbp-button>
                                 </div>
                             </div>
