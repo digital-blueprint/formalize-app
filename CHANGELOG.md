@@ -1,4 +1,5 @@
+# Changelog
 
-## Next
+## v1.1.0
 
 - update welcome message
