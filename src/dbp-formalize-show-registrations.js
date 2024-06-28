@@ -351,6 +351,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
 
+                        this.getAllSubmissions(this.activeForm).then(() => {
+                            console.log('response');
+                        });
+
 
                         //await this.requestAllCourseSubmissions(name, form);
                     });
@@ -1906,11 +1910,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         }
 
-        if(this.isLoggedIn() && !this.isLoading() && this.showSubmissionsTable) {
+        /*if(this.isLoggedIn() && !this.isLoading() && this.showSubmissionsTable) {
             this.getAllSubmissions(this.activeForm).then(() => {
                 console.log('response');
             });
-        }
+        }*/
 
         let langs_forms = {
             'en': {
