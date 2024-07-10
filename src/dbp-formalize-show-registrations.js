@@ -229,6 +229,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             });
 
+            this.coursesTable.on('rowClick', async (event, row) => {
+                // Make the whole row clickable by triggering a click on the courses button.
+                const clickedCell = /** @type {HTMLElement} */ (event.target);
+                const clickedRow = clickedCell.closest('.tabulator-row');
+                const buttonToClick = /** @type {HTMLElement} */ (clickedRow.querySelector('dbp-button.courses-btn'));
+                if (buttonToClick) {
+                    buttonToClick.click();
+                }
+                event.stopPropagation();
+            });
+
             const actionsButtons = (cell, formatterParams) => {
                 let id = cell.getData()['id'];
                 let btn = this.createScopedElement('dbp-icon-button');
@@ -1758,10 +1769,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .frozen-table-divider {
                 position: absolute;
-                height: calc(100% - 130px); /* table-header + pagination heights: 59px + 51px */
-                width: 3px;
-                top: 59px; /* table-header height */
-                right: 51px;
+                height: calc(100% - 118px);/* table-header + pagination heights + scrollbar: 60px + 51px */
+                top: 60px; /* table-header height */
+                right: 36px;
+
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0; /* transparent */
@@ -1845,6 +1856,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     background-color: var(--dbp-background);
                     color: var(--dbp-content);
                 }
+            }
+
+            #courses-table .tabulator-row {
+                cursor: pointer;
+            }
+
+            #submissions-table .tabulator-row {
+                cursor: default;
             }
 
             .button-wrapper {
