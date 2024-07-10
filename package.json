@@ -1,6 +1,7 @@
 {
     "name": "@digital-blueprint/formalize-app",
     "internalName": "dbp-formalize",
+    "type": "module",
     "version": "1.1.0",
     "main": "src/dbp-formalize.js",
     "license": "LGPL-2.1-or-later",
@@ -64,20 +65,20 @@
         "xss": "^1.0.11"
     },
     "scripts": {
-        "build": "rollup --bundleConfigAsCjs -c",
-        "build-wl": "rollup --bundleConfigAsCjs -c",
-        "build-custom": "rollup --bundleConfigAsCjs -c --environment APP_ENV:localCustom",
+        "build": "rollup -c",
+        "build-wl": "rollup -c",
+        "build-custom": "rollup -c --environment APP_ENV:localCustom",
         "i18next": "i18next",
         "format": "npm run format:eslint && npm run format:prettier",
         "format:eslint": "eslint \"**/*.{js,ts}\" --fix",
         "format:prettier": "prettier \"**/*.{js,json,ts}\" --write",
-        "watch": "rollup --bundleConfigAsCjs -c --watch",
-        "watch-wl": "rollup --bundleConfigAsCjs -c --watch",
-        "watch-custom": "rollup --bundleConfigAsCjs -c --watch --environment APP_ENV:localCustom",
-        "watch-full": "rollup --bundleConfigAsCjs -c --watch --environment FORCE_FULL",
-        "watch-bs": "rollup --bundleConfigAsCjs -c --watch --environment APP_ENV:bs",
-        "test": "rollup --bundleConfigAsCjs -c --environment APP_ENV:test && karma start --singleRun",
-        "test-full": "rollup --bundleConfigAsCjs -c --environment FORCE_FULL,APP_ENV:test && karma start --singleRun",
+        "watch": "rollup -c --watch",
+        "watch-wl": "rollup -c --watch",
+        "watch-custom": "rollup -c --watch --environment APP_ENV:localCustom",
+        "watch-full": "rollup -c --watch --environment FORCE_FULL",
+        "watch-bs": "rollup -c --watch --environment APP_ENV:bs",
+        "test": "rollup -c --environment APP_ENV:test && karma start karma.conf.cjs --singleRun",
+        "test-full": "rollup -c --environment FORCE_FULL,APP_ENV:test && karma start karma.conf.cjs --singleRun",
         "lint": "eslint .",
         "publish": "sed -i 's/\"private\": true/\"private\": false/' package.json && can-npm-publish --verbose 2>&1 && npm publish --access public 2>&1; sed -i 's/\"private\": false/\"private\": true/' package.json"
     }

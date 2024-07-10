@@ -1,5 +1,5 @@
-import path from 'path';
-import url from 'url';
+import url from 'node:url';
+import process from 'node:process';
 import {globSync} from 'glob';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -18,7 +18,9 @@ import {
     generateTLSConfig,
     getDistPath,
 } from './vendor/toolkit/rollup.utils.js';
+import { createRequire } from "module";
 
+const require = createRequire(import.meta.url);
 let appName = 'dbp-formalize';
 const pkg = require('./package.json');
 const appEnv = typeof process.env.APP_ENV !== 'undefined' ? process.env.APP_ENV : 'local';
