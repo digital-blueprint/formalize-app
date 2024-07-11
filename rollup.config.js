@@ -1,5 +1,5 @@
-import path from 'path';
-import url from 'url';
+import url from 'node:url';
+import process from 'node:process';
 import {globSync} from 'glob';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -18,7 +18,9 @@ import {
     generateTLSConfig,
     getDistPath,
 } from './vendor/toolkit/rollup.utils.js';
+import { createRequire } from "module";
 
+const require = createRequire(import.meta.url);
 let appName = 'dbp-formalize';
 const pkg = require('./package.json');
 const appEnv = typeof process.env.APP_ENV !== 'undefined' ? process.env.APP_ENV : 'local';
@@ -105,7 +107,7 @@ function getOrigin(url) {
     return '';
 }
 
-config.CSP = `default-src 'self' 'unsafe-eval' 'unsafe-inline' \
+config.CSP = `default-src 'self' 'unsafe-inline' \
     ${getOrigin(config.matomoUrl)} ${getOrigin(config.keyCloakBaseURL)} ${getOrigin(
     config.entryPointURL
 )};\
@@ -137,18 +139,6 @@ export default (async () => {
         },
         treeshake: treeshake,
         //preserveEntrySignatures: false,
-        onwarn: function (warning, warn) {
-            // ignore chai warnings
-            if (warning.code === 'CIRCULAR_DEPENDENCY' && warning.message.includes('chai')) {
-                return;
-            }
-            // keycloak bundled code uses eval
-            if (warning.code === 'EVAL' && warning.id.includes('sha256.js')) {
-                return;
-            }
-
-            warn(warning);
-        },
         plugins: [
             del({
                 targets: 'dist/*',

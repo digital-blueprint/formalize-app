@@ -2,7 +2,7 @@ import {createInstance} from './i18n.js';
 import {css, unsafeCSS, html} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {Icon, MiniSpinner, LoadingButton, getIconSVGURL} from '@dbp-toolkit/common';
+import {Icon, IconButton, MiniSpinner, LoadingButton, getIconSVGURL} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -89,6 +89,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     static get scopedElements() {
         return {
             'dbp-icon': Icon,
+            'dbp-icon-button': IconButton,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-loading-button': LoadingButton,
             'dbp-tabulator-table': TabulatorTable,
@@ -164,6 +165,231 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             });
 
+            this.coursesTable = new Tabulator(this._('#courses-table'), {
+                layout: 'fitColumns',
+                selectableRows: false,
+                placeholder: i18n.t('show-registrations.no-data'),
+                pagination: true,
+                paginationMode: 'local',
+                paginationSize: 10,
+                paginationSizeSelector: true,
+                locale: true,
+                columnDefaults: {
+                    vertAlign: 'middle',
+                    resizable: false
+                },
+                columns: [
+                    {
+                        title: 'ID',
+                        field: 'id',
+                        widthGrow: 1,
+                        maxWidth: 50,
+                    },
+                    {
+                        title: 'Name',
+                        field: 'name',
+                        widthGrow: 2,
+                    },
+                    {
+                        title: i18n.t('show-registrations.date'),
+                        field: 'date',
+                        widthGrow: 2,
+                        formatter: function (cell, formatterParams, onRendered) {
+                            return that.humanReadableDate(cell.getValue());
+                        },
+                        visible: false,
+                    },
+                    {
+                        title: '',
+                        maxWidth: 45,
+                        field: 'actionButton',
+                        formatter: 'html',
+                        headerSort: false,
+                    }
+                ],
+                langs: {
+                    'en': {
+                        'pagination': {
+                            'page_size': 'Page size',
+                            'page_size_title': 'Page size',
+                            'first': '<span class="mobile-hidden">First</span>',
+                            'first_title': 'First Page',
+                            'last': '<span class="mobile-hidden">Last</span>',
+                            'last_title': 'Last Page',
+                            'prev': '<span class="mobile-hidden">Prev</span>',
+                            'prev_title': 'Prev Page',
+                            'next': '<span class="mobile-hidden">Next</span>',
+                            'next_title': 'Next Page'
+                        }
+                    },
+                    'de': {
+                        'pagination': {
+                            'page_size': 'Einträge pro Seite',
+                            'page_size_title': 'Einträge pro Seite',
+                            'first': '<span class="mobile-hidden">Erste</span>',
+                            'first_title': 'Erste Seite',
+                            'last': '<span class="mobile-hidden">Letzte</span>',
+                            'last_title': 'Letzte Seite',
+                            'prev': '<span class="mobile-hidden">Vorherige</span>',
+                            'prev_title': 'Vorherige Seite',
+                            'next': '<span class="mobile-hidden">Nächste</span>',
+                            'next_title': 'Nächste Seite'
+                        }
+                    }
+                }
+            });
+
+            this.coursesTable.on('rowClick', async (event, row) => {
+                // Make the whole row clickable by triggering a click on the courses button.
+                const clickedCell = /** @type {HTMLElement} */ (event.target);
+                const clickedRow = clickedCell.closest('.tabulator-row');
+                const buttonToClick = /** @type {HTMLElement} */ (clickedRow.querySelector('dbp-button.courses-btn'));
+                if (buttonToClick) {
+                    buttonToClick.click();
+                }
+                event.stopPropagation();
+            });
+
+            const actionsButtons = (cell, formatterParams) => {
+                let id = cell.getData()['id'];
+                let btn = this.createScopedElement('dbp-icon-button');
+                btn.setAttribute('icon-name', 'keyword-research');
+                btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
+                btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
+                btn.setAttribute('id', id);
+                btn.classList.add('open-modal-icon');
+                btn.addEventListener('click', event => {
+                    let row = cell.getRow();
+                    let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
+                    let index = previousPageItems + row.getPosition();
+                    this.openPage = this.submissionsTable.getPage();
+                    this.requestDetailedSubmission(row, row.getData(), index);
+                    event.stopPropagation();
+                });
+
+                let div = this.createScopedElement('div');
+                div.appendChild(btn);
+                div.classList.add('actions-buttons');
+
+                return div;
+            };
+
+            let customAccessor = (value, data, type, params, column, row) => {
+                return this.humanReadableDate(value);
+            };
+
+            let paginationElement = this._('.tabulator-paginator');
+
+            this.submissionsTable = new Tabulator(this._('#submissions-table'), {
+                layout: 'fitDataFill',
+                selectableRows: true,
+                selectableRowsPersistence: false,
+                placeholder: i18n.t('show-registrations.no-data'),
+                columnDefaults: {
+                    vertAlign: 'middle',
+                    resizable: false
+                },
+                pagination: true,
+                paginationMode: 'local',
+                paginationSize: 10,
+                paginationSizeSelector: true,
+                paginationElement: paginationElement,
+                autoColumns: true,
+                downloadRowRange: 'selected',
+                locale: true,
+                langs: {
+                    'en': {
+                        'columns': {
+                            'dateCreated': i18n.t('show-registrations.creation-date', { lng: 'en' }),
+                            'firstname': i18n.t('show-registrations.firstname', { lng: 'en' }),
+                            'lastname': i18n.t('show-registrations.lastname', { lng: 'en' }),
+                        },
+                        'pagination': {
+                            'page_size': 'Page size',
+                            'page_size_title': 'Page size',
+                            'first': '<span class="mobile-hidden">First</span>',
+                            'first_title': 'First Page',
+                            'last': '<span class="mobile-hidden">Last</span>',
+                            'last_title': 'Last Page',
+                            'prev': '<span class="mobile-hidden">Prev</span>',
+                            'prev_title': 'Prev Page',
+                            'next': '<span class="mobile-hidden">Next</span>',
+                            'next_title': 'Next Page'
+                        }
+                    },
+                    'de': {
+                        'columns': {
+                           'dateCreated': i18n.t('show-registrations.creation-date', { lng: 'de' }),
+                            'firstname': i18n.t('show-registrations.firstname', { lng: 'de' }),
+                            'lastname': i18n.t('show-registrations.lastname', { lng: 'de' }),
+                        },
+                        'pagination': {
+                            'page_size': 'Einträge pro Seite',
+                            'page_size_title': 'Einträge pro Seite',
+                            'first': '<span class="mobile-hidden">Erste</span>',
+                            'first_title': 'Erste Seite',
+                            'last': '<span class="mobile-hidden">Letzte</span>',
+                            'last_title': 'Letzte Seite',
+                            'prev': '<span class="mobile-hidden">Vorherige</span>',
+                            'prev_title': 'Vorherige Seite',
+                            'next': '<span class="mobile-hidden">Nächste</span>',
+                            'next_title': 'Nächste Seite'
+                        }
+                    }
+                },
+                autoColumnsDefinitions: [
+                    {
+                        title: '',
+                        hozAlign: 'center',
+                        field: 'no_display_1',
+                        download: false,
+                        headerSort: false,
+                        visible: true,
+                        formatter: actionsButtons,
+                        frozen: true
+                    },
+                    {
+                        minWidth: 150,
+                        field: 'dateCreated',
+                        //title: i18n.t('show-registrations.creation-date'),
+                        hozAlign: 'left',
+                        sorter: (a, b, aRow, bRow, column, dir, sorterParams) => {
+                            const a_timestamp = Date.parse(a);
+                            const b_timestamp = Date.parse(b);
+                            return a_timestamp - b_timestamp;
+                        },
+                        formatter: (cell, formatterParams, onRendered) => {
+                            return this.humanReadableDate(cell.getValue());
+                        },
+                        accessorParams: {},
+                        accessor: customAccessor
+                    },
+                    {
+                        field: 'id',
+                        title: 'ID',
+                        download: false,
+                        visible: false
+                    },
+                    {
+                        field: 'id_',
+                        title: 'ID',
+                        hozAlign: 'center',
+                        visible: false,
+                        download: false
+                    }
+                ]
+            });
+
+            this.submissionsTable.on('dataProcessed', this.dataProcessedSubmissionTableFunction.bind(this));
+            this.submissionsTable.on("pageLoaded", function(pageno){
+                if (that._('#searchbar')) {
+                    setTimeout(function () {
+                        that._('#searchbar').scrollIntoView({behavior: 'smooth', block: 'start'});
+                    }, 0);
+                }
+            });
+            document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+
         });
     }
 
@@ -214,7 +440,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         // after this function, but still a TypeError will occur if .json() was already called before this function
         try {
             responseBody = await responseData.clone().json();
-        } catch (e) {
+        } catch {
             responseBody = responseData; // got already decoded data
         }
 
@@ -714,7 +940,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     getTableHeaderOptions() {
         if (!this.submissionsTable)
-            return;
+            return [];
         const i18n = this._i18n;
         let options = [];
         options[0] = html`
@@ -933,13 +1159,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} item
      */
     changeVisibility(item) {
+        const i18n = this._i18n;
         item.visibility = !item.visibility;
         if (item.visibility) {
-            this._('.' + item.field + ' .header-visibility-icon-hide').classList.remove('hidden');
-            this._('.' + item.field + ' .header-visibility-icon-show').classList.add('hidden');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('icon-name', 'source_icons_eye-empty');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('title', `${i18n.t('show-registrations.change-visability-off')}`);
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('aria-label', `${i18n.t('show-registrations.change-visability-off')}`);
         } else {
-            this._('.' + item.field + ' .header-visibility-icon-hide').classList.add('hidden');
-            this._('.' + item.field + ' .header-visibility-icon-show').classList.remove('hidden');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('icon-name', 'source_icons_eye-off');
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('title', `${i18n.t('show-registrations.change-visability-on')}`);
+            this._('.' + item.field + ' .header-visibility-icon').setAttribute('aria-label', `${i18n.t('show-registrations.change-visability-on')}`);
         }
         this.submissionsColumnsUpdated = !this.submissionsColumnsUpdated;
     }
@@ -1175,7 +1404,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getActivityCSS()}
             ${commonStyles.getButtonCSS()}
             ${tabulatorStyles.getTabulatorStyles()}
-            
+
             .table-wrapper.submissions {
                 padding-top: 0.5rem;
             }
@@ -1212,12 +1441,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .actions-buttons {
-                width: 33px;
+                width: 40px;
                 position: absolute;
                 margin: auto;
-                left: 10px;
+                left: 0;
             }
-            
+
             #detailed-submission-modal-title {
                 margin-bottom: 10px;
             }
@@ -1243,7 +1472,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             .open-modal-icon {
                 font-size: 1.3em;
             }
-            
+
             .export-buttons{
                 display: flex;
                 justify-content: space-between;
@@ -1437,10 +1666,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .frozen-table-divider {
                 position: absolute;
-                height: calc(100% - 61px);
-                width: 3px;
-                top: 10px;
-                right: 37px;
+                height: calc(100% - 118px);/* table-header + pagination heights + scrollbar: 60px + 51px */
+                top: 60px; /* table-header height */
+                right: 36px;
+
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
                 box-shadow: -2px 0px 2px 0px var(--dbp-muted);
                 background-color: #fff0; /* transparent */
@@ -1526,6 +1755,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             }
 
+            #courses-table .tabulator-row {
+                cursor: pointer;
+            }
+
+            #submissions-table .tabulator-row {
+                cursor: default;
+            }
+
             .button-wrapper {
                 display: flex;
                 height: 100%;
@@ -1553,7 +1790,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 min-width: 300px;
                 min-height: unset;
             }
-            
+
             #filter-modal-box .modal-footer-btn{
                 display: flex;
                 justify-content: space-between;
@@ -1575,14 +1812,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 left: 8px;
                 top: 2px;
             }
-            
+
             .button.courses-btn{
                 font-size: 1.2rem;
                 display: flex;
                 align-items: center;
                 top: 0px;
             }
-            
+
 
             @media only screen and (orientation: portrait) and (max-width: 768px) {
 
@@ -2058,8 +2295,331 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>        
                     </div>
 
-            
-            
+                <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
+                        <span class='loading'>
+                            <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
+                        </span>
+                </div>
+
+                <div
+                    class='table-wrapper submissions${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable})}'>
+                    <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
+                       <a @click='${() => {
+                            this.loadingCourseTable = true;
+                            this.showSubmissionsTable = false;
+                            this.submissionsColumns = [];
+                            this.clearFilter();
+                            this.submissionsTable.setData([{id: 1}]);
+                            this.submissionsTable.clearData();
+                            this.loadingCourseTable = false;
+                        }}'
+                        title='${i18n.t('show-registrations.back-text')}'>
+                        <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
+                       </a>
+                    </span>
+                    <div class='table-header submissions'>
+                        <h3>${this.activeCourse}</h3>
+                        <div class='options-nav ${classMap({hidden: !this.showSubmissionsTable})}'>
+                            <div class='additional-menu ${classMap({hidden: !this.showSubmissionsTable})}'>
+                                <a class='extended-menu-link'
+                                    @click='${() => {
+                                        this.toggleMoreMenu();
+                                    }}'
+                                    title='${i18n.t('show-registrations.more-menu')}'>
+                                    <dbp-icon name='menu-dots' class='more-menu'></dbp-icon>
+                                </a>
+
+
+                                <ul class='extended-menu hidden'>
+                                    <li class='open-menu ${classMap({active: false})}'>
+                                        <a class='' @click='${() => {
+                                            this.exportCSV();
+                                        }}'>
+                                            CSV Export
+                                        </a>
+                                    </li>
+                                    <li class='open-menu ${classMap({active: false})}'>
+                                        <a class='' @click='${() => {
+                                            this.exportXLSX();
+                                        }}'>
+                                            Excel Export
+                                        </a>
+                                    </li>
+                                    <li class='open-menu ${classMap({active: false})}'>
+                                        <a class='' @click='${() => {
+                                            this.exportPdf();
+                                        }}'>
+                                            PDF Export
+                                        </a>
+                                    </li>
+                                    <li class='${classMap({active: false})}'>
+                                        <a class='' @click='${this.openColumnOptionsModal}'>
+                                            ${i18n.t('show-registrations.filter-options-button-text')}
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='table-buttons'>
+                        <div class='search-wrapper'>
+                            <div id='extendable-searchbar'>
+                                <input type='text' id='searchbar'
+                                    placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
+                                    @click='${() => {
+                                        this.toggleSearchMenu();
+                                    }}' />
+                                <dbp-icon-button class='button is-icon' id='search-button'
+                                    title='${i18n.t('show-registrations.search-button')}'
+                                    aria-label='${i18n.t('show-registrations.search-button')}'
+                                    icon-name="search"
+                                    @click='${() => {
+                                        this.filterTable();
+                                    }}'></dbp-icon-button>
+                                <ul class='extended-menu hidden' id='searchbar-menu'>
+                                    <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
+                                    <select id='search-select' class='button dropdown-menu'
+                                            title='${i18n.t('show-registrations.search-in-column')}:'>
+                                        ${this.getTableHeaderOptions()}
+                                    </select>
+
+                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}
+                                        :</label>
+                                    <select id='search-operator' class='button dropdown-menu'>
+                                        <option value='like'>${i18n.t('show-registrations.search-operator-like')}
+                                        </option>
+                                        <option value='='>${i18n.t('show-registrations.search-operator-equal')}</option>
+                                        <option value='!='>${i18n.t('show-registrations.search-operator-notequal')}
+                                        </option>
+                                        <option value='starts'>${i18n.t('show-registrations.search-operator-starts')}
+                                        </option>
+                                        <option value='ends'>${i18n.t('show-registrations.search-operator-ends')}
+                                        </option>
+                                        <option value='<'>${i18n.t('show-registrations.search-operator-less')}</option>
+                                        <option value='<='>
+                                            ${i18n.t('show-registrations.search-operator-lessthanorequal')}
+                                        </option>
+                                        <option value='>'>${i18n.t('show-registrations.search-operator-greater')}
+                                        </option>
+                                        <option value='>='>
+                                            ${i18n.t('show-registrations.search-operator-greaterorequal')}
+                                        </option>
+                                        <option value='regex'>${i18n.t('show-registrations.search-operator-regex')}
+                                        </option>
+                                        <option value='keywords'>
+                                            ${i18n.t('show-registrations.search-operator-keywords')}
+                                        </option>
+                                    </select>
+                                </ul>
+                            </div>
+
+
+                        </div>
+                        <div class='export-buttons'>
+                            <dbp-icon-button title='${i18n.t('show-registrations.filter-options-button-text')}'
+                                aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
+                                icon-name='iconoir_settings'
+                                @click='${() => {this.openColumnOptionsModal(); }}'></dbp-icon-button>
+                            <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
+                                <option value='-' disabled selected>
+                                    ${i18n.t('show-registrations.default-export-select')}
+                                </option>
+                                <option value='csv'>CSV</option>
+                                <option value='excel'>Excel</option>
+                                <option value='pdf'>PDF</option>
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class='scrollable-table-wrapper'>
+                        <table id='submissions-table'></table>
+                        <div class='frozen-table-divider'></div>
+                        <div class='tabulator' id='custom-pagination'>
+                            <div class='tabulator-footer'>
+                                <div class='tabulator-footer-contents'>
+                                    <span class='tabulator-paginator'></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class='modal micromodal-slide' id='column-options-modal' aria-hidden='true'>
+                <div class='modal-overlay' tabindex='-2' data-micromodal-close>
+                    <div
+                        class='modal-container'
+                        id='filter-modal-box'
+                        role='dialog'
+                        aria-modal='true'
+                        aria-labelledby='submission-modal-title'>
+                        <header class='modal-header'>
+                            <dbp-icon-button
+                                title='${i18n.t('show-registrations.modal-close')}'
+                                aria-label='${i18n.t('show-registrations.modal-close')}'
+                                class='modal-close'
+                                icon-name='close'
+                                @click='${() => {
+                                    this.closeColumnOptionsModal();
+                                    this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
+                                }}'></dbp-icon-button>
+                            <p id='submission-modal-title'>
+                                ${i18n.t('show-registrations.header-settings')}
+                            </p>
+                        </header>
+                        <main class='modal-content' id='submission-modal-content'>
+                            <ul class='headers'>
+                                ${this.submissionsColumns.map((i, counter) => {
+                                        let classes = '';
+                                        classes += counter === 0 ? 'first-header ' : '';
+                                        classes += counter === this.submissionsColumns.length - 1 ? 'last-header ' : '';
+                                        classes += i.field;
+                                        return html`
+                                        <li class='header-fields ${classes}' data-index='${counter}'>
+                                            <div class='header-field'>
+                                                <span class='header-button header-order'>${counter + 1}</span>
+                                                <span class='header-title'><strong>${i.name}</strong></span>
+                                                <dbp-icon-button class='header-button header-visibility-icon'
+                                                    @click='${() => {
+                                                        this.changeVisibility(i);
+                                                    }}'
+                                                    icon-name='source_icons_eye-empty'
+                                                    title='${i18n.t('show-registrations.change-visability-off')}'
+                                                    aria-label='${i18n.t('show-registrations.change-visability-off')}'></dbp-icon-button>
+                                                <span class='header-move'>
+                                                    <dbp-icon-button class='header-button'
+                                                        @click='${() => {
+                                                            this.moveHeaderUp(i);
+                                                        }}'
+                                                        icon-name='arrow-up'
+                                                        title='${i18n.t('show-registrations.move-up')}'
+                                                        aria-label='${i18n.t('show-registrations.move-up')}'></dbp-icon-button>
+                                                    <dbp-icon-button class='header-button'
+                                                        @click='${() => {
+                                                            this.moveHeaderDown(i);
+                                                        }}'
+                                                        icon-name='arrow-down'
+                                                        title='${i18n.t('show-registrations.move-down')}'
+                                                        aria-label='${i18n.t('show-registrations.move-down')}'></dbp-icon-button>
+                                                </span>
+                                            </div>
+                                        </li>
+                                    `;
+        })}
+                            </ul>
+                        </main>
+                        <footer class='modal-footer'>
+
+                            <div class='modal-footer-btn'>
+                                <div>
+                                    <button
+                                        title='${i18n.t('show-registrations.abort')}'
+                                        class='check-btn button is-secondary'
+                                        @click='${() => {
+                                            this.closeColumnOptionsModal();
+                                            this.submissionsColumns = [];
+                                            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
+                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+                                        }}'>
+                                        ${i18n.t('show-registrations.abort')}
+                                    </button>
+                                    <button
+                                        title='${i18n.t('show-registrations.reset-filter')}'
+                                        class='check-btn button is-secondary'
+                                        @click='${() => {
+                                            this.submissionsColumns = [];
+                                            this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
+                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+                                        }}'>
+                                        ${i18n.t('show-registrations.reset-filter')}
+                                    </button>
+                                </div>
+                                <button class='check-btn button is-primary' id='check' @click='${() => {
+                                    this.updateSubmissionTable();
+                                    this.closeColumnOptionsModal();
+                                    this.setSubmissionTableSettings();
+                                }}'>
+                                    ${i18n.t('show-registrations.save-columns')}
+                                </button>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+
+            <div class='modal micromodal-slide' id='detailed-submission-modal' aria-hidden='true'>
+                <div class='modal-overlay' tabindex='-2' data-micromodal-close>
+                    <div
+                        class='modal-container'
+                        id='detailed-submission-modal-box'
+                        role='dialog'
+                        aria-modal='true'
+                        aria-labelledby='detailed-submission-modal-title'>
+                        <header class='modal-header'>
+                            <button
+                                title='${i18n.t('show-registrations.modal-close')}'
+                                class='modal-close'
+                                aria-label='${i18n.t('show-registrations.modal-close')}'
+                                @click='${() => {
+                                    this.closeDetailModal();
+                                }}'>
+                                <dbp-icon
+                                    title='${i18n.t('show-registrations.modal-close')}'
+                                    aria-hidden='true'
+                                    name='close'
+                                    class='close-icon'></dbp-icon>
+                            </button>
+                            <h3 id='detailed-submission-modal-title'>
+                                ${i18n.t('show-registrations.detailed-submission-dialog-title')}</h3>
+                        </header>
+                        <main class='modal-content' id='detailed-submission-modal-content'>
+                            <div class='detailed-submission-modal-content-wrapper'></div>
+                        </main>
+                        <footer class='modal-footer'>
+
+                            <div class='modal-footer-btn'>
+                                <label class='button-container ${classMap({hidden: !this.hiddenColumns})}'>
+                                    ${i18n.t('show-registrations.apply-col-settings')}
+                                    <input
+                                        type='checkbox'
+                                        id='apply-col-settings'
+                                        name='apply-col-settings'
+                                        @click='${() => {
+                                            let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
+                                            let nextIndex = previousPageItems + this.currentRow.getPosition() + 1;
+                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData(), nextIndex);
+                                        }}'
+                                        checked />
+                                    <span class='checkmark'></span>
+                                </label>
+                                <div class='btn-row-left'>
+                                    <dbp-button class='button back-btn'
+                                                title='${i18n.t('show-registrations.last-entry-btn-title')}'
+                                                @click='${() => {this.showEntryOfPos(this.currentDetailPosition - 1, "previous");}}'
+                                                ?disabled='${!this.isPrevEnabled}'>
+                                        <dbp-icon name='chevron-left' aria-hidden='true'></dbp-icon>
+                                        ${i18n.t('show-registrations.last-entry-btn-title')}
+                                    </dbp-button>
+                                    <div>${i18n.t('show-registrations.detailed-submission-dialog-id', {
+                                        id: this.currentBeautyId,
+                                        nItems: this.totalNumberOfItems
+                                    })}
+                                    </div>
+                                    <dbp-button class='button next-btn'
+                                                title='${i18n.t('show-registrations.next-entry-btn-title')}'
+                                                @click='${() => {this.showEntryOfPos(this.currentDetailPosition + 1, "next");}}'
+                                                ?disabled='${!this.isNextEnabled}'>
+                                        ${i18n.t('show-registrations.next-entry-btn-title')}
+                                        <dbp-icon name='chevron-right' aria-hidden='true'></dbp-icon>
+                                    </dbp-button>
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
         `;
     }
 }
