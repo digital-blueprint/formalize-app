@@ -637,6 +637,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
             let dateCreated = data['hydra:member'][x]['dateCreated'];
+            dateCreated = this.humanReadableDate(dateCreated);
             console.log('dateCreated ', dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
@@ -2306,14 +2307,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             pagination-enabled="true"
                             options=${JSON.stringify(options_forms)}></dbp-tabulator-table>
                 </div>
-                <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
-                    <dbp-tabulator-table
-                            lang="${this.lang}"
-                            class="tabulator-table"
-                            id="tabulator-table-submissions"
-                            options=${JSON.stringify(auto_columns)}
-                            ></dbp-tabulator-table>
-                </div>        
+                    
                     </div>
 
                 <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
@@ -2640,6 +2634,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </footer>
                     </div>
                 </div>
+            </div>
+
+            <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
+                <dbp-tabulator-table
+                        lang="${this.lang}"
+                        class="tabulator-table"
+                        id="tabulator-table-submissions"
+                        options=${JSON.stringify(auto_columns)}
+                ></dbp-tabulator-table>
             </div>
         `;
     }
