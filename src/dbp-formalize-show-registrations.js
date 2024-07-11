@@ -636,8 +636,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         console.log(data);
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
-            let entry = data['hydra:member'][x]['dataFeedElement'];
-            entry = JSON.parse(entry);
+            let dateCreated = data['hydra:member'][x]['dateCreated'];
+            console.log('dateCreated ', dateCreated);
+            let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
+            dataFeedElement = JSON.parse(dataFeedElement);
+            let entry = {datecreated: dateCreated, ...dataFeedElement};
+
             submissions_list.push(entry);
             console.log(entry);
         };
