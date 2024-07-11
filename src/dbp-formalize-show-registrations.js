@@ -55,7 +55,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.forms = null;
         this.submissionsTable = null;
         this.submissionsCols = null;
-        this.submissions = null;
+        this.submissions = [];
         this.showSubmissionsTable = false;
         this.submissionsColumnsInitial = [];
         this.submissionsColumns = [];
@@ -162,7 +162,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             // see: http://tabulator.info/docs/5.1
             this._a('.tabulator-table').forEach((table) => {
                 table.buildTable();
-
+                console.log('table ', table.options);
             });
 
             this.coursesTable = new Tabulator(this._('#courses-table'), {
@@ -559,7 +559,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 for (let x = 0; x < data["hydra:member"].length; x++) {
+
                     let entry = data['hydra:member'][x];
+                    console.log('entry ', entry);
                     let id = x + 1;
                     let name = entry['name'];
                     let form = entry['identifier'];
@@ -578,7 +580,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.showSubmissionsTable = true;
 
                         this.getAllSubmissions(this.activeForm).then(() => {
-                            console.log('response');
+                            console.log(this.submissions);
+                            let table = this._('#tabulator-table-submissions');
+                            table.setData(this.submissions);
                         });
 
 
@@ -630,11 +634,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         console.log(data);
-
+        let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
             let entry = data['hydra:member'][x]['dataFeedElement'];
+            entry = JSON.parse(entry);
+            submissions_list.push(entry);
             console.log(entry);
         };
+
+        this.submissions = submissions_list;
 
         return response;
     }
@@ -2142,7 +2150,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.getListOfAllCourses().then(() => {
                 this.setTableData();
-                this.setTableData2(data);
+                //console.log('submissions at rendering ', this.submissions);
+                //this.setTableData2(this.submissions);
             });
 
         }
@@ -2211,6 +2220,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 {field: 'col'},
                 {field: 'dob', sorter: 'date', hozAlign: 'center'},
             ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
+
+        let auto_columns = {
+            autoColumns: true,
+            layout: 'fitColumns',
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
@@ -2288,10 +2307,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             lang="${this.lang}"
                             class="tabulator-table"
                             id="tabulator-table-submissions"
-                            pagination-size="10"
-                            pagination-enabled="true"
-                            options=${JSON.stringify(options)}
-                            data=${JSON.stringify(data)}></dbp-tabulator-table>
+                            options=${JSON.stringify(auto_columns)}
+                            ></dbp-tabulator-table>
                 </div>        
                     </div>
 
