@@ -580,13 +580,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.showSubmissionsTable = true;
 
                         this.getAllSubmissions(this.activeForm).then(() => {
-                            console.log(this.submissions);
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
                         });
 
-
-                        //await this.requestAllCourseSubmissions(name, form);
                     });
 
                     btn.appendChild(icon);
@@ -608,11 +605,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
 
     /**
-     * Gets the list of submissions
+     * Gets the list of submissions for a specific course
      *
-     * @returns {object} response
+     * @param {string} name
      */
     async getAllSubmissions(form) {
+        const i18n = this._i18n;
         let response;
         let data = [];
         const options = {
@@ -641,7 +639,28 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             console.log('dateCreated ', dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
-            let entry = {dateCreated: dateCreated, ...dataFeedElement};
+
+                let btn = this.createScopedElement('dbp-icon-button');
+                btn.setAttribute('icon-name', 'keyword-research');
+                btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
+                btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
+                //btn.setAttribute('id', id);
+                btn.classList.add('open-modal-icon');
+                /*btn.addEventListener('click', event => {
+                    let row = cell.getRow();
+                    let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
+                    let index = previousPageItems + row.getPosition();
+                    this.openPage = this.submissionsTable.getPage();
+                    this.requestDetailedSubmission(row, row.getData(), index);
+                    event.stopPropagation();
+                });*/
+
+                let div = this.createScopedElement('div');
+                div.appendChild(btn);
+                div.classList.add('actions-buttons');
+
+
+            let entry = {dateCreated: dateCreated, ...dataFeedElement, view: div};
 
             submissions_list.push(entry);
             console.log(entry);
@@ -667,29 +686,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return response;
     }
 
-    /**
-     * Gets the list of submissions for a specific course
-     *
-     * @param {string} name
-     */
-    async requestAllCourseSubmissions(name, form) {
 
-        const i18n = this._i18n;
-
-        let dataSub = [
-            {id: 1, name: 'Oli Bob', age: '12', col: 'red', dob: ''},
-            {id: 2, name: 'Mary May', age: '1', col: 'blue', dob: '14/05/1982'},
-            {id: 3, name: 'Christine Lobowski', age: '42', col: 'green', dob: '22/05/1982'},
-            {id: 4, name: 'Brendon Philips', age: '95', col: 'orange', dob: '01/08/1980'},
-            {id: 5, name: 'Margret Marmajuke', age: '16', col: 'yellow', dob: '31/01/1999'},
-        ];
-
-
-        return dataSub;
-        //this.setTableData2();
-        //this.showSubmissionsTable = true;
-
-    }
 
     /**
      * Gets the detaildata of a specific row
@@ -2144,28 +2141,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             'tabulator-tables/css/tabulator.min.css'
         );
 
-        let data = [
-            {id: 1, name: 'Oli Bob', age: '12', col: 'red', dob: ''},
-            {id: 2, name: 'Mary May', age: '1', col: 'blue', dob: '14/05/1982'},
-            {id: 3, name: 'Christine Lobowski', age: '42', col: 'green', dob: '22/05/1982'},
-            {id: 4, name: 'Brendon Philips', age: '95', col: 'orange', dob: '01/08/1980'},
-            {id: 5, name: 'Margret Marmajuke', age: '16', col: 'yellow', dob: '31/01/1999'},
-        ];
-
         if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.getListOfAllCourses().then(() => {
                 this.setTableData();
-                //console.log('submissions at rendering ', this.submissions);
-                //this.setTableData2(this.submissions);
             });
 
         }
-
-        /*if(this.isLoggedIn() && !this.isLoading() && this.showSubmissionsTable) {
-            this.getAllSubmissions(this.activeForm).then(() => {
-                console.log('response');
-            });
-        }*/
 
         let langs_forms = {
             'en': {
@@ -2258,6 +2239,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 {field:"dateCreated", title:"Date Created"},
                 {field:"firstname", title:"Firstname"},
                 {field:"lastname", title:"Lastname"},
+                {field: 'view', formatter: 'html'},
             ],
         };
 
@@ -2663,6 +2645,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         options=${JSON.stringify(auto_columns)}
                         pagination-enabled="true"
                         pagination-size="10"
+                        select-rows-enabled
                 ></dbp-tabulator-table>
             </div>
         `;
