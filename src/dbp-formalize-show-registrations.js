@@ -2216,6 +2216,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
+        let auto_langs = {
+            'en': {
+                columns: {
+
+                },
+            },
+            'de': {
+                columns: {
+
+                },
+            },
+        };
+
         let options = {
             langs: langs,
             layout: 'fitColumns',
@@ -2233,6 +2246,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         let auto_columns = {
+            langs: auto_langs,
             autoColumns: true,
             layout: 'fitColumns',
             columnDefaults: {
