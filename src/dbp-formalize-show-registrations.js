@@ -51,7 +51,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.auth = {};
         this.entryPointUrl = '';
         this.activity = new Activity(metadata);
-        this.coursesTable = null;
         this.forms = null;
         this.submissionsTable = null;
         this.submissionsCols = null;
@@ -106,7 +105,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             name: {type: String},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
-            coursesTable: {type: Object, attribute: false},
             forms: {type: Array, attribute: false},
             submissionsTable: {type: Object, attribute: false},
             submissionsCols: {type: Array, attribute: false},
@@ -163,91 +161,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this._a('.tabulator-table').forEach((table) => {
                 table.buildTable();
                 console.log('table ', table.options);
-            });
-
-            this.coursesTable = new Tabulator(this._('#courses-table'), {
-                layout: 'fitColumns',
-                selectableRows: false,
-                placeholder: i18n.t('show-registrations.no-data'),
-                pagination: true,
-                paginationMode: 'local',
-                paginationSize: 10,
-                paginationSizeSelector: true,
-                locale: true,
-                columnDefaults: {
-                    vertAlign: 'middle',
-                    resizable: false
-                },
-                columns: [
-                    {
-                        title: 'ID',
-                        field: 'id',
-                        widthGrow: 1,
-                        maxWidth: 50,
-                    },
-                    {
-                        title: 'Name',
-                        field: 'name',
-                        widthGrow: 2,
-                    },
-                    {
-                        title: i18n.t('show-registrations.date'),
-                        field: 'date',
-                        widthGrow: 2,
-                        formatter: function (cell, formatterParams, onRendered) {
-                            return that.humanReadableDate(cell.getValue());
-                        },
-                        visible: false,
-                    },
-                    {
-                        title: '',
-                        maxWidth: 45,
-                        field: 'actionButton',
-                        formatter: 'html',
-                        headerSort: false,
-                    }
-                ],
-                langs: {
-                    'en': {
-                        'pagination': {
-                            'page_size': 'Page size',
-                            'page_size_title': 'Page size',
-                            'first': '<span class="mobile-hidden">First</span>',
-                            'first_title': 'First Page',
-                            'last': '<span class="mobile-hidden">Last</span>',
-                            'last_title': 'Last Page',
-                            'prev': '<span class="mobile-hidden">Prev</span>',
-                            'prev_title': 'Prev Page',
-                            'next': '<span class="mobile-hidden">Next</span>',
-                            'next_title': 'Next Page'
-                        }
-                    },
-                    'de': {
-                        'pagination': {
-                            'page_size': 'Einträge pro Seite',
-                            'page_size_title': 'Einträge pro Seite',
-                            'first': '<span class="mobile-hidden">Erste</span>',
-                            'first_title': 'Erste Seite',
-                            'last': '<span class="mobile-hidden">Letzte</span>',
-                            'last_title': 'Letzte Seite',
-                            'prev': '<span class="mobile-hidden">Vorherige</span>',
-                            'prev_title': 'Vorherige Seite',
-                            'next': '<span class="mobile-hidden">Nächste</span>',
-                            'next_title': 'Nächste Seite'
-                        }
-                    }
-                }
-            });
-
-            this.coursesTable.on('rowClick', async (event, row) => {
-                // Make the whole row clickable by triggering a click on the courses button.
-                const clickedCell = /** @type {HTMLElement} */ (event.target);
-                const clickedRow = clickedCell.closest('.tabulator-row');
-                const buttonToClick = /** @type {HTMLElement} */ (clickedRow.querySelector('dbp-button.courses-btn'));
-                if (buttonToClick) {
-                    buttonToClick.click();
-                }
-                event.stopPropagation();
             });
 
             const actionsButtons = (cell, formatterParams) => {
@@ -631,12 +544,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        console.log(data);
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
             let dateCreated = data['hydra:member'][x]['dateCreated'];
             dateCreated = this.humanReadableDate(dateCreated);
-            console.log('dateCreated ', dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
 
@@ -2129,11 +2040,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         table.setData(this.allCourses);
     }
 
-    setTableData2(data) {
-        let table = this._('#tabulator-table-submissions');
-        table.setData(data);
-    }
-
     render() {
         const i18n = this._i18n;
         const tabulatorCss = commonUtils.getAssetURL(
@@ -2210,22 +2116,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
-        let options = {
-            langs: langs,
-            layout: 'fitColumns',
-            columns: [
-                {field: 'name', width: 150},
-                {field: 'age', hozAlign: 'left', formatter: 'progress'},
-                {field: 'col'},
-                {field: 'dob', sorter: 'date', hozAlign: 'center'},
-            ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
-
         let auto_columns = {
             langs: auto_langs,
             autoColumns: true,
@@ -2242,24 +2132,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 {field: 'view', formatter: 'html'},
             ],
         };
-
-
-
-        /*let options_submissions = {
-            langs: langs_submissions,
-            layout: 'fitColumns',
-            columns: [
-                {field: 'creation-date', width: 150},
-                {field: 'firstname'},
-                {field: 'lastname'},
-            ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };*/
-
 
         return html`
             <link rel='stylesheet' href='${tabulatorCss}' />
