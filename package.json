@@ -10,7 +10,7 @@
         "vendor/toolkit/packages/*"
     ],
     "engines": {
-        "node": ">=18.0.0",
+        "node": ">=20.0.0",
         "npm": ">=7.0.0"
     },
     "devDependencies": {
@@ -26,7 +26,7 @@
         "chai": "^5.0.0",
         "eslint": "^9.1.0",
         "eslint-plugin-jsdoc": "^48.0.0",
-        "glob": "^10.0.0",
+        "glob": "^11.0.0",
         "globals": "^15.3.0",
         "i18next-parser": "^9.0.0",
         "karma": "^6.0.0",
