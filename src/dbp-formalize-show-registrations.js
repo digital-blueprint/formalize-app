@@ -160,7 +160,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             // see: http://tabulator.info/docs/5.1
             this._a('.tabulator-table').forEach((table) => {
                 table.buildTable();
-                console.log('table ', table.options);
             });
 
             const actionsButtons = (cell, formatterParams) => {
@@ -460,7 +459,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             if (!response.ok) {
                 this.handleErrorResponse(response);
             } else {
-                //console.log(response);
                 let data = [];
                 let forms = [];
                 try {
@@ -474,7 +472,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 for (let x = 0; x < data["hydra:member"].length; x++) {
 
                     let entry = data['hydra:member'][x];
-                    console.log('entry ', entry);
                     let id = x + 1;
                     let name = entry['name'];
                     let form = entry['identifier'];
@@ -550,21 +547,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             dateCreated = this.humanReadableDate(dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
-
+                let id = x + 1;
                 let btn = this.createScopedElement('dbp-icon-button');
                 btn.setAttribute('icon-name', 'keyword-research');
                 btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
                 btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
-                //btn.setAttribute('id', id);
+                btn.setAttribute('id', id);
                 btn.classList.add('open-modal-icon');
-                /*btn.addEventListener('click', event => {
-                    let row = cell.getRow();
-                    let previousPageItems = (this.submissionsTable.getPage() - 1) * this.submissionsTable.getPageSize();
-                    let index = previousPageItems + row.getPosition();
-                    this.openPage = this.submissionsTable.getPage();
-                    this.requestDetailedSubmission(row, row.getData(), index);
+                btn.addEventListener('click', event => {
+                    console.log('clicked');
                     event.stopPropagation();
-                });*/
+                });
 
                 let div = this.createScopedElement('div');
                 div.appendChild(btn);
@@ -574,7 +567,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let entry = {dateCreated: dateCreated, ...dataFeedElement, view: div};
 
             submissions_list.push(entry);
-            console.log(entry);
         };
 
         this.submissions = submissions_list;
@@ -1180,7 +1172,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             } catch (e) {
                 this.submissionsColumns = [];
-                //console.log(e);
                 return false;
             }
             return true;
