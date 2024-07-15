@@ -641,7 +641,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             console.log('dateCreated ', dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
-            let entry = {datecreated: dateCreated, ...dataFeedElement};
+            let entry = {dateCreated: dateCreated, ...dataFeedElement};
 
             submissions_list.push(entry);
             console.log(entry);
@@ -2240,6 +2240,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
+            autoColumnsDefinitions:[
+                {field:"dateCreated", title:"Date Created"},
+                {field:"firstname", title:"Firstname"},
+                {field:"lastname", title:"Lastname"},
+            ],
         };
 
 
@@ -2303,8 +2308,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             lang="${this.lang}"
                             class="tabulator-table"
                             id="tabulator-table-forms"
-                            pagination-size="10"
                             pagination-enabled="true"
+                            pagination-size="10"
                             options=${JSON.stringify(options_forms)}></dbp-tabulator-table>
                 </div>
                     
@@ -2642,6 +2647,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         class="tabulator-table"
                         id="tabulator-table-submissions"
                         options=${JSON.stringify(auto_columns)}
+                        pagination-enabled="true"
+                        pagination-size="10"
                 ></dbp-tabulator-table>
             </div>
         `;
