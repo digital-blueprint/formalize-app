@@ -859,28 +859,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {Array<html>} options
      */
     getTableHeaderOptions() {
-        /*if (!this.submissionsTable)
-            return [];
         const i18n = this._i18n;
-        let options = [];
-        options[0] = html`
-            <option value='all'>${i18n.t('show-registrations.all-columns')}</option>`;
-        this.submissionsColumns.forEach((col, counter) => {
-            if (!col.visibility) {
-                options[counter + 1] = html`
-                    <option disabled value='${col.field}'>${col.name}</option>`;
-            } else {
-                options[counter + 1] = html`
-                    <option value='${col.field}'>${col.name}</option>`;
-            }
-        });
-        return options;*/
 
-        if(this.submissions.length !== 0)
+        if(this.submissions.length === 0) {
+            return [];
+        }
+        else
         {
+            let options = [];
+            options[0] = html`
+            <option value='all'>${i18n.t('show-registrations.all-columns')}</option>`;
+
             console.log('submissions ', this.submissions);
             let cols = Object.keys(this.submissions[0]);
             console.log(cols);
+
+            for(let [counter, col] of cols.entries()) {
+                if(col !== 'view') {
+                    options[counter + 1] = html`
+                    <option value='${col.field}'>${col}</option>`;
+                }
+
+            }
+            return options;
         }
 
         let table = this._('#tabulator-table-submissions');
@@ -889,6 +890,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let cols = table.getColumns(); //get array of column components
             //console.log(cols);
         }
+
+
 
     }
 
