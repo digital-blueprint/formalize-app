@@ -564,7 +564,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 div.classList.add('actions-buttons');
 
 
-            let entry = {dateCreated: dateCreated, ...dataFeedElement, view: div};
+            let entry = {dateCreated: dateCreated, ...dataFeedElement, no_display_1: div};
 
             submissions_list.push(entry);
         };
@@ -785,19 +785,31 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let search = this._('#search-select');
         let operator = this._('#search-operator');
 
-        if (!filter || !search || !operator || !this.submissionsTable)
+
+        /*if (!filter || !search || !operator || !this.submissionsTable)
             return;
 
         if (filter.value === "") {
             //this.submissionsTable.clearFilter();
             //this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
             return;
-        }
+        }*/
         filter = filter.value;
         search = search.value;
         operator = operator.value;
+        console.log('search ', search);
 
         let table = this._('#submissions-table');
+
+        if(search !== 'all')
+        {
+            let filter_object = {field: search, type: operator, value: filter};
+            console.log(filter_object);
+            console.log(table.getRows());
+            table.setFilter([filter_object]);
+        }
+
+        /*let table = this._('#submissions-table');
 
         if (search !== 'all') {
             let filter_object = {field: search, type: operator, value: filter};
@@ -807,7 +819,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         var cols = table.getColumns()
-        console.log(cols);
+        console.log(cols);*/
 
         /*let filterArray = [];
         this.submissionsColumns.forEach(col => {
@@ -875,24 +887,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             console.log(cols);
 
             for(let [counter, col] of cols.entries()) {
-                if(col !== 'view') {
+                if(col !== 'no_display_1') {
+                    console.log('col ', col);
                     options[counter + 1] = html`
-                    <option value='${col.field}'>${col}</option>`;
+                    <option value='${col}'>${col}</option>`;
                 }
 
             }
             return options;
         }
-
-        let table = this._('#tabulator-table-submissions');
-        if(table)
-        {
-            let cols = table.getColumns(); //get array of column components
-            //console.log(cols);
-        }
-
-
-
     }
 
     /**
@@ -2145,7 +2148,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 {field:"dateCreated", title:"Date Created"},
                 {field:"firstname", title:"Firstname"},
                 {field:"lastname", title:"Lastname"},
-                {field: 'view', formatter: 'html'},
+                {field: 'no_display_1', title: '', formatter: 'html'},
             ],
         };
 
