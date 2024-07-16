@@ -555,7 +555,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 btn.setAttribute('id', id);
                 btn.classList.add('open-modal-icon');
                 btn.addEventListener('click', event => {
-                    console.log('clicked');
                     event.stopPropagation();
                 });
 
@@ -785,48 +784,40 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let search = this._('#search-select');
         let operator = this._('#search-operator');
 
+        let table = this._('#tabulator-table-submissions');
 
-        /*if (!filter || !search || !operator || !this.submissionsTable)
+        if (!filter || !search || !operator || !table)
             return;
+
+
 
         if (filter.value === "") {
-            //this.submissionsTable.clearFilter();
+            table.clearFilter();
             //this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
             return;
-        }*/
+        }
         filter = filter.value;
         search = search.value;
         operator = operator.value;
-        console.log('search ', search);
 
-        let table = this._('#submissions-table');
+
 
         if(search !== 'all')
         {
             let filter_object = {field: search, type: operator, value: filter};
-            console.log(filter_object);
-            console.log(table.getRows());
             table.setFilter([filter_object]);
         }
-
-        /*let table = this._('#submissions-table');
-
-        if (search !== 'all') {
-            let filter_object = {field: search, type: operator, value: filter};
-            table.setFilter([filter_object]);
-            //this.submissionsTable.setFilter(search, operator, filter);
-            return;
+        else
+        {
+            const columns = table.getColumns();
+            let listOfFilters = [];
+            for (let col of columns) {
+                let filter_object = {field: col, type: operator, value: filter};
+                listOfFilters.push(filter_object);
+            }
+            table.setFilter([listOfFilters]);
         }
 
-        var cols = table.getColumns()
-        console.log(cols);*/
-
-        /*let filterArray = [];
-        this.submissionsColumns.forEach(col => {
-            filterArray.push({field: col.field, type: operator, value: filter});
-        });
-        this.submissionsTable.setFilter([filterArray]);
-        this.totalNumberOfItems = this.submissionsTable.getDataCount("active");*/
     }
 
     /*
@@ -835,13 +826,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     clearFilter() {
         let filter = this._('#searchbar');
         let search = this._('#search-select');
+        let table = this._('#tabulator-table-submissions');
 
-        if (!filter || !search || !this.submissionsTable)
+        if (!filter || !search || !table)
             return;
 
         filter.value = '';
         search.value = 'all';
-        this.submissionsTable.clearFilter();
+        table.clearFilter();
         this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
     }
 
@@ -882,13 +874,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             options[0] = html`
             <option value='all'>${i18n.t('show-registrations.all-columns')}</option>`;
 
-            console.log('submissions ', this.submissions);
             let cols = Object.keys(this.submissions[0]);
-            console.log(cols);
 
             for(let [counter, col] of cols.entries()) {
                 if(col !== 'no_display_1') {
-                    console.log('col ', col);
                     options[counter + 1] = html`
                     <option value='${col}'>${col}</option>`;
                 }
