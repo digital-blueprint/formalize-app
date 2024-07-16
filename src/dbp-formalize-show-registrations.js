@@ -789,25 +789,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
 
         if (filter.value === "") {
-            this.submissionsTable.clearFilter();
-            this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
+            //this.submissionsTable.clearFilter();
+            //this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
             return;
         }
         filter = filter.value;
         search = search.value;
         operator = operator.value;
 
+        let table = this._('#submissions-table');
+
         if (search !== 'all') {
-            this.submissionsTable.setFilter(search, operator, filter);
+            let filter_object = {field: search, type: operator, value: filter};
+            table.setFilter([filter_object]);
+            //this.submissionsTable.setFilter(search, operator, filter);
             return;
         }
 
-        let filterArray = [];
+        var cols = table.getColumns()
+        console.log(cols);
+
+        /*let filterArray = [];
         this.submissionsColumns.forEach(col => {
             filterArray.push({field: col.field, type: operator, value: filter});
         });
         this.submissionsTable.setFilter([filterArray]);
-        this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
+        this.totalNumberOfItems = this.submissionsTable.getDataCount("active");*/
     }
 
     /*
@@ -852,7 +859,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {Array<html>} options
      */
     getTableHeaderOptions() {
-        if (!this.submissionsTable)
+        /*if (!this.submissionsTable)
             return [];
         const i18n = this._i18n;
         let options = [];
@@ -867,7 +874,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <option value='${col.field}'>${col.name}</option>`;
             }
         });
-        return options;
+        return options;*/
+
+        if(this.submissions.length !== 0)
+        {
+            console.log('submissions ', this.submissions);
+            let cols = Object.keys(this.submissions[0]);
+            console.log(cols);
+        }
+
+        let table = this._('#tabulator-table-submissions');
+        if(table)
+        {
+            let cols = table.getColumns(); //get array of column components
+            //console.log(cols);
+        }
+
     }
 
     /**
