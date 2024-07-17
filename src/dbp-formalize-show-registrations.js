@@ -664,7 +664,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (e)
             e.stopPropagation();
 
-        switch (exportValue) {
+        let table = this._('#tabulator-table-submissions');
+        table.download(exportValue, this.activeCourse);
+
+        /*switch (exportValue) {
             case 'csv':
                 this.exportCSV();
                 break;
@@ -676,7 +679,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 break;
             default:
                 break;
-        }
+        }*/
 
         exportInput.value = '-';
     }
@@ -2324,7 +2327,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                     ${i18n.t('show-registrations.default-export-select')}
                                 </option>
                                 <option value='csv'>CSV</option>
-                                <option value='excel'>Excel</option>
+                                <option value='xlsx'>Excel</option>
                                 <option value='pdf'>PDF</option>
                             </select>
 
