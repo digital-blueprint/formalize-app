@@ -610,8 +610,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 visibility.iconName = 'source_icons_eye-empty';
                 visibility.classList.add('header-button');
                 visibility.classList.add('header-visibility-icon');
+
+
                 visibility.addEventListener('click', event => {
-                    this.changeVisibility(visibility);
+                    if(visibility.iconName === 'source_icons_eye-empty') {
+                        visibility.iconName = 'source_icons_eye-off';
+                    }
+                    else {
+                        visibility.iconName = 'source_icons_eye-empty';
+                    }
                 });
                 div.appendChild(visibility);
 
@@ -620,6 +627,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 let arrow_up = this.createScopedElement('dbp-icon-button');
                 arrow_up.iconName = 'arrow-up';
                 arrow_up.classList.add('header-button');
+                let visible = true;
+
                 header_move.appendChild(arrow_up);
                 let arrow_down = this.createScopedElement('dbp-icon-button');
                 arrow_down.iconName = 'arrow-down';
@@ -1141,7 +1150,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @param {object} item
      */
-    changeVisibility(item) {
+    changeVisibility(column) {
         const i18n = this._i18n;
         /*item.visibility = !item.visibility;
         if (item.visibility) {
