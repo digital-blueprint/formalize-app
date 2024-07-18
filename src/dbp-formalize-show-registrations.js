@@ -500,7 +500,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             let columns = table.getColumns();
                             console.log('columns ', columns);
 
-                            for(let column of columns) {
+                            for(let [index, column] of columns.entries()) {
 
                                 let definition = column.getDefinition();
                                 let field = column.getField();
@@ -510,6 +510,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                                     let div = document.createElement('div');
                                     div.classList.add('header-field');
+
+                                    let header_order = document.createElement('span');
+                                    header_order.textContent = (index + 1);
+                                    header_order.classList.add('header-button');
+                                    header_order.classList.add('header-order');
+                                    div.appendChild(header_order);
 
                                     let header_title = document.createElement('span');
                                     header_title.innerHTML = field;
