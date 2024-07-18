@@ -510,7 +510,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                                     let div = document.createElement('div');
                                     div.classList.add('header-field');
+
+                                    let header_title = document.createElement('span');
+                                    header_title.innerHTML = field;
+                                    header_title.classList.add('header-title');
+                                    div.appendChild(header_title);
                                     //element.textContent = field;
+
+                                    let header_move = document.createElement('span');
+
+                                    header_move.classList.add('header-move');
+                                    let arrow_up = this.createScopedElement('dbp-icon-button');
+                                    arrow_up.iconName = 'arrow-up';
+                                    arrow_up.classList.add('header-button');
+                                    header_move.appendChild(arrow_up);
+                                    let arrow_down = this.createScopedElement('dbp-icon-button');
+                                    arrow_down.iconName = 'arrow-down';
+                                    arrow_down.classList.add('header-button');
+                                    header_move.appendChild(arrow_down);
+                                    div.appendChild(header_move);
+
                                     element.appendChild(div);
                                     list.appendChild(element);
                                 }
