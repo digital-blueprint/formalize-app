@@ -492,7 +492,33 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
-                            console.log(this.submissions);
+                            let settings = this._('#submission-modal-content');
+
+                            let list = document.createElement('ul');
+                            list.classList.add('headers');
+
+                            let columns = table.getColumns();
+                            console.log('columns ', columns);
+
+                            for(let column of columns) {
+
+                                let definition = column.getDefinition();
+                                let field = column.getField();
+                                if(field!== 'empty' && field !== 'undefined' && definition.formatter !== 'html') {
+                                    let element = document.createElement("li");
+                                    element.classList.add('header-fields');
+
+                                    let div = document.createElement('div');
+                                    div.classList.add('header-field');
+                                    //element.textContent = field;
+                                    element.appendChild(div);
+                                    list.appendChild(element);
+                                }
+
+
+                            }
+
+                            settings.appendChild(list);
                         });
 
                     });
@@ -667,21 +693,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         let table = this._('#tabulator-table-submissions');
         table.download(exportValue, this.activeCourse);
-
-        /*switch (exportValue) {
-            case 'csv':
-                this.exportCSV();
-                break;
-            case 'pdf':
-                this.exportPdf();
-                break;
-            case 'excel':
-                this.exportXLSX();
-                break;
-            default:
-                break;
-        }*/
-
         exportInput.value = '-';
     }
 
@@ -2142,7 +2153,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 {field:"dateCreated", title:"Date Created"},
                 {field:"firstname", title:"Firstname"},
                 {field:"lastname", title:"Lastname"},
-                {field: 'no_display_1', title: 'hidden', formatter: 'html', download:false},
+                {field: 'no_display_1', title: '', formatter: 'html', download:false},
             ],
         };
 
@@ -2371,7 +2382,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </p>
                         </header>
                         <main class='modal-content' id='submission-modal-content'>
-                            <ul class='headers'>
+                            <!--<ul class='headers'>
                                 ${this.submissionsColumns.map((i, counter) => {
                                         let classes = '';
                                         classes += counter === 0 ? 'first-header ' : '';
@@ -2409,7 +2420,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         </li>
                                     `;
         })}
-                            </ul>
+                            </ul>-->
                         </main>
                         <footer class='modal-footer'>
 
