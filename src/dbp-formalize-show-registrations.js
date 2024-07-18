@@ -492,58 +492,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
-                            let settings = this._('#submission-modal-content');
-
-                            let list = document.createElement('ul');
-                            list.classList.add('headers');
-
-                            let columns = table.getColumns();
-                            console.log('columns ', columns);
-
-                            for(let [index, column] of columns.entries()) {
-
-                                let definition = column.getDefinition();
-                                let field = column.getField();
-                                if(field!== 'empty' && field !== 'undefined' && definition.formatter !== 'html') {
-                                    let element = document.createElement("li");
-                                    element.classList.add('header-fields');
-
-                                    let div = document.createElement('div');
-                                    div.classList.add('header-field');
-
-                                    let header_order = document.createElement('span');
-                                    header_order.textContent = (index + 1);
-                                    header_order.classList.add('header-button');
-                                    header_order.classList.add('header-order');
-                                    div.appendChild(header_order);
-
-                                    let header_title = document.createElement('span');
-                                    header_title.innerHTML = field;
-                                    header_title.classList.add('header-title');
-                                    div.appendChild(header_title);
-                                    //element.textContent = field;
-
-                                    let header_move = document.createElement('span');
-
-                                    header_move.classList.add('header-move');
-                                    let arrow_up = this.createScopedElement('dbp-icon-button');
-                                    arrow_up.iconName = 'arrow-up';
-                                    arrow_up.classList.add('header-button');
-                                    header_move.appendChild(arrow_up);
-                                    let arrow_down = this.createScopedElement('dbp-icon-button');
-                                    arrow_down.iconName = 'arrow-down';
-                                    arrow_down.classList.add('header-button');
-                                    header_move.appendChild(arrow_down);
-                                    div.appendChild(header_move);
-
-                                    element.appendChild(div);
-                                    list.appendChild(element);
-                                }
-
-
-                            }
-
-                            settings.appendChild(list);
+                            this.defineSettings();
                         });
 
                     });
@@ -623,6 +572,69 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissions = submissions_list;
 
         return response;
+    }
+
+    defineSettings() {
+        let table = this._('#tabulator-table-submissions');
+        let settings = this._('#submission-modal-content');
+
+        let list = document.createElement('ul');
+        list.classList.add('headers');
+
+        let columns = table.getColumns();
+        console.log('columns ', columns);
+
+        for(let [index, column] of columns.entries()) {
+
+            let definition = column.getDefinition();
+            let field = column.getField();
+            if(field!== 'empty' && field !== 'undefined' && definition.formatter !== 'html') {
+                let element = document.createElement("li");
+                element.classList.add('header-fields');
+
+                let div = document.createElement('div');
+                div.classList.add('header-field');
+
+                let header_order = document.createElement('span');
+                header_order.textContent = (index + 1);
+                header_order.classList.add('header-button');
+                header_order.classList.add('header-order');
+                div.appendChild(header_order);
+
+                let header_title = document.createElement('span');
+                header_title.innerHTML = '<strong>' + field + '</strong>';
+                header_title.classList.add('header-title');
+                div.appendChild(header_title);
+
+                let visibility = this.createScopedElement('dbp-icon-button');
+                visibility.iconName = 'source_icons_eye-empty';
+                visibility.classList.add('header-button');
+                visibility.classList.add('header-visibility-icon');
+                visibility.addEventListener('click', event => {
+                    this.changeVisibility(visibility);
+                });
+                div.appendChild(visibility);
+
+                let header_move = document.createElement('span');
+                header_move.classList.add('header-move');
+                let arrow_up = this.createScopedElement('dbp-icon-button');
+                arrow_up.iconName = 'arrow-up';
+                arrow_up.classList.add('header-button');
+                header_move.appendChild(arrow_up);
+                let arrow_down = this.createScopedElement('dbp-icon-button');
+                arrow_down.iconName = 'arrow-down';
+                arrow_down.classList.add('header-button');
+                header_move.appendChild(arrow_down);
+                div.appendChild(header_move);
+
+                element.appendChild(div);
+                list.appendChild(element);
+            }
+
+
+        }
+
+        settings.appendChild(list);
     }
 
     async getAllForms() {
@@ -1131,7 +1143,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     changeVisibility(item) {
         const i18n = this._i18n;
-        item.visibility = !item.visibility;
+        /*item.visibility = !item.visibility;
         if (item.visibility) {
             this._('.' + item.field + ' .header-visibility-icon').setAttribute('icon-name', 'source_icons_eye-empty');
             this._('.' + item.field + ' .header-visibility-icon').setAttribute('title', `${i18n.t('show-registrations.change-visability-off')}`);
@@ -1140,7 +1152,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this._('.' + item.field + ' .header-visibility-icon').setAttribute('icon-name', 'source_icons_eye-off');
             this._('.' + item.field + ' .header-visibility-icon').setAttribute('title', `${i18n.t('show-registrations.change-visability-on')}`);
             this._('.' + item.field + ' .header-visibility-icon').setAttribute('aria-label', `${i18n.t('show-registrations.change-visability-on')}`);
-        }
+        }*/
         this.submissionsColumnsUpdated = !this.submissionsColumnsUpdated;
     }
 
