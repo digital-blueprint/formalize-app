@@ -627,7 +627,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 let arrow_up = this.createScopedElement('dbp-icon-button');
                 arrow_up.iconName = 'arrow-up';
                 arrow_up.classList.add('header-button');
-                let visible = true;
 
                 header_move.appendChild(arrow_up);
                 let arrow_down = this.createScopedElement('dbp-icon-button');
