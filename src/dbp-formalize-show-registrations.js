@@ -492,6 +492,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
+                            console.log(this.submissions);
                         });
 
                     });
@@ -2141,7 +2142,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 {field:"dateCreated", title:"Date Created"},
                 {field:"firstname", title:"Firstname"},
                 {field:"lastname", title:"Lastname"},
-                {field: 'no_display_1', title: '', formatter: 'html'},
+                {field: 'no_display_1', title: 'hidden', formatter: 'html', download:false},
             ],
         };
 
