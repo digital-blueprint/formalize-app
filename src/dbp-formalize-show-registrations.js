@@ -548,6 +548,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             dateCreated = this.humanReadableDate(dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
+
+            let cols = {dateCreated: dateCreated, ...dataFeedElement};
                 let id = x + 1;
                 let btn = this.createScopedElement('dbp-icon-button');
                 btn.setAttribute('icon-name', 'keyword-research');
@@ -556,6 +558,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 btn.setAttribute('id', id);
                 btn.classList.add('open-modal-icon');
                 btn.addEventListener('click', event => {
+
+                    this.requestDetailedSubmission(cols);
                     event.stopPropagation();
                 });
 
@@ -582,7 +586,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         list.classList.add('headers');
 
         let columns = table.getColumns();
-        console.log('columns ', columns);
 
         for(let [index, column] of columns.entries()) {
 
@@ -668,35 +671,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param row
      * @param data
      */
-    requestDetailedSubmission(row, data, pos) {
+    requestDetailedSubmission(columns) {
 
         if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        let columns = [];
+        for(const [column, value] of Object.entries(columns)) {
+            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(column) + `:</div>`;
 
-        if (!this._('#apply-col-settings').checked) {
-            columns = this.submissionsColumnsInitial;
-        } else {
-            columns = this.submissionsColumns;
-        }
-
-        for(const col of columns) {
-            let field = col.field;
-            let name = col.name === '' ? field : col.name;
-            let cell = row.getCell(field);
-            if (!cell || !col.visibility) {
-                continue;
-            }
-
-
-            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(name) + `:</div>`;
-
-            if (field.includes('dateCreated')) {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(cell.getValue());
+            if (column === 'dateCreated') {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(value);
             } else {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(cell.getValue()) + `</div>`;
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(value) + `</div>`;
             }
         }
 
@@ -704,12 +691,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
         if (this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)'))
             this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
-
-        this.currentRow = row;
-        this.currentDetailPosition = row.getPosition();
-        this.currentBeautyId = pos;
-        this.isPrevEnabled = pos !== 1;
-        this.isNextEnabled = (pos + 1) <= this.submissionsTable.getDataCount("active");
 
         this.showDetailedModal();
 
@@ -853,7 +834,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         if (filter.value === "") {
             table.clearFilter();
-            console.log(table.getRows());
+
             //this.totalNumberOfItems = this.submissionsTable.getDataCount("active");
             return;
         }
