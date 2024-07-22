@@ -575,6 +575,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.submissions = submissions_list;
 
+        this.totalNumberOfItems = submissions_list.length;
+
         return response;
     }
 
