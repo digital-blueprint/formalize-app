@@ -559,7 +559,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 btn.classList.add('open-modal-icon');
                 btn.addEventListener('click', event => {
 
-                    this.requestDetailedSubmission(cols);
+                    this.requestDetailedSubmission(cols, id);
                     event.stopPropagation();
                 });
 
@@ -673,7 +673,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param row
      * @param data
      */
-    requestDetailedSubmission(columns) {
+    requestDetailedSubmission(columns, pos) {
 
         if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
@@ -688,6 +688,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(value) + `</div>`;
             }
         }
+
+        //this.currentRow = row;
+        this.currentDetailPosition = pos;
+        this.currentBeautyId = pos;
+        this.isPrevEnabled = pos !== 1;
+        this.isNextEnabled = (pos + 1) <= this.totalNumberOfItems;
 
         if (this._('.detailed-submission-modal-content-wrapper > div:first-child'))
             this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
@@ -1334,35 +1340,29 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {"next"|"previous"} direction
      */
     async showEntryOfPos(positionToShow, direction) {
-        if (!this.submissionsTable)
+
+        if (positionToShow > this.totalNumberOfItems || positionToShow < 1)
             return;
 
-        let pageSize = this.submissionsTable.getPageSize();
-        let previousPageItems = (this.submissionsTable.getPage() - 1) * pageSize;
-        let nextIndex = previousPageItems + positionToShow;
-
-        if (nextIndex > this.totalNumberOfItems || nextIndex < 1)
+        let table = this._('#tabulator-table-submissions');
+        if(!table)
             return;
 
-        let nextRow;
-        if (positionToShow > 0 && positionToShow <= pageSize)
-            nextRow = this.submissionsTable.getRowFromPosition(positionToShow);
+        let rows = table.getRows();
 
-        if (nextRow) {
-            this.requestDetailedSubmission(nextRow._row, nextRow.getData(), nextIndex);
-        } else {
-            switch(direction){
-                case "next":
-                    await this.submissionsTable.nextPage();
-                    this.showEntryOfPos(1);
-                    break;
+        let next_row = rows[positionToShow - 1];
+        let cells = next_row.getCells();
+        let next_data = {};
+        for (let cell of cells) {
 
-                case "previous":
-                    await this.submissionsTable.previousPage();
-                    this.showEntryOfPos(this.submissionsTable.getPageSize());
-                    break;
+            let column = cell.getColumn();
+            let definition = column.getDefinition();
+            if(definition.formatter !== 'html') {
+                next_data[cell.getField()] = cell.getValue();
             }
         }
+
+        this.requestDetailedSubmission(next_data, positionToShow);
     }
 
     static get styles() {
