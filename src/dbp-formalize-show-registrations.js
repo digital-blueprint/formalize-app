@@ -51,6 +51,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.auth = {};
         this.entryPointUrl = '';
         this.activity = new Activity(metadata);
+        this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.forms = null;
         this.submissionsTable = null;
         this.submissionsCols = null;
@@ -158,6 +159,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.updateComplete.then(() => {
             // see: http://tabulator.info/docs/5.1
+            document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
             this._a('.tabulator-table').forEach((table) => {
                 table.buildTable();
             });
@@ -859,7 +861,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
         else
         {
-            const columns = table.getColumns();
+
+            const columns = table.getColumnsFields();
             let listOfFilters = [];
             for (let col of columns) {
                 let filter_object = {field: col, type: operator, value: filter};
