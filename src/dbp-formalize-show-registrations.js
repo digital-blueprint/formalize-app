@@ -639,7 +639,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             arrow_up.iconName = 'arrow-up';
             arrow_up.classList.add('header-button');
             arrow_up.addEventListener('click', event => {
-                this.moveHeaderUp(column);
+                if(index !== 0) {
+                    this.moveHeaderUp(column);
+                }
+
             });
 
 
@@ -648,7 +651,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             arrow_down.iconName = 'arrow-down';
             arrow_down.classList.add('header-button');
             arrow_down.addEventListener('click', event => {
-                this.moveHeaderDown(column);
+                if(index !== (this.submissionsColumns.length - 1)) {
+                    this.moveHeaderDown(column);
+                }
             });
             header_move.appendChild(arrow_down);
             div.appendChild(header_move);
@@ -665,15 +670,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         list = list.childNodes;
         [...list].forEach((element, index) => {
             let header_field = element.children[0];
-            console.log('header_field ', header_field);
-            let header_title = header_field.children[1];
-            //let current_title = header_title.innerHTML;
             let current_title = header_field.children[1].innerHTML;
             current_title = current_title.replace('<strong>', '')
             current_title = current_title.replace('</strong>', '')
-            //console.log(current_title, ' ', this.submissionsColumns[index]);
-            let initial_title = this.submissionsColumns[index];
-            console.log('this.submissionsColumns[index] ', this.submissionsColumns[index])
             if(current_title !== this.submissionsColumns[index]) {
                 header_field.children[1].innerHTML = '<strong>' + this.submissionsColumns[index] + '</strong>';
             }
@@ -1302,39 +1301,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     moveHeaderUp(i) {
-        console.log('column ', i);
+
         let list = this._('.headers');
-        //list = list.childNodes;
-        let li_element = list.querySelector('.i');
-        console.log('li_element ', li_element);
-
-        /*let element = list.querySelector('.' + i);
-        let header_field = element.children[0];
-        console.log('header_field ', header_field);
-        let elemIndex = element.getAttribute('data-index');
-        if (parseInt(elemIndex) === 0)
-            return;
-
-        let swapElemName = this.submissionsColumns.find((col, index) => {
-
-            return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1] === i;
-
+        list = list.childNodes;
+        [...list].forEach((item, index) => {
+            if(item.classList.contains(i)) {
+                let element = item;
+                let swapElem = list[index - 1];
+                this.swapHeader(element, swapElem);
+                return
+            }
         });
-        let swapElem = list.querySelector('.' + swapElemName);
-        console.log('swapElem ', swapElem);
-        this.swapHeader(element, swapElem, elemIndex, i);*/
-        /*let elem = this._('.' + i);
-        let elemIndex = elem.getAttribute('data-index');
-        if (parseInt(elemIndex) === 0)
-            return;
-
-        let swapElemName = this.submissionsColumns.find((col, index) => {
-
-            return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1] === i;
-
-        });
-        let swapElem = this._('.' + swapElemName);*/
-        //this.swapHeader(elem, swapElem, elemIndex, i);
     }
 
     /**
@@ -1343,19 +1320,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     moveHeaderDown(i) {
-        let elem = this._('.' + i);
-        let elemIndex = elem.getAttribute('data-index');
-        if (parseInt(elemIndex) === this.submissionsColumns.length - 1)
-            return;
 
-        let swapElemName = this.submissionsColumns.find((col, index) => {
-
-            return index - 1 >= 0 && this.submissionsColumns[index - 1] === i;
-
-
+        let list = this._('.headers');
+        list = list.childNodes;
+        [...list].forEach((item, index) => {
+            if(item.classList.contains(i)) {
+                let element = item;
+                let swapElem = list[index + 1];
+                this.swapHeader(element, swapElem);
+                return
+            }
         });
-        let swapElem = this._('.' + swapElemName);
-        //this.swapHeader(elem, swapElem, elemIndex, i);
     }
 
     /**
@@ -1365,18 +1340,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {number} elemIndex
      * @param {object} i
      */
-    swapHeader(elem, swapElem, elemIndex, i) {
+    swapHeader(elem, swapElem) {
 
-        console.log('swapping ', elem, ' ', swapElem);
-
-        /*let div_1 = elem.children[0];
+        let div_1 = elem.children[0];
         let span_1 = div_1.children[1];
         let aux = span_1.innerHTML;
 
         let div_2 = swapElem.children[0];
         let span_2 = div_2.children[1];
         span_1.innerHTML = span_2.innerHTML;
-        span_2.innerHTML = aux;*/
+        span_2.innerHTML = aux;
 
         /*this.submissionsColumns[elemIndex] = this.submissionsColumns[swapElemIndex];
         this.submissionsColumns[swapElemIndex] = tmp;
