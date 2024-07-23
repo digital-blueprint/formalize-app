@@ -544,6 +544,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
+        let firstDateCreated = data['hydra:member'][0]['dateCreated'];
+        firstDateCreated = this.humanReadableDate(firstDateCreated);
+        let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
+        firstDataFeedElement = JSON.parse(firstDataFeedElement);
+        let columns = Object.keys(firstDataFeedElement);
+        columns.unshift('dateCreated');
+        this.submissionsColumns = columns;
+        console.log('submissionsColumns ', this.submissionsColumns);
+
+
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
             let dateCreated = data['hydra:member'][x]['dateCreated'];
@@ -552,22 +562,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             dataFeedElement = JSON.parse(dataFeedElement);
 
             let cols = {dateCreated: dateCreated, ...dataFeedElement};
-                let id = x + 1;
-                let btn = this.createScopedElement('dbp-icon-button');
-                btn.setAttribute('icon-name', 'keyword-research');
-                btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
-                btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
-                btn.setAttribute('id', id);
-                btn.classList.add('open-modal-icon');
-                btn.addEventListener('click', event => {
+            let id = x + 1;
+            let btn = this.createScopedElement('dbp-icon-button');
+            btn.setAttribute('icon-name', 'keyword-research');
+            btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
+            btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
+            btn.setAttribute('id', id);
+            btn.classList.add('open-modal-icon');
+            btn.addEventListener('click', event => {
 
-                    this.requestDetailedSubmission(cols, id);
-                    event.stopPropagation();
-                });
+                this.requestDetailedSubmission(cols, id);
+                event.stopPropagation();
+            });
 
-                let div = this.createScopedElement('div');
-                div.appendChild(btn);
-                div.classList.add('actions-buttons');
+            let div = this.createScopedElement('div');
+            div.appendChild(btn);
+            div.classList.add('actions-buttons');
 
 
             let entry = {dateCreated: dateCreated, ...dataFeedElement, no_display_1: div};
@@ -589,65 +599,77 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let list = document.createElement('ul');
         list.classList.add('headers');
 
-        let columns = table.getColumns();
 
-        for(let [index, column] of columns.entries()) {
+        //for(let [index, column] of this.submissionsColumns.entries()) {
+        this.submissionsColumns.map((column, index) => {
+            let element = document.createElement("li");
+            element.classList.add('header-fields');
+            element.classList.add(column);
+            element.setAttribute('data-index', index);
 
-            let definition = column.getDefinition();
+            let div = document.createElement('div');
+            div.classList.add('header-field');
+
+            let header_order = document.createElement('span');
+            header_order.textContent = (index + 1);
+            header_order.classList.add('header-button');
+            header_order.classList.add('header-order');
+            div.appendChild(header_order);
+
+            let header_title = document.createElement('span');
+            header_title.innerHTML = '<strong>' + column + '</strong>';
+            header_title.classList.add('header-title');
+            div.appendChild(header_title);
+
+            let visibility = this.createScopedElement('dbp-icon-button');
+            visibility.iconName = 'source_icons_eye-empty';
+            visibility.classList.add('header-button');
+            visibility.classList.add('header-visibility-icon');
+
+
+            visibility.addEventListener('click', event => {
+                if(visibility.iconName === 'source_icons_eye-empty') {
+                    visibility.iconName = 'source_icons_eye-off';
+                }
+                else {
+                    visibility.iconName = 'source_icons_eye-empty';
+                }
+            });
+            div.appendChild(visibility);
+
+            let header_move = document.createElement('span');
+            header_move.classList.add('header-move');
+            let arrow_up = this.createScopedElement('dbp-icon-button');
+            arrow_up.iconName = 'arrow-up';
+            arrow_up.classList.add('header-button');
+            arrow_up.addEventListener('click', event => {
+                this.moveHeaderUp(column);
+            });
+
+
+            header_move.appendChild(arrow_up);
+            let arrow_down = this.createScopedElement('dbp-icon-button');
+            arrow_down.iconName = 'arrow-down';
+            arrow_down.classList.add('header-button');
+            arrow_up.addEventListener('click', event => {
+                //this.moveHeaderDown(column);
+            });
+            header_move.appendChild(arrow_down);
+            div.appendChild(header_move);
+
+            element.appendChild(div);
+            list.appendChild(element);
+        });
+
+            /*let definition = column.getDefinition();
             let field = column.getField();
-            if(field!== 'empty' && field !== 'undefined' && definition.formatter !== 'html') {
-                let element = document.createElement("li");
-                element.classList.add('header-fields');
-
-                let div = document.createElement('div');
-                div.classList.add('header-field');
-
-                let header_order = document.createElement('span');
-                header_order.textContent = (index + 1);
-                header_order.classList.add('header-button');
-                header_order.classList.add('header-order');
-                div.appendChild(header_order);
-
-                let header_title = document.createElement('span');
-                header_title.innerHTML = '<strong>' + field + '</strong>';
-                header_title.classList.add('header-title');
-                div.appendChild(header_title);
-
-                let visibility = this.createScopedElement('dbp-icon-button');
-                visibility.iconName = 'source_icons_eye-empty';
-                visibility.classList.add('header-button');
-                visibility.classList.add('header-visibility-icon');
+            if(field!== 'empty' && field !== 'undefined' && definition.formatter !== 'html') {*/
 
 
-                visibility.addEventListener('click', event => {
-                    if(visibility.iconName === 'source_icons_eye-empty') {
-                        visibility.iconName = 'source_icons_eye-off';
-                    }
-                    else {
-                        visibility.iconName = 'source_icons_eye-empty';
-                    }
-                });
-                div.appendChild(visibility);
-
-                let header_move = document.createElement('span');
-                header_move.classList.add('header-move');
-                let arrow_up = this.createScopedElement('dbp-icon-button');
-                arrow_up.iconName = 'arrow-up';
-                arrow_up.classList.add('header-button');
-
-                header_move.appendChild(arrow_up);
-                let arrow_down = this.createScopedElement('dbp-icon-button');
-                arrow_down.iconName = 'arrow-down';
-                arrow_down.classList.add('header-button');
-                header_move.appendChild(arrow_down);
-                div.appendChild(header_move);
-
-                element.appendChild(div);
-                list.appendChild(element);
-            }
+            //}
 
 
-        }
+       // }
 
         settings.appendChild(list);
     }
@@ -1269,17 +1291,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     moveHeaderUp(i) {
-        let elem = this._('.' + i.field);
+        console.log('i ', i);
+        let elem = this._('.' + i);
         let elemIndex = elem.getAttribute('data-index');
+        console.log('elemIndex ', elemIndex);
         if (parseInt(elemIndex) === 0)
             return;
 
-        let swapElem = this.submissionsColumns.find((col, index) => {
+        let swapElemName = this.submissionsColumns.find((col, index) => {
 
-            return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1].field === i.field;
+            return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1] === i;
 
         });
-        this.swapHeader(swapElem, elemIndex, i);
+        //let swapElem = this._('.' + swapElemName);
+        let swapElem = this._('.' + swapElemName);
+        console.log('swapElem ', swapElem);
+        this.swapHeader(swapElem, elem, elemIndex, i);
     }
 
     /**
@@ -1288,18 +1315,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     moveHeaderDown(i) {
-        let elem = this._('.' + i.field);
+        let elem = this._('.' + i);
         let elemIndex = elem.getAttribute('data-index');
         if (parseInt(elemIndex) === this.submissionsColumns.length - 1)
             return;
 
         let swapElem = this.submissionsColumns.find((col, index) => {
 
-            return index - 1 >= 0 && this.submissionsColumns[index - 1].field === i.field;
+            return index - 1 >= 0 && this.submissionsColumns[index - 1] === i;
 
 
         });
-        this.swapHeader(swapElem, elemIndex, i);
+        this.swapHeader(elem, swapElem, Index, i);
     }
 
     /**
@@ -1309,17 +1336,27 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {number} elemIndex
      * @param {object} i
      */
-    swapHeader(swapElem_, elemIndex, i) {
-        let swapElem = this._('.' + swapElem_.field);
+    swapHeader(elem, swapElem, elemIndex, i) {
+        /*let swapElem = this._('.' + swapElem_);
         let swapElemIndex = swapElem.getAttribute('data-index');
 
-        let tmp = this.submissionsColumns[elemIndex];
-        this.submissionsColumns[elemIndex] = this.submissionsColumns[swapElemIndex];
+        let tmp = this.submissionsColumns[elemIndex];*/
+        console.log(elem, ' ', swapElem);
+        let div_1 = elem.children[0];
+        let span_1 = div_1.children[1];
+        let aux = span_1.innerHTML;
+
+        let div_2 = swapElem.children[0];
+        let span_2 = div_2.children[1];
+        span_1.innerHTML = span_2.innerHTML;
+        span_2.innerHTML = aux;
+
+        /*this.submissionsColumns[elemIndex] = this.submissionsColumns[swapElemIndex];
         this.submissionsColumns[swapElemIndex] = tmp;
 
         this.submissionsColumnsUpdated = !this.submissionsColumnsUpdated;
 
-        let swapElem2 = this._('.' + swapElem_.field);
+        let swapElem2 = this._('.' + swapElem_);
 
         function removeClass() {
             swapElem2.classList.remove('move-up');
@@ -1332,7 +1369,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         setTimeout(addClass.bind(swapElem2), 0);
 
-        setTimeout(removeClass.bind(swapElem2), 400);
+        setTimeout(removeClass.bind(swapElem2), 400);*/
     }
 
 
