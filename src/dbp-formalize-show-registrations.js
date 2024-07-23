@@ -660,6 +660,31 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         settings.appendChild(list);
     }
 
+    resetSettings() {
+        let list = this._('.headers');
+        list = list.childNodes;
+        [...list].forEach((element, index) => {
+            let header_field = element.children[0];
+            console.log('header_field ', header_field);
+            let header_title = header_field.children[1];
+            //let current_title = header_title.innerHTML;
+            let current_title = header_field.children[1].innerHTML;
+            current_title = current_title.replace('<strong>', '')
+            current_title = current_title.replace('</strong>', '')
+            //console.log(current_title, ' ', this.submissionsColumns[index]);
+            let initial_title = this.submissionsColumns[index];
+            console.log('this.submissionsColumns[index] ', this.submissionsColumns[index])
+            if(current_title !== this.submissionsColumns[index]) {
+                header_field.children[1].innerHTML = '<strong>' + this.submissionsColumns[index] + '</strong>';
+            }
+            let visibility = header_field.children[2];
+            if(visibility.iconName === 'source_icons_eye-off') {
+                visibility.iconName = 'source_icons_eye-empty';
+            }
+        });
+
+    }
+
     async getAllForms() {
         let response;
 
@@ -906,13 +931,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (!this.submissionsTable)
             return;
         let columns = this.submissionsTable.getColumns();
-        this.submissionsColumns = [];
+        //this.submissionsColumns = [];
         columns.forEach((col) => {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
             let visibility = col.isVisible();
             if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
-                this.submissionsColumns.push({name: name, field: field, visibility: visibility});
+                //this.submissionsColumns.push({name: name, field: field, visibility: visibility});
             }
         });
     }
@@ -1237,7 +1262,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             let optionsString = localStorage.getItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + this.auth['person-id']);
             if (!optionsString) {
-                this.submissionsColumns = [];
+                //this.submissionsColumns = [];
                 return false;
             }
 
@@ -1245,11 +1270,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 let options = JSON.parse(optionsString);
                 if (options) {
-                    this.submissionsColumns = [...options];
+                    //this.submissionsColumns = [...options];
                 }
 
             } catch (e) {
-                this.submissionsColumns = [];
+                //this.submissionsColumns = [];
                 return false;
             }
             return true;
@@ -1267,7 +1292,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.isLoggedIn()
         ) {
             const publicId = this.auth['person-id'];
-            localStorage.setItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId, JSON.stringify(this.submissionsColumns));
+            //localStorage.setItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId, JSON.stringify(this.submissionsColumns));
         }
     }
 
@@ -1277,7 +1302,28 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     moveHeaderUp(i) {
-        let elem = this._('.' + i);
+        console.log('column ', i);
+        let list = this._('.headers');
+        //list = list.childNodes;
+        let li_element = list.querySelector('.i');
+        console.log('li_element ', li_element);
+
+        /*let element = list.querySelector('.' + i);
+        let header_field = element.children[0];
+        console.log('header_field ', header_field);
+        let elemIndex = element.getAttribute('data-index');
+        if (parseInt(elemIndex) === 0)
+            return;
+
+        let swapElemName = this.submissionsColumns.find((col, index) => {
+
+            return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1] === i;
+
+        });
+        let swapElem = list.querySelector('.' + swapElemName);
+        console.log('swapElem ', swapElem);
+        this.swapHeader(element, swapElem, elemIndex, i);*/
+        /*let elem = this._('.' + i);
         let elemIndex = elem.getAttribute('data-index');
         if (parseInt(elemIndex) === 0)
             return;
@@ -1287,8 +1333,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1] === i;
 
         });
-        let swapElem = this._('.' + swapElemName);
-        this.swapHeader(elem, swapElem, elemIndex, i);
+        let swapElem = this._('.' + swapElemName);*/
+        //this.swapHeader(elem, swapElem, elemIndex, i);
     }
 
     /**
@@ -1309,7 +1355,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         });
         let swapElem = this._('.' + swapElemName);
-        this.swapHeader(elem, swapElem, elemIndex, i);
+        //this.swapHeader(elem, swapElem, elemIndex, i);
     }
 
     /**
@@ -1321,14 +1367,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     swapHeader(elem, swapElem, elemIndex, i) {
 
-        let div_1 = elem.children[0];
+        console.log('swapping ', elem, ' ', swapElem);
+
+        /*let div_1 = elem.children[0];
         let span_1 = div_1.children[1];
         let aux = span_1.innerHTML;
 
         let div_2 = swapElem.children[0];
         let span_2 = div_2.children[1];
         span_1.innerHTML = span_2.innerHTML;
-        span_2.innerHTML = aux;
+        span_2.innerHTML = aux;*/
 
         /*this.submissionsColumns[elemIndex] = this.submissionsColumns[swapElemIndex];
         this.submissionsColumns[swapElemIndex] = tmp;
@@ -2266,7 +2314,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                        <a @click='${() => {
                             this.loadingCourseTable = true;
                             this.showSubmissionsTable = false;
-                            this.submissionsColumns = [];
+                            //this.submissionsColumns = [];
                             this.clearFilter();
                             this.submissionsTable.setData([{id: 1}]);
                             this.submissionsTable.clearData();
@@ -2380,8 +2428,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-icon-button title='${i18n.t('show-registrations.filter-options-button-text')}'
                                 aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
                                 icon-name='iconoir_settings'
-                                @click='${() => {this.openColumnOptionsModal(); }}'></dbp-icon-button>
-                            <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
+                                @click='${() => { this.openColumnOptionsModal(); }}'></dbp-icon-button>
+                            <select id='export-select' class='dropdown-menu' '>
                                 <option value='-' disabled selected>
                                     ${i18n.t('show-registrations.default-export-select')}
                                 </option>
@@ -2422,52 +2470,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 icon-name='close'
                                 @click='${() => {
                                     this.closeColumnOptionsModal();
-                                    this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
+                                    /*this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));*/
                                 }}'></dbp-icon-button>
                             <p id='submission-modal-title'>
                                 ${i18n.t('show-registrations.header-settings')}
                             </p>
                         </header>
                         <main class='modal-content' id='submission-modal-content'>
-                            <!--<ul class='headers'>
-                                ${this.submissionsColumns.map((i, counter) => {
-                                        let classes = '';
-                                        classes += counter === 0 ? 'first-header ' : '';
-                                        classes += counter === this.submissionsColumns.length - 1 ? 'last-header ' : '';
-                                        classes += i.field;
-                                        return html`
-                                        <li class='header-fields ${classes}' data-index='${counter}'>
-                                            <div class='header-field'>
-                                                <span class='header-button header-order'>${counter + 1}</span>
-                                                <span class='header-title'><strong>${i.name}</strong></span>
-                                                <dbp-icon-button class='header-button header-visibility-icon'
-                                                    @click='${() => {
-                                                        this.changeVisibility(i);
-                                                    }}'
-                                                    icon-name='source_icons_eye-empty'
-                                                    title='${i18n.t('show-registrations.change-visability-off')}'
-                                                    aria-label='${i18n.t('show-registrations.change-visability-off')}'></dbp-icon-button>
-                                                <span class='header-move'>
-                                                    <dbp-icon-button class='header-button'
-                                                        @click='${() => {
-                                                            this.moveHeaderUp(i);
-                                                        }}'
-                                                        icon-name='arrow-up'
-                                                        title='${i18n.t('show-registrations.move-up')}'
-                                                        aria-label='${i18n.t('show-registrations.move-up')}'></dbp-icon-button>
-                                                    <dbp-icon-button class='header-button'
-                                                        @click='${() => {
-                                                            this.moveHeaderDown(i);
-                                                        }}'
-                                                        icon-name='arrow-down'
-                                                        title='${i18n.t('show-registrations.move-down')}'
-                                                        aria-label='${i18n.t('show-registrations.move-down')}'></dbp-icon-button>
-                                                </span>
-                                            </div>
-                                        </li>
-                                    `;
-        })}
-                            </ul>-->
+                            
                         </main>
                         <footer class='modal-footer'>
 
@@ -2478,9 +2488,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         class='check-btn button is-secondary'
                                         @click='${() => {
                                             this.closeColumnOptionsModal();
-                                            this.submissionsColumns = [];
+                                            /*this.submissionsColumns = [];
                                             this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsTmp));
-                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;*/
                                         }}'>
                                         ${i18n.t('show-registrations.abort')}
                                     </button>
@@ -2488,9 +2498,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         title='${i18n.t('show-registrations.reset-filter')}'
                                         class='check-btn button is-secondary'
                                         @click='${() => {
-                                            this.submissionsColumns = [];
+                                            this.resetSettings();
+                                            /*this.submissionsColumns = [];
                                             this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
-                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;
+                                            this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;*/
                                         }}'>
                                         ${i18n.t('show-registrations.reset-filter')}
                                     </button>
