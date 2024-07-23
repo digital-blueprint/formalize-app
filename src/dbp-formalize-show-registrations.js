@@ -551,8 +551,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let columns = Object.keys(firstDataFeedElement);
         columns.unshift('dateCreated');
         this.submissionsColumns = columns;
-        console.log('submissionsColumns ', this.submissionsColumns);
-
 
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
@@ -1291,10 +1289,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     moveHeaderUp(i) {
-        console.log('i ', i);
         let elem = this._('.' + i);
         let elemIndex = elem.getAttribute('data-index');
-        console.log('elemIndex ', elemIndex);
         if (parseInt(elemIndex) === 0)
             return;
 
@@ -1303,10 +1299,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return index + 1 <= this.submissionsColumns.length && this.submissionsColumns[index + 1] === i;
 
         });
-        //let swapElem = this._('.' + swapElemName);
         let swapElem = this._('.' + swapElemName);
-        console.log('swapElem ', swapElem);
-        this.swapHeader(swapElem, elem, elemIndex, i);
+        this.swapHeader(elem, swapElem, elemIndex, i);
     }
 
     /**
@@ -1337,11 +1331,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} i
      */
     swapHeader(elem, swapElem, elemIndex, i) {
-        /*let swapElem = this._('.' + swapElem_);
-        let swapElemIndex = swapElem.getAttribute('data-index');
 
-        let tmp = this.submissionsColumns[elemIndex];*/
-        console.log(elem, ' ', swapElem);
         let div_1 = elem.children[0];
         let span_1 = div_1.children[1];
         let aux = span_1.innerHTML;
@@ -1356,20 +1346,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         this.submissionsColumnsUpdated = !this.submissionsColumnsUpdated;
 
-        let swapElem2 = this._('.' + swapElem_);
+        let swapElem2 = this._('.' + swapElem_);*/
 
         function removeClass() {
-            swapElem2.classList.remove('move-up');
+            swapElem.classList.remove('move-up');
         }
 
         function addClass() {
-            swapElem2.classList.add('move-up');
+            swapElem.classList.add('move-up');
 
         }
 
-        setTimeout(addClass.bind(swapElem2), 0);
+        setTimeout(addClass.bind(swapElem), 0);
 
-        setTimeout(removeClass.bind(swapElem2), 400);*/
+        setTimeout(removeClass.bind(swapElem), 400);
     }
 
 
