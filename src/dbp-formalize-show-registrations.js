@@ -2402,7 +2402,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
                                 icon-name='iconoir_settings'
                                 @click='${() => { this.openColumnOptionsModal(); }}'></dbp-icon-button>
-                            <select id='export-select' class='dropdown-menu' '>
+                            <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
                                 <option value='-' disabled selected>
                                     ${i18n.t('show-registrations.default-export-select')}
                                 </option>
