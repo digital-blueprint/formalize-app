@@ -597,8 +597,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let list = document.createElement('ul');
         list.classList.add('headers');
 
-
-        //for(let [index, column] of this.submissionsColumns.entries()) {
         this.submissionsColumns.map((column, index) => {
             let element = document.createElement("li");
             element.classList.add('header-fields');
@@ -649,8 +647,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let arrow_down = this.createScopedElement('dbp-icon-button');
             arrow_down.iconName = 'arrow-down';
             arrow_down.classList.add('header-button');
-            arrow_up.addEventListener('click', event => {
-                //this.moveHeaderDown(column);
+            arrow_down.addEventListener('click', event => {
+                this.moveHeaderDown(column);
             });
             header_move.appendChild(arrow_down);
             div.appendChild(header_move);
@@ -658,16 +656,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             element.appendChild(div);
             list.appendChild(element);
         });
-
-            /*let definition = column.getDefinition();
-            let field = column.getField();
-            if(field!== 'empty' && field !== 'undefined' && definition.formatter !== 'html') {*/
-
-
-            //}
-
-
-       // }
 
         settings.appendChild(list);
     }
@@ -1314,13 +1302,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (parseInt(elemIndex) === this.submissionsColumns.length - 1)
             return;
 
-        let swapElem = this.submissionsColumns.find((col, index) => {
+        let swapElemName = this.submissionsColumns.find((col, index) => {
 
             return index - 1 >= 0 && this.submissionsColumns[index - 1] === i;
 
 
         });
-        this.swapHeader(elem, swapElem, Index, i);
+        let swapElem = this._('.' + swapElemName);
+        this.swapHeader(elem, swapElem, elemIndex, i);
     }
 
     /**
