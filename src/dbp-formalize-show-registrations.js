@@ -596,11 +596,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         let list = document.createElement('ul');
         list.classList.add('headers');
+        let columns = table.getColumns();
+        columns.splice(-1, 1);
 
-        this.submissionsColumns.map((column, index) => {
+        columns.map((column, index) => {
             let element = document.createElement("li");
             element.classList.add('header-fields');
-            element.classList.add(column);
+            element.classList.add(column.getField());
             element.setAttribute('data-index', index);
 
             let div = document.createElement('div');
@@ -613,12 +615,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             div.appendChild(header_order);
 
             let header_title = document.createElement('span');
-            header_title.innerHTML = '<strong>' + column + '</strong>';
+            header_title.innerHTML = '<strong>' + column.getField() + '</strong>';
             header_title.classList.add('header-title');
             div.appendChild(header_title);
 
             let visibility = this.createScopedElement('dbp-icon-button');
-            visibility.iconName = 'source_icons_eye-empty';
+            if(column.isVisible()) {
+                visibility.iconName = 'source_icons_eye-empty';
+            } else {
+                visibility.iconName = 'source_icons_eye-off';
+            }
+
             visibility.classList.add('header-button');
             visibility.classList.add('header-visibility-icon');
 
@@ -668,13 +675,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     resetSettings() {
         let list = this._('.headers');
         list = list.childNodes;
+        let table = this._('#tabulator-table-submissions');
+        let columns = table.getColumnsFields();
+        columns.splice(-1, 1);
         [...list].forEach((element, index) => {
             let header_field = element.children[0];
             let current_title = header_field.children[1].innerHTML;
             current_title = current_title.replace('<strong>', '')
             current_title = current_title.replace('</strong>', '')
-            if(current_title !== this.submissionsColumns[index]) {
-                header_field.children[1].innerHTML = '<strong>' + this.submissionsColumns[index] + '</strong>';
+            if(current_title !== columns[index]) {
+                header_field.children[1].innerHTML = '<strong>' + columns[index] + '</strong>';
             }
             let visibility = header_field.children[2];
             if(visibility.iconName === 'source_icons_eye-off') {
@@ -1300,12 +1310,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @param {object} i
      */
-    moveHeaderUp(i) {
+    moveHeaderUp(column) {
 
         let list = this._('.headers');
         list = list.childNodes;
         [...list].forEach((item, index) => {
-            if(item.classList.contains(i)) {
+            if(item.classList.contains(column.getField())) {
                 let element = item;
                 let swapElem = list[index - 1];
                 this.swapHeader(element, swapElem);
@@ -1319,12 +1329,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      * @param {object} i
      */
-    moveHeaderDown(i) {
+    moveHeaderDown(column) {
 
         let list = this._('.headers');
         list = list.childNodes;
         [...list].forEach((item, index) => {
-            if(item.classList.contains(i)) {
+            if(item.classList.contains(column.getField())) {
                 let element = item;
                 let swapElem = list[index + 1];
                 this.swapHeader(element, swapElem);
