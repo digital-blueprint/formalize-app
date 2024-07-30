@@ -489,13 +489,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         this.activeCourse = name;
                         this.activeForm = form;
+                        console.log('active form ', this.activeForm);
                         this.showSubmissionsTable = true;
                         //TODO: check why it always returns the Myformsubmission now
-                        this.getAllSubmissions(this.activeForm).then(() => {
+                        let respoonse = this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
+                            console.log('submissions ', this.submissions);
                             table.setData(this.submissions);
                             this.defineSettings();
                         });
+                        console.log('response ', response);
 
                     });
 
@@ -541,6 +544,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         } catch (e) {
             this.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
             this.throwSomethingWentWrongNotification();
+            return;
+        }
+        if(data['hydra:member'].length === 0) {
+            this.submissions = [];
             return;
         }
 
