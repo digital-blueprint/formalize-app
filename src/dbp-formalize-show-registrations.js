@@ -493,6 +493,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.activeCourse = name;
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
+                        console.log('get all settings ', this.getSubmissionTableSettings());
+                        console.log('stored settings ', this.submissionsColumns);
 
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
@@ -500,6 +502,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                             if(this.submissions.length === 0) {
                                 table.setColumns([]);
+                            }
+                            else if(this.submissionsColumns.length !== 0) {
+                                table.setColumns(this.submissionsColumns);
                             }
                             this.defineSettings();
                         });
@@ -562,7 +567,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let columns = Object.keys(firstDataFeedElement);
         columns.unshift('dateCreated');
         console.log('columns ', columns);
-        this.submissionsColumns = columns;
+        //this.submissionsColumns = columns;
 
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
@@ -1228,6 +1233,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let table = this._('#tabulator-table-submissions');
 
         let newColumns = [];
+        let newColumnNames = [];
         [...list].forEach((element, index) => {
             let header_field = element.children[0];
             let current_title = header_field.children[1].innerText;
@@ -1241,12 +1247,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             let new_column = {title: current_title, field: current_title, visible: visibility};
             newColumns.push(new_column);
+            newColumnNames.push(current_title);
         });
         let columns = table.getColumns();
         let last_column = columns.pop();
         last_column = last_column.getDefinition();
         newColumns.push(last_column);
         table.setColumns(newColumns);
+        this.submissionsColumns = newColumns;
         this.submissionsColumnsUpdated = true;
     }
 
@@ -1308,7 +1316,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.isLoggedIn()
         ) {
             const publicId = this.auth['person-id'];
-            //localStorage.setItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId, JSON.stringify(this.submissionsColumns));
+            localStorage.setItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId, JSON.stringify(this.submissionsColumns));
         }
     }
 
@@ -2493,8 +2501,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </div>
                                 <button class='check-btn button is-primary' id='check' @click='${() => {
                                     this.updateSubmissionTable();
-                                    /*this.closeColumnOptionsModal();
-                                    this.setSubmissionTableSettings();*/
+                                    this.closeColumnOptionsModal();
+                                    this.setSubmissionTableSettings();
                                 }}'>
                                     ${i18n.t('show-registrations.save-columns')}
                                 </button>
