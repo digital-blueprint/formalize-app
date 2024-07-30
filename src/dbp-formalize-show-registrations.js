@@ -489,16 +489,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                         this.activeCourse = name;
                         this.activeForm = form;
-                        console.log('active form ', this.activeForm);
                         this.showSubmissionsTable = true;
-                        //TODO: check why it always returns the Myformsubmission now
-                        let respoonse = this.getAllSubmissions(this.activeForm).then(() => {
+
+                        this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
-                            console.log('submissions ', this.submissions);
                             table.setData(this.submissions);
+                            if(this.submissions.length === 0) {
+                                table.setColumns([]);
+                            }
                             this.defineSettings();
                         });
-                        console.log('response ', response);
 
                     });
 
