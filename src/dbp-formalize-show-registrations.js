@@ -487,6 +487,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                     btn.addEventListener('click', async event => {
 
+                        if(this.activeCourse) {
+                            this.deleteSettings();
+                        }
                         this.activeCourse = name;
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
@@ -494,6 +497,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
+
                             if(this.submissions.length === 0) {
                                 table.setColumns([]);
                             }
@@ -557,6 +561,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
         columns.unshift('dateCreated');
+        console.log('columns ', columns);
         this.submissionsColumns = columns;
 
         let submissions_list = [];
@@ -591,7 +596,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         this.submissions = submissions_list;
-
         this.totalNumberOfItems = submissions_list.length;
 
         return response;
@@ -677,6 +681,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         });
 
         settings.appendChild(list);
+    }
+
+    deleteSettings() {
+        let settings = this._('#submission-modal-content');
+
+        let list = settings.children[0];
+        settings.removeChild(list);
     }
 
     resetSettings() {
@@ -1317,7 +1328,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     moveHeaderUp(column) {
 
         let list = this._('.headers');
-        console.log('list ', list);
+        //console.log('list ', list);
         list = list.childNodes;
         [...list].forEach((item, index) => {
             if(item.classList.contains(column.getField())) {
@@ -2297,7 +2308,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             this.loadingCourseTable = true;
                             this.showSubmissionsTable = false;
                             //this.submissionsColumns = [];
-                            this.clearFilter();
+                            //this.clearFilter();
                             this.submissionsTable.setData([{id: 1}]);
                             this.submissionsTable.clearData();
                             this.loadingCourseTable = false;
