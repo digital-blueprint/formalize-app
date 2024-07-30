@@ -1030,14 +1030,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     closeColumnOptionsModal() {
-        if(!this.submissionsColumnsUpdated) {
-            //this.resetSettings();
-        }
-        else {
-            this.submissionsColumnsUpdated = false;
-        }
-        let settings = this._('#submission-modal-content');
-        console.log('settings list ', settings.children[0]);
         let modal = this._('#column-options-modal');
         if (modal) {
             MicroModal.close(modal);
