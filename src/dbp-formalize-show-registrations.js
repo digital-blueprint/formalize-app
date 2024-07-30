@@ -497,7 +497,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             if(this.submissions.length === 0) {
                                 table.setColumns([]);
                             }
-                            this.defineSettings();
+                            //this.defineSettings();
                         });
 
                     });
@@ -1315,6 +1315,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     moveHeaderUp(column) {
 
         let list = this._('.headers');
+        console.log('list ', list);
         list = list.childNodes;
         [...list].forEach((item, index) => {
             if(item.classList.contains(column.getField())) {
@@ -2155,7 +2156,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.getListOfAllCourses().then(() => {
                 this.setTableData();
             });
-
         }
 
         let langs_forms = {
