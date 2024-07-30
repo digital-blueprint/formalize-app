@@ -490,7 +490,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.activeCourse = name;
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
-
+                        //TODO: check why it always returns the Myformsubmission now
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
@@ -676,19 +676,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let list = this._('.headers');
         list = list.childNodes;
         let table = this._('#tabulator-table-submissions');
-        let columns = table.getColumnsFields();
+        let columns = table.getColumns();
         columns.splice(-1, 1);
         [...list].forEach((element, index) => {
             let header_field = element.children[0];
-            let current_title = header_field.children[1].innerHTML;
-            current_title = current_title.replace('<strong>', '')
-            current_title = current_title.replace('</strong>', '')
-            if(current_title !== columns[index]) {
-                header_field.children[1].innerHTML = '<strong>' + columns[index] + '</strong>';
+            let current_title = header_field.children[1].innerText;
+            if(current_title !== columns[index].getField()) {
+                header_field.children[1].innerHTML = '<strong>' + columns[index].getField() + '</strong>';
             }
             let visibility = header_field.children[2];
-            if(visibility.iconName === 'source_icons_eye-off') {
+            if(visibility.iconName === 'source_icons_eye-off' && columns[index].isVisible()) {
                 visibility.iconName = 'source_icons_eye-empty';
+            }
+            else if(visibility.iconName === 'source_icons_eye-empty' && !columns[index].isVisible()) {
+                visibility.iconName = 'source_icons_eye-off';
             }
         });
 
@@ -1011,6 +1012,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     closeColumnOptionsModal() {
+        if(!this.submissionsColumnsUpdated) {
+            this.resetSettings();
+        }
+        else {
+            this.submissionsColumnsUpdated = false;
+        }
         let modal = this._('#column-options-modal');
         if (modal) {
             MicroModal.close(modal);
@@ -1203,44 +1210,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     updateSubmissionTable() {
-        // Add all known colums in the right order
-        let newDefs = [];
-        let addedFields = [];
-        for (let spec of this.submissionsColumns) {
-            let col = this.submissionsTable.getColumn(spec.field);
-            if (!col) {
-                continue;
-            }
-            addedFields.push(spec.field);
-            newDefs.push(col.getDefinition());
-        }
+        //TODO change submissions list, not just current dbp-tabulator
+        let list = this._('.headers');
+        list = list.childNodes;
+        let table = this._('#tabulator-table-submissions');
 
-        // Append everything we didn't know about
-        for (let col of this.submissionsTable.getColumns()) {
-            let def = col.getDefinition();
-            if (addedFields.indexOf(def.field) === -1) {
-                newDefs.push(def);
-                addedFields.push(def.field);
+        let newColumns = [];
+        [...list].forEach((element, index) => {
+            let header_field = element.children[0];
+            let current_title = header_field.children[1].innerText;
+            let visibility_icon = header_field.children[2];
+            let visibility;
+            if(visibility_icon.iconName === 'source_icons_eye-off') {
+                visibility = false;
             }
-        }
-
-        // Replace all columns
-        this.submissionsTable.setColumns(newDefs);
-
-        // Set the visibility status
-        this.hiddenColumns = false;
-        for (let spec of this.submissionsColumns) {
-            let col = this.submissionsTable.getColumn(spec.field);
-            if (!col) {
-                continue;
+            else if(visibility_icon.iconName === 'source_icons_eye-empty') {
+                visibility = true;
             }
-            if (spec.visibility) {
-                col.show();
-            } else {
-                col.hide();
-                this.hiddenColumns = true;
-            }
-        }
+            let new_column = {title: current_title, field: current_title, visible: visibility};
+            newColumns.push(new_column);
+        });
+        let columns = table.getColumns();
+        let last_column = columns.pop();
+        last_column = last_column.getDefinition();
+        newColumns.push(last_column);
+        table.setColumns(newColumns);
+        this.submissionsColumnsUpdated = true;
     }
 
     setInitalSubmissionTableOrder() {
@@ -2205,16 +2200,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
+        //TODO: see about empty language
+
         let auto_langs = {
             'en': {
-                columns: {
-
-                },
+                columns: {},
             },
             'de': {
-                columns: {
-
-                },
+                columns: {},
             },
         };
 
@@ -2228,9 +2221,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 resizable: false,
             },
             autoColumnsDefinitions:[
-                {field:"dateCreated", title:"Date Created"},
-                {field:"firstname", title:"Firstname"},
-                {field:"lastname", title:"Lastname"},
                 {field: 'no_display_1', title: '', formatter: 'html', download:false},
             ],
         };
@@ -2491,8 +2481,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </div>
                                 <button class='check-btn button is-primary' id='check' @click='${() => {
                                     this.updateSubmissionTable();
-                                    this.closeColumnOptionsModal();
-                                    this.setSubmissionTableSettings();
+                                    /*this.closeColumnOptionsModal();
+                                    this.setSubmissionTableSettings();*/
                                 }}'>
                                     ${i18n.t('show-registrations.save-columns')}
                                 </button>
