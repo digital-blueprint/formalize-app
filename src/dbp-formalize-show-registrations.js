@@ -497,7 +497,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             if(this.submissions.length === 0) {
                                 table.setColumns([]);
                             }
-                            //this.defineSettings();
+                            this.defineSettings();
                         });
 
                     });
@@ -1020,11 +1020,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     closeColumnOptionsModal() {
         if(!this.submissionsColumnsUpdated) {
-            this.resetSettings();
+            //this.resetSettings();
         }
         else {
             this.submissionsColumnsUpdated = false;
         }
+        let settings = this._('#submission-modal-content');
+        console.log('settings list ', settings.children[0]);
         let modal = this._('#column-options-modal');
         if (modal) {
             MicroModal.close(modal);
@@ -2478,7 +2480,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         title='${i18n.t('show-registrations.reset-filter')}'
                                         class='check-btn button is-secondary'
                                         @click='${() => {
-                                            this.resetSettings();
+                                            //this.resetSettings();
                                             /*this.submissionsColumns = [];
                                             this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
                                             this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;*/
