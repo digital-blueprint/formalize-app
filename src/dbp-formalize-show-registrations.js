@@ -1293,7 +1293,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             let optionsString = localStorage.getItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + this.auth['person-id']);
             if (!optionsString) {
-                //this.submissionsColumns = [];
+                this.submissionsColumns = [];
                 return false;
             }
 
@@ -1301,11 +1301,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 let options = JSON.parse(optionsString);
                 if (options) {
-                    //this.submissionsColumns = [...options];
+                    this.submissionsColumns = [...options];
                 }
 
             } catch (e) {
-                //this.submissionsColumns = [];
+                this.submissionsColumns = [];
                 return false;
             }
             return true;
