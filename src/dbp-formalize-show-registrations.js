@@ -2241,7 +2241,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 resizable: false,
             },
             autoColumnsDefinitions:[
-                {field: 'no_display_1', title: '', formatter: 'html', download:false},
+                {field: 'no_display_1', title: '', formatter: 'html', headerSort:false, download:false},
             ],
         };
 
