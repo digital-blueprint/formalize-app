@@ -642,7 +642,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 visibility.iconName = 'source_icons_eye-off';
             }
 
-            visibility.classList.add('header-button');
+            //visibility.classList.add('header-button');
             visibility.classList.add('header-visibility-icon');
 
 
@@ -660,7 +660,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             header_move.classList.add('header-move');
             let arrow_up = this.createScopedElement('dbp-icon-button');
             arrow_up.iconName = 'arrow-up';
-            arrow_up.classList.add('header-button');
+
+            if(index === 0) {
+                arrow_up.classList.add('first-arrow-up');
+            }
             arrow_up.addEventListener('click', event => {
                 if(index !== 0) {
                     this.moveHeaderUp(column);
@@ -672,9 +675,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             header_move.appendChild(arrow_up);
             let arrow_down = this.createScopedElement('dbp-icon-button');
             arrow_down.iconName = 'arrow-down';
-            arrow_down.classList.add('header-button');
+
+            if(index === (columns.length - 1)) {
+                arrow_down.classList.add('last-arrow-down');
+            }
+
             arrow_down.addEventListener('click', event => {
-                if(index !== (this.submissionsColumns.length - 1)) {
+                if(index !== (columns.length - 1)) {
                     this.moveHeaderDown(column);
                 }
             });
@@ -1779,6 +1786,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 cursor: default;
             }
 
+            .first-arrow-up, .last-arrow-down {
+                opacity: 0.4;
+                cursor: default;
+            }
+
             @keyframes added {
                 0% {
                     background-color: var(--dbp-background);
@@ -2491,7 +2503,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         title='${i18n.t('show-registrations.reset-filter')}'
                                         class='check-btn button is-secondary'
                                         @click='${() => {
-                                            //this.resetSettings();
+                                            this.resetSettings();
                                             /*this.submissionsColumns = [];
                                             this.submissionsColumns = JSON.parse(JSON.stringify(this.submissionsColumnsInitial));
                                             this.submissionsColumnsUpdated =  !this.submissionsColumnsUpdated;*/
