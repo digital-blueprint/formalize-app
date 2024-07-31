@@ -495,7 +495,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.showSubmissionsTable = true;
                         console.log('get all settings ', this.getSubmissionTableSettings());
                         console.log('stored settings ', this.submissionsColumns);
-
+                        //TODO: check what happens to submissions table after logging out
                         this.getAllSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             table.setData(this.submissions);
