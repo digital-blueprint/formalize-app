@@ -17,30 +17,6 @@ import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
 import {getStackTrace} from '@dbp-toolkit/common/error';
 
-
-/**
- * Imports xlsx plugin
- *
- * @returns {object} xlsx
- */
-async function importXLSX() {
-    return await import('xlsx');
-}
-
-
-/**
- * Imports jsPDF and include jspdf-autotable plugin
- *
- * @returns {object} jspdf
- */
-async function importJsPDF() {
-    let jspdf = await import('jspdf');
-    let autotable = await import('jspdf-autotable');
-    autotable.applyPlugin(jspdf.jsPDF);
-    return jspdf;
-}
-
-
 class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
         super();
@@ -54,7 +30,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissions = [];
         this.showSubmissionsTable = false;
         this.submissionsColumns = [];
-        this.submissionsColumnsFields = [];
         this.initateOpenAdditionalMenu = false;
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
@@ -101,7 +76,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             emptyCoursesTable: {type: Boolean, attribute: true},
             showSubmissionsTable: {type: Boolean, attribute: false},
             submissionsColumns: {type: Array, attribute: false},
-            submissionsColumnsFields: {type: Array, attribute: false},
             isPrevEnabled: {type: Boolean, attribute: false},
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
@@ -321,9 +295,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.activeCourse = name;
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
-                        //console.log('get all settings ', this.getSubmissionTableSettings());
-                        //console.log('stored settings ', this.submissionsColumns);
-                        //TODO: check what happens to submissions table after logging out
                         this.getAllCourseSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
                             this.getSubmissionTableSettings();
@@ -395,8 +366,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
         columns.unshift('dateCreated');
-        console.log('columns ', columns);
-        //this.submissionsColumns = columns;
 
         let submissions_list = [];
         for (let x = 0; x < data["hydra:member"].length; x++) {
@@ -407,7 +376,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             let cols = {dateCreated: dateCreated, ...dataFeedElement};
             let id = x + 1;
-            //TODO: update details the moment you click on them
             let btn = this.createScopedElement('dbp-icon-button');
             btn.setAttribute('icon-name', 'keyword-research');
             btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
@@ -435,6 +403,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return response;
     }
 
+    /**
+     * Defines the editable settings based on the current submissions tabulator
+     */
     defineSettings() {
         let table = this._('#tabulator-table-submissions');
         let settings = this._('#submission-modal-content');
@@ -471,7 +442,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 visibility.iconName = 'source_icons_eye-off';
             }
 
-            //visibility.classList.add('header-button');
             visibility.classList.add('header-visibility-icon');
 
 
@@ -524,6 +494,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         settings.appendChild(list);
     }
 
+    /**
+     * Removes settings that correspond to a former submissions tabulator
+     */
     deleteSettings() {
         let settings = this._('#submission-modal-content');
 
@@ -531,6 +504,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         settings.removeChild(list);
     }
 
+    /**
+     * Resets the settings to their currently not saved values
+     */
     resetSettings() {
         let list = this._('.headers');
         list = list.childNodes;
@@ -554,23 +530,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     }
 
-    async getAllForms() {
-        let response;
-
-        const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token
-            }
-        };
-
-        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/forms', options);
-        return response;
-    }
-
-    request
-
     /**
      * Gets the detaildata of a specific row
      *
@@ -582,8 +541,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
-
-
 
         let ordered;
         if(this.submissionsColumns.length !== 0) {
@@ -652,8 +609,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Function for filtering table
-     *
+     * Filters the submissions table
      */
     filterTable() {
         let filter = this._('#searchbar');
@@ -695,8 +651,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     }
 
-    /*
-     * Clear Filer
+    /**
+     * Removes the current filters from the submissions table
+     *
      */
     clearFilter() {
         let filter = this._('#searchbar');
@@ -936,13 +893,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     updateSubmissionTable() {
-        //TODO change submissions list, not just current dbp-tabulator
         let list = this._('.headers');
         list = list.childNodes;
         let table = this._('#tabulator-table-submissions');
 
         let newColumns = [];
-        let newColumnNames = [];
         [...list].forEach((element, index) => {
             let header_field = element.children[0];
             let current_title = header_field.children[1].innerText;
@@ -956,7 +911,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             let new_column = {title: current_title, field: current_title, visible: visibility};
             newColumns.push(new_column);
-            newColumnNames.push(current_title);
         });
         let columns = table.getColumns();
         let last_column = columns.pop();
@@ -964,7 +918,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         newColumns.push(last_column);
         table.setColumns(newColumns);
         this.submissionsColumns = newColumns;
-        this.submissionsColumnsFields = newColumnNames;
     }
 
     /**
@@ -988,9 +941,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 let options = JSON.parse(optionsString);
                 if (options) {
-                    console.log('options ', options);
                     this.submissionsColumns = [...options];
-                    console.log('this.submissionsColumns ', this.submissionsColumns);
                 }
 
             } catch (e) {
@@ -1024,7 +975,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     moveHeaderUp(column) {
 
         let list = this._('.headers');
-        //console.log('list ', list);
         list = list.childNodes;
         [...list].forEach((item, index) => {
             if(item.classList.contains(column.getField())) {
@@ -1914,8 +1864,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
-        //TODO: see about empty language
-
         let auto_langs = {
             'en': {
                 columns: {},
@@ -2000,8 +1948,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
                        <a @click='${() => {
                             this.showSubmissionsTable = false;
-                            //this.submissionsColumns = [];
-                            //this.clearFilter();
+                            this.clearFilter();
                             this.loadingCourseTable = false;
                         }}'
                         title='${i18n.t('show-registrations.back-text')}'>
