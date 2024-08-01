@@ -54,6 +54,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.submissions = [];
         this.showSubmissionsTable = false;
         this.submissionsColumns = [];
+        this.submissionsColumnsFields = [];
         this.initateOpenAdditionalMenu = false;
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
@@ -100,6 +101,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             emptyCoursesTable: {type: Boolean, attribute: true},
             showSubmissionsTable: {type: Boolean, attribute: false},
             submissionsColumns: {type: Array, attribute: false},
+            submissionsColumnsFields: {type: Array, attribute: false},
             isPrevEnabled: {type: Boolean, attribute: false},
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
@@ -283,6 +285,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     'Content-Type': 'application/ld+json',
                     Authorization: 'Bearer ' + this.auth.token,
                 },
+
             });
 
             if (!response.ok) {
@@ -318,11 +321,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.activeCourse = name;
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
-                        console.log('get all settings ', this.getSubmissionTableSettings());
-                        console.log('stored settings ', this.submissionsColumns);
+                        //console.log('get all settings ', this.getSubmissionTableSettings());
+                        //console.log('stored settings ', this.submissionsColumns);
                         //TODO: check what happens to submissions table after logging out
                         this.getAllCourseSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
+                            this.getSubmissionTableSettings();
                             table.setData(this.submissions);
 
                             if(this.submissions.length === 0) {
@@ -565,7 +569,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         return response;
     }
 
-
+    request
 
     /**
      * Gets the detaildata of a specific row
@@ -579,13 +583,31 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        for(const [column, value] of Object.entries(columns)) {
-            this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(column) + `:</div>`;
 
-            if (column === 'dateCreated') {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(value);
-            } else {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(value) + `</div>`;
+
+        let ordered;
+        if(this.submissionsColumns.length !== 0) {
+            for (let current_column of this.submissionsColumns) {
+                if(columns[current_column.field] !== undefined) {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(current_column.field) + `:</div>`;
+
+                    if (current_column.field === 'dateCreated') {
+                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(columns[current_column.field]);
+                    } else {
+                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(columns[current_column.field]) + `</div>`;
+                    }
+                }
+            }
+        }
+        else {
+            for(const [column, value] of Object.entries(columns)) {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(column) + `:</div>`;
+
+                if (column === 'dateCreated') {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(value);
+                } else {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(value) + `</div>`;
+                }
             }
         }
 
@@ -942,6 +964,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         newColumns.push(last_column);
         table.setColumns(newColumns);
         this.submissionsColumns = newColumns;
+        this.submissionsColumnsFields = newColumnNames;
     }
 
     /**
@@ -965,7 +988,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 let options = JSON.parse(optionsString);
                 if (options) {
+                    console.log('options ', options);
                     this.submissionsColumns = [...options];
+                    console.log('this.submissionsColumns ', this.submissionsColumns);
                 }
 
             } catch (e) {
@@ -2169,7 +2194,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         name='apply-col-settings'
                                         @click='${() => {
                                             let nextIndex = previousPageItems + this.currentRow.getPosition() + 1;
-                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData(), nextIndex);
+                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData());
                                         }}'
                                         checked />
                                     <span class='checkmark'></span>
