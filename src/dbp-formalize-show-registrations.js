@@ -332,7 +332,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Gets the list of submissions for a specific course
      *
-     * @param {string} name
+     * @param {string} form
      */
     async getAllCourseSubmissions(form) {
         const i18n = this._i18n;
@@ -360,8 +360,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        let firstDateCreated = data['hydra:member'][0]['dateCreated'];
-        firstDateCreated = this.humanReadableDate(firstDateCreated);
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
@@ -533,8 +531,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Gets the detaildata of a specific row
      *
-     * @param row
-     * @param data
+     * @param columns
+     * @param pos
      */
     requestDetailedSubmission(columns, pos) {
 
@@ -542,7 +540,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        let ordered;
         if(this.submissionsColumns.length !== 0) {
             for (let current_column of this.submissionsColumns) {
                 if(columns[current_column.field] !== undefined) {
@@ -945,6 +942,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
             } catch (e) {
+                this.sendErrorAnalyticsEvent('getSubmissionTableSettings', 'WrongResponse', e);
                 this.submissionsColumns = [];
                 return false;
             }
@@ -970,7 +968,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Moves a header in this.submissionColumns Array and in DOM up
      *
-     * @param {object} i
+     * @param {object} column
      */
     moveHeaderUp(column) {
 
@@ -981,7 +979,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 let element = item;
                 let swapElem = list[index - 1];
                 this.swapHeader(element, swapElem);
-                return
+                return;
             }
         });
     }
@@ -1000,7 +998,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 let element = item;
                 let swapElem = list[index + 1];
                 this.swapHeader(element, swapElem);
-                return
+                return;
             }
         });
     }
@@ -1008,9 +1006,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Swaps two elements in this.submissionColumns Array and in DOM
      *
-     * @param {object} swapElem_
-     * @param {number} elemIndex
-     * @param {object} i
+     * @param {object} elem
+     * @param {number} swapElem
      */
     swapHeader(elem, swapElem) {
 
@@ -1845,25 +1842,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             },
         };
 
-        let langs = {
-            'en': {
-                columns: {
-                    'name': i18n.t('name', {lng: 'en'}),
-                    'age': i18n.t('age', {lng: 'en'}),
-                    'col': i18n.t('col', {lng: 'en'}),
-                    'dob': i18n.t('dob', {lng: 'en'}),
-                },
-            },
-            'de': {
-                columns: {
-                    'name': i18n.t('name', {lng: 'de'}),
-                    'age': i18n.t('age', {lng: 'de'}),
-                    'col': i18n.t('col', {lng: 'de'}),
-                    'dob': i18n.t('dob', {lng: 'de'}),
-                },
-            },
-        };
-
         let auto_langs = {
             'en': {
                 columns: {},
@@ -2140,7 +2118,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         id='apply-col-settings'
                                         name='apply-col-settings'
                                         @click='${() => {
-                                            let nextIndex = previousPageItems + this.currentRow.getPosition() + 1;
                                             this.requestDetailedSubmission(this.currentRow, this.currentRow.getData());
                                         }}'
                                         checked />
