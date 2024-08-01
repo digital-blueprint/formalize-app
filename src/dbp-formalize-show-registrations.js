@@ -181,6 +181,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      *  Request a re-render every time isLoggedIn()/isLoading() changes
+     *
      */
     _updateAuth() {
         this._loginStatus = this.auth['login-status'];
@@ -403,6 +404,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Defines the editable settings based on the current submissions tabulator
+     *
      */
     defineSettings() {
         let table = this._('#tabulator-table-submissions');
@@ -494,6 +496,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Removes settings that correspond to a former submissions tabulator
+     *
      */
     deleteSettings() {
         let settings = this._('#submission-modal-content');
@@ -504,6 +507,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Resets the settings to their currently not saved values
+     *
      */
     resetSettings() {
         let list = this._('.headers');
@@ -534,7 +538,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param columns
      * @param pos
      */
-    requestDetailedSubmission(columns, pos) {
+    requestDetailedSubmission(entry, pos) {
 
         if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
@@ -542,22 +546,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         if(this.submissionsColumns.length !== 0) {
             for (let current_column of this.submissionsColumns) {
-                if(columns[current_column.field] !== undefined) {
+                if(entry[current_column.field] !== undefined) {
                     this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(current_column.field) + `:</div>`;
 
                     if (current_column.field === 'dateCreated') {
-                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(columns[current_column.field]);
+                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(entry[current_column.field]);
                     } else {
-                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(columns[current_column.field]) + `</div>`;
+                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(entry[current_column.field]) + `</div>`;
                     }
                 }
             }
         }
         else {
-            for(const [column, value] of Object.entries(columns)) {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(column) + `:</div>`;
+            for(const [key, value] of Object.entries(entry)) {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
 
-                if (column === 'dateCreated') {
+                if (key === 'dateCreated') {
                     this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(value);
                 } else {
                     this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(value) + `</div>`;
