@@ -9,7 +9,6 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
 import MicroModal from './micromodal.es';
-import {name as pkgName} from './../package.json';
 import * as fileHandlingStyles from './styles';
 import * as tabulatorStyles from './tabulator-table-styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
@@ -1805,10 +1804,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     render() {
         const i18n = this._i18n;
-        const tabulatorCss = commonUtils.getAssetURL(
-            pkgName,
-            'tabulator-tables/css/tabulator.min.css'
-        );
 
         if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
             this.getListOfAllCourses().then(() => {
@@ -1870,7 +1865,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         return html`
-            <link rel='stylesheet' href='${tabulatorCss}' />
             <div class='notification is-warning ${classMap({hidden: this.isLoggedIn() || this.isLoading()})}'>
                 ${i18n.t('error-login-message')}
             </div>
