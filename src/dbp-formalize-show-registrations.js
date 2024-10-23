@@ -284,7 +284,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     let form = entry['identifier'];
 
                     let icon = this.createScopedElement('dbp-icon');
-                    icon.setAttribute('name', 'chevron-right');
+                    icon.setAttribute('name', 'keyword-research');
                     icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
                     let btn = this.createScopedElement('dbp-button');
 
