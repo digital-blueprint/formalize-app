@@ -218,6 +218,7 @@ export default (async () => {
                 }),
             commonjs({
                 include: 'node_modules/**',
+                strictRequires: 'auto',
             }),
             json(),
             urlPlugin({
