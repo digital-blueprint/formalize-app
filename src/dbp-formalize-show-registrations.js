@@ -1099,7 +1099,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
 
-            .next-btn dbp-icon, .back-btn dbp-icon {
+            .next-btn dbp-icon,
+            .back-btn dbp-icon {
                 height: 15px;
                 top: 0px;
             }
@@ -1153,7 +1154,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 gap: 10px;
             }
 
-            #export-select, #search-select, #search-operator, .dropdown-menu {
+            #export-select,
+            #search-select,
+            #search-operator,
+            .dropdown-menu {
                 background-color: var(--dbp-secondary-surface);
                 color: var(--dbp-on-secondary-surface);
                 border-color: var(--dbp-secondary-surface-border-color);
@@ -1358,7 +1362,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 width: 100%;
             }
 
-
             .header-field {
                 align-items: center;
                 height: 50px;
@@ -1383,7 +1386,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 top: 0px;
             }
 
-            .header-button.hidden, .extended-menu.hidden {
+            .header-button.hidden,
+            .extended-menu.hidden {
                 display: none !important;
             }
 
@@ -1409,7 +1413,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
             }
 
-            .first-header .header-move .header-button:first-child, .last-header .header-move .header-button:last-child {
+            .first-header .header-move .header-button:first-child,
+            .last-header .header-move .header-button:last-child {
                 opacity: 0.4;
                 cursor: default;
             }
@@ -1458,7 +1463,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 min-height: unset;
             }
 
-            #filter-modal-box .modal-footer-btn{
+            #filter-modal-box .modal-footer-btn {
                 display: flex;
                 justify-content: space-between;
             }
@@ -1494,14 +1499,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     display: none;
                 }
 
-                button[data-page="prev"], button[data-page="next"], button[data-page="first"], button[data-page="last"] {
+                button[data-page="prev"],
+                button[data-page="next"],
+                button[data-page="first"],
+                button[data-page="last"] {
                     display: block;
                     white-space: nowrap !important;
                     overflow: hidden;
                     line-height: 0;
                 }
 
-                button[data-page="prev"]:after, button[data-page="next"]:after, button[data-page="first"]:after, button[data-page="last"]:after {
+                button[data-page="prev"]:after,
+                button[data-page="next"]:after,
+                button[data-page="first"]:after,
+                button[data-page="last"]:after {
                     content: '\\00a0\\00a0\\00a0\\00a0';
                     background-color: var(--dbp-content);
                     -webkit-mask-repeat: no-repeat;
@@ -1514,40 +1525,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 button[data-page="prev"]:after {
-                    -webkit-mask-image: url("${unsafeCSS(
-            getIconSVGURL('chevron-left'))}");
-                    mask-image: url("${unsafeCSS(
-            getIconSVGURL('chevron-left'))}");
+                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('chevron-left'))}");
+                    mask-image: url("${unsafeCSS(getIconSVGURL('chevron-left'))}");
                 }
 
                 button[data-page="next"]:after {
-                    -webkit-mask-image: url("${unsafeCSS(
-            getIconSVGURL('chevron-right')
-        )}");
-                    mask-image: url("${unsafeCSS(
-            getIconSVGURL('chevron-right')
-        )}");
+                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('chevron-right'))}");
+                    mask-image: url("${unsafeCSS(getIconSVGURL('chevron-right'))}");
                 }
 
                 button[data-page="first"]:after {
                     content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    -webkit-mask-image: url("${unsafeCSS(
-            getIconSVGURL('angle-double-left')
-        )}");
-                    mask-image: url("${unsafeCSS(
-            getIconSVGURL('angle-double-left')
-        )}");
+                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-left'))}");
+                    mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-left'))}");
                 }
 
                 button[data-page="last"]:after {
                     content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    -webkit-mask-image: url("${unsafeCSS(
-            getIconSVGURL('angle-double-right')
-        )}");
-
-                    mask-image: url("${unsafeCSS(
-            getIconSVGURL('angle-double-right')
-        )}");
+                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-right'))}");
+                    mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-right'))}");
                 }
 
                 .element-right {
@@ -1730,13 +1726,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     width: 100%;
                 }
 
-                #filter-modal-box, #detailed-submission-modal-box {
+                #filter-modal-box,
+                #detailed-submission-modal-box {
                     width: 100%;
                     height: 100%;
                     max-width: 100%;
                 }
 
-                #submission-modal-content, #detailed-submission-modal-content {
+                #submission-modal-content,
+                #detailed-submission-modal-content {
                     height: 100%;
                     height: 100%;
                 }
@@ -1879,20 +1877,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 <div class="container ${classMap({hidden: this.showSubmissionsTable})}">
                     <dbp-tabulator-table
-                            lang="${this.lang}"
-                            class="tabulator-table"
-                            id="tabulator-table-forms"
-                            pagination-enabled="true"
-                            pagination-size="10"
-                            options=${JSON.stringify(options_forms)}></dbp-tabulator-table>
+                        lang="${this.lang}"
+                        class="tabulator-table"
+                        id="tabulator-table-forms"
+                        pagination-enabled="true"
+                        pagination-size="10"
+                        options=${JSON.stringify(options_forms)}>
+                    </dbp-tabulator-table>
                 </div>
 
                     </div>
 
                 <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
-                        <span class='loading'>
-                            <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
-                        </span>
+                    <span class='loading'>
+                        <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
+                    </span>
                 </div>
 
                 <div
@@ -1909,7 +1908,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     </span>
                     <div class='table-header submissions'>
                         <h3>${this.activeCourse}</h3>
-
                     </div>
 
                     <div class='table-buttons'>
@@ -1934,8 +1932,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         ${this.getTableHeaderOptions()}
                                     </select>
 
-                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}
-                                        :</label>
+                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}:</label>
                                     <select id='search-operator' class='button dropdown-menu'>
                                         <option value='like'>${i18n.t('show-registrations.search-operator-like')}
                                         </option>
@@ -1986,14 +1983,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
                 <dbp-tabulator-table
-                        lang="${this.lang}"
-                        class="tabulator-table"
-                        id="tabulator-table-submissions"
-                        options=${JSON.stringify(auto_columns)}
-                        pagination-enabled="true"
-                        pagination-size="10"
-                        select-rows-enabled
-                ></dbp-tabulator-table>
+                    lang="${this.lang}"
+                    class="tabulator-table"
+                    id="tabulator-table-submissions"
+                    options=${JSON.stringify(auto_columns)}
+                    pagination-enabled="true"
+                    pagination-size="10"
+                    select-rows-enabled>
+                </dbp-tabulator-table>
             </div>
 
             <div class='modal micromodal-slide' id='column-options-modal' aria-hidden='true'>
@@ -2018,10 +2015,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </p>
                         </header>
                         <main class='modal-content' id='submission-modal-content'>
-
                         </main>
                         <footer class='modal-footer'>
-
                             <div class='modal-footer-btn'>
                                 <div>
                                     <button
@@ -2083,7 +2078,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <div class='detailed-submission-modal-content-wrapper'></div>
                         </main>
                         <footer class='modal-footer'>
-
                             <div class='modal-footer-btn'>
                                 <label class='button-container ${classMap({hidden: !this.hiddenColumns})}'>
                                     ${i18n.t('show-registrations.apply-col-settings')}
@@ -2123,8 +2117,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     </div>
                 </div>
             </div>
-
-
         `;
     }
 }

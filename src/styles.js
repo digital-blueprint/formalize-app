@@ -135,9 +135,6 @@ export function getFileHandlingCss() {
         }
 
         .modal-content .source-main {
-            /*flex-grow: 1;*/
-            /*justify-content: center;*/
-            /*align-items: center;*/
             height: 100%;
             width: 100%;
             display: flex;
@@ -169,7 +166,6 @@ export function getFileHandlingCss() {
         @media only screen and (orientation: portrait) and (max-width: 768px) {
             .modal-nav {
                 display: flex;
-                /*justify-content: space-around;*/
                 grid-area: nav;
                 border: none;
                 border-bottom: var(--dbp-border);
@@ -212,13 +208,6 @@ export function getFileHandlingCss() {
                 bottom: 0;
                 z-index: 10;
             }
-        }
-
-        /**************************\\
-         Mobile Portrait Styles
-        \\**************************/
-
-        @media only screen and (orientation: portrait) and (max-width: 768px) {
         }
     `;
 }
