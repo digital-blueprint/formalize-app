@@ -282,10 +282,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     let name = entry['name'];
                     let form = entry['identifier'];
 
-                    let icon = this.createScopedElement('dbp-icon');
-                    icon.setAttribute('name', 'chevron-right');
-                    icon.setAttribute('title', i18n.t('show-registrations.open-forms'));
-                    let btn = this.createScopedElement('dbp-button');
+                    let btn = this.createScopedElement('dbp-icon-button');
+                    btn.setAttribute('icon-name', 'keyword-research');
+                    btn.setAttribute('title', i18n.t('show-registrations.open-forms'));
+                    btn.setAttribute('aria-label', i18n.t('show-registrations.open-forms'));
 
                     btn.addEventListener('click', async event => {
 
@@ -310,8 +310,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         });
 
                     });
-
-                    btn.appendChild(icon);
 
                     let div = this.createScopedElement('div');
                     div.classList.add('button-wrapper');
@@ -1830,9 +1828,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             langs: langs_forms,
             layout: 'fitColumns',
             columns: [
-                {field: 'id', width: 150},
+                {field: 'id', width: 64},
                 {field: 'name'},
-                {field: 'actionButton', formatter:"html"},
+                {field: 'actionButton', formatter:"html", hozAlign: 'right', minWidth: 64},
             ],
             columnDefaults: {
                 vertAlign: 'middle',
