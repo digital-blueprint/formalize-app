@@ -1804,9 +1804,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             langs: langs_forms,
             layout: 'fitColumns',
             columns: [
-                {field: 'id', width: 64},
-                {field: 'name'},
-                {field: 'actionButton', formatter:"html", hozAlign: 'right', minWidth: 64},
+                {field: 'id', width: 64, sorter:"number"},
+                {field: 'name', sorter:"string"},
+                {field: 'actionButton', formatter:"html", hozAlign: 'right', minWidth: 64, headerSort:false},
             ],
             columnDefaults: {
                 vertAlign: 'middle',
