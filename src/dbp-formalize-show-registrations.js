@@ -10,7 +10,6 @@ import {Activity} from './activity.js';
 import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
 import MicroModal from './micromodal.es';
 import * as fileHandlingStyles from './styles';
-import * as tabulatorStyles from './tabulator-table-styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
@@ -1079,7 +1078,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getNotificationCSS()}
             ${commonStyles.getActivityCSS()}
             ${commonStyles.getButtonCSS()}
-            ${tabulatorStyles.getTabulatorStyles()}
 
             .table-wrapper.submissions {
                 padding-top: 0.5rem;
@@ -1436,14 +1434,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
             }
 
-            #courses-table .tabulator-row {
-                cursor: pointer;
-            }
-
-            #submissions-table .tabulator-row {
-                cursor: default;
-            }
-
             .button-wrapper {
                 display: flex;
                 height: 100%;
@@ -1461,10 +1451,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .additional-menu {
                 display: none;
-            }
-
-            .tabulator .tabulator-tableHolder .tabulator-placeholder span {
-                margin-left: 0px;
             }
 
             #filter-modal-box {
@@ -1527,10 +1513,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     mask-size: 1.4rem !important;
                 }
 
-                .tabulator .tabulator-footer .tabulator-paginator .tabulator-page{
-                    border: none;
-                }
-
                 button[data-page="prev"]:after {
                     -webkit-mask-image: url("${unsafeCSS(
             getIconSVGURL('chevron-left'))}");
@@ -1566,10 +1548,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     mask-image: url("${unsafeCSS(
             getIconSVGURL('angle-double-right')
         )}");
-                }
-
-                .tabulator .tabulator-footer .tabulator-footer-contents .tabulator-paginator .tabulator-pages {
-                    display: none;
                 }
 
                 .element-right {
@@ -1898,7 +1876,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         </span>
                 </div>
                 <!--see about extra arrow column-->
-               
+
                 <div class="container ${classMap({hidden: this.showSubmissionsTable})}">
                     <dbp-tabulator-table
                             lang="${this.lang}"
@@ -1908,7 +1886,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             pagination-size="10"
                             options=${JSON.stringify(options_forms)}></dbp-tabulator-table>
                 </div>
-                    
+
                     </div>
 
                 <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
@@ -1931,7 +1909,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     </span>
                     <div class='table-header submissions'>
                         <h3>${this.activeCourse}</h3>
-                        
+
                     </div>
 
                     <div class='table-buttons'>
@@ -1986,7 +1964,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 </ul>
                             </div>
                         </div>
-                        
+
                         <div class='export-buttons'>
                             <dbp-icon-button title='${i18n.t('show-registrations.filter-options-button-text')}'
                                 aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
@@ -2040,7 +2018,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             </p>
                         </header>
                         <main class='modal-content' id='submission-modal-content'>
-                            
+
                         </main>
                         <footer class='modal-footer'>
 
@@ -2146,7 +2124,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 </div>
             </div>
 
-            
+
         `;
     }
 }
