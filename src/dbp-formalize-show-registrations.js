@@ -296,7 +296,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.showSubmissionsTable = true;
                         this.getAllCourseSubmissions(this.activeForm).then(() => {
                             let table = this._('#tabulator-table-submissions');
-                            this.getSubmissionTableSettings();
+                            //this.getSubmissionTableSettings();
+                            console.log('rowHeader ', table);
                             table.setData(this.submissions);
 
                             if(this.submissions.length === 0) {
@@ -1827,14 +1828,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: true,
-            layout: 'fitColumns',
+            responsiveLayout: 'collapse',
+
+            responsiveLayoutCollapseStartOpen: false,
+            rowHeader:{formatter:"responsiveCollapse", width:30, minWidth:30, hozAlign:"center", resizable:false},
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
                 resizable: false,
             },
             autoColumnsDefinitions:[
-                {field: 'no_display_1', title: '', formatter: 'html', headerSort:false, download:false},
+                {field: 'no_display_1', title: '', formatter: 'html', headerSort:false, download:false, responsive:20},
             ],
         };
 
