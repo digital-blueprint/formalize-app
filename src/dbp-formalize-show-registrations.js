@@ -119,7 +119,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             // see: http://tabulator.info/docs/5.1
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
             this._a('.tabulator-table').forEach((table) => {
-                table.buildTable();
+                const tabulatorTable = /** @type {TabulatorTable} */ (table);
+                tabulatorTable.buildTable();
             });
         });
     }
@@ -374,7 +375,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             btn.setAttribute('icon-name', 'keyword-research');
             btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
             btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
-            btn.setAttribute('id', id);
+            btn.setAttribute('id', id.toString());
             btn.classList.add('open-modal-icon');
             btn.addEventListener('click', event => {
                 this.requestDetailedSubmission(cols, id);
@@ -402,7 +403,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     defineSettings() {
-        let table = this._('#tabulator-table-submissions');
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
         let settings = this._('#submission-modal-content');
 
         let list = document.createElement('ul');
@@ -414,7 +415,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let element = document.createElement("li");
             element.classList.add('header-fields');
             element.classList.add(column.getField());
-            element.setAttribute('data-index', index);
+            element.setAttribute('data-index', index.toString());
 
             let div = document.createElement('div');
             div.classList.add('header-field');
@@ -430,7 +431,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             header_title.classList.add('header-title');
             div.appendChild(header_title);
 
-            let visibility = this.createScopedElement('dbp-icon-button');
+            let visibility = /** @type {IconButton} */(this.createScopedElement('dbp-icon-button'));
             if(column.isVisible()) {
                 visibility.iconName = 'source_icons_eye-empty';
             } else {
@@ -452,7 +453,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             let header_move = document.createElement('span');
             header_move.classList.add('header-move');
-            let arrow_up = this.createScopedElement('dbp-icon-button');
+            let arrow_up = /** @type {IconButton} */ (this.createScopedElement('dbp-icon-button'));
             arrow_up.iconName = 'arrow-up';
 
             if(index === 0) {
@@ -467,7 +468,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
 
             header_move.appendChild(arrow_up);
-            let arrow_down = this.createScopedElement('dbp-icon-button');
+            let arrow_down = /** @type {IconButton} */ (this.createScopedElement('dbp-icon-button'));
             arrow_down.iconName = 'arrow-down';
 
             if(index === (columns.length - 1)) {
@@ -506,11 +507,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     resetSettings() {
         let list = this._('.headers');
-        list = list.childNodes;
-        let table = this._('#tabulator-table-submissions');
+        const listChilds = list.childNodes;
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
         let columns = table.getColumns();
         columns.splice(-1, 1);
-        [...list].forEach((element, index) => {
+        [...listChilds].forEach((element, index) => {
             let header_field = element.children[0];
             let current_title = header_field.children[1].innerText;
             if(current_title !== columns[index].getField()) {
@@ -587,7 +588,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param e
      */
     async exportSubmissionTable(e) {
-        let exportInput = this._('#export-select');
+        let exportInput = /** @type {HTMLSelectElement} */ (this._('#export-select'));
         if (!exportInput)
             return;
 
@@ -599,7 +600,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (e)
             e.stopPropagation();
 
-        let table = this._('#tabulator-table-submissions');
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
         table.download(exportValue, this.activeCourse);
         exportInput.value = '-';
     }
@@ -608,11 +609,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * Filters the submissions table
      */
     filterTable() {
-        let filter = this._('#searchbar');
-        let search = this._('#search-select');
-        let operator = this._('#search-operator');
+        let filter = /** @type {HTMLInputElement} */ (this._('#searchbar'));
+        let search = /** @type {HTMLSelectElement} */ (this._('#search-select'));
+        let operator = /** @type {HTMLSelectElement} */ (this._('#search-operator'));
 
-        let table = this._('#tabulator-table-submissions');
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
 
         if (!filter || !search || !operator || !table)
             return;
@@ -622,15 +623,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             return;
         }
-        filter = filter.value;
-        search = search.value;
-        operator = operator.value;
+        const filterValue = filter.value;
+        const searchValue = search.value;
+        const operatorValue = operator.value;
 
 
 
-        if(search !== 'all')
+        if(searchValue !== 'all')
         {
-            let filter_object = {field: search, type: operator, value: filter};
+            let filter_object = {field: searchValue, type: operatorValue, value: filterValue};
             table.setFilter([filter_object]);
         }
         else
@@ -639,7 +640,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             const columns = table.getColumnsFields();
             let listOfFilters = [];
             for (let col of columns) {
-                let filter_object = {field: col, type: operator, value: filter};
+                let filter_object = {field: col, type: operatorValue, value: filterValue};
                 listOfFilters.push(filter_object);
             }
             table.setFilter([listOfFilters]);
@@ -652,9 +653,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     clearFilter() {
-        let filter = this._('#searchbar');
-        let search = this._('#search-select');
-        let table = this._('#tabulator-table-submissions');
+        let filter = /** @type {HTMLInputElement} */ (this._('#searchbar'));
+        let search = /** @type {HTMLSelectElement} */ (this._('#search-select'));
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
 
         if (!filter || !search || !table)
             return;
@@ -801,7 +802,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     navigateBetweenDetailedSubmissions(event) {
         // left
         if (event.keyCode === 37) {
-            let backBtn = this._('#detailed-submission-modal-box .back-btn');
+            let backBtn = /** @type {HTMLButtonElement} */ (this._('#detailed-submission-modal-box .back-btn'));
             if (backBtn && !backBtn.disabled)
             {
                 this.showEntryOfPos(this.currentDetailPosition - 1, "previous");
@@ -811,7 +812,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         //right
         if (event.keyCode === 39) {
             //and modal is open and left is not disabled
-            let nextBtn = this._('#detailed-submission-modal-box .next-btn');
+            let nextBtn = /** @type {HTMLButtonElement} */ (this._('#detailed-submission-modal-box .next-btn'));
             if (nextBtn && !nextBtn.disabled)
             {
                 this.showEntryOfPos(this.currentDetailPosition + 1, "next");
@@ -891,7 +892,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     updateSubmissionTable() {
         let list = this._('.headers');
         list = list.childNodes;
-        let table = this._('#tabulator-table-submissions');
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
 
         let newColumns = [];
         [...list].forEach((element, index) => {
@@ -986,7 +987,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Moves a header in this.submissionColumns Array and in DOM up
      *
-     * @param {object} i
+     * @param {object} column
      */
     moveHeaderDown(column) {
 
@@ -1045,7 +1046,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (positionToShow > this.totalNumberOfItems || positionToShow < 1)
             return;
 
-        let table = this._('#tabulator-table-submissions');
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
         if(!table)
             return;
 
@@ -1771,7 +1772,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     }
 
     setTableData() {
-        let table = this._('#tabulator-table-forms');
+        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-forms'));
         table.setData(this.allCourses);
     }
 
