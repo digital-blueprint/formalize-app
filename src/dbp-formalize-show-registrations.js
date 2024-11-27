@@ -295,9 +295,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
                         this.getAllCourseSubmissions(this.activeForm).then(() => {
-                            let table = this._('#tabulator-table-submissions');
-                            //this.getSubmissionTableSettings();
-                            console.log('rowHeader ', table);
+                            let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
                             table.setData(this.submissions);
 
                             if(this.submissions.length === 0) {
@@ -388,7 +386,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             div.classList.add('actions-buttons');
 
 
-            let entry = {dateCreated: dateCreated, ...dataFeedElement, no_display_1: div};
+            let entry = {dateCreated: dateCreated, ...dataFeedElement};
 
             submissions_list.push(entry);
         };
@@ -1828,18 +1826,31 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: true,
+            layout: 'fitColumns',
             responsiveLayout: 'collapse',
-
             responsiveLayoutCollapseStartOpen: false,
-            rowHeader:{formatter:"responsiveCollapse", width:30, minWidth:30, hozAlign:"center", resizable:false},
+            rowHeader: {
+                formatter: 'responsiveCollapse',
+                width: 30,
+                minWidth: 30,
+                hozAlign: 'center',
+                resizable: false
+            },
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
                 resizable: false,
             },
-            autoColumnsDefinitions:[
-                {field: 'no_display_1', title: '', formatter: 'html', headerSort:false, download:false, responsive:20},
-            ],
+            autoColumnsDefinitions: function(definitions){
+                //definitions - array of column definition objects
+                console.log('definitions', definitions);
+                definitions.forEach((column) => {
+                    column.minWidth = 150;
+                    column.widthShrink = 1;
+                });
+
+                return definitions;
+            },
         };
 
         return html`
@@ -1990,7 +2001,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     lang="${this.lang}"
                     class="tabulator-table"
                     id="tabulator-table-submissions"
-                    options=${JSON.stringify(auto_columns)}
+
+                    .options="${auto_columns}"
                     pagination-enabled="true"
                     pagination-size="10"
                     select-rows-enabled>
