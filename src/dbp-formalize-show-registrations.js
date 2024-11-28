@@ -1,8 +1,7 @@
 import {createInstance} from './i18n.js';
 import {css, html, unsafeCSS} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
-import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {getIconSVGURL, Icon, IconButton, LoadingButton, MiniSpinner} from '@dbp-toolkit/common';
+import {getIconSVGURL, IconButton, LoadingButton, MiniSpinner} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -14,15 +13,12 @@ import metadata from './dbp-formalize-show-registrations.metadata.json';
 import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
 import {getStackTrace} from '@dbp-toolkit/common/error';
+import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 
-class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
+class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
-        this._i18n = createInstance();
-        this.lang = this._i18n.language;
         this.allCourses = [];
-        this.auth = {};
-        this.entryPointUrl = '';
         this.activity = new Activity(metadata);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.submissions = [];
@@ -53,8 +49,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     static get scopedElements() {
         return {
-            'dbp-icon': Icon,
-            'dbp-icon-button': IconButton,
+            ...super.scopedElements,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-loading-button': LoadingButton,
             'dbp-tabulator-table': TabulatorTable,
@@ -64,12 +59,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     static get properties() {
         return {
             ...super.properties,
-            lang: {type: String},
             allCourses: {type: Array, attribute: false},
             form: {type: String},
             name: {type: String},
-            auth: {type: Object},
-            entryPointUrl: {type: String, attribute: 'entry-point-url'},
             forms: {type: Array, attribute: false},
             submissions: {type: Array, attribute: false},
             emptyCoursesTable: {type: Boolean, attribute: true},
@@ -112,8 +104,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        this._loginStatus = '';
-        this._loginState = [];
 
         this.updateComplete.then(() => {
             // see: http://tabulator.info/docs/5.1
@@ -123,22 +113,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 tabulatorTable.buildTable();
             });
         });
-    }
-
-    update(changedProperties) {
-        changedProperties.forEach((oldValue, propName) => {
-            switch (propName) {
-                case 'lang':
-                    this._i18n.changeLanguage(this.lang);
-
-                    break;
-                case 'auth':
-                    this._updateAuth();
-                    break;
-            }
-        });
-
-        super.update(changedProperties);
     }
 
     /**
@@ -174,57 +148,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             action: action,
             name: JSON.stringify(data),
         });
-    }
-
-    /**
-     *  Request a re-render every time isLoggedIn()/isLoading() changes
-     *
-     */
-    _updateAuth() {
-        this._loginStatus = this.auth['login-status'];
-
-        let newLoginState = [this.isLoggedIn(), this.isLoading()];
-        if (this._loginState.toString() !== newLoginState.toString()) {
-            this.requestUpdate();
-        }
-        this._loginState = newLoginState;
-    }
-
-    /**
-     * Returns if a person is set in or not
-     *
-     * @returns {boolean} true or false
-     */
-    isLoggedIn() {
-        return this.auth.person !== undefined && this.auth.person !== null;
-    }
-
-    /**
-     * Returns true if a person has successfully logged in
-     *
-     * @returns {boolean} true or false
-     */
-    isLoading() {
-        if (this._loginStatus === 'logged-out') return false;
-        return !this.isLoggedIn() && this.auth.token !== undefined;
-    }
-
-    /**
-     * Send a fetch to given url with given options
-     *
-     * @param url
-     * @param options
-     * @returns {object} response (error or result)
-     */
-    async httpGetAsync(url, options) {
-        return await fetch(url, options)
-            .then((result) => {
-                if (!result.ok) throw result;
-                return result;
-            })
-            .catch((error) => {
-                return error;
-            });
     }
 
     throwSomethingWentWrongNotification() {
