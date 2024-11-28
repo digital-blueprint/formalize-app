@@ -1,8 +1,8 @@
 import {createInstance} from './i18n.js';
-import {css, unsafeCSS, html} from 'lit';
+import {css, html, unsafeCSS} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {Icon, IconButton, MiniSpinner, LoadingButton, getIconSVGURL} from '@dbp-toolkit/common';
+import {getIconSVGURL, Icon, IconButton, LoadingButton, MiniSpinner} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -32,7 +32,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
-        this.navigateBetweenDetailedSubmissionsHandler = this.navigateBetweenDetailedSubmissions.bind(this);
+        this.navigateBetweenDetailedSubmissionsHandler =
+            this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeCourse = '';
         this.activeForm = '';
         this.currentRow = null;
@@ -83,7 +84,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             modalContentHeight: {type: Number, attribute: false},
             loadCourses: {type: Boolean, attribute: true},
             hasPermissions: {type: Boolean, attribute: false},
-            hiddenColumns: {type: Boolean, attribute: false}
+            hiddenColumns: {type: Boolean, attribute: false},
         };
     }
 
@@ -91,7 +92,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         super.disconnectedCallback();
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
     }
-
 
     /**
      * Converts a timestamp to a readable date
@@ -129,7 +129,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
-
                     this._i18n.changeLanguage(this.lang);
 
                     break;
@@ -167,16 +166,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             errorDetails: responseBody['relay:errorDetails'] || '',
             information: information,
             // get 5 items from the stack trace
-            stack: getStackTrace().slice(1, 6)
+            stack: getStackTrace().slice(1, 6),
         };
 
         this.sendSetPropertyEvent('analytics-event', {
             category: category,
             action: action,
-            name: JSON.stringify(data)
+            name: JSON.stringify(data),
         });
     }
-
 
     /**
      *  Request a re-render every time isLoggedIn()/isLoading() changes
@@ -192,14 +190,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this._loginState = newLoginState;
     }
 
-
     /**
      * Returns if a person is set in or not
      *
      * @returns {boolean} true or false
      */
     isLoggedIn() {
-        return (this.auth.person !== undefined && this.auth.person !== null);
+        return this.auth.person !== undefined && this.auth.person !== null;
     }
 
     /**
@@ -208,11 +205,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {boolean} true or false
      */
     isLoading() {
-        if (this._loginStatus === 'logged-out')
-            return false;
-        return (!this.isLoggedIn() && this.auth.token !== undefined);
+        if (this._loginStatus === 'logged-out') return false;
+        return !this.isLoggedIn() && this.auth.token !== undefined;
     }
-
 
     /**
      * Send a fetch to given url with given options
@@ -222,14 +217,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {object} response (error or result)
      */
     async httpGetAsync(url, options) {
-        let response = await fetch(url, options).then(result => {
-            if (!result.ok) throw result;
-            return result;
-        }).catch(error => {
-            return error;
-        });
-
-        return response;
+        return await fetch(url, options)
+            .then((result) => {
+                if (!result.ok) throw result;
+                return result;
+            })
+            .catch((error) => {
+                return error;
+            });
     }
 
     throwSomethingWentWrongNotification() {
@@ -239,7 +234,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             summary: i18n.t('show-registrations.something-went-wrong-title'),
             body: i18n.t('show-registrations.something-went-wrong-body'),
             type: 'danger',
-            timeout: 5
+            timeout: 5,
         });
     }
 
@@ -259,7 +254,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     'Content-Type': 'application/ld+json',
                     Authorization: 'Bearer ' + this.auth.token,
                 },
-
             });
 
             if (!response.ok) {
@@ -275,8 +269,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     return;
                 }
 
-                for (let x = 0; x < data["hydra:member"].length; x++) {
-
+                for (let x = 0; x < data['hydra:member'].length; x++) {
                     let entry = data['hydra:member'][x];
                     let id = x + 1;
                     let name = entry['name'];
@@ -287,27 +280,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     btn.setAttribute('title', i18n.t('show-registrations.open-forms'));
                     btn.setAttribute('aria-label', i18n.t('show-registrations.open-forms'));
 
-                    btn.addEventListener('click', async event => {
-
-                        if(this.activeCourse) {
+                    btn.addEventListener('click', async (event) => {
+                        if (this.activeCourse) {
                             this.deleteSettings();
                         }
                         this.activeCourse = name;
                         this.activeForm = form;
                         this.showSubmissionsTable = true;
                         this.getAllCourseSubmissions(this.activeForm).then(() => {
-                            let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+                            let table = /** @type {TabulatorTable} */ (
+                                this._('#tabulator-table-submissions')
+                            );
                             table.setData(this.submissions);
 
-                            if(this.submissions.length === 0) {
+                            if (this.submissions.length === 0) {
                                 table.setColumns([]);
-                            }
-                            else if(this.submissionsColumns.length !== 0) {
+                            } else if (this.submissionsColumns.length !== 0) {
                                 table.setColumns(this.submissionsColumns);
                             }
                             this.defineSettings();
                         });
-
                     });
 
                     let div = this.createScopedElement('div');
@@ -322,9 +314,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         } finally {
             this.loadCourses = false;
         }
-
     }
-
 
     /**
      * Gets the list of submissions for a specific course
@@ -339,11 +329,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token
-            }
+                Authorization: 'Bearer ' + this.auth.token,
+            },
         };
 
-        response = await this.httpGetAsync(this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form, options);
+        response = await this.httpGetAsync(
+            this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form,
+            options,
+        );
 
         try {
             data = await response.json();
@@ -352,7 +345,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             this.throwSomethingWentWrongNotification();
             return;
         }
-        if(data['hydra:member'].length === 0) {
+        if (data['hydra:member'].length === 0) {
             this.submissions = [];
             return;
         }
@@ -363,7 +356,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         columns.unshift('dateCreated');
 
         let submissions_list = [];
-        for (let x = 0; x < data["hydra:member"].length; x++) {
+        for (let x = 0; x < data['hydra:member'].length; x++) {
             let dateCreated = data['hydra:member'][x]['dateCreated'];
             dateCreated = this.humanReadableDate(dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
@@ -377,7 +370,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
             btn.setAttribute('id', id.toString());
             btn.classList.add('open-modal-icon');
-            btn.addEventListener('click', event => {
+            btn.addEventListener('click', (event) => {
                 this.requestDetailedSubmission(cols, id);
                 event.stopPropagation();
             });
@@ -386,11 +379,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             div.appendChild(btn);
             div.classList.add('actions-buttons');
 
-
             let entry = {dateCreated: dateCreated, ...dataFeedElement};
 
             submissions_list.push(entry);
-        };
+        }
 
         this.submissions = submissions_list;
         this.totalNumberOfItems = submissions_list.length;
@@ -412,7 +404,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         columns.splice(-1, 1);
 
         columns.map((column, index) => {
-            let element = document.createElement("li");
+            let element = document.createElement('li');
             element.classList.add('header-fields');
             element.classList.add(column.getField());
             element.setAttribute('data-index', index.toString());
@@ -421,7 +413,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             div.classList.add('header-field');
 
             let header_order = document.createElement('span');
-            header_order.textContent = (index + 1);
+            header_order.textContent = index + 1;
             header_order.classList.add('header-button');
             header_order.classList.add('header-order');
             div.appendChild(header_order);
@@ -431,8 +423,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             header_title.classList.add('header-title');
             div.appendChild(header_title);
 
-            let visibility = /** @type {IconButton} */(this.createScopedElement('dbp-icon-button'));
-            if(column.isVisible()) {
+            let visibility = /** @type {IconButton} */ (
+                this.createScopedElement('dbp-icon-button')
+            );
+            if (column.isVisible()) {
                 visibility.iconName = 'source_icons_eye-empty';
             } else {
                 visibility.iconName = 'source_icons_eye-off';
@@ -440,12 +434,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             visibility.classList.add('header-visibility-icon');
 
-
-            visibility.addEventListener('click', event => {
-                if(visibility.iconName === 'source_icons_eye-empty') {
+            visibility.addEventListener('click', (event) => {
+                if (visibility.iconName === 'source_icons_eye-empty') {
                     visibility.iconName = 'source_icons_eye-off';
-                }
-                else {
+                } else {
                     visibility.iconName = 'source_icons_eye-empty';
                 }
             });
@@ -456,27 +448,27 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let arrow_up = /** @type {IconButton} */ (this.createScopedElement('dbp-icon-button'));
             arrow_up.iconName = 'arrow-up';
 
-            if(index === 0) {
+            if (index === 0) {
                 arrow_up.classList.add('first-arrow-up');
             }
-            arrow_up.addEventListener('click', event => {
-                if(index !== 0) {
+            arrow_up.addEventListener('click', (event) => {
+                if (index !== 0) {
                     this.moveHeaderUp(column);
                 }
-
             });
 
-
             header_move.appendChild(arrow_up);
-            let arrow_down = /** @type {IconButton} */ (this.createScopedElement('dbp-icon-button'));
+            let arrow_down = /** @type {IconButton} */ (
+                this.createScopedElement('dbp-icon-button')
+            );
             arrow_down.iconName = 'arrow-down';
 
-            if(index === (columns.length - 1)) {
+            if (index === columns.length - 1) {
                 arrow_down.classList.add('last-arrow-down');
             }
 
-            arrow_down.addEventListener('click', event => {
-                if(index !== (columns.length - 1)) {
+            arrow_down.addEventListener('click', (event) => {
+                if (index !== columns.length - 1) {
                     this.moveHeaderDown(column);
                 }
             });
@@ -514,53 +506,62 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         [...listChilds].forEach((element, index) => {
             let header_field = element.children[0];
             let current_title = header_field.children[1].innerText;
-            if(current_title !== columns[index].getField()) {
-                header_field.children[1].innerHTML = '<strong>' + columns[index].getField() + '</strong>';
+            if (current_title !== columns[index].getField()) {
+                header_field.children[1].innerHTML =
+                    '<strong>' + columns[index].getField() + '</strong>';
             }
             let visibility = header_field.children[2];
-            if(visibility.iconName === 'source_icons_eye-off' && columns[index].isVisible()) {
+            if (visibility.iconName === 'source_icons_eye-off' && columns[index].isVisible()) {
                 visibility.iconName = 'source_icons_eye-empty';
-            }
-            else if(visibility.iconName === 'source_icons_eye-empty' && !columns[index].isVisible()) {
+            } else if (
+                visibility.iconName === 'source_icons_eye-empty' &&
+                !columns[index].isVisible()
+            ) {
                 visibility.iconName = 'source_icons_eye-off';
             }
         });
-
     }
 
     /**
      * Gets the detaildata of a specific row
      *
-     * @param columns
+     * @param entry
      * @param pos
      */
     requestDetailedSubmission(entry, pos) {
-
         if (!this._('.detailed-submission-modal-content-wrapper') || !this._('#apply-col-settings'))
             return;
         this._('.detailed-submission-modal-content-wrapper').innerHTML = '';
 
-        if(this.submissionsColumns.length !== 0) {
+        if (this.submissionsColumns.length !== 0) {
             for (let current_column of this.submissionsColumns) {
-                if(entry[current_column.field] !== undefined) {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(current_column.field) + `:</div>`;
+                if (entry[current_column.field] !== undefined) {
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML +=
+                        `<div class='element-left'>` + xss(current_column.field) + `:</div>`;
 
                     if (current_column.field === 'dateCreated') {
-                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(entry[current_column.field]);
+                        this._('.detailed-submission-modal-content-wrapper').innerHTML +=
+                            `<div class='element-right'>` +
+                            this.humanReadableDate(entry[current_column.field]);
                     } else {
-                        this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(entry[current_column.field]) + `</div>`;
+                        this._('.detailed-submission-modal-content-wrapper').innerHTML +=
+                            `<div class='element-right'>` +
+                            xss(entry[current_column.field]) +
+                            `</div>`;
                     }
                 }
             }
-        }
-        else {
-            for(const [key, value] of Object.entries(entry)) {
-                this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-left'>` + xss(key) + `:</div>`;
+        } else {
+            for (const [key, value] of Object.entries(entry)) {
+                this._('.detailed-submission-modal-content-wrapper').innerHTML +=
+                    `<div class='element-left'>` + xss(key) + `:</div>`;
 
                 if (key === 'dateCreated') {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + this.humanReadableDate(value);
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML +=
+                        `<div class='element-right'>` + this.humanReadableDate(value);
                 } else {
-                    this._('.detailed-submission-modal-content-wrapper').innerHTML += `<div class='element-right'>` + xss(value) + `</div>`;
+                    this._('.detailed-submission-modal-content-wrapper').innerHTML +=
+                        `<div class='element-right'>` + xss(value) + `</div>`;
                 }
             }
         }
@@ -568,18 +569,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         this.currentDetailPosition = pos;
         this.currentBeautyId = pos;
         this.isPrevEnabled = pos !== 1;
-        this.isNextEnabled = (pos + 1) <= this.totalNumberOfItems;
+        this.isNextEnabled = pos + 1 <= this.totalNumberOfItems;
 
         if (this._('.detailed-submission-modal-content-wrapper > div:first-child'))
-            this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add('first');
+            this._('.detailed-submission-modal-content-wrapper > div:first-child').classList.add(
+                'first',
+            );
         if (this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)'))
-            this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add('first');
+            this._('.detailed-submission-modal-content-wrapper > div:nth-child(2)').classList.add(
+                'first',
+            );
 
         this.showDetailedModal();
 
-        this.modalContentHeight = this._('#detailed-submission-modal-box > .modal-header').offsetHeight +
+        this.modalContentHeight =
+            this._('#detailed-submission-modal-box > .modal-header').offsetHeight +
             this._('#detailed-submission-modal-box > .modal-footer').offsetHeight;
-        this._('.detailed-submission-modal-content-wrapper').setAttribute('style', 'max-height: calc(100vH - ' + this.modalContentHeight + 'px);');
+        this._('.detailed-submission-modal-content-wrapper').setAttribute(
+            'style',
+            'max-height: calc(100vH - ' + this.modalContentHeight + 'px);',
+        );
     }
 
     /**
@@ -589,16 +598,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      */
     async exportSubmissionTable(e) {
         let exportInput = /** @type {HTMLSelectElement} */ (this._('#export-select'));
-        if (!exportInput)
-            return;
+        if (!exportInput) return;
 
         let exportValue = exportInput.value;
 
-        if (!exportValue || exportValue === '')
-            return;
+        if (!exportValue || exportValue === '') return;
 
-        if (e)
-            e.stopPropagation();
+        if (e) e.stopPropagation();
 
         let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
         table.download(exportValue, this.activeCourse);
@@ -615,10 +621,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
 
-        if (!filter || !search || !operator || !table)
-            return;
+        if (!filter || !search || !operator || !table) return;
 
-        if (filter.value === "") {
+        if (filter.value === '') {
             table.clearFilter();
 
             return;
@@ -627,16 +632,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         const searchValue = search.value;
         const operatorValue = operator.value;
 
-
-
-        if(searchValue !== 'all')
-        {
+        if (searchValue !== 'all') {
             let filter_object = {field: searchValue, type: operatorValue, value: filterValue};
             table.setFilter([filter_object]);
-        }
-        else
-        {
-
+        } else {
             const columns = table.getColumnsFields();
             let listOfFilters = [];
             for (let col of columns) {
@@ -645,7 +644,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
             table.setFilter([listOfFilters]);
         }
-
     }
 
     /**
@@ -657,8 +655,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let search = /** @type {HTMLSelectElement} */ (this._('#search-select'));
         let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
 
-        if (!filter || !search || !table)
-            return;
+        if (!filter || !search || !table) return;
 
         filter.value = '';
         search.value = 'all';
@@ -674,23 +671,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     getTableHeaderOptions() {
         const i18n = this._i18n;
 
-        if(this.submissions.length === 0) {
+        if (this.submissions.length === 0) {
             return [];
-        }
-        else
-        {
+        } else {
             let options = [];
             options[0] = html`
-            <option value='all'>${i18n.t('show-registrations.all-columns')}</option>`;
+                <option value="all">${i18n.t('show-registrations.all-columns')}</option>
+            `;
 
             let cols = Object.keys(this.submissions[0]);
 
-            for(let [counter, col] of cols.entries()) {
-                if(col !== 'no_display_1') {
+            for (let [counter, col] of cols.entries()) {
+                if (col !== 'no_display_1') {
                     options[counter + 1] = html`
-                    <option value='${col}'>${col}</option>`;
+                        <option value="${col}">${col}</option>
+                    `;
                 }
-
             }
             return options;
         }
@@ -701,7 +697,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     openColumnOptionsModal() {
-
         let modal = this._('#column-options-modal');
         if (modal) {
             MicroModal.show(modal, {
@@ -715,7 +710,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (scrollWrapper) {
             scrollWrapper.scrollTo(0, 0);
         }
-
     }
 
     /**
@@ -749,8 +743,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         if (modal) {
             MicroModal.show(modal, {
                 disableScroll: true,
-                onClose: () => {document.removeEventListener('keydown', this.navigateBetweenDetailedSubmissionsHandler);},
-                onShow: () => {document.addEventListener('keydown', this.navigateBetweenDetailedSubmissionsHandler);}
+                onClose: () => {
+                    document.removeEventListener(
+                        'keydown',
+                        this.navigateBetweenDetailedSubmissionsHandler,
+                    );
+                },
+                onShow: () => {
+                    document.addEventListener(
+                        'keydown',
+                        this.navigateBetweenDetailedSubmissionsHandler,
+                    );
+                },
             });
         }
     }
@@ -802,20 +806,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
     navigateBetweenDetailedSubmissions(event) {
         // left
         if (event.keyCode === 37) {
-            let backBtn = /** @type {HTMLButtonElement} */ (this._('#detailed-submission-modal-box .back-btn'));
-            if (backBtn && !backBtn.disabled)
-            {
-                this.showEntryOfPos(this.currentDetailPosition - 1, "previous");
+            let backBtn = /** @type {HTMLButtonElement} */ (
+                this._('#detailed-submission-modal-box .back-btn')
+            );
+            if (backBtn && !backBtn.disabled) {
+                this.showEntryOfPos(this.currentDetailPosition - 1, 'previous');
             }
         }
 
         //right
         if (event.keyCode === 39) {
             //and modal is open and left is not disabled
-            let nextBtn = /** @type {HTMLButtonElement} */ (this._('#detailed-submission-modal-box .next-btn'));
-            if (nextBtn && !nextBtn.disabled)
-            {
-                this.showEntryOfPos(this.currentDetailPosition + 1, "next");
+            let nextBtn = /** @type {HTMLButtonElement} */ (
+                this._('#detailed-submission-modal-box .next-btn')
+            );
+            if (nextBtn && !nextBtn.disabled) {
+                this.showEntryOfPos(this.currentDetailPosition + 1, 'next');
             }
         }
     }
@@ -853,7 +859,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
             this.initateOpenAdditionalSearchMenu = true;
         }
-
     }
 
     /**
@@ -867,14 +872,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        if (e.type !== 'keyup' && e.keyCode !== 13
-            && (e.originalTarget && e.originalTarget.parentElement
-                && (e.originalTarget.parentElement.classList.contains('extended-menu') ||
+        if (
+            e.type !== 'keyup' &&
+            e.keyCode !== 13 &&
+            ((e.originalTarget &&
+                e.originalTarget.parentElement &&
+                (e.originalTarget.parentElement.classList.contains('extended-menu') ||
                     e.originalTarget.parentElement.id === 'search-operator' ||
                     e.originalTarget.parentElement.id === 'search-operator' ||
-                    e.originalTarget.parentElement.id === 'search-select')
-                || e.originalTarget && e.originalTarget.id === 'searchbar-menu'
-                || e.originalTarget && e.originalTarget.id === 'searchbar')) {
+                    e.originalTarget.parentElement.id === 'search-select')) ||
+                (e.originalTarget && e.originalTarget.id === 'searchbar-menu') ||
+                (e.originalTarget && e.originalTarget.id === 'searchbar'))
+        ) {
             return;
         }
 
@@ -900,10 +909,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             let current_title = header_field.children[1].innerText;
             let visibility_icon = header_field.children[2];
             let visibility;
-            if(visibility_icon.iconName === 'source_icons_eye-off') {
+            if (visibility_icon.iconName === 'source_icons_eye-off') {
                 visibility = false;
-            }
-            else if(visibility_icon.iconName === 'source_icons_eye-empty') {
+            } else if (visibility_icon.iconName === 'source_icons_eye-empty') {
                 visibility = true;
             }
             let new_column = {title: current_title, field: current_title, visible: visibility};
@@ -923,24 +931,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @returns {boolean} success
      */
     getSubmissionTableSettings() {
-        if (
-            this.storeSession &&
-            this.isLoggedIn()
-        ) {
-
-            let optionsString = localStorage.getItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + this.auth['person-id']);
+        if (this.storeSession && this.isLoggedIn()) {
+            let optionsString = localStorage.getItem(
+                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + this.auth['person-id'],
+            );
             if (!optionsString) {
                 this.submissionsColumns = [];
                 return false;
             }
 
             try {
-
                 let options = JSON.parse(optionsString);
                 if (options) {
                     this.submissionsColumns = [...options];
                 }
-
             } catch (e) {
                 this.sendErrorAnalyticsEvent('getSubmissionTableSettings', 'WrongResponse', e);
                 this.submissionsColumns = [];
@@ -956,12 +960,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      *
      */
     setSubmissionTableSettings() {
-        if (
-            this.storeSession &&
-            this.isLoggedIn()
-        ) {
+        if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['person-id'];
-            localStorage.setItem('dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId, JSON.stringify(this.submissionsColumns));
+            localStorage.setItem(
+                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId,
+                JSON.stringify(this.submissionsColumns),
+            );
         }
     }
 
@@ -971,15 +975,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} column
      */
     moveHeaderUp(column) {
-
         let list = this._('.headers');
         list = list.childNodes;
         [...list].forEach((item, index) => {
-            if(item.classList.contains(column.getField())) {
+            if (item.classList.contains(column.getField())) {
                 let element = item;
                 let swapElem = list[index - 1];
                 this.swapHeader(element, swapElem);
-                return;
             }
         });
     }
@@ -990,15 +992,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {object} column
      */
     moveHeaderDown(column) {
-
         let list = this._('.headers');
         list = list.childNodes;
         [...list].forEach((item, index) => {
-            if(item.classList.contains(column.getField())) {
+            if (item.classList.contains(column.getField())) {
                 let element = item;
                 let swapElem = list[index + 1];
                 this.swapHeader(element, swapElem);
-                return;
             }
         });
     }
@@ -1010,7 +1010,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {number} swapElem
      */
     swapHeader(elem, swapElem) {
-
         let div_1 = elem.children[0];
         let span_1 = div_1.children[1];
         let aux = span_1.innerHTML;
@@ -1026,14 +1025,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
         function addClass() {
             swapElem.classList.add('move-up');
-
         }
 
         setTimeout(addClass.bind(swapElem), 0);
 
         setTimeout(removeClass.bind(swapElem), 400);
     }
-
 
     /**
      * Shows entry of a specific position of this.submissionTable
@@ -1042,13 +1039,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
      * @param {"next"|"previous"} direction
      */
     async showEntryOfPos(positionToShow, direction) {
-
-        if (positionToShow > this.totalNumberOfItems || positionToShow < 1)
-            return;
+        if (positionToShow > this.totalNumberOfItems || positionToShow < 1) return;
 
         let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
-        if(!table)
-            return;
+        if (!table) return;
 
         let rows = table.getRows();
 
@@ -1056,10 +1050,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         let cells = next_row.getCells();
         let next_data = {};
         for (let cell of cells) {
-
             let column = cell.getColumn();
             let definition = column.getDefinition();
-            if(definition.formatter !== 'html') {
+            if (definition.formatter !== 'html') {
                 next_data[cell.getField()] = cell.getValue();
             }
         }
@@ -1098,11 +1091,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 align-items: center;
             }
 
-
             .next-btn dbp-icon,
             .back-btn dbp-icon {
                 height: 15px;
-                top: 0px;
+                top: 0;
             }
 
             .next-btn dbp-icon {
@@ -1132,7 +1124,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             #detailed-submission-modal-content {
-                padding: 0 20px 0px 20px;
+                padding: 0 20px 0 20px;
             }
 
             #detailed-submission-modal-box {
@@ -1148,7 +1140,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 font-size: 1.3em;
             }
 
-            .export-buttons{
+            .export-buttons {
                 display: flex;
                 justify-content: space-between;
                 gap: 10px;
@@ -1175,7 +1167,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 display: grid;
                 grid-template-columns: min-content auto;
                 grid-template-rows: auto;
-                max-height: calc(100vH - 149px);
+                max-height: calc(100vh - 149px);
                 overflow-y: auto;
                 width: 100%;
             }
@@ -1193,7 +1185,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding: 0 0 12px 0;
             }
 
-            .element-left.first, .element-right.first {
+            .element-left.first,
+            .element-right.first {
                 padding-top: 12px;
             }
 
@@ -1267,7 +1260,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 padding-top: 10px;
             }
 
-            #courses-table .tabulator-cell[tabulator-field="actionButton"] {
+            #courses-table .tabulator-cell[tabulator-field='actionButton'] {
                 padding: 0;
             }
 
@@ -1304,8 +1297,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             #search-button {
                 position: absolute;
-                right: 0px;
-                top: 0px;
+                right: 0;
+                top: 0;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -1320,19 +1313,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 border-radius: var(--dbp-border-radius);
                 width: 100%;
                 position: absolute;
-                right: 0px;
-                background-color: var(--dbp-background);
+                right: 0;
                 padding: 10px;
                 box-sizing: border-box;
                 top: 33px;
-                margin: 0px;
+                margin: 0;
                 border-top: unset;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
             }
 
-            #search-select, #search-operator {
+            #search-select,
+            #search-operator {
                 margin-bottom: 10px;
                 box-sizing: border-box;
                 text-align: left;
@@ -1344,20 +1337,22 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .frozen-table-divider {
                 position: absolute;
-                height: calc(100% - 118px);/* table-header + pagination heights + scrollbar: 60px + 51px */
+                height: calc(
+                    100% - 118px
+                ); /* table-header + pagination heights + scrollbar: 60px + 51px */
                 top: 60px; /* table-header height */
                 right: 36px;
 
                 -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
-                box-shadow: -2px 0px 2px 0px var(--dbp-muted);
+                box-shadow: -2px 0 2px 0 var(--dbp-muted);
                 background-color: #fff0; /* transparent */
             }
 
             .headers {
                 max-width: 100%;
-                margin: 0px;
+                margin: 0;
                 list-style-type: none;
-                padding: 0px;
+                padding: 0;
                 display: grid;
                 width: 100%;
             }
@@ -1383,7 +1378,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
             .header-button dbp-icon {
                 font-size: 1.3em;
-                top: 0px;
+                top: 0;
             }
 
             .header-button.hidden,
@@ -1419,7 +1414,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 cursor: default;
             }
 
-            .first-arrow-up, .last-arrow-down {
+            .first-arrow-up,
+            .last-arrow-down {
                 opacity: 0.4;
                 cursor: default;
             }
@@ -1475,7 +1471,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .checkmark {
-                left: 0px;
+                left: 0;
                 height: 20px;
                 width: 20px;
             }
@@ -1485,34 +1481,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 top: 2px;
             }
 
-            .button.courses-btn{
+            .button.courses-btn {
                 font-size: 1.2rem;
                 display: flex;
                 align-items: center;
-                top: 0px;
+                top: 0;
             }
 
-
             @media only screen and (orientation: portrait) and (max-width: 768px) {
-
                 .mobile-hidden {
                     display: none;
                 }
 
-                button[data-page="prev"],
-                button[data-page="next"],
-                button[data-page="first"],
-                button[data-page="last"] {
+                button[data-page='prev'],
+                button[data-page='next'],
+                button[data-page='first'],
+                button[data-page='last'] {
                     display: block;
                     white-space: nowrap !important;
                     overflow: hidden;
                     line-height: 0;
                 }
 
-                button[data-page="prev"]:after,
-                button[data-page="next"]:after,
-                button[data-page="first"]:after,
-                button[data-page="last"]:after {
+                button[data-page='prev']:after,
+                button[data-page='next']:after,
+                button[data-page='first']:after,
+                button[data-page='last']:after {
                     content: '\\00a0\\00a0\\00a0\\00a0';
                     background-color: var(--dbp-content);
                     -webkit-mask-repeat: no-repeat;
@@ -1524,26 +1518,26 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     mask-size: 1.4rem !important;
                 }
 
-                button[data-page="prev"]:after {
-                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('chevron-left'))}");
-                    mask-image: url("${unsafeCSS(getIconSVGURL('chevron-left'))}");
+                button[data-page='prev']:after {
+                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('chevron-left'))}');
+                    mask-image: url('${unsafeCSS(getIconSVGURL('chevron-left'))}');
                 }
 
-                button[data-page="next"]:after {
-                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('chevron-right'))}");
-                    mask-image: url("${unsafeCSS(getIconSVGURL('chevron-right'))}");
+                button[data-page='next']:after {
+                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('chevron-right'))}');
+                    mask-image: url('${unsafeCSS(getIconSVGURL('chevron-right'))}');
                 }
 
-                button[data-page="first"]:after {
+                button[data-page='first']:after {
                     content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-left'))}");
-                    mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-left'))}");
+                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-left'))}');
+                    mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-left'))}');
                 }
 
-                button[data-page="last"]:after {
+                button[data-page='last']:after {
                     content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    -webkit-mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-right'))}");
-                    mask-image: url("${unsafeCSS(getIconSVGURL('angle-double-right'))}");
+                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-right'))}');
+                    mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-right'))}');
                 }
 
                 .element-right {
@@ -1644,12 +1638,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     position: absolute;
                     background-color: var(--dbp-background);
                     z-index: 1000;
-                    right: 12px;
                     border-radius: var(--dbp-border-radius);
                     padding: 0;
                     margin: -2px 0 0 0;
                     min-width: 50vw;
-                    right: 0px;
+                    right: 0;
                 }
 
                 .extended-menu li.active {
@@ -1683,8 +1676,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
 
                 #search-button {
                     position: absolute;
-                    right: 0px;
-                    top: 0px;
+                    right: 0;
+                    top: 0;
                     height: 40px;
                     box-sizing: border-box;
                 }
@@ -1693,7 +1686,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     width: 100%;
                 }
 
-                #search-select, #search-operator {
+                #search-select,
+                #search-operator {
                     height: 40px;
                 }
 
@@ -1707,7 +1701,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     align-items: center;
                 }
 
-                .table-wrapper h3, .table-buttons {
+                .table-wrapper h3,
+                .table-buttons {
                     margin-bottom: 0.5em;
                 }
 
@@ -1736,7 +1731,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 #submission-modal-content,
                 #detailed-submission-modal-content {
                     height: 100%;
-                    height: 100%;
                 }
 
                 .detailed-submission-modal-content-wrapper {
@@ -1751,7 +1745,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 }
 
                 .button-container .checkmark {
-                    top: 0px;
+                    top: 0;
                 }
 
                 .button-container {
@@ -1763,7 +1757,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     gap: 5px;
                 }
 
-                #filter-modal-box .modal-footer-btn div{
+                #filter-modal-box .modal-footer-btn div {
                     display: flex;
                     justify-content: space-between;
                 }
@@ -1786,16 +1780,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         }
 
         let langs_forms = {
-            'en': {
+            en: {
                 columns: {
-                    'id': i18n.t('id', {lng: 'en'}),
-                    'name': i18n.t('name', {lng: 'en'}),
+                    id: i18n.t('id', {lng: 'en'}),
+                    name: i18n.t('name', {lng: 'en'}),
                 },
             },
-            'de': {
+            de: {
                 columns: {
-                    'id': i18n.t('id', {lng: 'de'}),
-                    'name': i18n.t('name', {lng: 'de'}),
+                    id: i18n.t('id', {lng: 'de'}),
+                    name: i18n.t('name', {lng: 'de'}),
                 },
             },
         };
@@ -1804,9 +1798,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
             langs: langs_forms,
             layout: 'fitColumns',
             columns: [
-                {field: 'id', width: 64, sorter:"number"},
-                {field: 'name', sorter:"string"},
-                {field: 'actionButton', formatter:"html", hozAlign: 'right', minWidth: 64, headerSort:false},
+                {field: 'id', width: 64, sorter: 'number'},
+                {field: 'name', sorter: 'string'},
+                {
+                    field: 'actionButton',
+                    formatter: 'html',
+                    hozAlign: 'right',
+                    minWidth: 64,
+                    headerSort: false,
+                },
             ],
             columnDefaults: {
                 vertAlign: 'middle',
@@ -1816,10 +1816,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
         };
 
         let auto_langs = {
-            'en': {
+            en: {
                 columns: {},
             },
-            'de': {
+            de: {
                 columns: {},
             },
         };
@@ -1835,14 +1835,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                 width: 30,
                 minWidth: 30,
                 hozAlign: 'center',
-                resizable: false
+                resizable: false,
             },
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
                 resizable: false,
             },
-            autoColumnsDefinitions: function(definitions){
+            autoColumnsDefinitions: function (definitions) {
                 //definitions - array of column definition objects
                 console.log('definitions', definitions);
                 definitions.forEach((column) => {
@@ -1914,10 +1914,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     class='table-wrapper submissions${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable})}'>
                     <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
                        <a @click='${() => {
-                            this.showSubmissionsTable = false;
-                            this.clearFilter();
-                            this.loadingCourseTable = false;
-                        }}'
+                           this.showSubmissionsTable = false;
+                           this.clearFilter();
+                           this.loadingCourseTable = false;
+                       }}'
                         title='${i18n.t('show-registrations.back-text')}'>
                         <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
                        </a>
@@ -1982,7 +1982,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                             <dbp-icon-button title='${i18n.t('show-registrations.filter-options-button-text')}'
                                 aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
                                 icon-name='iconoir_settings'
-                                @click='${() => { this.openColumnOptionsModal(); }}'></dbp-icon-button>
+                                @click='${() => {
+                                    this.openColumnOptionsModal();
+                                }}'></dbp-icon-button>
                             <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
                                 <option value='-' disabled selected>
                                     ${i18n.t('show-registrations.default-export-select')}
@@ -1991,7 +1993,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 <option value='xlsx'>Excel</option>
                                 <option value='pdf'>PDF</option>
                             </select>
-
                         </div>
                     </div>
                 </div>
@@ -2002,7 +2003,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                     lang="${this.lang}"
                     class="tabulator-table"
                     id="tabulator-table-submissions"
-
                     .options="${auto_columns}"
                     pagination-enabled="true"
                     pagination-size="10"
@@ -2103,7 +2103,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                         id='apply-col-settings'
                                         name='apply-col-settings'
                                         @click='${() => {
-                                            this.requestDetailedSubmission(this.currentRow, this.currentRow.getData());
+                                            this.requestDetailedSubmission(
+                                                this.currentRow,
+                                                this.currentRow.getData(),
+                                            );
                                         }}'
                                         checked />
                                     <span class='checkmark'></span>
@@ -2111,19 +2114,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPLitElement) {
                                 <div class='btn-row-left'>
                                     <dbp-button class='button back-btn'
                                                 title='${i18n.t('show-registrations.last-entry-btn-title')}'
-                                                @click='${() => {this.showEntryOfPos(this.currentDetailPosition - 1, "previous");}}'
+                                                @click='${() => {
+                                                    this.showEntryOfPos(
+                                                        this.currentDetailPosition - 1,
+                                                        'previous',
+                                                    );
+                                                }}'
                                                 ?disabled='${!this.isPrevEnabled}'>
                                         <dbp-icon name='chevron-left' aria-hidden='true'></dbp-icon>
                                         ${i18n.t('show-registrations.last-entry-btn-title')}
                                     </dbp-button>
-                                    <div>${i18n.t('show-registrations.detailed-submission-dialog-id', {
-                                        id: this.currentBeautyId,
-                                        nItems: this.totalNumberOfItems
-                                    })}
+                                    <div>${i18n.t(
+                                        'show-registrations.detailed-submission-dialog-id',
+                                        {
+                                            id: this.currentBeautyId,
+                                            nItems: this.totalNumberOfItems,
+                                        },
+                                    )}
                                     </div>
                                     <dbp-button class='button next-btn'
                                                 title='${i18n.t('show-registrations.next-entry-btn-title')}'
-                                                @click='${() => {this.showEntryOfPos(this.currentDetailPosition + 1, "next");}}'
+                                                @click='${() => {
+                                                    this.showEntryOfPos(
+                                                        this.currentDetailPosition + 1,
+                                                        'next',
+                                                    );
+                                                }}'
                                                 ?disabled='${!this.isNextEnabled}'>
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
                                         <dbp-icon name='chevron-right' aria-hidden='true'></dbp-icon>
