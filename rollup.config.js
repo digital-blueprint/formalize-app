@@ -122,12 +122,14 @@ export default (async () => {
                     [
                         'src/' + appName + '.js',
                         'src/dbp-formalize-show-registrations.js',
+                        'src/dbp-formalize-render-form.js',
                         await getPackagePath('@tugraz/web-components', 'src/logo.js')
                     ]
                     :
                     [
                         'src/' + appName + '.js',
-                        'src/dbp-formalize-show-registrations.js'
+                        'src/dbp-formalize-show-registrations.js',
+                        'src/dbp-formalize-render-form.js'
                     ]
                 : globSync('test/**/*.js'),
         output: {

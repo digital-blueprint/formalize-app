@@ -1,0 +1,18 @@
+{
+    "element": "dbp-formalize-render-form",
+    "module_src": "dbp-formalize-render-form.js",
+    "routing_name": "render-form",
+    "name": {
+        "de": "Formular anzeigen",
+        "en": "Show form"
+    },
+    "short_name": {
+      "de": "Formular anzeigen",
+      "en": "Show form"
+    },
+    "description": {
+        "de": "Zeig ein Formular an.",
+        "en": "Shows a form."
+    },
+    "subscribe": "lang,entry-point-url,auth,html-overrides"
+}
