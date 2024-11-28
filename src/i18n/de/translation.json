@@ -2,6 +2,19 @@
     "error-login-message": "Sie müssen eingeloggt sein um diese Funktion nutzen zu können!",
     "error-permission-message": "Sie besitzen nicht die Berechtigungen, um diese Funktion nutzen zu können!",
     "loading-message": "Lädt...",
+    "errors": {
+        "unauthorized-title": "Keine Berechtigung",
+        "unauthorized-body": "Keine Berechtigung um auf die angeforderte Ressource zuzugreifen.",
+        "notfound-title": "Ressource nicht gefunden",
+        "notfound-body": "Die angeforderte Ressource wurde nicht gefunden.",
+        "unprocessable_entity-title": "Anmeldedaten ungültig",
+        "unprocessable_entity-body": "Die Anmeldedaten sind ungültig oder unvollständig.",
+        "other-title": "Fehler",
+        "other-body": "Beim Zugriff auf die angeforderte Ressource ist ein Fehler aufgetreten.",
+        "language": "Sie müssen eine Sprache wählen.",
+        "date": "Sie müssen einen Tag wählen.",
+        "agreement": "Sie müssen zustimmen oder ablehnen."
+    },
     "show-registrations": {
         "abort": "Abbrechen",
         "all-columns": "Alle Spalten",

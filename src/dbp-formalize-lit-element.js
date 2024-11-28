@@ -1,6 +1,7 @@
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {IconButton, Translated} from '@dbp-toolkit/common';
 import {createInstance} from './i18n';
+import {send} from '@dbp-toolkit/common/notification.js';
 
 export default class DBPFormalizeLitElement extends DBPLitElement {
     constructor() {
@@ -96,5 +97,48 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
             });
     }
 
+    handleErrorResponse(response) {
+        switch (response.status) {
+            case 401:
+                send({
+                    summary: this._i18n.t('errors.unauthorized-title'),
+                    body: this._i18n.t('errors.unauthorized-body'),
+                    type: 'danger',
+                    timeout: 5,
+                });
+                break;
+            case 403:
+                send({
+                    summary: this._i18n.t('errors.unauthorized-title'),
+                    body: this._i18n.t('errors.unauthorized-body'),
+                    type: 'danger',
+                    timeout: 5,
+                });
+                break;
+            case 404:
+                send({
+                    summary: this._i18n.t('errors.notfound-title'),
+                    body: this._i18n.t('errors.notfound-body'),
+                    type: 'danger',
+                    timeout: 5,
+                });
+                break;
+            case 422: // unprocessable entity
+                send({
+                    summary: this._i18n.t('errors.unprocessable_entity-title'),
+                    body: this._i18n.t('errors.unprocessable_entity-body'),
+                    type: 'danger',
+                    timeout: 5,
+                });
+                break;
+            default:
+                send({
+                    summary: this._i18n.t('errors.other-title'),
+                    body: this._i18n.t('errors.other-body'),
+                    type: 'danger',
+                    timeout: 5,
+                });
+        }
+        //throw new Error(response);
     }
 }

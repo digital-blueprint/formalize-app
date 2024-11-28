@@ -2,6 +2,19 @@
     "error-login-message": "You need to be logged in to use this function!",
     "error-permission-message": "You do not have the permissions to use this function!",
     "loading-message": "Loading...",
+    "errors": {
+        "unauthorized-title": "Unauthorized",
+        "unauthorized-body": "No authorization to access requested ressource.",
+        "notfound-title": "Ressource not found",
+        "notfound-body": "Requested ressource not found.",
+        "unprocessable_entity-title": "Registration data invalid",
+        "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
+        "other-title": "Error",
+        "other-body": "There was an error accessing requested ressource.",
+        "language": "You must choose a language.",
+        "date": "You must choose a date.",
+        "agreement": "You must agree or disagree."
+    },
     "show-registrations": {
         "abort": "Cancel",
         "all-columns": "All columns",
