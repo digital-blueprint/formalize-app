@@ -1,6 +1,5 @@
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {IconButton} from "@dbp-toolkit/common";
-import {Translated} from "@dbp-toolkit/common";
+import {IconButton, Translated} from '@dbp-toolkit/common';
 import {createInstance} from './i18n';
 
 export default class DBPFormalizeLitElement extends DBPLitElement {
@@ -22,9 +21,9 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
     static get properties() {
         return {
             ...super.properties,
-            auth: { type: Object },
+            auth: {type: Object},
             lang: {type: String},
-            entryPointUrl: { type: String, attribute: 'entry-point-url' },
+            entryPointUrl: {type: String, attribute: 'entry-point-url'},
         };
     }
 
@@ -54,7 +53,7 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
                 case 'lang':
                     this._i18n.changeLanguage(this.lang);
                     break;
-                case "auth":
+                case 'auth':
                     this._updateAuth();
                     break;
             }
@@ -68,7 +67,7 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
      * @returns {boolean} true or false
      */
     isLoggedIn() {
-        return (this.auth.person !== undefined && this.auth.person !== null);
+        return this.auth.person !== undefined && this.auth.person !== null;
     }
 
     /**
@@ -76,9 +75,8 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
      * @returns {boolean} true or false
      */
     isLoading() {
-        if (this._loginStatus === "logged-out")
-            return false;
-        return (!this.isLoggedIn() && this.auth.token !== undefined);
+        if (this._loginStatus === 'logged-out') return false;
+        return !this.isLoggedIn() && this.auth.token !== undefined;
     }
 
     /**
@@ -88,13 +86,15 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
      * @returns {object} response (error or result)
      */
     async httpGetAsync(url, options) {
-        let response = await fetch(url, options).then(result => {
-            if (!result.ok) throw result;
-            return result;
-        }).catch(error => {
-            return error;
-        });
+        return await fetch(url, options)
+            .then((result) => {
+                if (!result.ok) throw result;
+                return result;
+            })
+            .catch((error) => {
+                return error;
+            });
+    }
 
-        return response;
     }
 }
