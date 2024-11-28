@@ -1,5 +1,4 @@
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
-import {IconButton, Translated} from '@dbp-toolkit/common';
 import {createInstance} from './i18n';
 import {send} from '@dbp-toolkit/common/notification.js';
 
