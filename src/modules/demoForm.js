@@ -1,7 +1,9 @@
 import {BaseFormElement, BaseObject} from '../baseObject.js';
+import {html} from 'lit';
+import * as formElements from './formElements.js';
 
 export default class extends BaseObject {
-    name = 'demo-form';
+    // name = 'demo-form';
 
     /**
      * @returns {string}

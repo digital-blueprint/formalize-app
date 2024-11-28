@@ -7,7 +7,7 @@ import * as formElements from './modules/formElements';
 import {classMap} from 'lit/directives/class-map.js';
 
 export class BaseObject {
-    name = 'baseObject';
+    // name = 'baseObject';
 
     constructor() {
     }
@@ -33,7 +33,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         };
     }
 
-    getCommonFormElements = () => {
+    getCommonFormElements() {
         const data = this.data || {};
 
         return html`
