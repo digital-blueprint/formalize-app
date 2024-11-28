@@ -9,6 +9,7 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
         this._i18n = createInstance();
         this.lang = this._i18n.language;
         this.entryPointUrl = '';
+        this.basePath = '';
     }
 
     static get properties() {
@@ -17,6 +18,7 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
             auth: {type: Object},
             lang: {type: String},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
+            basePath: {type: String, attribute: 'base-path'},
         };
     }
 

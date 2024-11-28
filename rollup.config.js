@@ -113,6 +113,13 @@ config.CSP = `default-src 'self' 'unsafe-inline' \
 )};\
     img-src * blob: data:`;
 
+let input = [
+    'src/' + appName + '.js',
+    'src/dbp-formalize-show-registrations.js',
+    'src/dbp-formalize-render-form.js',
+    'src/modules/demoForm.js',
+];
+
 export default (async () => {
     let privatePath = await getDistPath(pkg.name);
     return {
@@ -120,16 +127,12 @@ export default (async () => {
             appEnv != 'test'
                 ? !whitelabel ?
                     [
-                        'src/' + appName + '.js',
-                        'src/dbp-formalize-show-registrations.js',
-                        'src/dbp-formalize-render-form.js',
+                        ...input,
                         await getPackagePath('@tugraz/web-components', 'src/logo.js')
                     ]
                     :
                     [
-                        'src/' + appName + '.js',
-                        'src/dbp-formalize-show-registrations.js',
-                        'src/dbp-formalize-render-form.js'
+                        ...input
                     ]
                 : globSync('test/**/*.js'),
         output: {
@@ -238,6 +241,7 @@ export default (async () => {
                     {src: customAssetsPath + '*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
                     {src: customAssetsPath + 'icon/*', dest: 'dist/' + (await getDistPath(pkg.name, 'icon'))},
                     {src: customAssetsPath + '*.metadata.json', dest: 'dist'},
+                    {src: customAssetsPath + 'modules.json', dest: 'dist'},
                     {src: customAssetsPath + 'site.webmanifest', dest: 'dist', rename: pkg.internalName + '.webmanifest'},
                     {
                         src: await getPackagePath('@tugraz/font-source-sans-pro', 'files/*'),
@@ -275,6 +279,7 @@ export default (async () => {
                     {src: 'assets/*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
                     {src: 'assets/icon/*', dest: 'dist/' + (await getDistPath(pkg.name, 'icon'))},
                     {src: 'src/*.metadata.json', dest: 'dist'},
+                    {src: 'assets/modules.json', dest: 'dist'},
                     {src: 'assets/site.webmanifest', dest: 'dist', rename: pkg.internalName + '.webmanifest'},
                     {
                         src: await getPackagePath('@fontsource/nunito-sans', '*'),
