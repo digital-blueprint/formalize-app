@@ -1,4 +1,3 @@
-import {createInstance} from './i18n.js';
 import {css, html, unsafeCSS} from 'lit';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import {getIconSVGURL, IconButton, LoadingButton, MiniSpinner} from '@dbp-toolkit/common';
