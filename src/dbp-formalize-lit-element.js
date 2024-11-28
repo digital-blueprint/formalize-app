@@ -12,13 +12,6 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
         this.entryPointUrl = '';
     }
 
-    static get scopedElements() {
-        return {
-            'dbp-icon-button': IconButton,
-            'dbp-translated': Translated,
-        };
-    }
-
     static get properties() {
         return {
             ...super.properties,
