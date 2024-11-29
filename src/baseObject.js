@@ -62,7 +62,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         return true;
     }
 
-    storeBlobItem(event) {
+    storeSubmission(event) {
         event.preventDefault();
 
         // Validate the form before proceeding
@@ -169,7 +169,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         return html`
             <div class="button-row">
                 <button class="button is-secondary" type="button" @click=${this.cancelForm}>Cancel</button>
-                <button class="button is-primary" type="submit" ?disabled=${!this.saveButtonEnabled} @click=${this.storeBlobItem}>
+                <button class="button is-primary" type="submit" ?disabled=${!this.saveButtonEnabled} @click=${this.storeSubmission}>
                     Save
                     <dbp-mini-spinner class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
                 </button>
