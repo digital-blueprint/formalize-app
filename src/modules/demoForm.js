@@ -3,7 +3,9 @@ import {html} from 'lit';
 import * as formElements from './formElements.js';
 
 export default class extends BaseObject {
-    // name = 'demo-form';
+    getName() {
+        return 'demo-form';
+    }
 
     /**
      * @returns {string}

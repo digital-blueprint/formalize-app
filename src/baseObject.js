@@ -7,9 +7,8 @@ import * as formElements from './modules/formElements';
 import {classMap} from 'lit/directives/class-map.js';
 
 export class BaseObject {
-    // name = 'baseObject';
-
-    constructor() {
+    getName() {
+        return 'baseObject';
     }
 
     getFormComponent() {

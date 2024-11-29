@@ -61,19 +61,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                  */
                 const object = new module.default();
 
-                if (object.name) {
-                    const name = object.name;
-                    console.log(name);
-                    // If the name starts with "file", add it to the list of file document types
-                    if (name.startsWith('file') && object.getAdditionalTypes) {
-                        for (const [key, value] of Object.entries(object.getAdditionalTypes())) {
-                            this.fileDocumentTypeNames[name + '---' + key] = value;
-                        }
-                    }
-                }
-
                 if (object.getFormComponent) {
-                    formComponents[object.name] = object.getFormComponent();
+                    formComponents[object.getName()] = object.getFormComponent();
                 }
             }
 
