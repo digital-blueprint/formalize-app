@@ -64,5 +64,14 @@
         "something-went-wrong-title": "Fehler!"
     },
     "id": "ID",
-    "name": "Name"
+    "name": "Name",
+    "accessible-exams-form": {
+        "subject": "Fach",
+        "startDateTime": "Beginn der Prüfung",
+        "endDateTime": "Ende der Prüfung",
+        "matriculationNumber": "Matrikelnummer",
+        "email": "E-Mail-Adresse",
+        "room": "Originalraum",
+        "comment": "Anmerkung"
+    }
 }

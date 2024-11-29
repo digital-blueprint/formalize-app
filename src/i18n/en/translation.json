@@ -64,5 +64,14 @@
         "something-went-wrong-title": "Error!"
     },
     "id": "ID",
-    "name": "Name"
+    "name": "Name",
+    "accessible-exams-form": {
+        "subject": "Subject",
+        "startDateTime": "Start of Exam",
+        "endDateTime": "End of Exam",
+        "matriculationNumber": "Matriculation number",
+        "email": "Email address",
+        "room": "Original room",
+        "comment": "Comment"
+    }
 }
