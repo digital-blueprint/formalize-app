@@ -53,7 +53,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         return true;
     }
 
-    storeSubmission(event) {
+    validateAndSendSubmission(event) {
         event.preventDefault();
 
         // Validate the form before proceeding
@@ -61,14 +61,16 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
+        this.sendSubmission(event);
+    }
+
+    sendSubmission(event) {
         this.saveButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
         const data = {
             'formData': this.gatherFormDataFromElement(formElement),
         };
         console.log('data', data);
-
-        // alert('TODO: Store item!\n' + JSON.stringify(data));
 
         const customEvent = new CustomEvent("DbpFormalizeFormAddSave",
             {"detail": data, bubbles: true, composed: true});
@@ -148,10 +150,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         `;
     }
 
-    cancelForm(event) {
+    resetForm(event) {
         event.preventDefault();
 
-        const customEvent = new CustomEvent("DbpFormalizeFormCancel",
+        const customEvent = new CustomEvent("DbpFormalizeFormReset",
             {bubbles: true, composed: true});
         this.dispatchEvent(customEvent);
     }
@@ -159,8 +161,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     getButtonRowHtml() {
         return html`
             <div class="button-row">
-                <button class="button is-secondary" type="button" @click=${this.cancelForm}>Cancel</button>
-                <button class="button is-primary" type="submit" ?disabled=${!this.saveButtonEnabled} @click=${this.storeSubmission}>
+                <button class="button is-secondary" type="button" @click=${this.resetForm}>Reset</button>
+                <button class="button is-primary" type="submit" ?disabled=${!this.saveButtonEnabled} @click=${this.validateAndSendSubmission}>
                     Save
                     <dbp-mini-spinner class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
                 </button>
