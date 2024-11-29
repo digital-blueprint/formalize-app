@@ -23,8 +23,13 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <form>
-                ${formElements.dateElement('dateCreated', 'Date created 1', data.dateCreated1 || '', true)}
-                ${formElements.dateElement('dateCreated', 'Date created 2', data.dateCreated2 || '', true)}
+                ${formElements.stringElement('subject', 'Subject', data.subject || '')}    
+                ${formElements.dateTimeElement('startDateTime', 'Start of Exam', data.startDateTime || '', true)}
+                ${formElements.dateTimeElement('endDateTime', 'End of Exam', data.endDateTime || '', true)}
+                ${formElements.stringElement('matriculationNumber', 'Matriculation number', data.matriculationNumber || '')}
+                ${formElements.stringElement('email', 'Email address', data.email || '')}
+                ${formElements.stringElement('room', 'Original room', data.room || '')}
+                ${formElements.stringElement('comment', 'Comment', data.comment || '')}
                 ${this.getCommonFormElements()}
             </form>
         `;
