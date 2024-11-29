@@ -1,14 +1,18 @@
 import {html} from 'lit';
+import {html as staticHtml, unsafeStatic} from 'lit/static-html.js';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './baseObject.js';
+import {pascalToKebab} from './utils.js';
+import {createRef, ref} from 'lit/directives/ref.js';
 
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.formComponents = {};
         this.formIdentifier = this.getLastPathSegment();
+        this.formRef = createRef();
     }
 
     getLastPathSegment() {
@@ -80,9 +84,55 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    getFormHtml(useFileHitDataCache = false) {
+        const formIdentifier = this.formIdentifier;
+        const formComponents = this.formComponents;
+
+        if (formIdentifier === '') {
+            console.log('formIdentifier empty', formIdentifier);
+            // TODO: Show better error message
+            return html`No form identifier provided!`;
+        }
+
+        if (!formComponents) {
+            return html`Loading...`;
+        }
+
+        if (!formComponents[formIdentifier]) {
+            console.log('formIdentifier not found', formIdentifier);
+            return html`Form <strong>${formIdentifier}</strong> not found!`;
+        }
+
+        const tagPart = pascalToKebab(formIdentifier);
+        const tagName = 'dbp-formalize-form-' + tagPart;
+
+        console.log('getDocumentEditFormHtml formIdentifier', formIdentifier);
+        console.log('getDocumentEditFormHtml tagName', tagName);
+        console.log('getDocumentEditFormHtml this.formComponents[formIdentifier]', this.formComponents[formIdentifier]);
+
+        if (!customElements.get(tagName)) {
+            customElements.define(tagName, this.formComponents[formIdentifier]);
+        }
+
+        // TODO: Add data
+        const data = {};
+
+        // We need to use staticHtml and unsafeStatic here, because we want to set the tag name from
+        // a variable and need to set the "fileHitData" property from a variable too!
+        return staticHtml`
+            <${unsafeStatic(tagName)}
+             ${ref(this.formRef)}
+             id="edit-form"
+             subscribe="auth,lang,entry-point-url"
+             .data=${data}></${unsafeStatic(tagName)}>
+        `;
+    }
+
     render() {
         return html`
             Hello world for form "${this.formIdentifier}"!
+            <hr />
+            ${this.getFormHtml()}
         `;
     }
 }
