@@ -24,7 +24,7 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
             <form>
                 ${formElements.dateElement('dateCreated', 'Date created', data.dateCreated || '', true)}
-                ${this.getCommonFormElements()}
+                ${this.getButtonRowHtml()}
             </form>
         `;
     }

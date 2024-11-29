@@ -32,15 +32,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         };
     }
 
-    getCommonFormElements() {
-        const data = this.data || {};
-
-        return html`
-            ${formElements.stringElement('text1', 'Text1', data.text1 || '')}
-            ${this.getButtonRowHtml()}
-        `;
-    };
-
     validateForm() {
         // Select all input elements with the 'required' attribute
         const formElement = this.shadowRoot.querySelector('form');

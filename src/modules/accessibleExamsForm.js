@@ -31,7 +31,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.stringElement('email', i18n.t('accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('accessible-exams-form.room'), data.room || '')}
                 ${formElements.stringElement('comment', i18n.t('accessible-exams-form.comment'), data.comment || '')}
-                ${this.getCommonFormElements()}
+                ${this.getButtonRowHtml()}
             </form>
         `;
     }
