@@ -118,6 +118,7 @@ let input = [
     'src/dbp-formalize-show-registrations.js',
     'src/dbp-formalize-render-form.js',
     'src/modules/demoForm.js',
+    'src/modules/accessibleExamsForm.js',
 ];
 
 export default (async () => {
