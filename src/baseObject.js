@@ -177,6 +177,18 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         `;
     }
 
+    update(changedProperties) {
+        changedProperties.forEach((oldValue, propName) => {
+            switch (propName) {
+                case 'lang':
+                    this._i18n.changeLanguage(this.lang);
+                    break;
+            }
+        });
+
+        super.update(changedProperties);
+    }
+
     render() {
         console.log('-- Render BaseFormElement --');
         const data = this.data;
