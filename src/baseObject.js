@@ -72,7 +72,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         };
         console.log('data', data);
 
-        const customEvent = new CustomEvent("DbpFormalizeFormAddSave",
+        const customEvent = new CustomEvent("DbpFormalizeFormSubmission",
             {"detail": data, bubbles: true, composed: true});
         this.dispatchEvent(customEvent);
     }
