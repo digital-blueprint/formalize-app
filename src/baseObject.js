@@ -80,7 +80,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         // alert('TODO: Store item!\n' + JSON.stringify(data));
 
-        const customEvent = new CustomEvent("DbpCabinetDocumentAddSave",
+        const customEvent = new CustomEvent("DbpFormalizeFormAddSave",
             {"detail": data, bubbles: true, composed: true});
         this.dispatchEvent(customEvent);
     }
@@ -161,7 +161,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     cancelForm(event) {
         event.preventDefault();
 
-        const customEvent = new CustomEvent("DbpCabinetDocumentFormCancel",
+        const customEvent = new CustomEvent("DbpFormalizeFormCancel",
             {bubbles: true, composed: true});
         this.dispatchEvent(customEvent);
     }
