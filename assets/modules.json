@@ -1,6 +1,5 @@
 {
   "forms": {
-    "demo-form": "./demoForm.js",
-    "accessible-exams-form": "./accessibleExamsForm.js"
+    "demo-form": "./demoForm.js"
   }
 }
