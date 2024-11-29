@@ -11,8 +11,16 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.formComponents = {};
-        this.formIdentifier = this.getLastPathSegment();
         this.formRef = createRef();
+
+        // We are using the last path segment as the form identifier
+        // TODO: Do we need some better way to get the form identifier?
+        this.formIdentifier = this.getLastPathSegment();
+
+        // If the last path segment is "render-form" (the activity path), we don't want to use it as the form identifier
+        if (this.formIdentifier === 'render-form') {
+            this.formIdentifier = '';
+        }
     }
 
     getLastPathSegment() {
