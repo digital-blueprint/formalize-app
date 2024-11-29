@@ -8,6 +8,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.formComponents = {};
+        this.formIdentifier = this.getLastPathSegment();
+    }
+
+    getLastPathSegment() {
+        return window.location.pathname.split('/').filter(segment => segment).pop();
     }
 
     static get scopedElements() {
@@ -77,7 +82,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     render() {
         return html`
-            Hello world!
+            Hello world for form "${this.formIdentifier}"!
         `;
     }
 }
