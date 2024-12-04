@@ -36,7 +36,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     updateFormIdentifier() {
         // We will use the URL part after the activity as identifier for the form
-        this.formIdentifier = this.routingData?.pathParts?.pop() || '';
+        this.formIdentifier = this.routingData?.pathParts[0] || '';
     }
 
     async loadModules() {
