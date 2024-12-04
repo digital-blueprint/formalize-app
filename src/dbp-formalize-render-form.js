@@ -12,24 +12,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super();
         this.formComponents = {};
         this.formRef = createRef();
-
-        // We are using the last path segment as the form identifier
-        // TODO: Do we need some better way to get the form identifier?
-        this.formIdentifier = this.getLastPathSegment();
-
-        // If the last path segment is "render-form" (the activity path), we don't want to use it as the form identifier
-        if (this.formIdentifier === 'render-form') {
-            this.formIdentifier = '';
-        }
-    }
-
-    getLastPathSegment() {
-        return window.location.pathname.split('/').filter(segment => segment).pop();
+        this.formIdentifier = '';
     }
 
     static get scopedElements() {
-        return {
-        };
+        return {};
     }
 
     static get properties() {
@@ -42,10 +29,16 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super.connectedCallback();
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
-
+            this.updateFormIdentifier();
             this.loadModules();
         });
     }
+
+    updateFormIdentifier() {
+        // We will use the URL part after the activity as identifier for the form
+        this.formIdentifier = this.routingData?.pathParts?.pop() || '';
+    }
+
     async loadModules() {
         try {
             // Fetch the JSON file containing module paths
@@ -142,6 +135,18 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <hr />
             ${this.getFormHtml()}
         `;
+    }
+
+    update(changedProperties) {
+        changedProperties.forEach((oldValue, propName) => {
+            switch (propName) {
+                case 'routingUrl':
+                    this.updateFormIdentifier();
+                    break;
+            }
+        });
+
+        super.update(changedProperties);
     }
 }
 

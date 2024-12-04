@@ -10,6 +10,7 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
         this.lang = this._i18n.language;
         this.entryPointUrl = '';
         this.basePath = '';
+        this.routingData = {};
     }
 
     static get properties() {
@@ -19,6 +20,7 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
             lang: {type: String},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             basePath: {type: String, attribute: 'base-path'},
+            routingData: {type: Object, attribute: 'routing-data'},
         };
     }
 
