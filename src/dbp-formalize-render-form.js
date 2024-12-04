@@ -57,7 +57,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             let formComponents = {};
 
             // Iterate over the module paths and dynamically import each module
-            for (const [formKey, path] of Object.entries(data["forms"])) {
+            for (const [formKey, path] of Object.entries(data['forms'])) {
                 const module = await import(path);
 
                 console.log('formKey', formKey);
@@ -88,16 +88,24 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (formIdentifier === '') {
             console.log('formIdentifier empty', formIdentifier);
             // TODO: Show better error message
-            return html`No form identifier provided!`;
+            return html`
+                No form identifier provided!
+            `;
         }
 
         if (!formComponents) {
-            return html`Loading...`;
+            return html`
+                Loading...
+            `;
         }
 
         if (!formComponents[formIdentifier]) {
             console.log('formIdentifier not found', formIdentifier);
-            return html`Form <strong>${formIdentifier}</strong> not found!`;
+            return html`
+                Form
+                <strong>${formIdentifier}</strong>
+                not found!
+            `;
         }
 
         const tagPart = pascalToKebab(formIdentifier);
@@ -105,7 +113,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         console.log('getDocumentEditFormHtml formIdentifier', formIdentifier);
         console.log('getDocumentEditFormHtml tagName', tagName);
-        console.log('getDocumentEditFormHtml this.formComponents[formIdentifier]', this.formComponents[formIdentifier]);
+        console.log(
+            'getDocumentEditFormHtml this.formComponents[formIdentifier]',
+            this.formComponents[formIdentifier],
+        );
 
         if (!customElements.get(tagName)) {
             customElements.define(tagName, this.formComponents[formIdentifier]);
