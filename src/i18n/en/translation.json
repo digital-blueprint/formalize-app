@@ -72,6 +72,8 @@
         "matriculationNumber": "Matriculation number",
         "email": "Email address",
         "room": "Original room",
-        "comment": "Comment"
+        "comment": "Comment",
+        "group": "Exact group allocation will follow",
+        "online": "This is an online exam"
     }
 }

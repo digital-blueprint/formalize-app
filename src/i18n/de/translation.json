@@ -72,6 +72,8 @@
         "matriculationNumber": "Matrikelnummer",
         "email": "E-Mail-Adresse",
         "room": "Originalraum",
-        "comment": "Anmerkung"
+        "comment": "Anmerkung",
+        "group": "Genaue Gruppenzuteilung erfolgt noch",
+        "online": "Es handelt sich um eine Online-Prüfung"
     }
 }

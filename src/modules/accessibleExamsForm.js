@@ -31,6 +31,8 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.stringElement('email', i18n.t('accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('accessible-exams-form.room'), data.room || '')}
                 ${formElements.stringElement('comment', i18n.t('accessible-exams-form.comment'), data.comment || '')}
+                ${formElements.checkboxElement('group', i18n.t('accessible-exams-form.group'), data.group || 'on')}
+                ${formElements.checkboxElement('online', i18n.t('accessible-exams-form.online'), data.online || 'on')}
                 ${this.getButtonRowHtml()}
             </form>
         `;

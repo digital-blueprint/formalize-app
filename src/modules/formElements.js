@@ -236,3 +236,25 @@ export const enumElement = (name, label, value = "", items = {}, isRequired = fa
         </fieldset>
     `;
 };
+
+/**
+ *
+ * @param name
+ * @param label
+ * @param value - is 'on' when checked
+ * @param isRequired
+ */
+export const checkboxElement = (name, label, value, isRequired = false) => {
+    const id = sanitizeForHtmlId(name);
+    return html`
+        <fieldset>
+            <label for="form-input-${name}">${label}</label>
+            <input
+                type="checkbox"
+                id="form-input-${id}"
+                name="${name}"
+                value="${value}"
+                ?required=${isRequired} />
+        </fieldset>
+    `;
+};
