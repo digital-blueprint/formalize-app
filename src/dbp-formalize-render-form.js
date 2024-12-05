@@ -29,7 +29,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super.connectedCallback();
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
-            this.updateFormIdentifier();
             this.loadModules();
         });
     }
@@ -37,6 +36,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     updateFormIdentifier() {
         // We will use the URL part after the activity as identifier for the form
         this.formIdentifier = this.routingData?.pathParts[0] || '';
+        console.log('updateFormIdentifier this.formIdentifier', this.formIdentifier);
     }
 
     async loadModules() {
@@ -140,7 +140,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
-                case 'routingUrl':
+                case 'routingData':
                     this.updateFormIdentifier();
                     break;
             }
