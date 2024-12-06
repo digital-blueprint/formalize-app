@@ -25,9 +25,9 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <form>
-                ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject'), data.subject || '')}    
-                ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '')}
-                ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '')}
+                ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject'), data.subject || '', true)}    
+                ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '', true)}
+                ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '', true)}
                 ${formElements.stringElement('matriculationNumber', i18n.t('accessible-exams-form.matriculationNumber'), data.matriculationNumber || '')}
                 ${formElements.stringElement('email', i18n.t('accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('accessible-exams-form.room'), data.room || '')}
@@ -76,20 +76,25 @@ class FormalizeFormElement extends BaseFormElement {
         const formElement = this.shadowRoot.querySelector('form');
         const dateTimeFields = formElement.querySelectorAll('input[type="datetime-local"]');
 
+        // Get start and end date of the exam
+        const startDateTime = Date.parse(dateTimeFields[0].value);
+        const endDateTime = Date.parse(dateTimeFields[1].value);
+        
         // The minimum date has to be two weeks ahead
         const min = Date.now() + 1209600000;
+        
+        if (startDateTime < min) {
+            // If the start date is before the minimum date, alert the user and return false to prevent form submission
+            // TODO: We will need to put those results into a div or something instead of using an alert for each single of them!
+            alert(`Please choose a date that is at least two weeks ahead for the beginning of your exam.`);
+            return false;
+        }
 
-        // Loop through each datetime field
-        for (let field of dateTimeFields) {
-
-            // Check if the entered value is lower than the minimum value
-            if (Date.parse(field.value) < min) {
-
-                // If true, alert the user and return false to prevent form submission
-                // TODO: We will need to put those results into a div or something instead of using an alert for each single of them!
-                alert(`Please choose a date that is at least two weeks ahead in the field ${field.name}.`);
-                return false;
-            }
+        if (endDateTime < startDateTime) {
+            // If the end date is before the start date, alert the user and return false to prevent form submission
+            // TODO: We will need to put those results into a div or something instead of using an alert for each single of them!
+            alert(`Please choose an end date that is past the beginning of your exam.`);
+            return false;
         }
 
         // If all datetime criteria are matched, return true to allow form submission
