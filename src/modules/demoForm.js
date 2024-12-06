@@ -16,12 +16,18 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
+    testRoutingUrl() {
+        const routingUrl = '/test';
+        this.sendSetPropertyEvent('routing-url', routingUrl, true);
+    }
+
     render() {
         console.log('-- Render FormalizeFormElement --');
         console.log('this.data', this.data);
         const data = this.data || {};
 
         return html`
+            <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
             <form>
                 ${formElements.dateElement('dateCreated', 'Date created', data.dateCreated || '', true)}
                 ${this.getButtonRowHtml()}

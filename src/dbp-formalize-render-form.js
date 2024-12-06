@@ -139,16 +139,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     render() {
         return html`
-            Hello world for form "${this.formIdentifier}"!
-            <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
+            This is the form <strong>${this.formIdentifier}</strong>!
             <hr />
             ${this.getFormHtml()}
         `;
-    }
-
-    testRoutingUrl() {
-        const routingUrl = '/test';
-        this.sendSetPropertyEvent('routing-url', routingUrl, true);
     }
 
     update(changedProperties) {
