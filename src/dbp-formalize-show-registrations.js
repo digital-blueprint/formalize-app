@@ -1750,30 +1750,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: true,
-            layout: 'fitColumns',
-            responsiveLayout: 'collapse',
-            responsiveLayoutCollapseStartOpen: false,
-            rowHeader: {
-                formatter: 'responsiveCollapse',
-                width: 30,
-                minWidth: 30,
-                hozAlign: 'center',
-                resizable: false,
-            },
+            layout: 'fitData',
+            layoutColumnsOnNewData: true,
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
                 resizable: false,
-            },
-            autoColumnsDefinitions: function (definitions) {
-                //definitions - array of column definition objects
-                console.log('definitions', definitions);
-                definitions.forEach((column) => {
-                    column.minWidth = 150;
-                    column.widthShrink = 1;
-                });
-
-                return definitions;
             },
         };
 
@@ -1808,9 +1790,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
 
                 <div class='control ${classMap({hidden: this.showSubmissionsTable || !this.loadingCourseTable})}'>
-                        <span class='loading'>
-                            <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
-                        </span>
+                    <span class='loading'>
+                        <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
+                    </span>
                 </div>
                 <!--see about extra arrow column-->
 
