@@ -25,9 +25,9 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <form>
-                ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject'), data.subject || '', true)}    
-                ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '', true)}
-                ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '', true)}
+                ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject'), data.subject || '')}    
+                ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '')}
+                ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '')}
                 ${formElements.stringElement('matriculationNumber', i18n.t('accessible-exams-form.matriculationNumber'), data.matriculationNumber || '')}
                 ${formElements.stringElement('email', i18n.t('accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('accessible-exams-form.room'), data.room || '')}
@@ -77,7 +77,7 @@ class FormalizeFormElement extends BaseFormElement {
         const dateTimeFields = formElement.querySelectorAll('input[type="datetime-local"]');
 
         // The minimum date has to be two weeks ahead
-        const min = Date.now() + 1209600000
+        const min = Date.now() + 1209600000;
 
         // Loop through each datetime field
         for (let field of dateTimeFields) {
