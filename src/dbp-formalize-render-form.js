@@ -12,7 +12,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super();
         this.formComponents = {};
         this.formRef = createRef();
-        this.formIdentifier = '';
+        this.formUrlSlug = '';
     }
 
     static get scopedElements() {
@@ -33,17 +33,17 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
     }
 
-    updateFormIdentifier() {
-        // console.log('updateFormIdentifier this.routingUrl', this.routingUrl);
-        // console.log('updateFormIdentifier this.getRoutingData()', this.getRoutingData());
+    updateFormUrlSlug() {
+        // console.log('updateFormUrlSlug this.routingUrl', this.routingUrl);
+        // console.log('updateFormUrlSlug this.getRoutingData()', this.getRoutingData());
 
         // We will use the first URL segment after the activity as identifier for the form
-        const formIdentifier = this.getRoutingData().pathSegments[0] || '';
+        const formUrlSlug = this.getRoutingData().pathSegments[0] || '';
 
         // Update the form identifier if it has changed
-        if (this.formIdentifier !== formIdentifier) {
-            this.formIdentifier = formIdentifier;
-            console.log('updateFormIdentifier this.formIdentifier', this.formIdentifier);
+        if (this.formUrlSlug !== formUrlSlug) {
+            this.formUrlSlug = formUrlSlug;
+            console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
         }
     }
 
@@ -83,11 +83,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     getFormHtml(useFileHitDataCache = false) {
-        const formIdentifier = this.formIdentifier;
+        const formUrlSlug = this.formUrlSlug;
         const formComponents = this.formComponents;
 
-        if (formIdentifier === '') {
-            console.log('formIdentifier empty', formIdentifier);
+        if (formUrlSlug === '') {
+            console.log('formUrlSlug empty', formUrlSlug);
             // TODO: Show better error message
             return html`
                 No form identifier provided!
@@ -100,27 +100,30 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `;
         }
 
-        if (!formComponents[formIdentifier]) {
-            console.log('formIdentifier not found', formIdentifier);
+        console.log('getFormHtml formComponents', formComponents);
+        console.log('getFormHtml formUrlSlug', formUrlSlug);
+
+        if (!formComponents[formUrlSlug]) {
+            console.log('formUrlSlug not found', formUrlSlug);
             return html`
                 Form
-                <strong>${formIdentifier}</strong>
+                <strong>${formUrlSlug}</strong>
                 not found!
             `;
         }
 
-        const tagPart = pascalToKebab(formIdentifier);
+        const tagPart = pascalToKebab(formUrlSlug);
         const tagName = 'dbp-formalize-form-' + tagPart;
 
-        console.log('getDocumentEditFormHtml formIdentifier', formIdentifier);
+        console.log('getDocumentEditFormHtml formUrlSlug', formUrlSlug);
         console.log('getDocumentEditFormHtml tagName', tagName);
         console.log(
-            'getDocumentEditFormHtml this.formComponents[formIdentifier]',
-            this.formComponents[formIdentifier],
+            'getDocumentEditFormHtml this.formComponents[formUrlSlug]',
+            this.formComponents[formUrlSlug],
         );
 
         if (!customElements.get(tagName)) {
-            customElements.define(tagName, this.formComponents[formIdentifier]);
+            customElements.define(tagName, this.formComponents[formUrlSlug]);
         }
 
         // TODO: Add data
@@ -139,7 +142,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     render() {
         return html`
-            This is the form <strong>${this.formIdentifier}</strong>!
+            This is the form <strong>${this.formUrlSlug}</strong>!
             <hr />
             ${this.getFormHtml()}
         `;
@@ -149,7 +152,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'routingUrl':
-                    this.updateFormIdentifier();
+                    this.updateFormUrlSlug();
                     break;
             }
         });
