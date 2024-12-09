@@ -1777,7 +1777,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             <div class='${classMap({hidden: !this.isLoggedIn() || this.isLoading() || !this.hasPermissions})}'>
 
-                <h2>${this.activity.getName(this.lang)}</h2>
+                <h2>${this.activity.getUrlSlug(this.lang)}</h2>
 
                 <div>
                     <p class='subheadline'>

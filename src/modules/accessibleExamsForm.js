@@ -4,7 +4,7 @@ import * as formElements from './formElements.js';
 import {classMap} from 'lit/directives/class-map.js';
 
 export default class extends BaseObject {
-    getName() {
+    getUrlSlug() {
         return 'accessible-exams-form';
     }
 
@@ -13,6 +13,11 @@ export default class extends BaseObject {
      */
     getFormComponent() {
         return FormalizeFormElement;
+    }
+
+    getFormIdentifier() {
+        // TODO: Replace with actual identifier
+        return 'some-uuid';
     }
 }
 

@@ -71,7 +71,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const object = new module.default();
 
                 if (object.getFormComponent) {
-                    formComponents[object.getName()] = object.getFormComponent();
+                    formComponents[object.getUrlSlug()] = object.getFormComponent();
                 }
             }
 

@@ -7,12 +7,16 @@ import * as formElements from './modules/formElements';
 import {classMap} from 'lit/directives/class-map.js';
 
 export class BaseObject {
-    getName() {
-        return 'baseObject';
+    getUrlSlug() {
+        return 'url-slug';
     }
 
     getFormComponent() {
         return BaseFormElement;
+    }
+
+    getFormIdentifier() {
+        return 'uuid';
     }
 }
 

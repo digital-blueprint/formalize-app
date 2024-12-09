@@ -3,7 +3,7 @@ import {html} from 'lit';
 import * as formElements from './formElements.js';
 
 export default class extends BaseObject {
-    getName() {
+    getUrlSlug() {
         return 'demo-form';
     }
 
@@ -12,6 +12,10 @@ export default class extends BaseObject {
      */
     getFormComponent() {
         return FormalizeFormElement;
+    }
+
+    getFormIdentifier() {
+        return 'some-uuid';
     }
 }
 

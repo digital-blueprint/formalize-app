@@ -3,7 +3,7 @@ export class Activity {
         this._data = data;
     }
 
-    getName(lang) {
+    getUrlSlug(lang) {
         let desc = this._data['name'];
         return desc[lang] ?? desc['en'];
     }
