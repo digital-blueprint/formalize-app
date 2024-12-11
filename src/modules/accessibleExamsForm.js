@@ -90,19 +90,34 @@ class FormalizeFormElement extends BaseFormElement {
         
         if (startDateTime < min) {
             // If the start date is before the minimum date, alert the user and return false to prevent form submission
-            // TODO: We will need to put those results into a div or something instead of using an alert for each single of them!
-            alert(`Please choose a date that is at least two weeks ahead for the beginning of your exam.`);
+            this.showCustomValidationMessage(
+                "form-input-startdatetime", 
+                "Please choose a date that is at least two weeks ahead for the beginning of your exam."
+            );
+    
             return false;
         }
 
         if (endDateTime < startDateTime) {
             // If the end date is before the start date, alert the user and return false to prevent form submission
-            // TODO: We will need to put those results into a div or something instead of using an alert for each single of them!
-            alert(`Please choose an end date that is past the beginning of your exam.`);
+            this.showCustomValidationMessage(
+                "form-input-enddatetime", 
+                "Please choose an end date that is past the beginning of your exam."
+            );
+
             return false;
         }
 
         // If all datetime criteria are matched, return true to allow form submission
         return true;
+    }
+
+    showCustomValidationMessage(id, message) {
+        // Insert a div with a custom error message when validation fails after the HTML element with the given id
+        this.shadowRoot.getElementById(id)
+        .insertAdjacentHTML("afterend",
+            `<div class="validation-error">
+                <p>${message}</p>
+            </div>`);
     }
 }
