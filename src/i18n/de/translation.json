@@ -68,7 +68,9 @@
     "accessible-exams-form": {
         "subject": "Fach",
         "startDateTime": "Beginn der Prüfung",
+        "startDateTimeValidationError": "Bitte wählen Sie für den Beginn der Prüfung ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
         "endDateTime": "Ende der Prüfung",
+        "endDateTimeValidationError": "Bitte wählen Sie für das Ende der Prüfung ein Datum, das nach dem Beginn der Prüfung liegt.",
         "matriculationNumber": "Matrikelnummer",
         "email": "E-Mail-Adresse",
         "room": "Originalraum",

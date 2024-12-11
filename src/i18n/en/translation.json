@@ -68,7 +68,9 @@
     "accessible-exams-form": {
         "subject": "Subject",
         "startDateTime": "Start of Exam",
+        "startDateTimeValidationError": "Please choose a date that is at least two weeks ahead for the beginning of your exam.",
         "endDateTime": "End of Exam",
+        "endDateTimeValidationError": "Please choose an end date that is past the beginning of your exam.",
         "matriculationNumber": "Matriculation number",
         "email": "Email address",
         "room": "Original room",

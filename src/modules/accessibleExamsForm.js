@@ -80,6 +80,8 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     validateDateTimeFields() {
+        const i18n = this._i18n;
+
         // Initially set the validation result to true to allow form submission
         let dateTimeFieldValidation = true;
         
@@ -98,7 +100,7 @@ class FormalizeFormElement extends BaseFormElement {
             // If the start date is before the minimum date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-startdatetime", 
-                "Please choose a date that is at least two weeks ahead for the beginning of your exam."
+                i18n.t('accessible-exams-form.startDateTimeValidationError')
             );
             // Set the validation result to false to prevent form submission
             dateTimeFieldValidation = false;
@@ -108,7 +110,7 @@ class FormalizeFormElement extends BaseFormElement {
             // If the end date is before the start date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-enddatetime", 
-                "Please choose an end date that is past the beginning of your exam."
+                i18n.t('accessible-exams-form.startDateTimeValidationError')
             );
             // Set the validation result to false to prevent form submission
             dateTimeFieldValidation = false;
