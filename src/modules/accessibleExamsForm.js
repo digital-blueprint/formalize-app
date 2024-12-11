@@ -61,27 +61,28 @@ class FormalizeFormElement extends BaseFormElement {
     validateAndSendSubmission(event) {
         event.preventDefault();
 
+        // Remove alerts for old validation errors
         let oldValidationErrors = this.shadowRoot.querySelectorAll("div.validation-error");
         for (let error of oldValidationErrors) {
             error.remove();
         }
 
-        // Validate required fields before proceeding
-        if (!this.validateForm()) {
-            return false;
+        // Run all validations and save the results in an array
+        let validationResults = [
+            this.validateForm(),
+            this.validateDateTimeFields()
+        ];
+
+        // Only submit the form if all validations return true
+        if (!validationResults.includes(false)) {
+            this.sendSubmission(event);
         }
-
-        // Validate datetime fields before proceeding
-        if (!this.validateDateTimeFields()) {
-            return false;
-        }
-
-        // TODO: Add further validations
-
-        this.sendSubmission(event);
     }
 
     validateDateTimeFields() {
+        // Initially set the validation result to true to allow form submission
+        let dateTimeFieldValidation = true;
+        
         // Select all input elements with the type "datetime-local"
         const formElement = this.shadowRoot.querySelector('form');
         const dateTimeFields = formElement.querySelectorAll('input[type="datetime-local"]');
@@ -94,27 +95,27 @@ class FormalizeFormElement extends BaseFormElement {
         const min = Date.now() + 1209600000;
         
         if (startDateTime < min) {
-            // If the start date is before the minimum date, alert the user and return false to prevent form submission
+            // If the start date is before the minimum date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-startdatetime", 
                 "Please choose a date that is at least two weeks ahead for the beginning of your exam."
             );
-    
-            return false;
+            // Set the validation result to false to prevent form submission
+            dateTimeFieldValidation = false;
         }
 
         if (endDateTime < startDateTime) {
-            // If the end date is before the start date, alert the user and return false to prevent form submission
+            // If the end date is before the start date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-enddatetime", 
                 "Please choose an end date that is past the beginning of your exam."
             );
-
-            return false;
+            // Set the validation result to false to prevent form submission
+            dateTimeFieldValidation = false;
         }
 
-        // If all datetime criteria are matched, return true to allow form submission
-        return true;
+        // Return the validation result
+        return dateTimeFieldValidation;
     }
 
 }
