@@ -55,8 +55,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             // Check if the field is empty
             if (!field.value.trim()) {
                 // If empty, alert the user and return false to prevent form submission
-                // TODO: We will need to put those results into a div or something instead of using an alert for each single of them!
-                alert(`Please fill out the ${field.name || 'required'} field.`);
+                this.showCustomValidationErrorMessage(
+                    `${field.id}`, 
+                    `Please fill out the ${field.name || 'required'} field.`
+                );
 
                 return false;
             }
