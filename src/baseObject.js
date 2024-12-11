@@ -36,6 +36,15 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         };
     }
 
+    showCustomValidationErrorMessage(id, message) {
+        // Insert a div with a custom error message when validation fails after the HTML element with the given id
+        this.shadowRoot.getElementById(id)
+        .insertAdjacentHTML("afterend",
+            `<div class="validation-error">
+                <p>${message}</p>
+            </div>`);
+    }
+
     validateForm() {
         // Select all input elements with the 'required' attribute
         const formElement = this.shadowRoot.querySelector('form');
