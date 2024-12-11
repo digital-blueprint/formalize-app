@@ -61,6 +61,11 @@ class FormalizeFormElement extends BaseFormElement {
     validateAndSendSubmission(event) {
         event.preventDefault();
 
+        let oldValidationErrors = this.shadowRoot.querySelectorAll("div.validation-error");
+        for (let error of oldValidationErrors) {
+            error.remove();
+        }
+
         // Validate required fields before proceeding
         if (!this.validateForm()) {
             return false;
