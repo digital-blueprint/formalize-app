@@ -1750,7 +1750,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         let auto_columns = {
             langs: auto_langs,
-            autoColumns: true,
+            autoColumns: 'full',
             layout: 'fitData',
             layoutColumnsOnNewData: true,
             columnDefaults: {
