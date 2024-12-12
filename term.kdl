@@ -10,8 +10,8 @@ layout {
     }
     pane split_direction="vertical" size="40%" {
       pane {
-        command "npm"
-        args "run" "watch"
+        command "just"
+        args "watch"
       }
       pane {
         command "npm"

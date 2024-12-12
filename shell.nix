@@ -7,6 +7,7 @@
       zellij # smart terminal workspace
       lazygit # git terminal
       just # task runner
+      fzf # fuzzy finder, for "just watch"
     ];
 }
 
