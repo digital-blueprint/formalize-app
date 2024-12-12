@@ -11,8 +11,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.formComponents = {};
+        this.formIdentifiers = {};
         this.formRef = createRef();
         this.formUrlSlug = '';
+        this.formIdentifier = '';
     }
 
     static get scopedElements() {
@@ -44,7 +46,38 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.formUrlSlug !== formUrlSlug) {
             this.formUrlSlug = formUrlSlug;
             console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
+
+            // TODO: this.formIdentifiers is not set yet!
+            this.formIdentifier = this.formIdentifiers[formUrlSlug];
+            console.log('updateFormUrlSlug this.formIdentifier', this.formIdentifier);
         }
+    }
+
+    async checkPermissionsToForm(identifier) {
+        let response;
+        let data = [];
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+
+        response = await this.httpGetAsync(
+            this.entryPointUrl + '/formalize/forms/' + identifier,
+            options,
+        );
+
+        try {
+            data = await response.json();
+        } catch (e) {
+            this.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
+            console.error(e);
+            return;
+        }
+
+        console.log('checkPermissionsToForm data', data);
     }
 
     async loadModules() {
@@ -56,6 +89,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             console.log('data', data);
             let formComponents = {};
+            let formIdentifiers = {};
 
             // Iterate over the module paths and dynamically import each module
             for (const [formKey, path] of Object.entries(data['forms'])) {
@@ -73,10 +107,16 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 if (object.getFormComponent) {
                     formComponents[object.getUrlSlug()] = object.getFormComponent();
                 }
+
+                if (object.getFormIdentifier) {
+                    formIdentifiers[object.getUrlSlug()] = object.getFormIdentifier();
+                }
             }
 
             this.formComponents = formComponents;
+            this.formIdentifiers = formIdentifiers;
             console.log('formComponents', formComponents);
+            console.log('formIdentifiers', formIdentifiers);
         } catch (error) {
             console.error('Error loading modules:', error);
         }
@@ -114,16 +154,14 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const tagPart = pascalToKebab(formUrlSlug);
         const tagName = 'dbp-formalize-form-' + tagPart;
+        const form = this.formComponents[formUrlSlug];
 
         console.log('getDocumentEditFormHtml formUrlSlug', formUrlSlug);
         console.log('getDocumentEditFormHtml tagName', tagName);
-        console.log(
-            'getDocumentEditFormHtml this.formComponents[formUrlSlug]',
-            this.formComponents[formUrlSlug],
-        );
+        console.log('getDocumentEditFormHtml form', form);
 
         if (!customElements.get(tagName)) {
-            customElements.define(tagName, this.formComponents[formUrlSlug]);
+            customElements.define(tagName, form);
         }
 
         // TODO: Add data
@@ -153,6 +191,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             switch (propName) {
                 case 'routingUrl':
                     this.updateFormUrlSlug();
+                    if (this.formIdentifier) {
+                        this.checkPermissionsToForm(this.formIdentifier);
+                    }
                     break;
             }
         });
