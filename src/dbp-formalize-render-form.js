@@ -14,7 +14,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.formIdentifiers = {};
         this.formRef = createRef();
         this.formUrlSlug = '';
-        this.formIdentifier = '';
+        this.submitAllowed = false;
     }
 
     static get scopedElements() {
@@ -24,6 +24,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     static get properties() {
         return {
             ...super.properties,
+            submitAllowed: {type: Boolean, attribute: false},
         };
     }
 
@@ -42,15 +43,19 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // We will use the first URL segment after the activity as identifier for the form
         const formUrlSlug = this.getRoutingData().pathSegments[0] || '';
 
-        // Update the form identifier if it has changed
+        // Update the formUrlSlug if it has changed
         if (this.formUrlSlug !== formUrlSlug) {
             this.formUrlSlug = formUrlSlug;
             console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
-
-            // TODO: this.formIdentifiers is not set yet!
-            this.formIdentifier = this.formIdentifiers[formUrlSlug];
-            console.log('updateFormUrlSlug this.formIdentifier', this.formIdentifier);
         }
+    }
+
+    async handlePermissionsForCurrentForm() {
+        const formIdentifier = this.formIdentifiers[this.formUrlSlug];
+        console.log('handlePermissionsForCurrentForm formIdentifier', formIdentifier);
+
+        this.submitAllowed = formIdentifier ? await this.checkPermissionsToForm(formIdentifier) : false;
+        console.log('handlePermissionsForCurrentForm this.submitAllowed', this.submitAllowed);
     }
 
     async checkPermissionsToForm(identifier) {
@@ -72,12 +77,18 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         try {
             data = await response.json();
         } catch (e) {
-            this.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
+            this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
             console.error(e);
-            return;
+            return false;
         }
 
         console.log('checkPermissionsToForm data', data);
+
+        if (data.error) {
+            console.error('checkPermissionsToForm data.error', data.error);
+        }
+
+        return false;
     }
 
     async loadModules() {
@@ -117,6 +128,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.formIdentifiers = formIdentifiers;
             console.log('formComponents', formComponents);
             console.log('formIdentifiers', formIdentifiers);
+
+            await this.handlePermissionsForCurrentForm();
         } catch (error) {
             console.error('Error loading modules:', error);
         }
@@ -180,7 +193,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     render() {
         return html`
-            This is the form <strong>${this.formUrlSlug}</strong>!
+            This is the form <strong>${this.formUrlSlug}</strong>!<br />
+            Submit allowed: ${this.submitAllowed}
             <hr />
             ${this.getFormHtml()}
         `;
@@ -191,9 +205,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             switch (propName) {
                 case 'routingUrl':
                     this.updateFormUrlSlug();
-                    if (this.formIdentifier) {
-                        this.checkPermissionsToForm(this.formIdentifier);
-                    }
+                    this.handlePermissionsForCurrentForm();
                     break;
             }
         });
