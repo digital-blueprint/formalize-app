@@ -213,6 +213,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     render() {
+        // TODO: Don't show the form if this.submissionAllowed is false
         return html`
             This is the form <strong>${this.formUrlSlug}</strong>!<br />
             Submission allowed: ${this.submissionAllowed}
