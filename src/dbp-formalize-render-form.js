@@ -79,12 +79,12 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        response = await this.httpGetAsync(
-            this.entryPointUrl + '/formalize/forms/' + identifier,
-            options,
-        );
-
         try {
+            response = await this.httpGetAsync(
+                this.entryPointUrl + '/formalize/forms/' + identifier,
+                options,
+            );
+
             data = await response.json();
         } catch (e) {
             this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
@@ -99,8 +99,13 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return false;
         }
 
+        if (data['@type'] === 'hydra:Error') {
+            console.error('checkPermissionsToForm hydra:Error', data.detail);
+            return false;
+        }
+
         // Check if the user has the permission to manage the form or create submissions
-        return data.grantedActions &&
+        return Array.isArray(data.grantedActions)  &&
             (data.grantedActions.includes('manage') ||
              data.grantedActions.includes('create_submissions'));
     }
