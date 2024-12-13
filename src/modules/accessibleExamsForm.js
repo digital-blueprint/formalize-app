@@ -22,9 +22,35 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
+    
+    async fetchUserData() {
+        console.log("Fetching user data ...");
+        
+        // TODO: Error Handling
+
+        let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'], {
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        });
+        if (!response.ok) {
+            throw new Error(response);
+        }
+        
+        this.data = await response.json();
+        this.data.givenName = `${this.data['givenName']}`;
+        this.data.familyName = `${this.data['familyName']}`;
+    }
+
     render() {
         const i18n = this._i18n;
         console.log('-- Render FormalizeFormElement --');
+
+        if (!this.data.givenName && !this.data.familyName) {
+            this.fetchUserData();
+        }
+
         console.log('this.data', this.data);
         const data = this.data || {};
 
@@ -34,6 +60,8 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '', true)}
                 ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '', true)}
                 ${formElements.stringElement('matriculationNumber', i18n.t('accessible-exams-form.matriculationNumber'), data.matriculationNumber || '')}
+                ${formElements.stringElement('givenName', "Given Name", data.givenName || '')}
+                ${formElements.stringElement('familyName', "Family Name", data.familyName || '')}
                 ${formElements.stringElement('email', i18n.t('accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('accessible-exams-form.room'), data.room || '')}
                 ${formElements.stringElement('comment', i18n.t('accessible-exams-form.comment'), data.comment || '')}
