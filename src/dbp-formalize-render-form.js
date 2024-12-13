@@ -156,7 +156,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    getFormHtml(useFileHitDataCache = false) {
+    getFormHtml() {
         const formUrlSlug = this.formUrlSlug;
         const formComponents = this.formComponents;
 
