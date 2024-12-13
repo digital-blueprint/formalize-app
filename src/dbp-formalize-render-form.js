@@ -63,9 +63,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async checkPermissionsToForm(identifier) {
-        console.log('checkPermissionsToForm this.auth', this.auth);
-        console.trace();
-
         // If the user is not logged in yet, we can't check permissions
         if (this.auth.token === '') {
             return false;
