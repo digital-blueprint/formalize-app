@@ -14,7 +14,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.formIdentifiers = {};
         this.formRef = createRef();
         this.formUrlSlug = '';
-        this.submitAllowed = false;
+        this.authTokenExists = false;
+        this.submissionAllowed = false;
     }
 
     static get scopedElements() {
@@ -24,7 +25,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     static get properties() {
         return {
             ...super.properties,
-            submitAllowed: {type: Boolean, attribute: false},
+            submissionAllowed: {type: Boolean, attribute: false},
         };
     }
 
@@ -47,6 +48,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.formUrlSlug !== formUrlSlug) {
             this.formUrlSlug = formUrlSlug;
             console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
+
+            // We need to check permissions, because the user has navigated to a different form
+            this.handlePermissionsForCurrentForm();
         }
     }
 
@@ -54,11 +58,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
         console.log('handlePermissionsForCurrentForm formIdentifier', formIdentifier);
 
-        this.submitAllowed = formIdentifier ? await this.checkPermissionsToForm(formIdentifier) : false;
-        console.log('handlePermissionsForCurrentForm this.submitAllowed', this.submitAllowed);
+        this.submissionAllowed = formIdentifier ? await this.checkPermissionsToForm(formIdentifier) : false;
+        console.log('handlePermissionsForCurrentForm this.submissionAllowed', this.submissionAllowed);
     }
 
     async checkPermissionsToForm(identifier) {
+        console.log('checkPermissionsToForm this.auth', this.auth);
+        console.trace();
+
+        // If the user is not logged in yet, we can't check permissions
+        if (this.auth.token === '') {
+            return false;
+        }
+
+        this.authTokenExists = true;
         let response;
         let data = [];
         const options = {
@@ -86,9 +99,13 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (data.error) {
             console.error('checkPermissionsToForm data.error', data.error);
+            return false;
         }
 
-        return false;
+        // Check if the user has the permission to manage the form or create submissions
+        return data.grantedActions &&
+            (data.grantedActions.includes('manage') ||
+             data.grantedActions.includes('create_submissions'));
     }
 
     async loadModules() {
@@ -129,6 +146,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             console.log('formComponents', formComponents);
             console.log('formIdentifiers', formIdentifiers);
 
+            // We want to check permissions after the modules have been loaded,
+            // because we finally have a formIdentifier
             await this.handlePermissionsForCurrentForm();
         } catch (error) {
             console.error('Error loading modules:', error);
@@ -194,7 +213,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     render() {
         return html`
             This is the form <strong>${this.formUrlSlug}</strong>!<br />
-            Submit allowed: ${this.submitAllowed}
+            Submission allowed: ${this.submissionAllowed}
             <hr />
             ${this.getFormHtml()}
         `;
@@ -203,9 +222,16 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
+                case 'auth':
+                    // We need to check permissions again once, because the user might not have been
+                    // logged in yet when the modules were loaded
+                    if (!this.authTokenExists && this.auth.token !== '') {
+                        this.authTokenExists = true;
+                        this.handlePermissionsForCurrentForm();
+                    }
+                    break;
                 case 'routingUrl':
                     this.updateFormUrlSlug();
-                    this.handlePermissionsForCurrentForm();
                     break;
             }
         });
