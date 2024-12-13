@@ -72,6 +72,8 @@
         "endDateTime": "End of Exam",
         "endDateTimeValidationError": "Please choose an end date that is past the beginning of your exam.",
         "matriculationNumber": "Matriculation number",
+        "givenName": "Given name",
+        "familyName": "Family name",
         "email": "Email address",
         "room": "Original room",
         "comment": "Comment",

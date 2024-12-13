@@ -72,6 +72,8 @@
         "endDateTime": "Ende der Prüfung",
         "endDateTimeValidationError": "Bitte wählen Sie für das Ende der Prüfung ein Datum, das nach dem Beginn der Prüfung liegt.",
         "matriculationNumber": "Matrikelnummer",
+        "givenName": "Vorname",
+        "familyName": "Nachname",
         "email": "E-Mail-Adresse",
         "room": "Originalraum",
         "comment": "Anmerkung",

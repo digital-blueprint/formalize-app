@@ -60,8 +60,8 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '', true)}
                 ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '', true)}
                 ${formElements.stringElement('matriculationNumber', i18n.t('accessible-exams-form.matriculationNumber'), data.matriculationNumber || '')}
-                ${formElements.stringElement('givenName', "Given Name", data.givenName || '')}
-                ${formElements.stringElement('familyName', "Family Name", data.familyName || '')}
+                ${formElements.stringElement('givenName', i18n.t('accessible-exams-form.givenName'), data.givenName || '')}
+                ${formElements.stringElement('familyName', i18n.t('accessible-exams-form.familyName'), data.familyName || '')}
                 ${formElements.stringElement('email', i18n.t('accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('accessible-exams-form.room'), data.room || '')}
                 ${formElements.stringElement('comment', i18n.t('accessible-exams-form.comment'), data.comment || '')}
@@ -138,7 +138,7 @@ class FormalizeFormElement extends BaseFormElement {
             // If the end date is before the start date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-enddatetime", 
-                i18n.t('accessible-exams-form.startDateTimeValidationError')
+                i18n.t('accessible-exams-form.endDateTimeValidationError')
             );
             // Set the validation result to false to prevent form submission
             dateTimeFieldValidation = false;
