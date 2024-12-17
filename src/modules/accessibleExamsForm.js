@@ -16,8 +16,7 @@ export default class extends BaseObject {
     }
 
     getFormIdentifier() {
-        // TODO: Replace with actual identifier
-        return 'some-uuid';
+        return '0193cfbd-9b68-703a-81f9-c10d0e2375b7';
     }
 }
 
