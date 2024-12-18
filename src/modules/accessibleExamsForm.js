@@ -5,7 +5,7 @@ import {classMap} from 'lit/directives/class-map.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
-        return 'accessible-exams-form';
+        return 'accessible-exams';
     }
 
     /**

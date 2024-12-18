@@ -4,7 +4,7 @@ import * as formElements from './formElements.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
-        return 'demo-form';
+        return 'demo';
     }
 
     /**
