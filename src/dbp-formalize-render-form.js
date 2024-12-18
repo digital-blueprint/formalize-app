@@ -85,6 +85,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 options,
             );
 
+            if (!response.ok) {
+                return false;
+            }
+
             data = await response.json();
         } catch (e) {
             this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
