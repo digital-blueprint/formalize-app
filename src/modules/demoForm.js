@@ -31,9 +31,14 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.data || {};
 
         return html`
+            <h1>Demo Form</h1>
             <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
             <form>
-                ${formElements.dateElement('dateCreated', 'Date created', data.dateCreated || '', true)}
+                ${formElements.stringElement('myString', 'My string', data.myString || '', true)}
+                ${formElements.dateTimeElement('myDateTime', 'My datetime', data.myDateTime || '', true)}
+                ${formElements.dateElement('myDate', 'My date', data.myDate || '', true)}
+                ${formElements.enumElement('myEnum', 'My enum', data.myEnum || {}, {item1: 'Item 1', item2: 'Item 2'}, true)}
+                ${formElements.checkboxElement('myCheckbox', 'My checkbox', data.myCheckbox || false)}
                 ${this.getButtonRowHtml()}
             </form>
         `;
