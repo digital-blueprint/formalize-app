@@ -5,6 +5,7 @@ import {createInstance} from './i18n';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import * as formElements from './modules/formElements';
 import {classMap} from 'lit/directives/class-map.js';
+import {getSelectorFixCSS} from './styles.js';
 
 export class BaseObject {
     getUrlSlug() {
@@ -157,6 +158,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getGeneralCSS(false)}
             ${commonStyles.getButtonCSS()}
             ${formElements.getFieldsetCSS()}
+            ${getSelectorFixCSS()}
 
             .button-row {
                 margin-top: 1em;
