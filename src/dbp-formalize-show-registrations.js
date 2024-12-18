@@ -11,7 +11,6 @@ import * as fileHandlingStyles from './styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
-import {getStackTrace} from '@dbp-toolkit/common/error';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 
 class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
@@ -113,41 +112,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const tabulatorTable = /** @type {TabulatorTable} */ (table);
                 tabulatorTable.buildTable();
             });
-        });
-    }
-
-    /**
-     * Sends an analytics error event
-     *
-     * @param category
-     * @param action
-     * @param information
-     * @param responseData
-     */
-    async sendErrorAnalyticsEvent(category, action, information, responseData = {}) {
-        let responseBody = {};
-        // Use a clone of responseData to prevent "Failed to execute 'json' on 'Response': body stream already read"
-        // after this function, but still a TypeError will occur if .json() was already called before this function
-        try {
-            responseBody = await responseData.clone().json();
-        } catch {
-            responseBody = responseData; // got already decoded data
-        }
-
-        const data = {
-            status: responseData.status || '',
-            url: responseData.url || '',
-            description: responseBody['hydra:description'] || '',
-            errorDetails: responseBody['relay:errorDetails'] || '',
-            information: information,
-            // get 5 items from the stack trace
-            stack: getStackTrace().slice(1, 6),
-        };
-
-        this.sendSetPropertyEvent('analytics-event', {
-            category: category,
-            action: action,
-            name: JSON.stringify(data),
         });
     }
 
