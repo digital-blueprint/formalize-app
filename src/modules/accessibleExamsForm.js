@@ -54,10 +54,11 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.data || {};
 
         return html`
+            <p>${i18n.t('accessible-exams-form.mandatoryFields')}</p>
             <form>
-                ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject'), data.subject || '', true)}    
-                ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime'), data.startDateTime || '', true)}
-                ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime'), data.endDateTime || '', true)}
+                ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject') + " *", data.subject || '', true)}    
+                ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime') + " *", data.startDateTime || '', true)}
+                ${formElements.dateTimeElement('endDateTime', i18n.t('accessible-exams-form.endDateTime') + " *", data.endDateTime || '', true)}
                 ${formElements.stringElement('matriculationNumber', i18n.t('accessible-exams-form.matriculationNumber'), data.matriculationNumber || '')}
                 ${formElements.stringElement('givenName', i18n.t('accessible-exams-form.givenName'), data.givenName || '')}
                 ${formElements.stringElement('familyName', i18n.t('accessible-exams-form.familyName'), data.familyName || '')}

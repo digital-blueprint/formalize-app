@@ -66,6 +66,7 @@
     "id": "ID",
     "name": "Name",
     "accessible-exams-form": {
+        "mandatoryFields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
         "subject": "Fach",
         "startDateTime": "Beginn der Prüfung",
         "startDateTimeValidationError": "Bitte wählen Sie für den Beginn der Prüfung ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
