@@ -65,6 +65,7 @@
     },
     "id": "ID",
     "name": "Name",
+    "requiredFieldValidationError": "Bitte füllen Sie das Pflichtfeld aus: {{fieldName}}.",
     "accessible-exams-form": {
         "mandatoryFields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
         "subject": "Fach",

@@ -65,6 +65,7 @@
     },
     "id": "ID",
     "name": "Name",
+    "requiredFieldValidationError": "Please fill out the required field: {{fieldName}}.",
     "accessible-exams-form": {
         "mandatoryFields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",
         "subject": "Subject",

@@ -47,6 +47,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     validateRequiredFields() {
+        const i18n = this._i18n;
+        
         // Initially set the validation result to true to allow form submission
         let requiredFieldsValidation = true;
         
@@ -60,8 +62,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             if (!field.value.trim()) {
                 // If empty, alert the user and return false to prevent form submission
                 this.showCustomValidationErrorMessage(
-                    `${field.id}`, 
-                    `Please fill out the ${field.name || 'required'} field.`
+                    `${field.id}`,
+                    i18n.t('requiredFieldValidationError',
+                        {fieldName: field.name},
+                    )
                 );
 
                 // Set the validation result to false to prevent form submission
