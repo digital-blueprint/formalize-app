@@ -97,7 +97,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Run all validations and save the results in an array
         let validationResults = [
-            this.validateForm(),
+            this.validateRequiredFields(),
             this.validateDateTimeFields()
         ];
 

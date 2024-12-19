@@ -46,7 +46,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             </div>`);
     }
 
-    validateForm() {
+    validateRequiredFields() {
+        // Initially set the validation result to true to allow form submission
+        let requiredFieldsValidation = true;
+        
         // Select all input elements with the 'required' attribute
         const formElement = this.shadowRoot.querySelector('form');
         const requiredFields = formElement.querySelectorAll('input[required], select[required], textarea[required]');
@@ -61,19 +64,20 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                     `Please fill out the ${field.name || 'required'} field.`
                 );
 
-                return false;
+                // Set the validation result to false to prevent form submission
+                requiredFieldsValidation = false;
             }
         }
 
-        // If all required fields are filled, return true to allow form submission
-        return true;
+        // Return the validation result
+        return requiredFieldsValidation;
     }
 
     validateAndSendSubmission(event) {
         event.preventDefault();
 
         // Validate the form before proceeding
-        if (!this.validateForm()) {
+        if (!this.validateRequiredFields()) {
             return;
         }
 
