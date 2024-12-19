@@ -68,6 +68,7 @@
     "requiredFieldValidationError": "Bitte füllen Sie das Pflichtfeld aus: {{fieldName}}.",
     "accessible-exams-form": {
         "mandatoryFields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
+        "examDate": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
         "subject": "Fach",
         "startDateTime": "Beginn der Prüfung",
         "startDateTimeValidationError": "Bitte wählen Sie für den Beginn der Prüfung ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",

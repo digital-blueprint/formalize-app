@@ -54,7 +54,8 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.data || {};
 
         return html`
-            <p>${i18n.t('accessible-exams-form.mandatoryFields')}</p>
+            <p>${i18n.t('accessible-exams-form.mandatoryFields')}<br />
+            ${i18n.t('accessible-exams-form.examDate')}</p>
             <form>
                 ${formElements.stringElement('subject', i18n.t('accessible-exams-form.subject') + " *", data.subject || '', true)}    
                 ${formElements.dateTimeElement('startDateTime', i18n.t('accessible-exams-form.startDateTime') + " *", data.startDateTime || '', true)}

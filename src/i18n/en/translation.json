@@ -68,6 +68,7 @@
     "requiredFieldValidationError": "Please fill out the required field: {{fieldName}}.",
     "accessible-exams-form": {
         "mandatoryFields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",
+        "examDate": "Please note that the exam date must be at least 14 days in the future.",
         "subject": "Subject",
         "startDateTime": "Start of Exam",
         "startDateTimeValidationError": "Please choose a date that is at least two weeks ahead for the beginning of your exam.",
