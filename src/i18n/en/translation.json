@@ -66,24 +66,28 @@
         "name": "Name"
     },
     "render-form": {
-        "form-not-accessible": "The form <strong>{{formUrlSlug}}</strong> is not accessible for you!"
-    },
-    "requiredFieldValidationError": "Please fill out the required field: {{fieldName}}.",
-    "accessible-exams-form": {
-        "mandatoryFields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",
-        "examDate": "Please note that the exam date must be at least 14 days in the future.",
-        "subject": "Subject",
-        "startDateTime": "Start of Exam",
-        "startDateTimeValidationError": "Please choose a date that is at least two weeks ahead for the beginning of your exam.",
-        "endDateTime": "End of Exam",
-        "endDateTimeValidationError": "Please choose an end date that is past the beginning of your exam.",
-        "matriculationNumber": "Matriculation number",
-        "givenName": "Given name",
-        "familyName": "Family name",
-        "email": "Email address",
-        "room": "Original room",
-        "comment": "Comment",
-        "group": "Exact group allocation will follow",
-        "online": "This is an online exam"
+        "form-not-accessible": "The form <strong>{{formUrlSlug}}</strong> is not accessible for you!",
+        "base-object": {
+            "requiredFieldValidationError": "Please fill out the required field: {{fieldName}}."
+        },
+        "forms": {
+            "accessible-exams-form": {
+                "mandatoryFields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",
+                "examDate": "Please note that the exam date must be at least 14 days in the future.",
+                "subject": "Subject",
+                "startDateTime": "Start of Exam",
+                "startDateTimeValidationError": "Please choose a date that is at least two weeks ahead for the beginning of your exam.",
+                "endDateTime": "End of Exam",
+                "endDateTimeValidationError": "Please choose an end date that is past the beginning of your exam.",
+                "matriculationNumber": "Matriculation number",
+                "givenName": "Given name",
+                "familyName": "Family name",
+                "email": "Email address",
+                "room": "Original room",
+                "comment": "Comment",
+                "group": "Exact group allocation will follow",
+                "online": "This is an online exam"
+            }
+        }
     }
 }

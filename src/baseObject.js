@@ -48,10 +48,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
     validateRequiredFields() {
         const i18n = this._i18n;
-        
+
         // Initially set the validation result to true to allow form submission
         let requiredFieldsValidation = true;
-        
+
         // Select all input elements with the 'required' attribute
         const formElement = this.shadowRoot.querySelector('form');
         const requiredFields = formElement.querySelectorAll('input[required], select[required], textarea[required]');
@@ -63,7 +63,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 // If empty, alert the user and return false to prevent form submission
                 this.showCustomValidationErrorMessage(
                     `${field.id}`,
-                    i18n.t('requiredFieldValidationError',
+                    i18n.t('render-form.base-object.requiredFieldValidationError',
                         {fieldName: field.name},
                     )
                 );

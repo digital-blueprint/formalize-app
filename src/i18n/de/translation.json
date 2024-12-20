@@ -66,24 +66,28 @@
         "name": "Name"
     },
     "render-form": {
-        "form-not-accessible": "Das Formular <strong>{{formUrlSlug}}</strong> ist für Sie nicht verfügbar!"
-    },
-    "requiredFieldValidationError": "Bitte füllen Sie das Pflichtfeld aus: {{fieldName}}.",
-    "accessible-exams-form": {
-        "mandatoryFields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
-        "examDate": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
-        "subject": "Fach",
-        "startDateTime": "Beginn der Prüfung",
-        "startDateTimeValidationError": "Bitte wählen Sie für den Beginn der Prüfung ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
-        "endDateTime": "Ende der Prüfung",
-        "endDateTimeValidationError": "Bitte wählen Sie für das Ende der Prüfung ein Datum, das nach dem Beginn der Prüfung liegt.",
-        "matriculationNumber": "Matrikelnummer",
-        "givenName": "Vorname",
-        "familyName": "Nachname",
-        "email": "E-Mail-Adresse",
-        "room": "Originalraum",
-        "comment": "Anmerkung",
-        "group": "Genaue Gruppenzuteilung erfolgt noch",
-        "online": "Es handelt sich um eine Online-Prüfung"
+        "form-not-accessible": "Das Formular <strong>{{formUrlSlug}}</strong> ist für Sie nicht verfügbar!",
+        "base-object": {
+            "requiredFieldValidationError": "Bitte füllen Sie das Pflichtfeld aus: {{fieldName}}."
+        },
+        "forms": {
+            "accessible-exams-form": {
+                "mandatoryFields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
+                "examDate": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
+                "subject": "Fach",
+                "startDateTime": "Beginn der Prüfung",
+                "startDateTimeValidationError": "Bitte wählen Sie für den Beginn der Prüfung ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
+                "endDateTime": "Ende der Prüfung",
+                "endDateTimeValidationError": "Bitte wählen Sie für das Ende der Prüfung ein Datum, das nach dem Beginn der Prüfung liegt.",
+                "matriculationNumber": "Matrikelnummer",
+                "givenName": "Vorname",
+                "familyName": "Nachname",
+                "email": "E-Mail-Adresse",
+                "room": "Originalraum",
+                "comment": "Anmerkung",
+                "group": "Genaue Gruppenzuteilung erfolgt noch",
+                "online": "Es handelt sich um eine Online-Prüfung"
+            }
+        }
     }
 }
