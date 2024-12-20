@@ -89,6 +89,10 @@
                 "group": "Exact group allocation will follow",
                 "online": "This is an online exam"
             }
+        },
+        "course-select": {
+            "login-required": "Login required",
+            "placeholder": "Please select a course"
         }
     }
 }

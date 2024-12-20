@@ -89,6 +89,10 @@
                 "group": "Genaue Gruppenzuteilung erfolgt noch",
                 "online": "Es handelt sich um eine Online-Prüfung"
             }
+        },
+        "course-select": {
+            "login-required": "Anmeldung erforderlich",
+            "placeholder": "Bitte wählen Sie einen Kurs aus"
         }
     }
 }

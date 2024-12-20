@@ -131,8 +131,8 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                 language: this.lang === 'de' ? select2LangDe() : select2LangEn(),
                 minimumInputLength: 2,
                 placeholder: this.authenticated()
-                    ? i18n.t('course-select.placeholder')
-                    : i18n.t('course-select.login-required'),
+                    ? i18n.t('render-form.course-select.placeholder')
+                    : i18n.t('render-form.course-select.login-required'),
                 dropdownParent: this.$('#course-select-dropdown'),
                 ajax: {
                     delay: 500,
@@ -360,7 +360,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                             ${!this.authenticated()
                                 ? html`
                                       <option value="" disabled selected>
-                                          ${i18n.t('course-select.login-required')}
+                                          ${i18n.t('render-form.course-select.login-required')}
                                       </option>
                                   `
                                 : ''}
