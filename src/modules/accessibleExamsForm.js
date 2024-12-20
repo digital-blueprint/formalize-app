@@ -55,15 +55,15 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <h1>${i18n.t('render-form.forms.accessible-exams-form.title')}</h1>
-            <p>${i18n.t('render-form.forms.accessible-exams-form.mandatoryFields')}<br />
-            ${i18n.t('render-form.forms.accessible-exams-form.examDate')}</p>
+            <p>${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}<br />
+            ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}</p>
             <form>
                 ${formElements.stringElement('subject', i18n.t('render-form.forms.accessible-exams-form.subject') + " *", data.subject || '', true)}    
-                ${formElements.dateTimeElement('startDateTime', i18n.t('render-form.forms.accessible-exams-form.startDateTime') + " *", data.startDateTime || '', true)}
-                ${formElements.dateTimeElement('endDateTime', i18n.t('render-form.forms.accessible-exams-form.endDateTime') + " *", data.endDateTime || '', true)}
-                ${formElements.stringElement('matriculationNumber', i18n.t('render-form.forms.accessible-exams-form.matriculationNumber'), data.matriculationNumber || '')}
-                ${formElements.stringElement('givenName', i18n.t('render-form.forms.accessible-exams-form.givenName'), data.givenName || '')}
-                ${formElements.stringElement('familyName', i18n.t('render-form.forms.accessible-exams-form.familyName'), data.familyName || '')}
+                ${formElements.dateTimeElement('startDateTime', i18n.t('render-form.forms.accessible-exams-form.start-date-time') + " *", data.startDateTime || '', true)}
+                ${formElements.dateTimeElement('endDateTime', i18n.t('render-form.forms.accessible-exams-form.end-date-time') + " *", data.endDateTime || '', true)}
+                ${formElements.stringElement('matriculationNumber', i18n.t('render-form.forms.accessible-exams-form.matriculation-number'), data.matriculationNumber || '')}
+                ${formElements.stringElement('givenName', i18n.t('render-form.forms.accessible-exams-form.given-name'), data.givenName || '')}
+                ${formElements.stringElement('familyName', i18n.t('render-form.forms.accessible-exams-form.family-name'), data.familyName || '')}
                 ${formElements.stringElement('email', i18n.t('render-form.forms.accessible-exams-form.email'), data.email || '')}
                 ${formElements.stringElement('room', i18n.t('render-form.forms.accessible-exams-form.room'), data.room || '')}
                 ${formElements.stringElement('comment', i18n.t('render-form.forms.accessible-exams-form.comment'), data.comment || '')}
@@ -130,7 +130,7 @@ class FormalizeFormElement extends BaseFormElement {
             // If the start date is before the minimum date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-startdatetime",
-                i18n.t('render-form.forms.accessible-exams-form.startDateTimeValidationError')
+                i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')
             );
             // Set the validation result to false to prevent form submission
             dateTimeFieldValidation = false;
@@ -140,7 +140,7 @@ class FormalizeFormElement extends BaseFormElement {
             // If the end date is before the start date, alert the user
             this.showCustomValidationErrorMessage(
                 "form-input-enddatetime",
-                i18n.t('render-form.forms.accessible-exams-form.endDateTimeValidationError')
+                i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')
             );
             // Set the validation result to false to prevent form submission
             dateTimeFieldValidation = false;
