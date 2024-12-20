@@ -61,13 +61,13 @@
         "search-operator-starts": "starts with",
         "searchbar-placeholder": "Search",
         "something-went-wrong-body": "We're sorry, something went wrong.",
-        "something-went-wrong-title": "Error!"
+        "something-went-wrong-title": "Error!",
+        "id": "ID",
+        "name": "Name"
     },
     "render-form": {
         "form-not-accessible": "The form <strong>{{formUrlSlug}}</strong> is not accessible for you!"
     },
-    "id": "ID",
-    "name": "Name",
     "requiredFieldValidationError": "Please fill out the required field: {{fieldName}}.",
     "accessible-exams-form": {
         "mandatoryFields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",

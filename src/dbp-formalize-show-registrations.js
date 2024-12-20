@@ -1670,14 +1670,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let langs_forms = {
             en: {
                 columns: {
-                    id: i18n.t('id', {lng: 'en'}),
-                    name: i18n.t('name', {lng: 'en'}),
+                    id: i18n.t('show-registrations.id', {lng: 'en'}),
+                    name: i18n.t('show-registrations.name', {lng: 'en'}),
                 },
             },
             de: {
                 columns: {
-                    id: i18n.t('id', {lng: 'de'}),
-                    name: i18n.t('name', {lng: 'de'}),
+                    id: i18n.t('show-registrations.id', {lng: 'de'}),
+                    name: i18n.t('show-registrations.name', {lng: 'de'}),
                 },
             },
         };

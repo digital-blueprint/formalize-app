@@ -61,13 +61,13 @@
         "search-operator-starts": "fängt an mit",
         "searchbar-placeholder": "Suchen",
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
-        "something-went-wrong-title": "Fehler!"
+        "something-went-wrong-title": "Fehler!",
+        "id": "ID",
+        "name": "Name"
     },
     "render-form": {
         "form-not-accessible": "Das Formular <strong>{{formUrlSlug}}</strong> ist für Sie nicht verfügbar!"
     },
-    "id": "ID",
-    "name": "Name",
     "requiredFieldValidationError": "Bitte füllen Sie das Pflichtfeld aus: {{fieldName}}.",
     "accessible-exams-form": {
         "mandatoryFields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
