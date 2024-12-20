@@ -71,6 +71,14 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.checkboxElement('online', i18n.t('render-form.forms.accessible-exams-form.online'), data.online || 'on')}
                 ${this.getButtonRowHtml()}
             </form>
+
+            <p>Course-select demo</p>
+            <dbp-course-select
+                id="demo"
+                lang="${this.lang}"
+                entry-point-url="${this.entryPointUrl}"
+                subscribe="auth">
+            </dbp-course-select>
         `;
     }
 

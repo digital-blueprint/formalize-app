@@ -6,6 +6,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles';
 import * as formElements from './modules/formElements';
 import {classMap} from 'lit/directives/class-map.js';
 import {getSelectorFixCSS} from './styles.js';
+import {CourseSelect} from './modules/course-select';
 
 export class BaseObject {
     getUrlSlug() {
@@ -34,6 +35,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
     static get scopedElements() {
         return {
+            'dbp-course-select': CourseSelect,
         };
     }
 
