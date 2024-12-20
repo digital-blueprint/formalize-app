@@ -72,6 +72,7 @@
         },
         "forms": {
             "accessible-exams-form": {
+                "title": "Barrierefreien Prüfungstermin anmelden",
                 "mandatory-fields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
                 "exam-date": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
                 "subject": "Fach",
