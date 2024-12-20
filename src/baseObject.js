@@ -63,7 +63,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 // If empty, alert the user and return false to prevent form submission
                 this.showCustomValidationErrorMessage(
                     `${field.id}`,
-                    i18n.t('render-form.base-object.requiredFieldValidationError',
+                    i18n.t('render-form.base-object.required-field-validation-error',
                         {fieldName: field.name},
                     )
                 );
