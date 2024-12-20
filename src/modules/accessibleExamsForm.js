@@ -21,10 +21,10 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
-    
+
     async fetchUserData() {
         console.log("Fetching user data ...");
-        
+
         // TODO: Error Handling
 
         let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'], {
@@ -36,7 +36,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (!response.ok) {
             throw new Error(response);
         }
-        
+
         this.data = await response.json();
         this.data.givenName = `${this.data['givenName']}`;
         this.data.familyName = `${this.data['familyName']}`;
@@ -114,7 +114,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Initially set the validation result to true to allow form submission
         let dateTimeFieldValidation = true;
-        
+
         // Select all input elements with the type "datetime-local"
         const formElement = this.shadowRoot.querySelector('form');
         const dateTimeFields = formElement.querySelectorAll('input[type="datetime-local"]');
@@ -122,14 +122,14 @@ class FormalizeFormElement extends BaseFormElement {
         // Get start and end date of the exam
         const startDateTime = Date.parse(dateTimeFields[0].value);
         const endDateTime = Date.parse(dateTimeFields[1].value);
-        
+
         // The minimum date has to be two weeks ahead
         const min = Date.now() + 1209600000;
-        
+
         if (startDateTime < min) {
             // If the start date is before the minimum date, alert the user
             this.showCustomValidationErrorMessage(
-                "form-input-startdatetime", 
+                "form-input-startdatetime",
                 i18n.t('accessible-exams-form.startDateTimeValidationError')
             );
             // Set the validation result to false to prevent form submission
@@ -139,7 +139,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (endDateTime < startDateTime) {
             // If the end date is before the start date, alert the user
             this.showCustomValidationErrorMessage(
-                "form-input-enddatetime", 
+                "form-input-enddatetime",
                 i18n.t('accessible-exams-form.endDateTimeValidationError')
             );
             // Set the validation result to false to prevent form submission
