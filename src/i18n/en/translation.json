@@ -63,6 +63,9 @@
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!"
     },
+    "render-form": {
+        "form-not-accessible": "The form <strong>{{formUrlSlug}}</strong> is not accessible for you!"
+    },
     "id": "ID",
     "name": "Name",
     "requiredFieldValidationError": "Please fill out the required field: {{fieldName}}.",

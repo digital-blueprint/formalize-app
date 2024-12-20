@@ -6,6 +6,7 @@ import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './baseObject.js';
 import {pascalToKebab} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
@@ -217,11 +218,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     render() {
-        // TODO: Don't show the form if this.submissionAllowed is false
+        const i18n = this._i18n;
+
+        if (!this.submissionAllowed) {
+            return html`
+                ${unsafeHTML(i18n.t(
+                    'render-form.form-not-accessible',
+                    {
+                        formUrlSlug: this.formUrlSlug,
+                    },
+                ))}
+            `;
+        }
+
         return html`
-            This is the form <strong>${this.formUrlSlug}</strong>!<br />
-            Submission allowed: ${this.submissionAllowed}
-            <hr />
             ${this.getFormHtml()}
         `;
     }

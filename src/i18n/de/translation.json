@@ -63,6 +63,9 @@
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!"
     },
+    "render-form": {
+        "form-not-accessible": "Das Formular <strong>{{formUrlSlug}}</strong> ist für Sie nicht verfügbar!"
+    },
     "id": "ID",
     "name": "Name",
     "requiredFieldValidationError": "Bitte füllen Sie das Pflichtfeld aus: {{fieldName}}.",
