@@ -104,10 +104,13 @@ export const getFieldsetCSS = () => {
  * @param label
  * @param value - the string to display
  * @param isRequired
- * @param rows
+ * @param settings
  */
-export const stringElement = (name, label, value = "", isRequired = false, rows = 1) => {
+export const stringElement = (name, label, value = "", isRequired = false, settings = {}) => {
     const id = sanitizeForHtmlId(name);
+    const rows = settings.rows || 1;
+    const errorMessagesRenderFunction = settings.errorMessagesRenderFunction || null;
+
     return html`
         <fieldset>
             <label for="form-input-${name}">${label}</label>
@@ -126,6 +129,7 @@ export const stringElement = (name, label, value = "", isRequired = false, rows 
                     ?required=${isRequired}
                   >`
             }
+            ${errorMessagesRenderFunction ? errorMessagesRenderFunction() : ``}
         </fieldset>
     `;
 };

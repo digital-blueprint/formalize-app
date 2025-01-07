@@ -48,6 +48,24 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             </div>`);
     }
 
+    renderFormElementErrorMessages(errorMessages) {
+        // If "errorMessages" is a string, convert it to an array
+        if (typeof errorMessages === 'string') {
+            errorMessages = [errorMessages];
+        }
+
+        if (!errorMessages) {
+            return html``;
+        }
+
+        // Loop through each error message
+        return html`
+            <ul class="validation-errors">
+                ${errorMessages.map(error => html`<li>${error}</li>`)}
+            </ul>
+        `;
+    }
+
     validateRequiredFields() {
         const i18n = this._i18n;
 
