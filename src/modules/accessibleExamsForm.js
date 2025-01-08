@@ -1,6 +1,6 @@
 import {BaseFormElement, BaseObject} from '../baseObject.js';
 import {html} from 'lit';
-import * as formElements from './formElements.js';
+import * as formElements from '../formElements.js';
 import {classMap} from 'lit/directives/class-map.js';
 
 export default class extends BaseObject {
