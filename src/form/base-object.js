@@ -88,7 +88,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                     )
                 );
 
-                // Set the validation result to false to prevent form submission
+                // Set the validation result to false so form submission is prevented
                 requiredFieldsValidation = false;
             }
         }
