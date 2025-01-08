@@ -192,6 +192,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 margin-top: 1em;
                 text-align: right;
             }
+
+            .validation-errors {
+                color: var(--dbp-override-danger);
+                margin-top: 0.5em;
+            }
         `;
     }
 
