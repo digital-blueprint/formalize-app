@@ -1,12 +1,12 @@
-import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
+import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element.js';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import {css, html} from 'lit';
-import {createInstance} from './i18n';
-import * as commonStyles from '@dbp-toolkit/common/styles';
+import {createInstance} from '../i18n.js';
+import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import * as formElements from './formElements.js';
 import {classMap} from 'lit/directives/class-map.js';
-import {getSelectorFixCSS} from './styles.js';
-import {CourseSelect} from './modules/course-select';
+import {getSelectorFixCSS} from '../styles.js';
+import {CourseSelect} from '../modules/course-select.js';
 
 export class BaseObject {
     getUrlSlug() {
