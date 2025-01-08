@@ -3,7 +3,7 @@ import {html as staticHtml, unsafeStatic} from 'lit/static-html.js';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
-import {BaseObject} from './form/baseObject.js';
+import {BaseObject} from './form/base-object.js';
 import {pascalToKebab} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';

@@ -3,7 +3,7 @@ import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import {css, html} from 'lit';
 import {createInstance} from '../i18n.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import * as formElements from './formElements.js';
+import * as formElements from './form-elements.js';
 import {classMap} from 'lit/directives/class-map.js';
 import {getSelectorFixCSS} from '../styles.js';
 import {CourseSelect} from '../modules/course-select.js';
