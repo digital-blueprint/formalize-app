@@ -1,6 +1,7 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import * as formElements from '../form/form-elements.js';
+import {DbpStringElement} from '../form/elements/string.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -25,6 +26,12 @@ class FormalizeFormElement extends BaseFormElement {
         this.sendSetPropertyEvent('routing-url', routingUrl, true);
     }
 
+    static get scopedElements() {
+        return {
+            'dbp-string-element': DbpStringElement,
+        };
+    }
+
     render() {
         console.log('-- Render FormalizeFormElement --');
         console.log('this.data', this.data);
@@ -34,6 +41,7 @@ class FormalizeFormElement extends BaseFormElement {
             <h1>Demo Form</h1>
             <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
             <form>
+                <dbp-string-element name="myString" label="My string component" value=${data.myString || ''} required></dbp-string-element>
                 ${formElements.stringElement('myString', 'My string', data.myString || '', true)}
                 ${formElements.stringElement('myLongString', 'My long string', data.myLongString || '', true, {
                     rows: 5,
