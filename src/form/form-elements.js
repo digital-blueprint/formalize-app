@@ -104,12 +104,12 @@ export const getFieldsetCSS = () => {
  * @param label
  * @param value - the string to display
  * @param isRequired
- * @param settings
+ * @param options
  */
-export const stringElement = (name, label, value = "", isRequired = false, settings = {}) => {
+export const stringElement = (name, label, value = "", isRequired = false, options = {}) => {
     const id = sanitizeForHtmlId(name);
-    const rows = settings.rows || 1;
-    const errorMessagesRenderFunction = settings.errorMessagesRenderFunction || null;
+    const rows = options.rows || 1;
+    const errorMessagesRenderFunction = options.errorMessagesRenderFunction || null;
 
     return html`
         <fieldset>
