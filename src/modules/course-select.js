@@ -142,8 +142,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                         jqXHR.setRequestHeader('Authorization', 'Bearer ' + that.auth.token);
                         that.isSearching = true;
                     },
-                    data: (params) => {
-                        console.log(this.buildUrlData(this, params));
+                    data: (params) => {                        
                         return this.buildUrlData(this, params);
                     },
                     processResults: function (data) {
