@@ -25,6 +25,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPLitElement) {
         console.log('evaluateCallback data', data);
 
         // TODO: Do custom validation
+        // TODO: Print error message
 
         return !(this.required && !this.value);
     }
