@@ -58,7 +58,22 @@ class FormalizeFormElement extends BaseFormElement {
             <p>${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}<br />
             ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}</p>
             <form>
-                ${formElements.stringElement('subject', i18n.t('render-form.forms.accessible-exams-form.subject') + " *", data.subject || '')}
+
+                <div class="field">
+                    <label class="label">${i18n.t('render-form.forms.accessible-exams-form.subject') + " *"}</label>
+                    <div class="control">
+                        <dbp-course-select
+                            name="subject"
+                            id="form-input-subject"
+                            required="true"
+                            subscribe="auth"
+                            lang="${this.lang}"
+                            entry-point-url="${this.entryPointUrl}">
+                        </dbp-course-select>
+                    </div>
+                </div>
+
+                <!-- ${formElements.stringElement('subject', i18n.t('render-form.forms.accessible-exams-form.subject') + " *", data.subject || '')} -->
                 ${formElements.dateTimeElement('startDateTime', i18n.t('render-form.forms.accessible-exams-form.start-date-time') + " *", data.startDateTime || '')}
                 ${formElements.dateTimeElement('endDateTime', i18n.t('render-form.forms.accessible-exams-form.end-date-time') + " *", data.endDateTime || '')}
                 ${formElements.stringElement('matriculationNumber', i18n.t('render-form.forms.accessible-exams-form.matriculation-number'), data.matriculationNumber || '')}
@@ -69,18 +84,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.stringElement('comment', i18n.t('render-form.forms.accessible-exams-form.comment'), data.comment || '')}
                 ${formElements.checkboxElement('group', i18n.t('render-form.forms.accessible-exams-form.group'), data.group || 'on')}
                 ${formElements.checkboxElement('online', i18n.t('render-form.forms.accessible-exams-form.online'), data.online || 'on')}
-                
-                <div class="field">
-                    <label class="label">Course</label>
-                    <div class="control">
-                        <dbp-course-select
-                            subscribe="auth"
-                            lang="${this.lang}"
-                            entry-point-url="${this.entryPointUrl}">
-                        </dbp-course-select>
-                    </div>
-                </div>
-                
+
                 ${this.getButtonRowHtml()}
             </form>
         `;
@@ -101,20 +105,18 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     getCourseData() {
-        // Testing: get the data from course select
         const formElement = this.shadowRoot.querySelector('form');
         const courseSelect = formElement.querySelector('dbp-course-select');
-        
+
         let courseDataObject = JSON.parse(courseSelect.getAttribute('data-object'));
-        let courseId = courseDataObject.identifier;
-        let courseName = courseDataObject.name;
-        console.log("Course ID: " + courseId + "; course name: " + courseName);
+        if (courseDataObject != null) {
+            this.data.courseName = courseDataObject.name;
+            this.data.courseId = courseDataObject.identifier;
+        }
     }
 
     validateAndSendSubmission(event) {
         event.preventDefault();
-
-        this.getCourseData();
 
         // Remove alerts for old validation errors
         let oldValidationErrors = this.shadowRoot.querySelectorAll("div.validation-error");
@@ -127,6 +129,9 @@ class FormalizeFormElement extends BaseFormElement {
             this.validateRequiredFields(),
             this.validateDateTimeFields()
         ];
+
+        // Get course data
+        this.getCourseData();
 
         // Only submit the form if all validations return true
         if (!validationResults.includes(false)) {

@@ -61,6 +61,9 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
             reloadButtonTitle: {type: String, attribute: 'reload-button-title'},
             auth: {type: Object},
             disabled: {type: Boolean, reflect: true},
+            name: {type: String},
+            id: {type: String},
+            required: {type: Boolean}
         };
     }
 
