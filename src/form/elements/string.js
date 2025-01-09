@@ -18,6 +18,10 @@ export class DbpStringElement extends ScopedElementsMixin(DbpBaseElement) {
         };
     }
 
+    handleInput(e) {
+        this.value = e.target.value;
+    }
+
     render() {
         const id = sanitizeForHtmlId(this.name);
 
@@ -29,7 +33,7 @@ export class DbpStringElement extends ScopedElementsMixin(DbpBaseElement) {
                     id="form-input-${id}"
                     name="${this.name}"
                     rows="${this.rows}"
-                    .value="${this.value}"
+                    @input="${this.handleInput}"
                     ?required=${this.required}
                   >${this.value}</textarea>`
                     : html`<input
@@ -37,6 +41,7 @@ export class DbpStringElement extends ScopedElementsMixin(DbpBaseElement) {
                     id="form-input-${id}"
                     name="${this.name}"
                     .value="${this.value}"
+                    @input="${this.handleInput}"
                     ?required=${this.required}
                   >`
                 }

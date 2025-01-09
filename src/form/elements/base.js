@@ -16,7 +16,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPLitElement) {
         return {
             name: {type: String},
             label: {type: String},
-            value: {type: String},
+            value: {type: String, reflect: true},
             required: {type: Boolean},
         };
     }
