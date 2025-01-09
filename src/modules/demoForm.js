@@ -41,7 +41,8 @@ class FormalizeFormElement extends BaseFormElement {
             <h1>Demo Form</h1>
             <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
             <form>
-                <dbp-string-element name="myString" label="My string component" value=${data.myString || ''} required></dbp-string-element>
+                <dbp-string-element name="myComponentString" label="My string component" value=${data.myComponentString || ''} required></dbp-string-element>
+                <dbp-string-element name="myComponentLongString" label="My long string component" value=${data.myComponentLongString || ''} rows="5" required></dbp-string-element>
                 ${formElements.stringElement('myString', 'My string', data.myString || '', true)}
                 ${formElements.stringElement('myLongString', 'My long string', data.myLongString || '', true, {
                     rows: 5,

@@ -21,6 +21,24 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPLitElement) {
         };
     }
 
+    evaluateCallback(data) {
+        console.log('evaluateCallback data', data);
+
+        // TODO: Do custom validation
+
+        return !(this.required && !this.value);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+
+        this.addEventListener('evaluate', (event) => {
+            const detail = event.detail;
+            const result = this.evaluateCallback(detail.data); // Perform your evaluation
+            detail.respond(result); // Send the result back to the caller
+        });
+    }
+
     static get styles() {
         // language=css
         return css`

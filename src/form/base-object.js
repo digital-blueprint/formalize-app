@@ -41,11 +41,12 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
     showCustomValidationErrorMessage(id, message) {
         // Insert a div with a custom error message when validation fails after the HTML element with the given id
-        this.shadowRoot.getElementById(id)
-        .insertAdjacentHTML("afterend",
+        this.shadowRoot.getElementById(id).insertAdjacentHTML(
+            'afterend',
             `<div class="validation-error">
                 <p>${message}</p>
-            </div>`);
+            </div>`,
+        );
     }
 
     renderFormElementErrorMessages(errorMessages) {
@@ -61,47 +62,97 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         // Loop through each error message
         return html`
             <ul class="validation-errors">
-                ${errorMessages.map(error => html`<li>${error}</li>`)}
+                ${errorMessages.map(
+                    (error) => html`
+                        <li>${error}</li>
+                    `,
+                )}
             </ul>
         `;
     }
 
-    validateRequiredFields() {
-        const i18n = this._i18n;
+    async validateRequiredFields() {
+        // const i18n = this._i18n;
 
         // Initially set the validation result to true to allow form submission
-        let requiredFieldsValidation = true;
+        // let requiredFieldsValidation = true;
 
         // Select all input elements with the 'required' attribute
         const formElement = this.shadowRoot.querySelector('form');
-        const requiredFields = formElement.querySelectorAll('input[required], select[required], textarea[required]');
+        // const elementWebComponents = BaseFormElement.getElementWebComponents(formElement);
+        // const data = this.gatherFormDataFromElement(formElement);
+        //
+        // elementWebComponents.forEach((element) => {
+        //     element.dispatchEvent(
+        //         new CustomEvent('evaluate', {
+        //             detail: {
+        //                 data: data,
+        //             },
+        //         }),
+        //     );
+        // });
 
-        // Loop through each required field
-        for (let field of requiredFields) {
-            // Check if the field is empty
-            if (!field.value.trim()) {
-                // If empty, alert the user and return false to prevent form submission
-                this.showCustomValidationErrorMessage(
-                    `${field.id}`,
-                    i18n.t('render-form.base-object.required-field-validation-error',
-                        {fieldName: field.name},
-                    )
-                );
+        const elementWebComponents = BaseFormElement.getElementWebComponents(formElement);
+        const data = this.gatherFormDataFromElement(formElement);
 
-                // Set the validation result to false so form submission is prevented
-                requiredFieldsValidation = false;
-            }
-        }
+        const evaluationPromises = elementWebComponents.map((element) => {
+            return new Promise((resolve) => {
+                const event = new CustomEvent('evaluate', {
+                    detail: {
+                        data: data,
+                        respond: resolve, // Pass a callback for the component to use
+                    },
+                });
+                element.dispatchEvent(event);
+            });
+        });
 
-        // Return the validation result
-        return requiredFieldsValidation;
+        const responses = await Promise.all(evaluationPromises);
+        return !responses.includes(false); // Return true if no component returned false
+
+        // // Wait for all components to respond and check if any returned false
+        // Promise.all(evaluationPromises).then((responses) => {
+        //     const hasAnyFalse = responses.some((response) => response === false);
+        //     if (hasAnyFalse) {
+        //         console.log('At least one component evaluated to false.');
+        //     } else {
+        //         console.log('All components evaluated to true.');
+        //     }
+        // });
+
+        // // const requiredFields = formElement.querySelectorAll('input[required], select[required], textarea[required]');
+        // const requiredFields = formElement.querySelectorAll('*[required]');
+        // console.log('validateRequiredFields requiredFields', requiredFields);
+        //
+        // // Loop through each required field
+        // for (let field of requiredFields) {
+        //     console.log('validateRequiredFields field.value', field.value);
+        //     // // Check if the field is empty
+        //     // if (!field.value.trim()) {
+        //     //     // If empty, alert the user and return false to prevent form submission
+        //     //     this.showCustomValidationErrorMessage(
+        //     //         `${field.id}`,
+        //     //         i18n.t('render-form.base-object.required-field-validation-error',
+        //     //             {fieldName: field.name},
+        //     //         )
+        //     //     );
+        //     //
+        //     //     // Set the validation result to false so form submission is prevented
+        //     //     requiredFieldsValidation = false;
+        //     // }
+        // }
+        //
+        // // Return the validation result
+        // return requiredFieldsValidation;
     }
 
-    validateAndSendSubmission(event) {
+    async validateAndSendSubmission(event) {
         event.preventDefault();
 
         // Validate the form before proceeding
-        if (!this.validateRequiredFields()) {
+        const validationResult = await this.validateRequiredFields();
+        console.log('validateAndSendSubmission validationResult', validationResult);
+        if (!validationResult) {
             return;
         }
 
@@ -112,12 +163,15 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.saveButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
         const data = {
-            'formData': this.gatherFormDataFromElement(formElement),
+            formData: this.gatherFormDataFromElement(formElement),
         };
         console.log('data', data);
 
-        const customEvent = new CustomEvent("DbpFormalizeFormSubmission",
-            {"detail": data, bubbles: true, composed: true});
+        const customEvent = new CustomEvent('DbpFormalizeFormSubmission', {
+            detail: data,
+            bubbles: true,
+            composed: true,
+        });
         this.dispatchEvent(customEvent);
     }
 
@@ -141,30 +195,54 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     gatherFormDataFromElement(formElement) {
-        const formData = new FormData(formElement);
+        let customElementValues = {};
+
+        // Gather data from "dbp-.*-element" web components
+        const elementWebComponents = BaseFormElement.getElementWebComponents(formElement);
+        console.log('gatherFormDataFromElement elementWebComponents', elementWebComponents);
+        elementWebComponents.forEach((element) => {
+            const name = element.getAttribute('name') || element.id;
+            customElementValues[name] = element.value;
+        });
 
         // Check if any elements have a "data-value" attribute, because we want to use that value instead of the form value
         const elementsWithDataValue = formElement.querySelectorAll('[data-value]');
         let dataValues = {};
-        elementsWithDataValue.forEach(element => {
+        elementsWithDataValue.forEach((element) => {
             const name = element.getAttribute('name') || element.id;
             dataValues[name] = element.getAttribute('data-value');
         });
 
+        console.log('gatherFormDataFromElement dataValues', dataValues);
         console.log('this.data', this.data);
 
         const data = {};
 
-        for (let [key, value] of formData.entries()) {
-            // Check if we have a "data-value" attribute for this element
-            if (dataValues[key]) {
-                value = dataValues[key];
-            }
-
+        // 1. First, add all custom element values as the base
+        for (let [key, value] of Object.entries(customElementValues)) {
             this.setNestedValue(data, key, value);
         }
 
+        // 2. Then process form data, which can override custom element values
+        const formData = new FormData(formElement);
+        for (let [key, value] of formData.entries()) {
+            this.setNestedValue(data, key, value);
+        }
+
+        // 3. Finally, apply dataValues which have the highest priority
+        for (let [key, value] of Object.entries(dataValues)) {
+            this.setNestedValue(data, key, value);
+        }
+
+        console.log('gatherFormDataFromElement data', data);
+
         return data;
+    }
+
+    static getElementWebComponents(formElement) {
+        return Array.from(formElement.getElementsByTagName('*')).filter((el) =>
+            el.tagName.toLowerCase().match(/^dbp-.*-element$/),
+        );
     }
 
     static get properties() {
@@ -174,9 +252,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             person: {type: Object},
             additionalType: {type: String, attribute: 'additional-type'},
             data: {type: Object},
-            auth: { type: Object },
-            entryPointUrl: { type: String, attribute: 'entry-point-url' },
-            saveButtonEnabled: { type: Boolean, attribute: false },
+            auth: {type: Object},
+            entryPointUrl: {type: String, attribute: 'entry-point-url'},
+            saveButtonEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -203,18 +281,27 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     resetForm(event) {
         event.preventDefault();
 
-        const customEvent = new CustomEvent("DbpFormalizeFormReset",
-            {bubbles: true, composed: true});
+        const customEvent = new CustomEvent('DbpFormalizeFormReset', {
+            bubbles: true,
+            composed: true,
+        });
         this.dispatchEvent(customEvent);
     }
 
     getButtonRowHtml() {
         return html`
             <div class="button-row">
-                <button class="button is-secondary" type="button" @click=${this.resetForm}>Reset</button>
-                <button class="button is-primary" type="submit" ?disabled=${!this.saveButtonEnabled} @click=${this.validateAndSendSubmission}>
+                <button class="button is-secondary" type="button" @click=${this.resetForm}>
+                    Reset
+                </button>
+                <button
+                    class="button is-primary"
+                    type="submit"
+                    ?disabled=${!this.saveButtonEnabled}
+                    @click=${this.validateAndSendSubmission}>
                     Save
-                    <dbp-mini-spinner class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
+                    <dbp-mini-spinner
+                        class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
                 </button>
             </div>
         `;
