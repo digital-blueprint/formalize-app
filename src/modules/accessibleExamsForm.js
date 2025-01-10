@@ -82,7 +82,22 @@ class FormalizeFormElement extends BaseFormElement {
                 ${formElements.stringElement('givenName', i18n.t('render-form.forms.accessible-exams-form.given-name'), data.givenName || '')}
                 ${formElements.stringElement('familyName', i18n.t('render-form.forms.accessible-exams-form.family-name'), data.familyName || '')}
                 ${formElements.stringElement('email', i18n.t('render-form.forms.accessible-exams-form.email'), data.email || '')}
-                ${formElements.stringElement('room', i18n.t('render-form.forms.accessible-exams-form.room'), data.room || '')}
+
+                <div class="field">
+                    <label class="label">${i18n.t('render-form.forms.accessible-exams-form.room')}</label>
+                    <div class="control">
+                        <dbp-room-select
+                            name="room"
+                            id="form-input-room"
+                            required="true"
+                            subscribe="auth"
+                            lang="${this.lang}"
+                            entry-point-url="${this.entryPointUrl}">
+                        </dbp-room-select>
+                    </div>
+                </div>
+
+                <!-- ${formElements.stringElement('room', i18n.t('render-form.forms.accessible-exams-form.room'), data.room || '')} -->
                 ${formElements.stringElement('comment', i18n.t('render-form.forms.accessible-exams-form.comment'), data.comment || '')}
                 ${formElements.checkboxElement('group', i18n.t('render-form.forms.accessible-exams-form.group'), data.group || 'on')}
                 ${formElements.checkboxElement('online', i18n.t('render-form.forms.accessible-exams-form.online'), data.online || 'on')}

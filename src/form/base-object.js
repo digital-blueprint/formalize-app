@@ -7,6 +7,7 @@ import * as formElements from './form-elements.js';
 import {classMap} from 'lit/directives/class-map.js';
 import {getSelectorFixCSS} from '../styles.js';
 import {CourseSelect} from '../modules/course-select.js';
+import {RoomSelect} from '../modules/room-select.js';
 
 export class BaseObject {
     getUrlSlug() {
@@ -36,6 +37,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     static get scopedElements() {
         return {
             'dbp-course-select': CourseSelect,
+            'dbp-room-select': RoomSelect
         };
     }
 
