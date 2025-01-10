@@ -8,6 +8,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
         super();
         this.id = '';
         this.name = '';
+        this.description = '';
         this.label = '';
         this.value = '';
         this.required = false;
@@ -19,6 +20,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
         return {
             ...super.properties,
             name: {type: String},
+            description: {type: String},
             label: {type: String},
             value: {type: String, reflect: true},
             required: {type: Boolean},
@@ -118,6 +120,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
                     ${this.label}
                     ${this.required ? html`(${this._i18n.t('render-form.base-object.required-field')})` : html``}
                 </label>
+                <div>${this.description}</div>
                 ${this.renderInput()}
                 ${this.renderErrorMessages()}
             </fieldset>
