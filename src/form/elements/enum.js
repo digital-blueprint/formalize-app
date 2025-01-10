@@ -2,7 +2,6 @@ import {css, html} from 'lit';
 import * as commonUtils from '@dbp-toolkit/common/utils.js';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import {DbpBaseElement} from './base.js';
-import {getFieldsetCSS} from '../utils.js';
 
 export class DbpEnumElement extends ScopedElementsMixin(DbpBaseElement) {
     constructor() {
