@@ -68,7 +68,7 @@
     "render-form": {
         "form-not-accessible": "The form <strong>{{formUrlSlug}}</strong> is not accessible for you!",
         "base-object": {
-            "required-field-validation-error": "Please fill out the required field: {{fieldName}}."
+            "required-field-validation-error": "Please fill out the required field!"
         },
         "forms": {
             "accessible-exams-form": {

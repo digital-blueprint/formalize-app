@@ -18,34 +18,25 @@ export class DbpStringElement extends ScopedElementsMixin(DbpBaseElement) {
         };
     }
 
-    handleInput(e) {
-        this.value = e.target.value;
-    }
-
-    render() {
-        const id = sanitizeForHtmlId(this.name);
-
+    renderInput() {
         return html`
-            <fieldset>
-                <label for="form-input-${id}">${this.label}</label>
-                ${this.rows > 1
-                    ? html`<textarea
-                    id="form-input-${id}"
-                    name="${this.name}"
-                    rows="${this.rows}"
-                    @input="${this.handleInput}"
-                    ?required=${this.required}
-                  >${this.value}</textarea>`
-                    : html`<input
-                    type="text"
-                    id="form-input-${id}"
-                    name="${this.name}"
-                    .value="${this.value}"
-                    @input="${this.handleInput}"
-                    ?required=${this.required}
-                  >`
-                }
-            </fieldset>
+            ${this.rows > 1
+                ? html`<textarea
+                id="form-input-${this.id}"
+                name="${this.name}"
+                rows="${this.rows}"
+                @input="${this.handleInputValue}"
+                ?required=${this.required}
+              >${this.value}</textarea>`
+                : html`<input
+                type="text"
+                id="form-input-${this.id}"
+                name="${this.name}"
+                .value="${this.value}"
+                @input="${this.handleInputValue}"
+                ?required=${this.required}
+              >`
+            }
         `;
     }
 }
