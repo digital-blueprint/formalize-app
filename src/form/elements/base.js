@@ -105,7 +105,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
     }
 
     render() {
-        this.id = sanitizeForHtmlId(this.name);
+        this.id = 'form-input-' + sanitizeForHtmlId(this.name);
 
         // Regenerate error messages in case the language has changed
         if (this.errorMessages.length > 0) {
@@ -114,7 +114,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
 
         return html`
             <fieldset>
-                <label for="form-input-${this.id}">
+                <label for="${this.id}">
                     ${this.label}
                     ${this.required ? html`(${this._i18n.t('render-form.base-object.required-field')})` : html``}
                 </label>
