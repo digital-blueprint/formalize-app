@@ -139,6 +139,39 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    validateRequiredFields() {
+        const i18n = this._i18n;
+
+        // Initially set the validation result to true to allow form submission
+        let requiredFieldsValidation = true;
+
+        // Select all input elements with the 'required' attribute
+        const formElement = this.shadowRoot.querySelector('form');
+        const requiredFields = formElement.querySelectorAll('*[required]');
+        console.log('validateRequiredFields requiredFields', requiredFields);
+        
+        // Loop through each required field
+        for (let field of requiredFields) {
+            console.log('validateRequiredFields field.value', field.value);
+            // Check if the field is empty
+            if (!field.value.trim()) {
+                // If empty, alert the user and return false to prevent form submission
+                this.showCustomValidationErrorMessage(
+                    `${field.id}`,
+                    i18n.t('render-form.base-object.required-field-validation-error',
+                        {fieldName: field.name},
+                    )
+                );
+            
+                // Set the validation result to false so form submission is prevented
+                requiredFieldsValidation = false;
+            }
+        }
+
+        // Return the validation result
+        return requiredFieldsValidation;
+    }
+
     validateDateTimeFields() {
         const i18n = this._i18n;
 
