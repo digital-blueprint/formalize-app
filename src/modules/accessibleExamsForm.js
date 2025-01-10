@@ -132,6 +132,17 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    getRoomData() {
+        const formElement = this.shadowRoot.querySelector('form');
+        const roomSelect = formElement.querySelector('dbp-room-select');
+
+        let roomDataObject = JSON.parse(roomSelect.getAttribute('data-object'));
+        if (roomDataObject != null) {
+            this.data.roomName = roomDataObject.code;
+            this.data.roomId = roomDataObject.identifier;
+        }
+    }
+
     validateAndSendSubmission(event) {
         event.preventDefault();
 
@@ -147,8 +158,9 @@ class FormalizeFormElement extends BaseFormElement {
             this.validateDateTimeFields()
         ];
 
-        // Get course data
+        // Get course and room data
         this.getCourseData();
+        this.getRoomData();
 
         // Only submit the form if all validations return true
         if (!validationResults.includes(false)) {
