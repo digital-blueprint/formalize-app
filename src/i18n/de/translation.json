@@ -68,7 +68,8 @@
     "render-form": {
         "form-not-accessible": "Das Formular <strong>{{formUrlSlug}}</strong> ist für Sie nicht verfügbar!",
         "base-object": {
-            "required-field-validation-error": "Bitte füllen Sie das Pflichtfeld aus!"
+            "required-field-validation-error": "Bitte füllen Sie das Pflichtfeld aus!",
+            "required-field": "Pflichtfeld"
         },
         "forms": {
             "accessible-exams-form": {

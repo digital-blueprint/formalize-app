@@ -108,7 +108,10 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
 
         return html`
             <fieldset>
-                <label for="form-input-${this.id}">${this.label}</label>
+                <label for="form-input-${this.id}">
+                    ${this.label}
+                    ${this.required ? html`(${this._i18n.t('render-form.base-object.required-field')})` : html``}
+                </label>
                 ${this.renderInput()}
                 ${this.renderErrorMessages()}
             </fieldset>
