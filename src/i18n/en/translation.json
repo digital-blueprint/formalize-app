@@ -94,6 +94,10 @@
         "course-select": {
             "login-required": "Login required",
             "placeholder": "Please select a course"
+        },
+        "room-select": {
+            "login-required": "Login required",
+            "placeholder": "Please select a room"
         }
     }
 }

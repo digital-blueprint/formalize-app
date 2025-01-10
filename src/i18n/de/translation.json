@@ -94,6 +94,10 @@
         "course-select": {
             "login-required": "Anmeldung erforderlich",
             "placeholder": "Bitte wählen Sie einen Kurs aus"
+        },
+        "room-select": {
+            "login-required": "Anmeldung erforderlich",
+            "placeholder": "Bitte wählen Sie einen Raum aus"
         }
     }
 }

@@ -134,8 +134,8 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
                 language: this.lang === 'de' ? select2LangDe() : select2LangEn(),
                 minimumInputLength: 2,
                 placeholder: this.authenticated()
-                    ? i18n.t('render-form.course-select.placeholder')
-                    : i18n.t('render-form.course-select.login-required'),
+                    ? i18n.t('render-form.room-select.placeholder')
+                    : i18n.t('render-form.room-select.login-required'),
                 dropdownParent: this.$('#room-select-dropdown'),
                 ajax: {
                     delay: 500,
@@ -362,7 +362,7 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
                             ${!this.authenticated()
                                 ? html`
                                       <option value="" disabled selected>
-                                          ${i18n.t('render-form.course-select.login-required')}
+                                          ${i18n.t('render-form.room-select.login-required')}
                                       </option>
                                   `
                                 : ''}
