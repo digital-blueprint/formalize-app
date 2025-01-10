@@ -1,11 +1,11 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
-import * as formElements from '../form/form-elements.js';
 import {DbpStringElement} from '../form/elements/string.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {DbpDateElement} from '../form/elements/date.js';
 import {DbpDateTimeElement} from '../form/elements/datetime.js';
 import {DbpEnumElement} from '../form/elements/enum.js';
+import {DbpCheckboxElement} from '../form/elements/checkbox.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -64,6 +64,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-date-element': DbpDateElement,
             'dbp-datetime-element': DbpDateTimeElement,
             'dbp-enum-element': DbpEnumElement,
+            'dbp-checkbox-element': DbpCheckboxElement,
         };
     }
 
@@ -130,7 +131,14 @@ class FormalizeFormElement extends BaseFormElement {
                     required>
                 </dbp-enum-element>
 
-                ${formElements.checkboxElement('myCheckbox', 'My checkbox', data.myCheckbox || false)}
+                <dbp-checkbox-element
+                    subscribe="lang"
+                    name="myComponentCheckbox"
+                    label="My checkbox"
+                    value="check"
+                    ?checked=${data.myComponentCheckbox || false}>
+                </dbp-checkbox-element>
+
                 ${this.getButtonRowHtml()}
             </form>
         `;
