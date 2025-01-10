@@ -5,6 +5,7 @@ import {DbpStringElement} from '../form/elements/string.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {DbpDateElement} from '../form/elements/date.js';
 import {DbpDateTimeElement} from '../form/elements/datetime.js';
+import {DbpEnumElement} from '../form/elements/enum.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -28,6 +29,7 @@ class FormalizeFormElement extends BaseFormElement {
         super();
         this.mySpecialComponentStringRef = createRef();
         this.myComponentDateTimeRef = createRef();
+        this.myComponentEnumRef = createRef();
     }
 
     connectedCallback() {
@@ -45,6 +47,9 @@ class FormalizeFormElement extends BaseFormElement {
                 const date = new Date(value);
                 return date < new Date() ? ['The date needs to be in the future'] : [];
             };
+
+            // Set items for the enum component
+            this.myComponentEnumRef.value.setItems({item1: 'Item 1', item2: 'Item 2'});
         });
     }
 
@@ -58,6 +63,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-string-element': DbpStringElement,
             'dbp-date-element': DbpDateElement,
             'dbp-datetime-element': DbpDateTimeElement,
+            'dbp-enum-element': DbpEnumElement,
         };
     }
 
@@ -115,7 +121,15 @@ class FormalizeFormElement extends BaseFormElement {
                     required>
                 </dbp-datetime-element>
 
-                ${formElements.enumElement('myEnum', 'My enum', data.myEnum || {}, {item1: 'Item 1', item2: 'Item 2'}, true)}
+                <dbp-enum-element
+                    ${ref(this.myComponentEnumRef)}
+                    subscribe="lang"
+                    name="myComponentEnum"
+                    label="My enum"
+                    value=${data.myComponentEnum || ''}
+                    required>
+                </dbp-enum-element>
+
                 ${formElements.checkboxElement('myCheckbox', 'My checkbox', data.myCheckbox || false)}
                 ${this.getButtonRowHtml()}
             </form>
