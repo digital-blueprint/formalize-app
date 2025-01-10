@@ -27,7 +27,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // TODO: Error Handling
 
-        let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'], {
+        let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'] + '?includeLocal=email,matriculationNumber', {
             headers: {
                 'Content-Type': 'application/ld+json',
                 Authorization: 'Bearer ' + this.auth.token,
@@ -40,6 +40,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.data = await response.json();
         this.data.givenName = `${this.data['givenName']}`;
         this.data.familyName = `${this.data['familyName']}`;
+        this.data.matriculationNumber = `${this.data['localData']['matriculationNumber']}`;
+        this.data.email = `${this.data['localData']['email']}`;
     }
 
     render() {
