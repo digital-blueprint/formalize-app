@@ -2,6 +2,7 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import * as formElements from '../form/form-elements.js';
 import {DbpStringElement} from '../form/elements/string.js';
+import {createRef, ref} from 'lit/directives/ref.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -21,6 +22,26 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
+    constructor() {
+        super();
+        this.mySpecialComponentStringRef = createRef();
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+
+        this.updateComplete.then(() => {
+            // Add a custom validation function to the special string component
+            this.mySpecialComponentStringRef.value.customValidationFnc = (value, evaluationData) => {
+                if (value === '') {
+                    return ['evaluationData: ' + JSON.stringify(evaluationData)];
+                }
+
+                return [];
+            };
+        });
+    }
+
     testRoutingUrl() {
         const routingUrl = '/test';
         this.sendSetPropertyEvent('routing-url', routingUrl, true);
@@ -43,6 +64,7 @@ class FormalizeFormElement extends BaseFormElement {
             <form>
                 <dbp-string-element subscribe="lang" name="myComponentString" label="My string component" value=${data.myComponentString || ''} required></dbp-string-element>
                 <dbp-string-element subscribe="lang" name="myComponentLongString" label="My long string component" value=${data.myComponentLongString || ''} rows="5" required></dbp-string-element>
+                <dbp-string-element ${ref(this.mySpecialComponentStringRef)} subscribe="lang" name="mySpecialComponentString" label="My special string component" value=${data.mySpecialComponentString || ''} required></dbp-string-element>
                 ${formElements.stringElement('myString', 'My string', data.myString || '', true)}
                 ${formElements.stringElement('myLongString', 'My long string', data.myLongString || '', true, {
                     rows: 5,

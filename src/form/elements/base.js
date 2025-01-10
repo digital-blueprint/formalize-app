@@ -33,7 +33,13 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
             errorMessages.push(this._i18n.t('render-form.base-object.required-field-validation-error'));
         }
 
-        // TODO: Do custom validation
+        // Evaluate the output of customValidationFnc() and add any error messages to the array
+        if (this.customValidationFnc) {
+            const customValidationErrors = this.customValidationFnc(this.value, this.evaluationData);
+            if (customValidationErrors) {
+                errorMessages = errorMessages.concat(customValidationErrors);
+            }
+        }
 
         this.errorMessages = errorMessages;
         return errorMessages.length === 0;
