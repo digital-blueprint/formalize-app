@@ -2,6 +2,7 @@ import {css, html} from 'lit';
 import {getFieldsetCSS, sanitizeForHtmlId} from '../utils.js';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
 import DBPFormalizeLitElement from '../../dbp-formalize-lit-element.js';
+import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
 export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
@@ -78,14 +79,16 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
     }
 
     static get styles() {
-        // language=css
-        return css`
-            ${getFieldsetCSS()}
-
-            .validation-errors {
-                color: var(--dbp-override-danger);
-            }
-        `;
+        return [
+            commonStyles.getGeneralCSS(false),
+            getFieldsetCSS(),
+            // language=css
+            css`
+                .validation-errors {
+                    color: var(--dbp-override-danger);
+                }
+            `
+        ];
     }
 
     update(changedProperties) {
