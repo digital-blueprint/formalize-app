@@ -1474,7 +1474,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 .export-buttons {
-                    display: none;
+                    gap: 0;
                 }
 
                 .select-all-icon {
