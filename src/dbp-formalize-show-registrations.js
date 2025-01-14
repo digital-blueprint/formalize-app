@@ -1715,6 +1715,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: 'full',
+            autoColumnsDefinitions:function(definitions){
+                definitions.forEach((column) => {
+                    column.sorter = "string"; // add header sorter to every column
+                });
+                return definitions;
+            },
             layout: 'fitData',
             layoutColumnsOnNewData: true,
             columnDefaults: {
