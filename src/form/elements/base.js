@@ -33,12 +33,17 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
         let errorMessages = [];
 
         if (this.required && !this.value) {
-            errorMessages.push(this._i18n.t('render-form.base-object.required-field-validation-error'));
+            errorMessages.push(
+                this._i18n.t('render-form.base-object.required-field-validation-error'),
+            );
         }
 
         // Evaluate the output of customValidationFnc() and add any error messages to the array
         if (this.customValidationFnc) {
-            const customValidationErrors = this.customValidationFnc(this.value, this.evaluationData);
+            const customValidationErrors = this.customValidationFnc(
+                this.value,
+                this.evaluationData,
+            );
             if (customValidationErrors) {
                 errorMessages = errorMessages.concat(customValidationErrors);
             }
