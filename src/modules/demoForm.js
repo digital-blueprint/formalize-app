@@ -135,6 +135,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="myComponentCheckbox"
                     label="My checkbox"
+                    description="Check me"
                     value="check"
                     ?checked=${data.myComponentCheckbox || false}>
                 </dbp-checkbox-element>

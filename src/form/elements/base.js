@@ -53,6 +53,12 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
         return errorMessages.length === 0;
     }
 
+    handleErrorsIfAny() {
+        if (this.errorMessages.length > 0) {
+            this.handleErrors();
+        }
+    }
+
     evaluateCallback(data) {
         console.log('evaluateCallback data', data);
         this.evaluationData = data;
@@ -100,9 +106,10 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
-                    if (this.errorMessages.length > 0) {
-                        this.handleErrors();
-                    }
+                    this.handleErrorsIfAny();
+                    break;
+                case 'name':
+                    this.id = 'form-input-' + sanitizeForHtmlId(this.name);
                     break;
             }
         });
@@ -115,12 +122,8 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
     }
 
     render() {
-        this.id = 'form-input-' + sanitizeForHtmlId(this.name);
-
         // Regenerate error messages in case the language has changed
-        if (this.errorMessages.length > 0) {
-            this.handleErrors();
-        }
+        this.handleErrorsIfAny();
 
         return html`
             <fieldset>
