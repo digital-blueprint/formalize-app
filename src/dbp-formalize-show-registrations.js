@@ -1715,14 +1715,36 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: 'full',
-            autoColumnsDefinitions:function(definitions){
+            autoColumnsDefinitions: function(definitions){
                 definitions.forEach((column) => {
+                    if (column.field.includes('date')) {
+                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                            //a, b - the two values being compared
+                            //aRow, bRow - the row components for the values being compared (useful if you need to access additional fields in the row data for the sort)
+                            //column - the column component for the column being sorted
+                            const timeStampA = this.dateToTimestamp(a);
+                            const timeStampB = this.dateToTimestamp(b);
+
+                            return timeStampA - timeStampB;
+                        };
+                    }
                     column.sorter = "string"; // add header sorter to every column
+                    if (column.field.includes('html')) {
+                        column.formatter = "html";
+                        column.hozAlign = 'center';
+                        column.headerSort = false;
+                        column.title = 'Actions';
+                    }
                 });
                 return definitions;
             },
             layout: 'fitData',
             layoutColumnsOnNewData: true,
+            // @TODO: table data are not initialized yet.
+            // this.setOption("initialSort", [{column:"dateCreated", dir:"desc"}]);
+            // initialSort: [
+            //     {column:"dateCreated", dir:"desc"}
+            // ],
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
