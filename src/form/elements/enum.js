@@ -7,7 +7,7 @@ export class DbpEnumElement extends ScopedElementsMixin(DbpBaseElement) {
     constructor() {
         super();
         this.label = 'A enum field';
-        this.items = [];
+        this.items = {};
     }
 
     static get properties() {
