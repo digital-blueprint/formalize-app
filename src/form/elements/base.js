@@ -1,12 +1,15 @@
 import {css, html} from 'lit';
+import {createInstance} from './i18n';
 import {getFieldsetCSS, sanitizeForHtmlId} from '../utils.js';
 import {ScopedElementsMixin} from '@open-wc/scoped-elements';
-import DBPFormalizeLitElement from '../../dbp-formalize-lit-element.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
+import DBPLitElement from '@dbp-toolkit/common/src/dbp-lit-element.js';
 
-export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) {
+export class DbpBaseElement extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
         super();
+        this._i18n = createInstance();
+        this.lang = this._i18n.language;
         this.id = '';
         this.name = '';
         this.description = '';
@@ -20,6 +23,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
     static get properties() {
         return {
             ...super.properties,
+            lang: {type: String},
             name: {type: String},
             description: {type: String},
             label: {type: String},
@@ -106,6 +110,7 @@ export class DbpBaseElement extends ScopedElementsMixin(DBPFormalizeLitElement) 
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
+                    this._i18n.changeLanguage(this.lang);
                     this.handleErrorsIfAny();
                     break;
                 case 'name':

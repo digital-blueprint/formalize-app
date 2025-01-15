@@ -1,0 +1,8 @@
+{
+    "render-form": {
+        "base-object": {
+            "required-field-validation-error": "Please fill out the required field!",
+            "required-field": "required"
+        }
+    }
+}
