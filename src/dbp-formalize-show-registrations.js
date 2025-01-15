@@ -267,7 +267,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             div.appendChild(btn);
             div.classList.add('actions-buttons');
 
-            let entry = {dateCreated: dateCreated, ...dataFeedElement};
+            let entry = {dateCreated: dateCreated, ...dataFeedElement, htmlButtons: div};
 
             submissions_list.push(entry);
         }
