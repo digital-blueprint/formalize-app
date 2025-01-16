@@ -1,7 +1,12 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import * as formElements from '../form/form-elements.js';
-import {classMap} from 'lit/directives/class-map.js';
+import {createRef, ref} from 'lit/directives/ref.js';
+import {DbpStringElement} from '../form/elements/string.js';
+import {DbpDateTimeElement} from '../form/elements/datetime.js';
+import {DbpCheckboxElement} from '../form/elements/checkbox.js';
+import {CourseSelect} from '../modules/course-select.js';
+import {RoomSelect} from '../modules/room-select.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -21,6 +26,45 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
+
+    constructor() {
+        super();
+        this.startDateTimeRef = createRef();
+        this.endDateTimeRef = createRef();
+    }
+
+    connectedCallback() {
+        const i18n = this._i18n;
+        super.connectedCallback();
+
+        this.updateComplete.then(() => {
+            // Custom validation function for the start datetime of the exam
+            this.startDateTimeRef.value.customValidationFnc = (value) => {
+                const date = new Date(value);
+                // The minimum date has to be two weeks ahead
+                const minDate = new Date(Date.now() + 1209600000);
+                return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
+            };
+
+            // TODO: Custom validation function for the end datetime of the exam
+            this.endDateTimeRef.value.customValidationFnc = (value) => {
+                const endDate = new Date(value);
+                const startDate = new Date(this.data.startDateTime);
+                console.log(endDate, startDate);
+                return (endDate < startDate) ? [i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')] : [];
+            };
+        });
+    }
+
+    static get scopedElements() {
+        return {
+            'dbp-string-element': DbpStringElement,
+            'dbp-datetime-element': DbpDateTimeElement,
+            'dbp-checkbox-element': DbpCheckboxElement,
+            'dbp-course-select': CourseSelect,
+            'dbp-room-select': RoomSelect
+        };
+    }
 
     async fetchUserData() {
         console.log("Fetching user data ...");
@@ -67,7 +111,6 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-course-select
                             name="subject"
                             id="form-input-subject"
-                            required="true"
                             subscribe="auth"
                             lang="${this.lang}"
                             entry-point-url="${this.entryPointUrl}">
@@ -76,12 +119,64 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <!-- ${formElements.stringElement('subject', i18n.t('render-form.forms.accessible-exams-form.subject') + " *", data.subject || '')} -->
-                ${formElements.dateTimeElement('startDateTime', i18n.t('render-form.forms.accessible-exams-form.start-date-time') + " *", data.startDateTime || '')}
-                ${formElements.dateTimeElement('endDateTime', i18n.t('render-form.forms.accessible-exams-form.end-date-time') + " *", data.endDateTime || '')}
-                ${formElements.stringElement('matriculationNumber', i18n.t('render-form.forms.accessible-exams-form.matriculation-number'), data.matriculationNumber || '')}
-                ${formElements.stringElement('givenName', i18n.t('render-form.forms.accessible-exams-form.given-name'), data.givenName || '')}
-                ${formElements.stringElement('familyName', i18n.t('render-form.forms.accessible-exams-form.family-name'), data.familyName || '')}
-                ${formElements.stringElement('email', i18n.t('render-form.forms.accessible-exams-form.email'), data.email || '')}
+
+                <dbp-datetime-element
+                    ${ref(this.startDateTimeRef)}
+                    subscribe="lang"
+                    name="startDateTime"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.start-date-time')}
+                    value=${data.startDateTime || ''}
+                    >
+                </dbp-datetime-element>
+
+                <dbp-datetime-element
+                    ${ref(this.endDateTimeRef)}
+                    subscribe="lang"
+                    name="endDateTime"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.end-date-time')}
+                    value=${data.endDateTime || ''}
+                    >
+                </dbp-datetime-element>
+
+                <!-- ${formElements.dateTimeElement('startDateTime', i18n.t('render-form.forms.accessible-exams-form.start-date-time') + " *", data.startDateTime || '')} -->
+                <!-- ${formElements.dateTimeElement('endDateTime', i18n.t('render-form.forms.accessible-exams-form.end-date-time') + " *", data.endDateTime || '')} -->
+
+                <dbp-string-element
+                    subscribe="lang"
+                    name="matriculationNumber"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.matriculation-number')}
+                    value=${data.matriculationNumber || ''}
+                    >
+                </dbp-string-element>
+
+                <dbp-string-element
+                    subscribe="lang"
+                    name="givenName"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.given-name')}
+                    value=${data.givenName || ''}
+                    >
+                </dbp-string-element>
+
+                <dbp-string-element
+                    subscribe="lang"
+                    name="familyName"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.family-name')}
+                    value=${data.familyName || ''}
+                    >
+                </dbp-string-element>
+
+                <dbp-string-element
+                    subscribe="lang"
+                    name="email"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.email')}
+                    value=${data.email || ''}
+                    >
+                </dbp-string-element>
+
+                <!-- ${formElements.stringElement('matriculationNumber', i18n.t('render-form.forms.accessible-exams-form.matriculation-number'), data.matriculationNumber || '')} -->
+                <!-- ${formElements.stringElement('givenName', i18n.t('render-form.forms.accessible-exams-form.given-name'), data.givenName || '')} -->
+                <!-- ${formElements.stringElement('familyName', i18n.t('render-form.forms.accessible-exams-form.family-name'), data.familyName || '')} -->
+                <!-- ${formElements.stringElement('email', i18n.t('render-form.forms.accessible-exams-form.email'), data.email || '')} -->
 
                 <div class="field">
                     <label class="label">${i18n.t('render-form.forms.accessible-exams-form.room')}</label>
@@ -89,7 +184,6 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-room-select
                             name="room"
                             id="form-input-room"
-                            required="true"
                             subscribe="auth"
                             lang="${this.lang}"
                             entry-point-url="${this.entryPointUrl}">
@@ -98,10 +192,44 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <!-- ${formElements.stringElement('room', i18n.t('render-form.forms.accessible-exams-form.room'), data.room || '')} -->
-                ${formElements.stringElement('lecturer', i18n.t('render-form.forms.accessible-exams-form.lecturer'), data.lecturer || '')}
-                ${formElements.stringElement('comment', i18n.t('render-form.forms.accessible-exams-form.comment'), data.comment || '')}
-                ${formElements.checkboxElement('group', i18n.t('render-form.forms.accessible-exams-form.group'), data.group || 'on')}
-                ${formElements.checkboxElement('online', i18n.t('render-form.forms.accessible-exams-form.online'), data.online || 'on')}
+
+                <dbp-string-element
+                    subscribe="lang"
+                    name="lecturer"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.lecturer')}
+                    value=${data.lecturer || ''}
+                    >
+                </dbp-string-element>
+
+                <dbp-string-element
+                    subscribe="lang"
+                    name="comment"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.comment')}
+                    value=${data.comment || ''}
+                    >
+                </dbp-string-element>
+
+                <!-- ${formElements.stringElement('lecturer', i18n.t('render-form.forms.accessible-exams-form.lecturer'), data.lecturer || '')} -->
+                <!-- ${formElements.stringElement('comment', i18n.t('render-form.forms.accessible-exams-form.comment'), data.comment || '')} -->
+
+                <dbp-checkbox-element
+                    subscribe="lang"
+                    name="group"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.group')}
+                    value="check"
+                    ?checked=${data.group || false}>
+                </dbp-checkbox-element>
+
+                <dbp-checkbox-element
+                    subscribe="lang"
+                    name="online"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.online')}
+                    value="check"
+                    ?checked=${data.online || false}>
+                </dbp-checkbox-element>
+
+                <!-- ${formElements.checkboxElement('group', i18n.t('render-form.forms.accessible-exams-form.group'), data.group || 'on')} -->
+                <!-- ${formElements.checkboxElement('online', i18n.t('render-form.forms.accessible-exams-form.online'), data.online || 'on')} -->
 
                 ${this.getButtonRowHtml()}
             </form>
@@ -109,18 +237,6 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     // TODO: Clean up duplicate code
-
-    getButtonRowHtml() {
-        return html`
-            <div class="button-row">
-                <button class="button is-secondary" type="button" @click=${this.resetForm}>Reset</button>
-                <button class="button is-primary" type="submit" ?disabled=${!this.saveButtonEnabled} @click=${this.validateAndSendSubmission}>
-                    Save
-                    <dbp-mini-spinner class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
-                </button>
-            </div>
-        `;
-    }
 
     getCourseData() {
         const formElement = this.shadowRoot.querySelector('form');
@@ -144,103 +260,103 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
-    validateAndSendSubmission(event) {
-        event.preventDefault();
+    // validateAndSendSubmission(event) {
+    //     event.preventDefault();
 
-        // Remove alerts for old validation errors
-        let oldValidationErrors = this.shadowRoot.querySelectorAll("div.validation-error");
-        for (let error of oldValidationErrors) {
-            error.remove();
-        }
+    //     // Remove alerts for old validation errors
+    //     let oldValidationErrors = this.shadowRoot.querySelectorAll("div.validation-error");
+    //     for (let error of oldValidationErrors) {
+    //         error.remove();
+    //     }
 
-        // Run all validations and save the results in an array
-        let validationResults = [
-            this.validateRequiredFields(),
-            this.validateDateTimeFields()
-        ];
+    //     // Run all validations and save the results in an array
+    //     let validationResults = [
+    //         this.validateRequiredFields(),
+    //         this.validateDateTimeFields()
+    //     ];
 
-        // Get course and room data
-        this.getCourseData();
-        this.getRoomData();
+    //     // Get course and room data
+    //     this.getCourseData();
+    //     this.getRoomData();
 
-        // Only submit the form if all validations return true
-        if (!validationResults.includes(false)) {
-            this.sendSubmission(event);
-        }
-    }
+    //     // Only submit the form if all validations return true
+    //     if (!validationResults.includes(false)) {
+    //         this.sendSubmission(event);
+    //     }
+    // }
 
-    validateRequiredFields() {
-        const i18n = this._i18n;
+    // validateRequiredFields() {
+    //     const i18n = this._i18n;
 
-        // Initially set the validation result to true to allow form submission
-        let requiredFieldsValidation = true;
+    //     // Initially set the validation result to true to allow form submission
+    //     let requiredFieldsValidation = true;
 
-        // Select all input elements with the 'required' attribute
-        const formElement = this.shadowRoot.querySelector('form');
-        const requiredFields = formElement.querySelectorAll('*[required]');
-        console.log('validateRequiredFields requiredFields', requiredFields);
+    //     // Select all input elements with the 'required' attribute
+    //     const formElement = this.shadowRoot.querySelector('form');
+    //     const requiredFields = formElement.querySelectorAll('*[required]');
+    //     console.log('validateRequiredFields requiredFields', requiredFields);
         
-        // Loop through each required field
-        for (let field of requiredFields) {
-            console.log('validateRequiredFields field.value', field.value);
-            // Check if the field is empty
-            if (!field.value.trim()) {
-                // If empty, alert the user and return false to prevent form submission
-                this.showCustomValidationErrorMessage(
-                    `${field.id}`,
-                    i18n.t('render-form.base-object.required-field-validation-error',
-                        {fieldName: field.name},
-                    )
-                );
+    //     // Loop through each required field
+    //     for (let field of requiredFields) {
+    //         console.log('validateRequiredFields field.value', field.value);
+    //         // Check if the field is empty
+    //         if (!field.value.trim()) {
+    //             // If empty, alert the user and return false to prevent form submission
+    //             this.showCustomValidationErrorMessage(
+    //                 `${field.id}`,
+    //                 i18n.t('render-form.base-object.required-field-validation-error',
+    //                     {fieldName: field.name},
+    //                 )
+    //             );
             
-                // Set the validation result to false so form submission is prevented
-                requiredFieldsValidation = false;
-            }
-        }
+    //             // Set the validation result to false so form submission is prevented
+    //             requiredFieldsValidation = false;
+    //         }
+    //     }
 
-        // Return the validation result
-        return requiredFieldsValidation;
-    }
+    //     // Return the validation result
+    //     return requiredFieldsValidation;
+    // }
 
-    validateDateTimeFields() {
-        const i18n = this._i18n;
+    // validateDateTimeFields() {
+    //     const i18n = this._i18n;
 
-        // Initially set the validation result to true to allow form submission
-        let dateTimeFieldValidation = true;
+    //     // Initially set the validation result to true to allow form submission
+    //     let dateTimeFieldValidation = true;
 
-        // Select all input elements with the type "datetime-local"
-        const formElement = this.shadowRoot.querySelector('form');
-        const dateTimeFields = formElement.querySelectorAll('input[type="datetime-local"]');
+    //     // Select all input elements with the type "datetime-local"
+    //     const formElement = this.shadowRoot.querySelector('form');
+    //     const dateTimeFields = formElement.querySelectorAll('input[type="datetime-local"]');
 
-        // Get start and end date of the exam
-        const startDateTime = Date.parse(dateTimeFields[0].value);
-        const endDateTime = Date.parse(dateTimeFields[1].value);
+    //     // Get start and end date of the exam
+    //     const startDateTime = Date.parse(dateTimeFields[0].value);
+    //     const endDateTime = Date.parse(dateTimeFields[1].value);
 
-        // The minimum date has to be two weeks ahead
-        const min = Date.now() + 1209600000;
+    //     // The minimum date has to be two weeks ahead
+    //     const min = Date.now() + 1209600000;
 
-        if (startDateTime < min) {
-            // If the start date is before the minimum date, alert the user
-            this.showCustomValidationErrorMessage(
-                "form-input-startdatetime",
-                i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')
-            );
-            // Set the validation result to false to prevent form submission
-            dateTimeFieldValidation = false;
-        }
+    //     if (startDateTime < min) {
+    //         // If the start date is before the minimum date, alert the user
+    //         this.showCustomValidationErrorMessage(
+    //             "form-input-startdatetime",
+    //             i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')
+    //         );
+    //         // Set the validation result to false to prevent form submission
+    //         dateTimeFieldValidation = false;
+    //     }
 
-        if (endDateTime < startDateTime) {
-            // If the end date is before the start date, alert the user
-            this.showCustomValidationErrorMessage(
-                "form-input-enddatetime",
-                i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')
-            );
-            // Set the validation result to false to prevent form submission
-            dateTimeFieldValidation = false;
-        }
+    //     if (endDateTime < startDateTime) {
+    //         // If the end date is before the start date, alert the user
+    //         this.showCustomValidationErrorMessage(
+    //             "form-input-enddatetime",
+    //             i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')
+    //         );
+    //         // Set the validation result to false to prevent form submission
+    //         dateTimeFieldValidation = false;
+    //     }
 
-        // Return the validation result
-        return dateTimeFieldValidation;
-    }
+    //     // Return the validation result
+    //     return dateTimeFieldValidation;
+    // }
 
 }
