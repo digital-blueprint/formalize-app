@@ -98,6 +98,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <!-- ${formElements.stringElement('room', i18n.t('render-form.forms.accessible-exams-form.room'), data.room || '')} -->
+                ${formElements.stringElement('lecturer', i18n.t('render-form.forms.accessible-exams-form.lecturer'), data.lecturer || '')}
                 ${formElements.stringElement('comment', i18n.t('render-form.forms.accessible-exams-form.comment'), data.comment || '')}
                 ${formElements.checkboxElement('group', i18n.t('render-form.forms.accessible-exams-form.group'), data.group || 'on')}
                 ${formElements.checkboxElement('online', i18n.t('render-form.forms.accessible-exams-form.online'), data.online || 'on')}
