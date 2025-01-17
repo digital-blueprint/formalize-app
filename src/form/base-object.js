@@ -34,45 +34,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.saveButtonEnabled = true;
     }
 
-    static get scopedElements() {
-        return {
-            'dbp-course-select': CourseSelect,
-            'dbp-room-select': RoomSelect
-        };
-    }
-
-    showCustomValidationErrorMessage(id, message) {
-        // Insert a div with a custom error message when validation fails after the HTML element with the given id
-        this.shadowRoot.getElementById(id).insertAdjacentHTML(
-            'afterend',
-            `<div class="validation-error">
-                <p>${message}</p>
-            </div>`,
-        );
-    }
-
-    renderFormElementErrorMessages(errorMessages) {
-        // If "errorMessages" is a string, convert it to an array
-        if (typeof errorMessages === 'string') {
-            errorMessages = [errorMessages];
-        }
-
-        if (!errorMessages) {
-            return html``;
-        }
-
-        // Loop through each error message
-        return html`
-            <ul class="validation-errors">
-                ${errorMessages.map(
-                    (error) => html`
-                        <li>${error}</li>
-                    `,
-                )}
-            </ul>
-        `;
-    }
-
     async validateRequiredFields() {
         // const i18n = this._i18n;
 
