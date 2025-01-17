@@ -2,12 +2,6 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import {DbpStringElement, DbpDateElement, DbpDateTimeElement, DbpEnumElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
 import {createRef, ref} from 'lit/directives/ref.js';
-// import {DbpStringElement} from '../form/elements/string.js';
-// import {createRef, ref} from 'lit/directives/ref.js';
-// import {DbpDateElement} from '../form/elements/date.js';
-// import {DbpDateTimeElement} from '../form/elements/datetime.js';
-// import {DbpEnumElement} from '../form/elements/enum.js';
-// import {DbpCheckboxElement} from '../form/elements/checkbox.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
