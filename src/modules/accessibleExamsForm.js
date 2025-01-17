@@ -7,6 +7,7 @@ import {DbpDateTimeElement} from '../form/elements/datetime.js';
 import {DbpCheckboxElement} from '../form/elements/checkbox.js';
 import {CourseSelect} from '../modules/course-select.js';
 import {RoomSelect} from '../modules/room-select.js';
+import { DbpCourseSelectElement } from '../form/elements/courseselect.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -61,6 +62,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-string-element': DbpStringElement,
             'dbp-datetime-element': DbpDateTimeElement,
             'dbp-checkbox-element': DbpCheckboxElement,
+            'dbp-course-select-element': DbpCourseSelectElement,
             'dbp-course-select': CourseSelect,
             'dbp-room-select': RoomSelect
         };
@@ -105,7 +107,16 @@ class FormalizeFormElement extends BaseFormElement {
             ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}</p>
             <form>
 
-                <div class="field">
+                <dbp-course-select-element
+                    subscribe="lang"
+                    name="subject"
+                    label="${i18n.t('render-form.forms.accessible-exams-form.subject') + " *"}"
+                    value=${data.subject || ''}
+                    required
+                    >
+                </dbp-course-select-element>
+
+                <!-- <div class="field">
                     <label class="label">${i18n.t('render-form.forms.accessible-exams-form.subject') + " *"}</label>
                     <div class="control">
                         <dbp-course-select
@@ -116,7 +127,7 @@ class FormalizeFormElement extends BaseFormElement {
                             entry-point-url="${this.entryPointUrl}">
                         </dbp-course-select>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- ${formElements.stringElement('subject', i18n.t('render-form.forms.accessible-exams-form.subject') + " *", data.subject || '')} -->
 
@@ -238,27 +249,27 @@ class FormalizeFormElement extends BaseFormElement {
 
     // TODO: Clean up duplicate code
 
-    getCourseData() {
-        const formElement = this.shadowRoot.querySelector('form');
-        const courseSelect = formElement.querySelector('dbp-course-select');
+    // getCourseData() {
+    //     const formElement = this.shadowRoot.querySelector('form');
+    //     const courseSelect = formElement.querySelector('dbp-course-select');
 
-        let courseDataObject = JSON.parse(courseSelect.getAttribute('data-object'));
-        if (courseDataObject != null) {
-            this.data.courseName = courseDataObject.name;
-            this.data.courseId = courseDataObject.identifier;
-        }
-    }
+    //     let courseDataObject = JSON.parse(courseSelect.getAttribute('data-object'));
+    //     if (courseDataObject != null) {
+    //         this.data.courseName = courseDataObject.name;
+    //         this.data.courseId = courseDataObject.identifier;
+    //     }
+    // }
 
-    getRoomData() {
-        const formElement = this.shadowRoot.querySelector('form');
-        const roomSelect = formElement.querySelector('dbp-room-select');
+    // getRoomData() {
+    //     const formElement = this.shadowRoot.querySelector('form');
+    //     const roomSelect = formElement.querySelector('dbp-room-select');
 
-        let roomDataObject = JSON.parse(roomSelect.getAttribute('data-object'));
-        if (roomDataObject != null) {
-            this.data.roomName = roomDataObject.code;
-            this.data.roomId = roomDataObject.identifier;
-        }
-    }
+    //     let roomDataObject = JSON.parse(roomSelect.getAttribute('data-object'));
+    //     if (roomDataObject != null) {
+    //         this.data.roomName = roomDataObject.code;
+    //         this.data.roomId = roomDataObject.identifier;
+    //     }
+    // }
 
     // validateAndSendSubmission(event) {
     //     event.preventDefault();
