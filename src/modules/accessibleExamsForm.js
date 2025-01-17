@@ -8,6 +8,7 @@ import {DbpCheckboxElement} from '../form/elements/checkbox.js';
 import {CourseSelect} from '../modules/course-select.js';
 import {RoomSelect} from '../modules/room-select.js';
 import { DbpCourseSelectElement } from '../form/elements/courseselect.js';
+import { DbpRoomSelectElement } from '../form/elements/roomselect.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -63,6 +64,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-datetime-element': DbpDateTimeElement,
             'dbp-checkbox-element': DbpCheckboxElement,
             'dbp-course-select-element': DbpCourseSelectElement,
+            'dbp-room-select-element': DbpRoomSelectElement,
             'dbp-course-select': CourseSelect,
             'dbp-room-select': RoomSelect
         };
@@ -189,7 +191,15 @@ class FormalizeFormElement extends BaseFormElement {
                 <!-- ${formElements.stringElement('familyName', i18n.t('render-form.forms.accessible-exams-form.family-name'), data.familyName || '')} -->
                 <!-- ${formElements.stringElement('email', i18n.t('render-form.forms.accessible-exams-form.email'), data.email || '')} -->
 
-                <div class="field">
+                <dbp-room-select-element
+                    subscribe="lang"
+                    name="room"
+                    label="${i18n.t('render-form.forms.accessible-exams-form.room') + " *"}"
+                    value=${data.room || ''}
+                    >
+                </dbp-room-select-element>
+
+                <!-- <div class="field">
                     <label class="label">${i18n.t('render-form.forms.accessible-exams-form.room')}</label>
                     <div class="control">
                         <dbp-room-select
@@ -200,7 +210,7 @@ class FormalizeFormElement extends BaseFormElement {
                             entry-point-url="${this.entryPointUrl}">
                         </dbp-room-select>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- ${formElements.stringElement('room', i18n.t('render-form.forms.accessible-exams-form.room'), data.room || '')} -->
 
