@@ -1,11 +1,9 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import {createRef, ref} from 'lit/directives/ref.js';
-import {DbpStringElement} from '../form/elements/string.js';
-import {DbpDateTimeElement} from '../form/elements/datetime.js';
-import {DbpCheckboxElement} from '../form/elements/checkbox.js';
-import {CourseSelect} from '../modules/course-select.js';
-import {RoomSelect} from '../modules/room-select.js';
+import {DbpStringElement, DbpDateTimeElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
+import {CourseSelect} from './course-select.js';
+import {RoomSelect} from './room-select.js';
 import { DbpCourseSelectElement } from '../form/elements/courseselect.js';
 import { DbpRoomSelectElement } from '../form/elements/roomselect.js';
 
