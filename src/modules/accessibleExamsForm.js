@@ -110,7 +110,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-course-select-element
                     subscribe="lang"
                     name="subject"
-                    label="${i18n.t('render-form.forms.accessible-exams-form.subject') + " *"}"
+                    label="${i18n.t('render-form.forms.accessible-exams-form.subject')}"
                     value=${data.subject || ''}
                     required
                     >
@@ -169,7 +169,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-room-select-element
                     subscribe="lang"
                     name="room"
-                    label="${i18n.t('render-form.forms.accessible-exams-form.room') + " *"}"
+                    label="${i18n.t('render-form.forms.accessible-exams-form.room')}"
                     value=${data.room || ''}
                     >
                 </dbp-room-select-element>
