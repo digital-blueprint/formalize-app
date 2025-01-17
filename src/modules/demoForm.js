@@ -2,6 +2,7 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import {DbpStringElement, DbpDateElement, DbpDateTimeElement, DbpEnumElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
 import {createRef, ref} from 'lit/directives/ref.js';
+import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -62,6 +63,13 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-enum-element': DbpEnumElement,
             'dbp-checkbox-element': DbpCheckboxElement,
         };
+    }
+
+    sendSubmission(event) {
+        this.saveButtonEnabled = false;
+        const formElement = this.shadowRoot.querySelector('form');
+        this.data = gatherFormDataFromElement(formElement);
+        console.log('sendSubmission data', this.data);
     }
 
     render() {
@@ -138,6 +146,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${this.getButtonRowHtml()}
             </form>
+            ${this.renderResult(this.data)}
         `;
+    }
+
+    renderResult(data) {
+        if (data && Object.keys(data).length > 0) {
+            // Show the form data object
+            return html`
+                <div class="container">
+                    <h2>Form data</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        return html``;
     }
 }
