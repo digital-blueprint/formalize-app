@@ -46,11 +46,10 @@ class FormalizeFormElement extends BaseFormElement {
                 return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
             };
 
-            // TODO: Custom validation function for the end datetime of the exam
+            // Custom validation function for the end datetime of the exam
             this.endDateTimeRef.value.customValidationFnc = (value) => {
                 const endDate = new Date(value);
-                const startDate = new Date(this.data.startDateTime);
-                console.log(endDate, startDate);
+                const startDate = new Date(this.startDateTimeRef.value.value);
                 return (endDate < startDate) ? [i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')] : [];
             };
         });
