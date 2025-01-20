@@ -215,10 +215,16 @@ export default (async () => {
     `,
                     },
                     thirdParty: {
-                        allow: {
-                            test: '(MIT OR BSD-3-Clause OR Apache-2.0 OR LGPL-2.1-or-later OR 0BSD)',
-                            failOnUnlicensed: true,
-                            failOnViolation: false,
+                        allow(dependency) {
+                            let licenses = [
+                                'LGPL-2.1-or-later', 'MIT', 'BSD-3-Clause', 'Apache-2.0', '0BSD',
+                                '(MPL-2.0 OR Apache-2.0)', 'MIT OR SEE LICENSE IN FEEL-FREE.md',
+                                '(MIT OR GPL-3.0-or-later)', 'BSD'
+                            ];
+                            if (!licenses.includes(dependency.license)) {
+                                throw new Error(`Unknown license for ${dependency.name}: ${dependency.license}`);
+                            }
+                            return true;
                         },
                     },
                 }),
