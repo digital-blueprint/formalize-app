@@ -159,6 +159,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 for (let x = 0; x < data['hydra:member'].length; x++) {
                     let entry = data['hydra:member'][x];
+                    // Only show forms for which the currently logged-in user has 'read_submissions' rights
+                    const grantedActions = entry['grantedActions'];
+                    if (!Array.isArray(grantedActions) || !grantedActions.includes('read_submissions')) {
+                        continue;
+                    }
                     let id = x + 1;
                     let name = entry['name'];
                     let form = entry['identifier'];
