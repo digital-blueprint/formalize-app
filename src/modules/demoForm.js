@@ -57,11 +57,11 @@ class FormalizeFormElement extends BaseFormElement {
 
     static get scopedElements() {
         return {
-            'dbp-string-element': DbpStringElement,
-            'dbp-date-element': DbpDateElement,
-            'dbp-datetime-element': DbpDateTimeElement,
-            'dbp-enum-element': DbpEnumElement,
-            'dbp-checkbox-element': DbpCheckboxElement,
+            'dbp-form-string-element': DbpStringElement,
+            'dbp-form-date-element': DbpDateElement,
+            'dbp-form-datetime-element': DbpDateTimeElement,
+            'dbp-form-enum-element': DbpEnumElement,
+            'dbp-form-checkbox-element': DbpCheckboxElement,
         };
     }
 
@@ -81,24 +81,24 @@ class FormalizeFormElement extends BaseFormElement {
             <h1>Demo Form</h1>
             <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
             <form>
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="myComponentString"
                     label="My string"
                     value=${data.myComponentString || ''}
                     required>
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="myComponentLongString"
                     label="My long string"
                     value=${data.myComponentLongString || ''}
                     rows="5"
                     required>
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     ${ref(this.mySpecialComponentStringRef)}
                     subscribe="lang"
                     name="mySpecialComponentString"
@@ -106,17 +106,17 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My special string"
                     value=${data.mySpecialComponentString || ''}
                     required>
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-date-element
+                <dbp-form-date-element
                     subscribe="lang"
                     name="myComponentDate"
                     label="My date"
                     value=${data.myComponentDate || ''}
                     required>
-                </dbp-date-element>
+                </dbp-form-date-element>
 
-                <dbp-datetime-element
+                <dbp-form-datetime-element
                     ${ref(this.myComponentDateTimeRef)}
                     subscribe="lang"
                     name="myComponentDateTime"
@@ -124,25 +124,25 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My datetime"
                     value=${data.myComponentDateTime || ''}
                     required>
-                </dbp-datetime-element>
+                </dbp-form-datetime-element>
 
-                <dbp-enum-element
+                <dbp-form-enum-element
                     ${ref(this.myComponentEnumRef)}
                     subscribe="lang"
                     name="myComponentEnum"
                     label="My enum"
                     value=${data.myComponentEnum || ''}
                     required>
-                </dbp-enum-element>
+                </dbp-form-enum-element>
 
-                <dbp-checkbox-element
+                <dbp-form-checkbox-element
                     subscribe="lang"
                     name="myComponentCheckbox"
                     label="My checkbox"
                     description="Check me"
                     value="check"
                     ?checked=${data.myComponentCheckbox || false}>
-                </dbp-checkbox-element>
+                </dbp-form-checkbox-element>
 
                 ${this.getButtonRowHtml()}
             </form>

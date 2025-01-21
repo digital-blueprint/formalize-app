@@ -57,9 +57,9 @@ class FormalizeFormElement extends BaseFormElement {
 
     static get scopedElements() {
         return {
-            'dbp-string-element': DbpStringElement,
-            'dbp-datetime-element': DbpDateTimeElement,
-            'dbp-checkbox-element': DbpCheckboxElement,
+            'dbp-form-string-element': DbpStringElement,
+            'dbp-form-datetime-element': DbpDateTimeElement,
+            'dbp-form-checkbox-element': DbpCheckboxElement,
             'dbp-course-select-element': DbpCourseSelectElement,
             'dbp-room-select-element': DbpRoomSelectElement,
             'dbp-course-select': CourseSelect,
@@ -114,55 +114,55 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-course-select-element>
 
-                <dbp-datetime-element
+                <dbp-form-datetime-element
                     ${ref(this.startDateTimeRef)}
                     subscribe="lang"
                     name="startDateTime"
                     label=${i18n.t('render-form.forms.accessible-exams-form.start-date-time')}
                     value=${data.startDateTime || ''}
                     >
-                </dbp-datetime-element>
+                </dbp-form-datetime-element>
 
-                <dbp-datetime-element
+                <dbp-form-datetime-element
                     ${ref(this.endDateTimeRef)}
                     subscribe="lang"
                     name="endDateTime"
                     label=${i18n.t('render-form.forms.accessible-exams-form.end-date-time')}
                     value=${data.endDateTime || ''}
                     >
-                </dbp-datetime-element>
+                </dbp-form-datetime-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="matriculationNumber"
                     label=${i18n.t('render-form.forms.accessible-exams-form.matriculation-number')}
                     value=${data.matriculationNumber || ''}
                     >
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="givenName"
                     label=${i18n.t('render-form.forms.accessible-exams-form.given-name')}
                     value=${data.givenName || ''}
                     >
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="familyName"
                     label=${i18n.t('render-form.forms.accessible-exams-form.family-name')}
                     value=${data.familyName || ''}
                     >
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="email"
                     label=${i18n.t('render-form.forms.accessible-exams-form.email')}
                     value=${data.email || ''}
                     >
-                </dbp-string-element>
+                </dbp-form-string-element>
 
                 <dbp-room-select-element
                     subscribe="lang"
@@ -172,37 +172,37 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-room-select-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="lecturer"
                     label=${i18n.t('render-form.forms.accessible-exams-form.lecturer')}
                     value=${data.lecturer || ''}
                     >
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-string-element
+                <dbp-form-string-element
                     subscribe="lang"
                     name="comment"
                     label=${i18n.t('render-form.forms.accessible-exams-form.comment')}
                     value=${data.comment || ''}
                     >
-                </dbp-string-element>
+                </dbp-form-string-element>
 
-                <dbp-checkbox-element
+                <dbp-form-checkbox-element
                     subscribe="lang"
                     name="group"
                     label=${i18n.t('render-form.forms.accessible-exams-form.group')}
                     value="check"
                     ?checked=${data.group || false}>
-                </dbp-checkbox-element>
+                </dbp-form-checkbox-element>
 
-                <dbp-checkbox-element
+                <dbp-form-checkbox-element
                     subscribe="lang"
                     name="online"
                     label=${i18n.t('render-form.forms.accessible-exams-form.online')}
                     value="check"
                     ?checked=${data.online || false}>
-                </dbp-checkbox-element>
+                </dbp-form-checkbox-element>
 
                 ${this.getButtonRowHtml()}
             </form>
