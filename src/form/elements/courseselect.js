@@ -1,6 +1,6 @@
 import {css, html} from 'lit';
 import * as commonUtils from '@dbp-toolkit/common/utils.js';
-import {ScopedElementsMixin} from '@open-wc/scoped-elements';
+import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base.js';
 import {CourseSelect} from '../../modules/course-select.js';
 

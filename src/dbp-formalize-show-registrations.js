@@ -1,5 +1,5 @@
 import {css, html, unsafeCSS} from 'lit';
-import {ScopedElementsMixin} from '@open-wc/scoped-elements';
+import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {getIconSVGURL, IconButton, LoadingButton, MiniSpinner, Translated} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
