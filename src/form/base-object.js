@@ -3,7 +3,6 @@ import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {css, html} from 'lit';
 import {createInstance} from '../i18n.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import * as formElements from './form-elements.js';
 import {classMap} from 'lit/directives/class-map.js';
 import {getSelectorFixCSS} from '../styles.js';
 import {gatherFormDataFromElement, validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
@@ -82,17 +81,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         return css`
             ${commonStyles.getGeneralCSS(false)}
             ${commonStyles.getButtonCSS()}
-            ${formElements.getFieldsetCSS()}
             ${getSelectorFixCSS()}
 
             .button-row {
                 margin-top: 1em;
                 text-align: right;
-            }
-
-            .validation-errors {
-                color: var(--dbp-override-danger);
-                margin-top: 0.5em;
             }
         `;
     }
@@ -142,12 +135,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
     render() {
         console.log('-- Render BaseFormElement --');
-        const data = this.data;
 
         return html`
             <form>
-                <h2>${data.objectType}</h2>
-                ${formElements.stringElement('objectType', data.objectType)}
+                Please implement render() in your subclass!
                 ${this.getButtonRowHtml()}
             </form>
         `;
