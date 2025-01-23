@@ -25,8 +25,8 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
         this.mySpecialComponentStringRef = createRef();
-        this.myComponentDateTimeRef = createRef();
-        this.myComponentEnumRef = createRef();
+        this.myDateTimeRef = createRef();
+        this.myEnumRef = createRef();
     }
 
     connectedCallback() {
@@ -40,13 +40,13 @@ class FormalizeFormElement extends BaseFormElement {
             };
 
             // Add a custom validation function to the datetime component
-            this.myComponentDateTimeRef.value.customValidationFnc = (value) => {
+            this.myDateTimeRef.value.customValidationFnc = (value) => {
                 const date = new Date(value);
                 return date < new Date() ? ['The date needs to be in the future'] : [];
             };
 
             // Set items for the enum component
-            this.myComponentEnumRef.value.setItems({item1: 'Item 1', item2: 'Item 2'});
+            this.myEnumRef.value.setItems({item1: 'Item 1', item2: 'Item 2'});
         });
     }
 
@@ -83,17 +83,17 @@ class FormalizeFormElement extends BaseFormElement {
             <form>
                 <dbp-form-string-element
                     subscribe="lang"
-                    name="myComponentString"
+                    name="myString"
                     label="My string"
-                    value=${data.myComponentString || ''}
+                    value=${data.myString || ''}
                     required>
                 </dbp-form-string-element>
 
                 <dbp-form-string-element
                     subscribe="lang"
-                    name="myComponentLongString"
+                    name="myLongString"
                     label="My long string"
-                    value=${data.myComponentLongString || ''}
+                    value=${data.myLongString || ''}
                     rows="5"
                     required>
                 </dbp-form-string-element>
@@ -110,38 +110,38 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <dbp-form-date-element
                     subscribe="lang"
-                    name="myComponentDate"
+                    name="myDate"
                     label="My date"
-                    value=${data.myComponentDate || ''}
+                    value=${data.myDate || ''}
                     required>
                 </dbp-form-date-element>
 
                 <dbp-form-datetime-element
-                    ${ref(this.myComponentDateTimeRef)}
+                    ${ref(this.myDateTimeRef)}
                     subscribe="lang"
-                    name="myComponentDateTime"
+                    name="myDateTime"
                     description="Needs to be in the future"
                     label="My datetime"
-                    value=${data.myComponentDateTime || ''}
+                    value=${data.myDateTime || ''}
                     required>
                 </dbp-form-datetime-element>
 
                 <dbp-form-enum-element
-                    ${ref(this.myComponentEnumRef)}
+                    ${ref(this.myEnumRef)}
                     subscribe="lang"
-                    name="myComponentEnum"
+                    name="myEnum"
                     label="My enum"
-                    value=${data.myComponentEnum || ''}
+                    value=${data.myEnum || ''}
                     required>
                 </dbp-form-enum-element>
 
                 <dbp-form-checkbox-element
                     subscribe="lang"
-                    name="myComponentCheckbox"
+                    name="myCheckbox"
                     label="My checkbox"
                     description="Check me"
                     value="check"
-                    ?checked=${data.myComponentCheckbox || false}>
+                    ?checked=${data.myCheckbox || false}>
                 </dbp-form-checkbox-element>
 
                 ${this.getButtonRowHtml()}
