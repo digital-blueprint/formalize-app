@@ -228,7 +228,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
 
         response = await this.httpGetAsync(
-            this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form,
+            this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form + '&perPage=9999',
             options,
         );
 
