@@ -187,6 +187,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             );
                             table.setData(this.submissions);
 
+                            // Get table settings from localstorage
+                            this.getSubmissionTableSettings();
+
                             if (this.submissions.length === 0) {
                                 table.setColumns([]);
                             } else if (this.submissionsColumns.length !== 0) {
@@ -1721,7 +1724,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: 'full',
-            autoColumnsDefinitions: function(definitions){
+            autoColumnsDefinitions: function(definitions) {
                 definitions.forEach((column) => {
                     if (column.field.includes('date')) {
                         column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
