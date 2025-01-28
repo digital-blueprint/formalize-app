@@ -24,7 +24,7 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.mySpecialComponentStringRef = createRef();
+        this.mySpecialStringRef = createRef();
         this.myDateTimeRef = createRef();
         this.myEnumRef = createRef();
     }
@@ -34,7 +34,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.updateComplete.then(() => {
             // Add a custom validation function to the special string component
-            this.mySpecialComponentStringRef.value.customValidationFnc = (value, evaluationData) => {
+            this.mySpecialStringRef.value.customValidationFnc = (value, evaluationData) => {
                 // If the value is empty, return an error message with the evaluation data
                 return value === '' ? ['evaluationData: ' + JSON.stringify(evaluationData)] : [];
             };
@@ -53,6 +53,35 @@ class FormalizeFormElement extends BaseFormElement {
     testRoutingUrl() {
         const routingUrl = '/test';
         this.sendSetPropertyEvent('routing-url', routingUrl, true);
+    }
+
+    setRandomData() {
+        // Sample data pools
+        const words = ['Premium', 'Deluxe', 'Advanced', 'Smart', 'Pro', 'Elite', 'Ultra',
+            'Essential', 'Classic', 'Modern', 'Digital', 'Custom'];
+
+        const types = ['Laptop', 'Phone', 'Tablet', 'Camera', 'Monitor', 'Keyboard',
+            'Mouse', 'Headphones', 'Speaker', 'Router'];
+
+        const enumValues = ['item1', 'item2'];
+
+        // Helper function to get random array element
+        const randomFrom = arr => arr[Math.floor(Math.random() * arr.length)];
+
+        // Generate random date within last year
+        const randomDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000);
+        const dateStr = randomDate.toISOString().split('T')[0];
+        const dateTimeStr = randomDate.toISOString();
+
+        this.data = {
+            myString: `${randomFrom(words)} ${randomFrom(types)}`,
+            myLongString: `The ${randomFrom(words)} ${randomFrom(types)} features ${Math.floor(Math.random() * 6) + 2} different ${randomFrom(words)} capabilities for enhanced performance and reliability.`,
+            mySpecialString: `SKU-${String(Math.floor(Math.random() * 9000) + 1000)}-${Math.random().toString(36).substring(2, 5)}`,
+            myDate: dateStr,
+            myDateTime: dateTimeStr,
+            myEnum: randomFrom(enumValues),
+            myCheckbox: Math.random() < 0.5
+        };
     }
 
     static get scopedElements() {
@@ -76,10 +105,14 @@ class FormalizeFormElement extends BaseFormElement {
         console.log('-- Render FormalizeFormElement --');
         console.log('this.data', this.data);
         const data = this.data || {};
+        // const data = Object.keys(this.data).length === 0 ? { myString: 'hi' } : this.data;
+        // const data = {myString: 'hi'};
+        console.log('render data', data);
 
         return html`
             <h1>Demo Form</h1>
-            <input type="button" value="TestRoutingUrl" @click=${this.testRoutingUrl} />
+            <input type="button" value="Test routing-url" @click=${this.testRoutingUrl} />
+            <input type="button" value="Set random data" @click=${this.setRandomData} />
             <form>
                 <dbp-form-string-element
                     subscribe="lang"
@@ -99,12 +132,12 @@ class FormalizeFormElement extends BaseFormElement {
                 </dbp-form-string-element>
 
                 <dbp-form-string-element
-                    ${ref(this.mySpecialComponentStringRef)}
+                    ${ref(this.mySpecialStringRef)}
                     subscribe="lang"
-                    name="mySpecialComponentString"
+                    name="mySpecialString"
                     description="Shows the evaluation data in the error message if empty"
                     label="My special string"
-                    value=${data.mySpecialComponentString || ''}
+                    value=${data.mySpecialString || ''}
                     required>
                 </dbp-form-string-element>
 
