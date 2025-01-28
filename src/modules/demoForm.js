@@ -118,7 +118,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="myString"
                     label="My string"
-                    value=${data.myString || ''}
+                    .value=${data.myString || ''}
                     required>
                 </dbp-form-string-element>
 
@@ -126,7 +126,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="myLongString"
                     label="My long string"
-                    value=${data.myLongString || ''}
+                    .value=${data.myLongString || ''}
                     rows="5"
                     required>
                 </dbp-form-string-element>
@@ -137,7 +137,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="mySpecialString"
                     description="Shows the evaluation data in the error message if empty"
                     label="My special string"
-                    value=${data.mySpecialString || ''}
+                    .value=${data.mySpecialString || ''}
                     required>
                 </dbp-form-string-element>
 
@@ -145,7 +145,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="myDate"
                     label="My date"
-                    value=${data.myDate || ''}
+                    .value=${data.myDate || ''}
                     required>
                 </dbp-form-date-element>
 
@@ -155,7 +155,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="myDateTime"
                     description="Needs to be in the future"
                     label="My datetime"
-                    value=${data.myDateTime || ''}
+                    .value=${data.myDateTime || ''}
                     required>
                 </dbp-form-datetime-element>
 
@@ -164,7 +164,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="myEnum"
                     label="My enum"
-                    value=${data.myEnum || ''}
+                    .value=${data.myEnum || ''}
                     required>
                 </dbp-form-enum-element>
 
