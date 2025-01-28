@@ -22,6 +22,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissions = [];
         this.showSubmissionsTable = false;
         this.submissionsColumns = [];
+        this.submissionsColumnsInitial = [];
         this.initateOpenAdditionalMenu = false;
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
@@ -187,6 +188,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             );
                             table.setData(this.submissions);
 
+                            this.setInitialSubmissionTableOrder();
+
                             // Get table settings from localstorage
                             this.getSubmissionTableSettings();
 
@@ -285,6 +288,23 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.totalNumberOfItems = submissions_list.length;
 
         return response;
+    }
+
+    setInitialSubmissionTableOrder() {
+        let submissionsTable = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        if (!submissionsTable)
+            return;
+        let columns = submissionsTable.getColumns();
+        columns.forEach((col) => {
+            let name = col.getDefinition().title;
+            let field = col.getDefinition().field;
+            let visibility = col.isVisible();
+            if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
+                this.submissionsColumnsInitial.push({name: name, field: field, visibility: visibility});
+            }
+        });
+        console.log('submissionsColumnsInitial', this.submissionsColumnsInitial);
+
     }
 
     /**
@@ -397,25 +417,24 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     resetSettings() {
         let list = this._('.headers');
         const listChilds = list.childNodes;
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
-        let columns = table.getColumns();
+        const columns = this.submissionsColumnsInitial;
+        // Remove show detail button column
         columns.splice(-1, 1);
+
+        // Restore initial column order
         [...listChilds].forEach((element, index) => {
             let header_field = element.children[0];
-            let current_title = header_field.children[1].innerText;
-            if (current_title !== columns[index].getField()) {
-                header_field.children[1].innerHTML =
-                    '<strong>' + columns[index].getField() + '</strong>';
-            }
+            // Reset title
+            header_field.children[1].innerHTML = '<strong>' + columns[index].name + '</strong>';
+            // Reset visibilty
             let visibility = header_field.children[2];
-            if (visibility.iconName === 'source_icons_eye-off' && columns[index].isVisible()) {
+            if (columns[index].visibility) {
                 visibility.iconName = 'source_icons_eye-empty';
-            } else if (
-                visibility.iconName === 'source_icons_eye-empty' &&
-                !columns[index].isVisible()
-            ) {
+            } else if (!columns[index].visibility) {
                 visibility.iconName = 'source_icons_eye-off';
             }
+            // Delete previous settings from localstorage
+            this.deleteSubmissionTableSettings();
         });
     }
 
@@ -862,6 +881,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             localStorage.setItem(
                 'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId,
                 JSON.stringify(this.submissionsColumns),
+            );
+        }
+    }
+
+    /**
+     * Delete submission Table settings from localStorage
+     *
+     */
+    deleteSubmissionTableSettings() {
+        if (this.storeSession && this.isLoggedIn()) {
+            const publicId = this.auth['person-id'];
+            localStorage.removeItem(
+                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId
             );
         }
     }
