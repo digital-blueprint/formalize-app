@@ -75,7 +75,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.data = {
             myString: `${randomFrom(words)} ${randomFrom(types)}`,
-            myLongString: `The ${randomFrom(words)} ${randomFrom(types)} features ${Math.floor(Math.random() * 6) + 2} different ${randomFrom(words)} capabilities for enhanced performance and reliability.`,
+            myLongString: `The ${randomFrom(words)} ${randomFrom(types)} features ${Math.floor(Math.random() * 6) + 2}\ndifferent ${randomFrom(words)} capabilities for enhanced\nperformance and reliability.`,
             mySpecialString: `SKU-${String(Math.floor(Math.random() * 9000) + 1000)}-${Math.random().toString(36).substring(2, 5)}`,
             myDate: dateStr,
             myDateTime: dateTimeStr,
