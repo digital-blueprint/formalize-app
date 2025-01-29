@@ -53,7 +53,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const data = {
             formData: gatherFormDataFromElement(formElement),
         };
-        console.log('data', data);
+        console.log('sendSubmission data', data);
 
         const customEvent = new CustomEvent('DbpFormalizeFormSubmission', {
             detail: data,
