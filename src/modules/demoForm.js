@@ -2,7 +2,9 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import {DbpStringElement, DbpDateElement, DbpDateTimeElement, DbpEnumElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
 import {createRef, ref} from 'lit/directives/ref.js';
-import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
+
+// You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
+// import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -47,6 +49,17 @@ class FormalizeFormElement extends BaseFormElement {
 
             // Set items for the enum component
             this.myEnumRef.value.setItems({item1: 'Item 1', item2: 'Item 2'});
+
+            // Add the event listener if you don't want to override the sendSubmission method
+            this.addEventListener('DbpFormalizeFormSubmission', (event) => {
+                // Access the data from the event detail
+                const data = event.detail;
+
+                // Handle the event
+                console.log('Form submission data:', data);
+
+                // Add your event handling logic here
+            });
         });
     }
 
@@ -94,12 +107,16 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
+    // You can override the sendSubmission method if you want to handle the form data differently
+    // Or you can add a custom event listener for "DbpFormalizeFormSubmission" to handle the form data (see connectedCallback)
+    /*
     sendSubmission(event) {
         this.saveButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
         this.data = gatherFormDataFromElement(formElement);
         console.log('sendSubmission data', this.data);
     }
+    */
 
     render() {
         console.log('-- Render FormalizeFormElement --');
