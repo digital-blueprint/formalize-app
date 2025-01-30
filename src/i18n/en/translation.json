@@ -72,7 +72,7 @@
                 "title": "Register for an accessible exam date",
                 "mandatory-fields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",
                 "exam-date": "Please note that the exam date must be at least 14 days in the future.",
-                "subject": "Subject",
+                "courseName": "Subject",
                 "start-date-time": "Start of Exam",
                 "start-date-time-validation-error": "Please choose a date that is at least two weeks ahead for the beginning of your exam.",
                 "end-date-time": "End of Exam",

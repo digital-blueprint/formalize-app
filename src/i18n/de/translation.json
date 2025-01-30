@@ -72,7 +72,7 @@
                 "title": "Barrierefreien Prüfungstermin anmelden",
                 "mandatory-fields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
                 "exam-date": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
-                "subject": "Lehrveranstaltung",
+                "courseName": "Lehrveranstaltung",
                 "start-date-time": "Beginn der Prüfung",
                 "start-date-time-validation-error": "Bitte wählen Sie für den Beginn der Prüfung ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
                 "end-date-time": "Ende der Prüfung",

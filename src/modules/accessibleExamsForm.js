@@ -52,6 +52,55 @@ class FormalizeFormElement extends BaseFormElement {
                 const startDate = new Date(this.startDateTimeRef.value.value);
                 return (endDate < startDate) ? [i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')] : [];
             };
+
+            // Event listener for form submission
+            this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
+                // Access the data from the event detail
+                const data = event.detail;
+                // Include unique identifier for person who is submitting
+                data.formData.identifier = this.formData.identifier;
+
+                // Handle the event
+                console.log('Form submission data:', data);
+
+                try {
+                    this.isPostingSubmission = true;
+
+                    if (this.wasSubmissionSuccessful) {
+                        return;
+                    }
+
+                    let body = {
+                        form: '/formalize/forms/' + '0193cfbd-9b68-703a-81f9-c10d0e2375b7',
+                        dataFeedElement: JSON.stringify(data.formData),
+                    };
+
+                    const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/ld+json',
+                            Authorization: 'Bearer ' + this.auth.token,
+                        },
+                        body: JSON.stringify(body),
+                    });
+
+                    if (!response.ok) {
+                        // this.handleErrorResponse(response);
+                        throw new Error(`Response status: ${response.status}`);
+                    } else {
+                        this.wasSubmissionSuccessful = true;
+                    }
+
+                    console.log(this.wasSubmissionSuccessful, response);
+                    return response;
+
+                } catch (error) {
+                    console.error(error.message);
+
+                } finally {
+                    this.isPostingSubmission = false;
+                }
+            });
         });
     }
 
@@ -83,6 +132,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         this.formData = await response.json();
+        this.formData.identifier = `${this.formData['identifier']}`;
         this.formData.givenName = `${this.formData['givenName']}`;
         this.formData.familyName = `${this.formData['familyName']}`;
         this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
@@ -107,9 +157,9 @@ class FormalizeFormElement extends BaseFormElement {
             <form>
                 <dbp-course-select-element
                     subscribe="lang"
-                    name="subject"
-                    label="${i18n.t('render-form.forms.accessible-exams-form.subject')}"
-                    value=${data.subject || ''}
+                    name="courseName"
+                    label="${i18n.t('render-form.forms.accessible-exams-form.courseName')}"
+                    value=${data.courseName || ''}
                     required
                     >
                 </dbp-course-select-element>
@@ -193,7 +243,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="group"
                     label=${i18n.t('render-form.forms.accessible-exams-form.group')}
                     value="check"
-                    ?checked=${data.group || false}>
+                    ?checked=${data.group || ''}>
                 </dbp-form-checkbox-element>
 
                 <dbp-form-checkbox-element
@@ -201,7 +251,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="online"
                     label=${i18n.t('render-form.forms.accessible-exams-form.online')}
                     value="check"
-                    ?checked=${data.online || false}>
+                    ?checked=${data.online || ''}>
                 </dbp-form-checkbox-element>
 
                 ${this.getButtonRowHtml()}
