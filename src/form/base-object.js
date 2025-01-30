@@ -26,7 +26,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         super();
         this._i18n = createInstance();
         this.lang = this._i18n.language;
-        this.data = {};
+        this.formData = {};
         this.entryPointUrl = '';
         this.auth = {};
         this.saveButtonEnabled = true;
@@ -69,6 +69,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             lang: {type: String},
             person: {type: Object},
             additionalType: {type: String, attribute: 'additional-type'},
+            // For some reason, the attribute this.data was reset every time a new auth
+            // object was set by Keycloak, so we use this.formData instead
+            formData: {type: Object, attribute: false},
             data: {type: Object},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
@@ -93,7 +96,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     resetForm(event) {
         event.preventDefault();
         this.saveButtonEnabled = true;
-        this.data = {};
+        this.formData = {};
 
         const customEvent = new CustomEvent('DbpFormalizeFormReset', {
             bubbles: true,

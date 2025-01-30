@@ -86,7 +86,7 @@ class FormalizeFormElement extends BaseFormElement {
         const dateStr = randomDate.toISOString().split('T')[0];
         const dateTimeStr = randomDate.toISOString();
 
-        this.data = {
+        this.formData = {
             myString: `${randomFrom(words)} ${randomFrom(types)}`,
             myLongString: `The ${randomFrom(words)} ${randomFrom(types)} features ${Math.floor(Math.random() * 6) + 2}\ndifferent ${randomFrom(words)} capabilities for enhanced\nperformance and reliability.`,
             mySpecialString: `SKU-${String(Math.floor(Math.random() * 9000) + 1000)}-${Math.random().toString(36).substring(2, 5)}`,
@@ -113,16 +113,16 @@ class FormalizeFormElement extends BaseFormElement {
     sendSubmission(event) {
         this.saveButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
-        this.data = gatherFormDataFromElement(formElement);
-        console.log('sendSubmission data', this.data);
+        this.formData = gatherFormDataFromElement(formElement);
+        console.log('sendSubmission data', this.formData);
     }
     */
 
     render() {
         console.log('-- Render FormalizeFormElement --');
-        console.log('this.data', this.data);
-        const data = this.data || {};
-        // const data = Object.keys(this.data).length === 0 ? { myString: 'hi' } : this.data;
+        console.log('this.formData', this.formData);
+        const data = this.formData || {};
+        // const data = Object.keys(this.formData).length === 0 ? { myString: 'hi' } : this.formData;
         // const data = {myString: 'hi'};
         console.log('render data', data);
 
@@ -196,7 +196,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${this.getButtonRowHtml()}
             </form>
-            ${this.renderResult(this.data)}
+            ${this.renderResult(this.formData)}
         `;
     }
 

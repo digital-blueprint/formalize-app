@@ -82,23 +82,23 @@ class FormalizeFormElement extends BaseFormElement {
             throw new Error(response);
         }
 
-        this.data = await response.json();
-        this.data.givenName = `${this.data['givenName']}`;
-        this.data.familyName = `${this.data['familyName']}`;
-        this.data.matriculationNumber = `${this.data['localData']['matriculationNumber']}`;
-        this.data.email = `${this.data['localData']['email']}`;
+        this.formData = await response.json();
+        this.formData.givenName = `${this.formData['givenName']}`;
+        this.formData.familyName = `${this.formData['familyName']}`;
+        this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
+        this.formData.email = `${this.formData['localData']['email']}`;
     }
 
     render() {
         const i18n = this._i18n;
         console.log('-- Render FormalizeFormElement --');
 
-        if (!this.data.givenName && !this.data.familyName) {
+        if (!this.formData.givenName && !this.formData.familyName) {
             this.fetchUserData();
         }
 
-        console.log('this.data', this.data);
-        const data = this.data || {};
+        console.log('this.formData', this.formData);
+        const data = this.formData || {};
 
         return html`
             <h1>${i18n.t('render-form.forms.accessible-exams-form.title')}</h1>
