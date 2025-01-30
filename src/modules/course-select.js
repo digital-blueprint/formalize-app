@@ -230,7 +230,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
      * @returns {string}
      */
     formatCourse(select, course) {
-        let text = course['name'] ?? '';
+        let text = JSON.stringify(course['code'] + ": " + course['name']) ?? '';
         return text;
     }
 
