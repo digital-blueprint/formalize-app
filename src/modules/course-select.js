@@ -145,7 +145,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                         jqXHR.setRequestHeader('Authorization', 'Bearer ' + that.auth.token);
                         that.isSearching = true;
                     },
-                    data: (params) => {                        
+                    data: (params) => {
                         return this.buildUrlData(this, params);
                     },
                     processResults: function (data) {
@@ -218,6 +218,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
     buildUrlData(select, params) {
         return {
             search: params.term.trim(),
+            includeLocal: 'teachingTerm,type',
         };
     }
 
@@ -230,7 +231,13 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
      * @returns {string}
      */
     formatCourse(select, course) {
-        let text = JSON.stringify(course['code'] + ": " + course['name']) ?? '';
+        let courseCode = course['code'];
+        let courseName = course['name'];
+        let courseType = course['localData']['type'];
+        let courseTerm = course['localData']['teachingTerm'];
+        let courseString = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+
+        let text = courseString ?? '';
         return text;
     }
 
