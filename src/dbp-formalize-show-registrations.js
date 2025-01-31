@@ -1961,6 +1961,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .options="${auto_columns}"
                     pagination-enabled="true"
                     pagination-size="10"
+                    sticky-header
                     select-rows-enabled>
                 </dbp-tabulator-table>
             </div>
