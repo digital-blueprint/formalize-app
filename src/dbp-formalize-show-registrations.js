@@ -305,8 +305,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.submissionsColumnsInitial.push({name: name, field: field, visibility: visibility});
             }
         });
-        console.log('submissionsColumnsInitial', this.submissionsColumnsInitial);
-
     }
 
     /**
@@ -1849,7 +1847,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         lang="${this.lang}"
                         class="tabulator-table"
                         id="tabulator-table-forms"
-                        pagination-enabled="true"
+                        identifier="forms-table"
+                        pagination-enabled
                         pagination-size="10"
                         options=${JSON.stringify(options_forms)}>
                     </dbp-tabulator-table>
@@ -1958,8 +1957,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     lang="${this.lang}"
                     class="tabulator-table"
                     id="tabulator-table-submissions"
+                    identifier="submissions-table"
                     .options="${auto_columns}"
-                    pagination-enabled="true"
+                    pagination-enabled
                     pagination-size="5"
                     sticky-header
                     select-rows-enabled>
