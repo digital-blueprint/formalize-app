@@ -16,6 +16,7 @@
         "agreement": "Sie müssen zustimmen oder ablehnen."
     },
     "show-registrations": {
+        "table-config-button-text": "Tabellenkonfiguration",
         "abort": "Abbrechen",
         "all-columns": "Alle Spalten",
         "apply-col-settings": "Filteroptionen übernehmen",

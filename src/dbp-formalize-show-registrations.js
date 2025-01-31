@@ -1,6 +1,6 @@
 import {css, html, unsafeCSS} from 'lit';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
-import {getIconSVGURL, IconButton, LoadingButton, MiniSpinner, Translated} from '@dbp-toolkit/common';
+import {getIconSVGURL, Button, Icon, IconButton, LoadingButton, MiniSpinner, Translated} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -49,6 +49,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     static get scopedElements() {
         return {
+            'dbp-button': Button,
+            'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
             'dbp-translated': Translated,
             'dbp-mini-spinner': MiniSpinner,
@@ -1069,12 +1071,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 font-size: 1.3em;
             }
 
-            .export-buttons {
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-            }
-
             #export-select,
             #search-select,
             #search-operator,
@@ -1090,6 +1086,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 cursor: pointer;
                 background-position-x: calc(100% - 0.4rem);
                 box-sizing: content-box;
+            }
+
+            .export-buttons .dropdown-menu {
+                margin-left: 6px;
             }
 
             .detailed-submission-modal-content-wrapper {
@@ -1141,6 +1141,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 padding-top: 1rem;
             }
 
+            .table-wrapper  {
+                container-type: inline-size;
+                container-name: table-wrapper;
+            }
+
             .table-wrapper h3 {
                 margin-top: 0.5em;
                 margin-bottom: 1em;
@@ -1167,6 +1172,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 justify-content: space-between;
                 gap: 4px;
                 margin-bottom: 1em;
+            }
+
+            @container table-wrapper (width < 620px) {
+                .table-buttons {
+                    flex-direction: column;
+                    gap: 10px;
+                }
+            }
+
+            @container table-wrapper (width < 290px) {
+                .export-buttons .dropdown-menu {
+                    margin-left: 0;
+                    margin-top: 10px;
+                }
             }
 
             .modal-container {
@@ -1599,7 +1618,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 #searchbar {
-                    width: 100%;
                     height: 40px;
                 }
 
@@ -1609,10 +1627,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     top: 0;
                     height: 40px;
                     box-sizing: border-box;
-                }
-
-                .search-wrapper {
-                    width: 100%;
                 }
 
                 #search-select,
@@ -1918,12 +1932,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </div>
 
                         <div class='export-buttons'>
-                            <dbp-icon-button title='${i18n.t('show-registrations.filter-options-button-text')}'
-                                aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
-                                icon-name='iconoir_settings'
-                                @click='${() => {
+                            <dbp-button no-spinner-on-click type="is-secondary" @click='${() => {
                                     this.openColumnOptionsModal();
-                                }}'></dbp-icon-button>
+                                }}'>
+                                <dbp-icon  title='${i18n.t('show-registrations.filter-options-button-text')}'
+                                    aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
+                                    name='iconoir_settings'></dbp-icon>
+                                ${i18n.t('show-registrations.table-config-button-text')}
+                            </dbp-button>
                             <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
                                 <option value='-' disabled selected>
                                     ${i18n.t('show-registrations.default-export-select')}

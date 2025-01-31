@@ -16,6 +16,7 @@
         "agreement": "You must agree or disagree."
     },
     "show-registrations": {
+        "table-config-button-text": "Table configuration",
         "abort": "Cancel",
         "all-columns": "All columns",
         "apply-col-settings": "Apply filter options",
