@@ -30,8 +30,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     constructor() {
         super();
-        this.startDateTimeRef = createRef();
-        this.endDateTimeRef = createRef();
+        this.dateRef = createRef();
     }
 
     updated() {
@@ -51,20 +50,13 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
-            // Custom validation function for the start datetime of the exam
-            this.startDateTimeRef.value.customValidationFnc = (value) => {
+            // Custom validation function for the date of the exam
+            this.dateRef.value.customValidationFnc = (value) => {
                 const date = new Date(value);
                 // The minimum date has to be two weeks ahead
                 const minDate = new Date(Date.now() + 1209600000);
                 minDate.setHours(0, 0, 0);
                 return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
-            };
-
-            // Custom validation function for the end datetime of the exam
-            this.endDateTimeRef.value.customValidationFnc = (value) => {
-                const endDate = new Date(value);
-                const startDate = new Date(this.startDateTimeRef.value.value);
-                return (endDate < startDate) ? [i18n.t('render-form.forms.accessible-exams-form.end-date-time-validation-error')] : [];
             };
 
             // Event listener for form submission
@@ -180,23 +172,30 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-course-select-element>
 
-                <dbp-form-datetime-element
-                    ${ref(this.startDateTimeRef)}
+                <dbp-form-date-element
+                    ${ref(this.dateRef)}
                     subscribe="lang"
-                    name="startDateTime"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.start-date-time')}
-                    value=${data.startDateTime || ''}
+                    name="date"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.date')}
+                    value=${data.date || ''}
                     >
-                </dbp-form-datetime-element>
+                </dbp-form-date-element>
 
-                <dbp-form-datetime-element
-                    ${ref(this.endDateTimeRef)}
+                <dbp-form-string-element
                     subscribe="lang"
-                    name="endDateTime"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.end-date-time')}
-                    value=${data.endDateTime || ''}
+                    name="beginTime"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.begin-time')}
+                    value=${data.beginTime || ''}
                     >
-                </dbp-form-datetime-element>
+                </dbp-form-string-element>
+
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="endTime"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.end-time')}
+                    value=${data.endTime || ''}
+                    >
+                </dbp-form-string-element>
 
                 <dbp-person-select-element
                     id="examiner-picker-element"
