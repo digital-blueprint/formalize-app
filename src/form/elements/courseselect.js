@@ -33,7 +33,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         return html`
             <div class="control">
                 <dbp-course-select
-                    id="${this.id}-picker"
+                    id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang, auth, entry-point-url"
                     @change="${this.handleInputValue}"

@@ -33,7 +33,7 @@ export class DbpRoomSelectElement extends ScopedElementsMixin(DbpBaseElement) {
         return html`
             <div class="control">
                 <dbp-room-select
-                    id="${this.id}-picker"
+                    id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang, auth, entry-point-url"
                     @change="${this.handleInputValue}"
