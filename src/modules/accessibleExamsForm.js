@@ -33,23 +33,19 @@ class FormalizeFormElement extends BaseFormElement {
         this.dateRef = createRef();
     }
 
-    updated() {
-        // Override buildUrlData method of person select to include email address of examiner
-        console.log("In the updated() function, select element:");
-        console.log(this._('#examiner-picker-element')._('#examiner-picker'));
-        this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function(select, params) {
-            return {
-                search: params.term.trim(),
-                includeLocal: 'email'
-            };
-        };
-    };
-
     connectedCallback() {
         const i18n = this._i18n;
         super.connectedCallback();
 
         this.updateComplete.then(() => {
+            // Override buildUrlData method of person select to include email address of examiner
+            this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function(select, params) {
+                return {
+                    search: params.term.trim(),
+                    includeLocal: 'email'
+                };
+            };
+
             // Custom validation function for the date of the exam
             this.dateRef.value.customValidationFnc = (value) => {
                 const date = new Date(value);
