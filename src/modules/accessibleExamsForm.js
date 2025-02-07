@@ -247,6 +247,7 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-form-string-element>
 
+                <!--
                 <dbp-room-select-element
                     subscribe="lang"
                     name="room"
@@ -254,6 +255,7 @@ class FormalizeFormElement extends BaseFormElement {
                     value=${data.room || ''}
                     >
                 </dbp-room-select-element>
+                -->
 
                 <dbp-form-string-element
                     subscribe="lang"
