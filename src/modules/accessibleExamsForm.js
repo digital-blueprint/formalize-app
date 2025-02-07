@@ -176,6 +176,14 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-course-select-element>
 
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="differentTerm"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.different-term')}
+                    value=${data.differentTerm || ''}
+                    >
+                </dbp-form-string-element>
+
                 <dbp-form-date-element
                     ${ref(this.dateRef)}
                     subscribe="lang"
