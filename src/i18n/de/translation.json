@@ -83,7 +83,8 @@
                 "family-name": "Nachname",
                 "email": "E-Mail-Adresse",
                 "room": "Raum der Prüfung",
-                "lecturer": "Vortragende",
+                "examiner": "Prüfer*in",
+                "additional-examiner": "Weitere Prüfer*innen (optional)",
                 "comment": "Anmerkung",
                 "group": "Genaue Gruppenzuteilung erfolgt noch",
                 "online": "Es handelt sich um eine Online-Prüfung"

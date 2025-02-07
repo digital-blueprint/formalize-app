@@ -83,7 +83,8 @@
                 "family-name": "Family name",
                 "email": "Email address",
                 "room": "Original room",
-                "lecturer": "Lecturer",
+                "examiner": "Examiner",
+                "additional-examiner": "Additional examiners (optional)",
                 "comment": "Comment",
                 "group": "Exact group allocation will follow",
                 "online": "This is an online exam"

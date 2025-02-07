@@ -35,10 +35,10 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     updated() {
-        // Override buildUrlData method of person select to include email address of lecturer
+        // Override buildUrlData method of person select to include email address of examiner
         console.log("In the updated() function, select element:");
-        console.log(this._('#lecturer-picker-element')._('#lecturer-picker'));
-        this._('#lecturer-picker-element')._('#lecturer-picker').buildUrlData = function(select, params) {
+        console.log(this._('#examiner-picker-element')._('#examiner-picker'));
+        this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function(select, params) {
             return {
                 search: params.term.trim(),
                 includeLocal: 'email'
@@ -198,6 +198,23 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-form-datetime-element>
 
+                <dbp-person-select-element
+                    id="examiner-picker-element"
+                    subscribe="lang"
+                    name="examiner"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
+                    value=$${data.examiner || ''}
+                    >
+                </dbp-person-select-element>
+
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="additionalExaminer"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.additional-examiner')}
+                    value=${data.additionalExaminer || ''}
+                    >
+                </dbp-form-string-element>
+
                 <dbp-form-string-element
                     subscribe="lang"
                     name="matriculationNumber"
@@ -237,25 +254,6 @@ class FormalizeFormElement extends BaseFormElement {
                     value=${data.room || ''}
                     >
                 </dbp-room-select-element>
-
-                <dbp-person-select-element
-                    id="lecturer-picker-element"
-                    subscribe="lang"
-                    name="lecturer"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.lecturer')}
-                    value=$${data.lecturer || ''}
-                    >
-                </dbp-person-select-element>
-
-                <!--
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="lecturer"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.lecturer')}
-                    value=${data.lecturer || ''}
-                    >
-                </dbp-form-string-element>
-                -->
 
                 <dbp-form-string-element
                     subscribe="lang"
