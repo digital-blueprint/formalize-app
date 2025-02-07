@@ -61,6 +61,8 @@ class FormalizeFormElement extends BaseFormElement {
                 const data = event.detail;
                 // Include unique identifier for person who is submitting
                 data.formData.identifier = this.formData.identifier;
+                this.createUUID();
+                data.formData.uuid = this.formData.uuid;
 
                 // Handle the event
                 console.log('Form submission data:', data);
@@ -141,6 +143,12 @@ class FormalizeFormElement extends BaseFormElement {
         this.formData.familyName = `${this.formData['familyName']}`;
         this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
         this.formData.email = `${this.formData['localData']['email']}`;
+    }
+
+    createUUID() {
+        let uuid = self.crypto.randomUUID();
+        console.log("Created UUID: " + uuid);
+        this.formData.uuid = uuid;
     }
 
     render() {
