@@ -28,7 +28,7 @@ class FormalizeFormElement extends BaseFormElement {
         super();
         this.mySpecialStringRef = createRef();
         this.myDateTimeRef = createRef();
-        this.myEnumRef = createRef();
+        this.enumItems = {item1: 'Item 1', item2: 'Item 2'};
     }
 
     connectedCallback() {
@@ -46,9 +46,6 @@ class FormalizeFormElement extends BaseFormElement {
                 const date = new Date(value);
                 return date < new Date() ? ['The date needs to be in the future'] : [];
             };
-
-            // Set items for the enum component
-            this.myEnumRef.value.setItems({item1: 'Item 1', item2: 'Item 2'});
 
             // Add the event listener if you don't want to override the sendSubmission method
             this.addEventListener('DbpFormalizeFormSubmission', (event) => {
@@ -177,10 +174,10 @@ class FormalizeFormElement extends BaseFormElement {
                 </dbp-form-datetime-element>
 
                 <dbp-form-enum-element
-                    ${ref(this.myEnumRef)}
                     subscribe="lang"
                     name="myEnum"
                     label="My enum"
+                    .items=${this.enumItems}
                     .value=${data.myEnum || ''}
                     required>
                 </dbp-form-enum-element>
