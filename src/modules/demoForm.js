@@ -26,8 +26,6 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.mySpecialStringRef = createRef();
-        this.myDateTimeRef = createRef();
         this.enumItems = {item1: 'Item 1', item2: 'Item 2'};
     }
 
@@ -35,18 +33,6 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
-            // Add a custom validation function to the special string component
-            this.mySpecialStringRef.value.customValidationFnc = (value, evaluationData) => {
-                // If the value is empty, return an error message with the evaluation data
-                return value === '' ? ['evaluationData: ' + JSON.stringify(evaluationData)] : [];
-            };
-
-            // Add a custom validation function to the datetime component
-            this.myDateTimeRef.value.customValidationFnc = (value) => {
-                const date = new Date(value);
-                return date < new Date() ? ['The date needs to be in the future'] : [];
-            };
-
             // Add the event listener if you don't want to override the sendSubmission method
             this.addEventListener('DbpFormalizeFormSubmission', (event) => {
                 // Access the data from the event detail
@@ -146,11 +132,14 @@ class FormalizeFormElement extends BaseFormElement {
                 </dbp-form-string-element>
 
                 <dbp-form-string-element
-                    ${ref(this.mySpecialStringRef)}
                     subscribe="lang"
                     name="mySpecialString"
                     description="Shows the evaluation data in the error message if empty"
                     label="My special string"
+                    .customValidator=${(value, evaluationData) => {
+                        // If the value is empty, return an error message with the evaluation data
+                        return value === '' ? ['evaluationData: ' + JSON.stringify(evaluationData)] : [];
+                    }}
                     .value=${data.mySpecialString || ''}
                     required>
                 </dbp-form-string-element>
@@ -164,11 +153,14 @@ class FormalizeFormElement extends BaseFormElement {
                 </dbp-form-date-element>
 
                 <dbp-form-datetime-element
-                    ${ref(this.myDateTimeRef)}
                     subscribe="lang"
                     name="myDateTime"
                     description="Needs to be in the future"
                     label="My datetime"
+                    .customValidator=${(value) => {
+                        const date = new Date(value);
+                        return date < new Date() ? ['The date needs to be in the future'] : [];
+                    }}
                     .value=${data.myDateTime || ''}
                     required>
                 </dbp-form-datetime-element>

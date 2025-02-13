@@ -1,6 +1,5 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
-import {createRef, ref} from 'lit/directives/ref.js';
 import {DbpStringElement, DbpDateTimeElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {PersonSelect} from '@dbp-toolkit/person-select';
@@ -27,12 +26,6 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
-
-    constructor() {
-        super();
-        this.dateRef = createRef();
-    }
-
     connectedCallback() {
         const i18n = this._i18n;
         super.connectedCallback();
@@ -44,15 +37,6 @@ class FormalizeFormElement extends BaseFormElement {
                     search: params.term.trim(),
                     includeLocal: 'email'
                 };
-            };
-
-            // Custom validation function for the date of the exam
-            this.dateRef.value.customValidationFnc = (value) => {
-                const date = new Date(value);
-                // The minimum date has to be two weeks ahead
-                const minDate = new Date(Date.now() + 1209600000);
-                minDate.setHours(0, 0, 0);
-                return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
             };
 
             // Event listener for form submission
@@ -185,10 +169,16 @@ class FormalizeFormElement extends BaseFormElement {
                 </dbp-form-string-element>
 
                 <dbp-form-date-element
-                    ${ref(this.dateRef)}
                     subscribe="lang"
                     name="date"
                     label=${i18n.t('render-form.forms.accessible-exams-form.date')}
+                    .customValidator=${(value) => {
+                        const date = new Date(value);
+                        // The minimum date has to be two weeks ahead
+                        const minDate = new Date(Date.now() + 1209600000);
+                        minDate.setHours(0, 0, 0);
+                        return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
+                    }}
                     value=${data.date || ''}
                     >
                 </dbp-form-date-element>
