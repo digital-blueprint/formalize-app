@@ -1,7 +1,6 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
 import {DbpStringElement, DbpDateElement, DbpDateTimeElement, DbpEnumElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
-import {createRef, ref} from 'lit/directives/ref.js';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
 // import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';

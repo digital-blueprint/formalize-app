@@ -27,7 +27,6 @@ export default class extends BaseObject {
 
 class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
-        const i18n = this._i18n;
         super.connectedCallback();
 
         this.updateComplete.then(() => {
