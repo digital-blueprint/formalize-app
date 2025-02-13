@@ -1,7 +1,7 @@
 import {css, html} from 'lit';
 import * as commonUtils from '@dbp-toolkit/common/utils.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
-import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base.js';
+import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base-element.js';
 import {CourseSelect} from '../../modules/course-select.js';
 
 export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) {
