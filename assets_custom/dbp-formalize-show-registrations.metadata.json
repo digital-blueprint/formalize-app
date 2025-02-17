@@ -14,5 +14,6 @@
         "de": "Zeigt eine Liste aller verfügbaren Kursanmeldungen.",
         "en": "Shows a list of all available course submissions."
     },
-    "subscribe": "lang,entry-point-url,auth,html-overrides"
+    "subscribe": "lang,entry-point-url,auth,html-overrides",
+    "required_roles": ["ROLE_FORMALIZE_FORM_SUBMISSION_READER"]
 }
