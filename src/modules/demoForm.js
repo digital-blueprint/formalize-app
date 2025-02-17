@@ -109,7 +109,7 @@ class FormalizeFormElement extends BaseFormElement {
         console.log('render data', data);
 
         return html`
-            <h1>Demo Form</h1>
+            <h2>Demo Form</h2>
             <input type="button" value="Test routing-url" @click=${this.testRoutingUrl} />
             <input type="button" value="Set random data" @click=${this.setRandomData} />
             <form>
