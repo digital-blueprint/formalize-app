@@ -67,7 +67,7 @@
         "name": "Name"
     },
     "render-form": {
-        "form-not-accessible": "The form <strong>{{formUrlSlug}}</strong> is not accessible for you!",
+        "form-not-accessible": "This form is not available for you!",
         "forms": {
             "accessible-exams-form": {
                 "title": "Register for an accessible exam date",

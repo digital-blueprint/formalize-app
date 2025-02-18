@@ -7,6 +7,8 @@ import {BaseObject} from './form/base-object.js';
 import {pascalToKebab} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import {classMap} from 'lit/directives/class-map.js';
+import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
@@ -217,17 +219,29 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
+    static get styles() {
+        // language=css
+        return [
+            commonStyles.getNotificationCSS(),
+        ];
+    }
+
     render() {
         const i18n = this._i18n;
 
+        if (!this.isLoggedIn() && !this.isLoading()) {
+            return html`
+                <div class="notification is-warning">
+                    ${i18n.t('error-login-message')}
+                </div>
+            `;
+        }
+
         if (!this.submissionAllowed) {
             return html`
-                ${unsafeHTML(i18n.t(
-                    'render-form.form-not-accessible',
-                    {
-                        formUrlSlug: this.formUrlSlug,
-                    },
-                ))}
+                <div class="notification is-warning">
+                    ${i18n.t('render-form.form-not-accessible')}
+                </div>
             `;
         }
 

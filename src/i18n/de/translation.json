@@ -67,7 +67,7 @@
         "name": "Name"
     },
     "render-form": {
-        "form-not-accessible": "Das Formular <strong>{{formUrlSlug}}</strong> ist für Sie nicht verfügbar!",
+        "form-not-accessible": "Dieses Formular ist für Sie nicht verfügbar!",
         "forms": {
             "accessible-exams-form": {
                 "title": "Barrierefreien Prüfungstermin anmelden",
