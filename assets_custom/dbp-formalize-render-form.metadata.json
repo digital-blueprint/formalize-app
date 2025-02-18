@@ -11,8 +11,8 @@
       "en": "Show form"
     },
     "description": {
-        "de": "Zeigt ein Formular an.",
-        "en": "Shows a form."
+        "de": "Zeigt ein Formular an",
+        "en": "Shows a form"
     },
     "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url"
 }
