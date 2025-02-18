@@ -6,8 +6,6 @@ import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
 import {pascalToKebab} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
-import {unsafeHTML} from 'lit/directives/unsafe-html.js';
-import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
