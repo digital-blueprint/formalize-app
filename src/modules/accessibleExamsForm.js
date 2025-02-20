@@ -166,6 +166,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="differentTerm"
                     label=${i18n.t('render-form.forms.accessible-exams-form.different-term')}
                     value=${data.differentTerm || ''}
+                    hidden
                     >
                 </dbp-form-string-element>
 
@@ -242,6 +243,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="group"
                     label=${i18n.t('render-form.forms.accessible-exams-form.group')}
+                    hidden
                     value="check"
                     ?checked=${data.group || ''}>
                 </dbp-form-checkbox-element>
