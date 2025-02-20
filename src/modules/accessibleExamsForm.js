@@ -215,47 +215,14 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-form-string-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="matriculationNumber"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.matriculation-number')}
-                    value=${data.matriculationNumber || ''}
-                    >
-                </dbp-form-string-element>
-
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="givenName"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.given-name')}
-                    value=${data.givenName || ''}
-                    >
-                </dbp-form-string-element>
-
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="familyName"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.family-name')}
-                    value=${data.familyName || ''}
-                    >
-                </dbp-form-string-element>
-
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="email"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.email')}
-                    value=${data.email || ''}
-                    >
-                </dbp-form-string-element>
-
-                <!--
                 <dbp-room-select-element
                     subscribe="lang"
                     name="room"
                     label="${i18n.t('render-form.forms.accessible-exams-form.room')}"
                     value=${data.room || ''}
+                    hidden
                     >
                 </dbp-room-select-element>
-                -->
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -280,6 +247,42 @@ class FormalizeFormElement extends BaseFormElement {
                     value="check"
                     ?checked=${data.online || ''}>
                 </dbp-form-checkbox-element>
+
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="matriculationNumber"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.matriculation-number')}
+                    value=${data.matriculationNumber || ''}
+                    disabled
+                    >
+                </dbp-form-string-element>
+
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="givenName"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.given-name')}
+                    value=${data.givenName || ''}
+                    disabled
+                    >
+                </dbp-form-string-element>
+
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="familyName"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.family-name')}
+                    value=${data.familyName || ''}
+                    disabled
+                    >
+                </dbp-form-string-element>
+
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="email"
+                    label=${i18n.t('render-form.forms.accessible-exams-form.email')}
+                    value=${data.email || ''}
+                    disabled
+                    >
+                </dbp-form-string-element>
 
                 ${this.getButtonRowHtml()}
             </form>
