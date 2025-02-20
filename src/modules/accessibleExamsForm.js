@@ -150,6 +150,8 @@ class FormalizeFormElement extends BaseFormElement {
             <p>${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}<br />
             ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}</p>
             <form>
+                <fieldset>
+                <legend>${i18n.t('render-form.forms.accessible-exams-form.exam-data')}</legend>
                 <dbp-course-select-element
                     subscribe="lang"
                     name="courseName"
@@ -251,7 +253,10 @@ class FormalizeFormElement extends BaseFormElement {
                     value="check"
                     ?checked=${data.online || ''}>
                 </dbp-form-checkbox-element>
+                </fieldset>
 
+                <fieldset>
+                <legend>${i18n.t('render-form.forms.accessible-exams-form.personal-data')}</legend>
                 <dbp-form-string-element
                     subscribe="lang"
                     name="matriculationNumber"
@@ -287,6 +292,7 @@ class FormalizeFormElement extends BaseFormElement {
                     disabled
                     >
                 </dbp-form-string-element>
+                </fieldset>
 
                 ${this.getButtonRowHtml()}
             </form>

@@ -73,6 +73,8 @@
                 "title": "Register for an accessible exam date",
                 "mandatory-fields": "Please fill in all mandatory fields.",
                 "exam-date": "Please note that the exam date must be at least 14 days in the future.",
+                "exam-data": "Exam data",
+                "personal-data": "Personal data (prefilled)",
                 "courseName": "Subject",
                 "different-term": "Different teaching term of the subject",
                 "date": "Date of Exam",
