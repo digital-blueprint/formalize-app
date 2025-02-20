@@ -155,7 +155,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-course-select-element
                     subscribe="lang"
                     name="courseName"
-                    label="${i18n.t('render-form.forms.accessible-exams-form.courseName')}"
+                    label="${i18n.t('render-form.forms.accessible-exams-form.course-name')}"
                     value=${data.courseName || ''}
                     required
                     >

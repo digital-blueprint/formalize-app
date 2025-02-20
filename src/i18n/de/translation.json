@@ -75,7 +75,7 @@
                 "exam-date": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
                 "exam-data": "Prüfungsdaten",
                 "personal-data": "Persönliche Daten (vorausgefüllt)",
-                "courseName": "Lehrveranstaltung",
+                "course-name": "Lehrveranstaltung",
                 "different-term": "Abweichendes Semester der Lehrveranstaltung",
                 "date": "Datum der Prüfung",
                 "date-validation-error": "Bitte wählen Sie ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
@@ -87,7 +87,7 @@
                 "email": "E-Mail-Adresse",
                 "room": "Raum der Prüfung",
                 "examiner": "Prüfer*in",
-                "additional-examiner": "Weitere Prüfer*innen",
+                "additional-examiner": "Weiterer Prüfer*Weitere Prüferin",
                 "comment": "Anmerkung",
                 "group": "Genaue Gruppenzuteilung erfolgt noch",
                 "online": "Es handelt sich um eine Online-Prüfung"
