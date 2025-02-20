@@ -179,6 +179,7 @@ class FormalizeFormElement extends BaseFormElement {
                         return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
                     }}
                     value=${data.date || ''}
+                    required
                     >
                 </dbp-form-date-element>
 
@@ -187,6 +188,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="beginTime"
                     label=${i18n.t('render-form.forms.accessible-exams-form.begin-time')}
                     value=${data.beginTime || ''}
+                    required
                     >
                 </dbp-form-string-element>
 
@@ -195,6 +197,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="endTime"
                     label=${i18n.t('render-form.forms.accessible-exams-form.end-time')}
                     value=${data.endTime || ''}
+                    required
                     >
                 </dbp-form-string-element>
 
@@ -204,6 +207,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="examiner"
                     label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
                     value=$${data.examiner || ''}
+                    required
                     >
                 </dbp-person-select-element>
 

@@ -71,10 +71,10 @@
         "forms": {
             "accessible-exams-form": {
                 "title": "Register for an accessible exam date",
-                "mandatory-fields": "Fields marked with an asterisk are mandatory. Please fill in all mandatory fields.",
+                "mandatory-fields": "Please fill in all mandatory fields.",
                 "exam-date": "Please note that the exam date must be at least 14 days in the future.",
                 "courseName": "Subject",
-                "different-term": "Different teaching term of the subject (optional)",
+                "different-term": "Different teaching term of the subject",
                 "date": "Date of Exam",
                 "date-validation-error": "Please choose a date that is at least two weeks ahead.",
                 "begin-time": "Begin time of Exam",
@@ -85,7 +85,7 @@
                 "email": "Email address",
                 "room": "Original room",
                 "examiner": "Examiner",
-                "additional-examiner": "Additional examiners (optional)",
+                "additional-examiner": "Additional examiners",
                 "comment": "Comment",
                 "group": "Exact group allocation will follow",
                 "online": "This is an online exam"

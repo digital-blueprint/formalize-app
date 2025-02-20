@@ -71,10 +71,10 @@
         "forms": {
             "accessible-exams-form": {
                 "title": "Barrierefreien Prüfungstermin anmelden",
-                "mandatory-fields": "Mit einem Stern gekennzeichnete Felder sind Pflichtfelder. Bitte füllen sie alle Pflichtfelder aus.",
+                "mandatory-fields": "Bitte füllen sie alle Pflichtfelder aus.",
                 "exam-date": "Bitte beachten Sie, dass der Prüfungstermin mindestens 14 Tage in der Zukunft liegen muss.",
                 "courseName": "Lehrveranstaltung",
-                "different-term": "Abweichendes Semester der Lehrveranstaltung (optional)",
+                "different-term": "Abweichendes Semester der Lehrveranstaltung",
                 "date": "Datum der Prüfung",
                 "date-validation-error": "Bitte wählen Sie ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
                 "begin-time": "Beginnzeit der Prüfung",
@@ -85,7 +85,7 @@
                 "email": "E-Mail-Adresse",
                 "room": "Raum der Prüfung",
                 "examiner": "Prüfer*in",
-                "additional-examiner": "Weitere Prüfer*innen (optional)",
+                "additional-examiner": "Weitere Prüfer*innen",
                 "comment": "Anmerkung",
                 "group": "Genaue Gruppenzuteilung erfolgt noch",
                 "online": "Es handelt sich um eine Online-Prüfung"
