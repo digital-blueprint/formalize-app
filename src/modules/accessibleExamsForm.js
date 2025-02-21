@@ -26,6 +26,18 @@ export default class extends BaseObject {
 }
 
 class FormalizeFormElement extends BaseFormElement {
+    constructor() {
+        super();
+        this.submitted = false;
+    }
+
+    static get properties() {
+        return {
+            ...super.properties,
+            submitted: {type: Boolean},
+        };
+    }
+
     connectedCallback() {
         super.connectedCallback();
 
@@ -78,6 +90,7 @@ class FormalizeFormElement extends BaseFormElement {
                         this.wasSubmissionSuccessful = true;
                     }
 
+                    this.submitted = this.wasSubmissionSuccessful;
                     console.log(this.wasSubmissionSuccessful, response);
                     return response;
 
@@ -298,6 +311,22 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${this.getButtonRowHtml()}
             </form>
+            ${this.renderResult(this.submitted)}
         `;
+    }
+
+    renderResult(submitted) {
+        const i18n = this._i18n;
+        
+        if (submitted) {
+            return html`
+                <div class="container">
+                    <h2>${i18n.t('render-form.forms.accessible-exams-form.submission-result-thanks')}</h2>
+                    <p>${i18n.t('render-form.forms.accessible-exams-form.submission-result-notification')}</p>
+                </div>
+            `;
+        }
+
+        return html``;
     }
 }

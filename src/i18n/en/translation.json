@@ -90,7 +90,9 @@
                 "additional-examiner": "Additional examiner",
                 "comment": "Comment",
                 "group": "Exact group allocation will follow",
-                "online": "This is an online exam"
+                "online": "This is an online exam",
+                "submission-result-thanks": "Thank you for your registration!",
+                "submission-result-notification": "You will receive a confirmation by e-mail."
             }
         },
         "course-select": {

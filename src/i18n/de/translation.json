@@ -90,7 +90,9 @@
                 "additional-examiner": "Weiterer Prüfer*Weitere Prüferin",
                 "comment": "Anmerkung",
                 "group": "Genaue Gruppenzuteilung erfolgt noch",
-                "online": "Es handelt sich um eine Online-Prüfung"
+                "online": "Es handelt sich um eine Online-Prüfung",
+                "submission-result-thanks": "Vielen Dank für Ihre Anmeldung!",
+                "submission-result-notification": "Sie erhalten eine Bestätigung per E-Mail."
             }
         },
         "course-select": {
