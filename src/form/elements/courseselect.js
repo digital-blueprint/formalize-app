@@ -25,7 +25,13 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         let courseDataObject = JSON.parse(e.target.getAttribute('data-object'));
         // Specify the value to be included in the form submission
         if (courseDataObject != null) {
-            this.value = courseDataObject.name;
+            let courseCode = courseDataObject['code'];
+            let courseName = courseDataObject['name'];
+            let courseType = courseDataObject['localData']['type'];
+            let courseTerm = courseDataObject['localData']['teachingTerm'];
+            let courseString = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+
+            this.value = courseString;
         }
     }
 
