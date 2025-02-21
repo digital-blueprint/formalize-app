@@ -58,6 +58,8 @@ class FormalizeFormElement extends BaseFormElement {
                 data.formData.identifier = this.formData.identifier;
                 this.createUUID();
                 data.formData.uuid = this.formData.uuid;
+                this.createExamID();
+                data.formData.examid = this.formData.examid;
 
                 // Handle the event
                 console.log('Form submission data:', data);
@@ -145,6 +147,15 @@ class FormalizeFormElement extends BaseFormElement {
         let uuid = self.crypto.randomUUID();
         console.log("Created UUID: " + uuid);
         this.formData.uuid = uuid;
+    }
+
+    createExamID() {
+        // create a random five-digit ID
+        let min = 10000;
+        let max = 99999;
+        let examid = Math.floor(Math.random() * (max - min + 1)) + min;
+        console.log("Created ExamID: " + examid);
+        this.formData.examid = examid;
     }
 
     render() {
