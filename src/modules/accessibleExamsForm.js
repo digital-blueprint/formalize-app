@@ -61,6 +61,11 @@ class FormalizeFormElement extends BaseFormElement {
                 this.createExamID();
                 data.formData.examid = this.formData.examid;
 
+                // Extract name and email from examiner data
+                let examinerdata = this.getExaminerMail(data.formData.examiner);
+                data.formData.examiner = examinerdata[0];
+                data.formData.examinerMail = examinerdata[1];
+
                 // Handle the event
                 console.log('Form submission data:', data);
 
@@ -156,6 +161,13 @@ class FormalizeFormElement extends BaseFormElement {
         let examid = Math.floor(Math.random() * (max - min + 1)) + min;
         console.log("Created ExamID: " + examid);
         this.formData.examid = examid;
+    }
+
+    getExaminerMail(examinerdata) {
+        const nameAndMail = examinerdata.split(" ");
+        const name = nameAndMail.slice(0, -1).join(" ");
+        const mail = nameAndMail[nameAndMail.length - 1];
+        return [name, mail];
     }
 
     render() {
@@ -328,7 +340,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     renderResult(submitted) {
         const i18n = this._i18n;
-        
+
         if (submitted) {
             return html`
                 <div class="container">

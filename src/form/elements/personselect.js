@@ -27,7 +27,7 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         if (personDataObject != null) {
             let name = `${personDataObject.givenName} ${personDataObject.familyName}`;
             let email= `${personDataObject.localData.email}`;
-            this.value = name + ", " + email;
+            this.value = name + " " + email;
         }
     }
 
