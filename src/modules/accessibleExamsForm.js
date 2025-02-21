@@ -49,6 +49,12 @@ class FormalizeFormElement extends BaseFormElement {
                     includeLocal: 'email'
                 };
             };
+            this._('#additional-examiner-picker-element')._('#additionalExaminer-picker').buildUrlData = function(select, params) {
+                return {
+                    search: params.term.trim(),
+                    includeLocal: 'email'
+                };
+            };
 
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
@@ -65,6 +71,10 @@ class FormalizeFormElement extends BaseFormElement {
                 let examinerdata = this.getExaminerMail(data.formData.examiner);
                 data.formData.examiner = examinerdata[0];
                 data.formData.examinerMail = examinerdata[1];
+                // Extract name and email from additional examiner data
+                let additionalExaminerdata = this.getExaminerMail(data.formData.additionalExaminer);
+                data.formData.additionalExaminer = additionalExaminerdata[0];
+                data.formData.additionalExaminerMail = additionalExaminerdata[1];
 
                 // Handle the event
                 console.log('Form submission data:', data);
@@ -250,13 +260,14 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-person-select-element>
 
-                <dbp-form-string-element
+                <dbp-person-select-element
+                    id="additional-examiner-picker-element"
                     subscribe="lang"
                     name="additionalExaminer"
                     label=${i18n.t('render-form.forms.accessible-exams-form.additional-examiner')}
                     value=${data.additionalExaminer || ''}
                     >
-                </dbp-form-string-element>
+                </dbp-person-select-element>
 
                 <dbp-room-select-element
                     subscribe="lang"
