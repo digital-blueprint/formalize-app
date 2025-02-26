@@ -256,7 +256,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="examiner"
                     label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
-                    value=$${data.examiner || ''}
+                    value=${data.examiner || ''}
                     required
                     >
                 </dbp-person-select-element>
