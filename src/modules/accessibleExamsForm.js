@@ -226,7 +226,7 @@ class FormalizeFormElement extends BaseFormElement {
                         // The minimum date has to be two weeks ahead
                         const minDate = new Date(Date.now() + 1209600000);
                         minDate.setHours(0, 0, 0);
-                        return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.start-date-time-validation-error')] : [];
+                        return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.date-validation-error')] : [];
                     }}
                     value=${data.date || ''}
                     required
