@@ -220,7 +220,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="date"
                     label=${i18n.t('render-form.forms.accessible-exams-form.date')}
-                    min=${new Date(Date.now() + 1209600000)}
+                    .min=${new Date(Date.now() + 1209600000)}
                     .customValidator=${(value) => {
                         const date = new Date(value);
                         // The minimum date has to be two weeks ahead
