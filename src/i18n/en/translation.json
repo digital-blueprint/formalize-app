@@ -102,6 +102,10 @@
         "room-select": {
             "login-required": "Login required",
             "placeholder": "Please select a room"
+        },
+        "button-row": {
+            "submit": "Submit",
+            "reset": "Reset"
         }
     }
 }
