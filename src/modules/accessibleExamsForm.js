@@ -70,11 +70,11 @@ class FormalizeFormElement extends BaseFormElement {
                 // Extract name and email from examiner data
                 let examinerdata = this.getExaminerMail(data.formData.examiner);
                 data.formData.examiner = examinerdata[0];
-                data.formData.examinerMail = examinerdata[1];
+                data.formData.email_examiner = examinerdata[1];
                 // Extract name and email from additional examiner data
                 let additionalExaminerdata = this.getExaminerMail(data.formData.additionalExaminer);
                 data.formData.additionalExaminer = additionalExaminerdata[0];
-                data.formData.additionalExaminerMail = additionalExaminerdata[1];
+                data.formData.email_additionalExaminer = additionalExaminerdata[1];
 
                 // Handle the event
                 console.log('Form submission data:', data);
@@ -155,7 +155,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.formData.givenName = `${this.formData['givenName']}`;
         this.formData.familyName = `${this.formData['familyName']}`;
         this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
-        this.formData.email = `${this.formData['localData']['email']}`;
+        this.formData.email_student = `${this.formData['localData']['email']}`;
     }
 
     createUUID() {
@@ -336,9 +336,9 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <dbp-form-string-element
                     subscribe="lang"
-                    name="email"
+                    name="email_student"
                     label=${i18n.t('render-form.forms.accessible-exams-form.email')}
-                    value=${data.email || ''}
+                    value=${data.email_student || ''}
                     disabled
                     >
                 </dbp-form-string-element>
