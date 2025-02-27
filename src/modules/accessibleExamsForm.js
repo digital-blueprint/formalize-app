@@ -62,8 +62,10 @@ class FormalizeFormElement extends BaseFormElement {
                 const data = event.detail;
                 // Include unique identifier for person who is submitting
                 data.formData.identifier = this.formData.identifier;
+                // Create UUID for each submission
                 this.createUUID();
                 data.formData.uuid = this.formData.uuid;
+                // Create human-readable exam id for each submission
                 this.createExamID();
                 data.formData.examid = this.formData.examid;
 
@@ -105,6 +107,7 @@ class FormalizeFormElement extends BaseFormElement {
                         throw new Error(`Response status: ${response.status}`);
                     } else {
                         this.wasSubmissionSuccessful = true;
+                        // Hide form after successful submission
                         this._('#title').style.display = 'none';
                         this._('#description').style.display = 'none';
                         this._('#accessible-exams-form').style.display = 'none';
