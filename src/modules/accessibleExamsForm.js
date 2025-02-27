@@ -105,6 +105,9 @@ class FormalizeFormElement extends BaseFormElement {
                         throw new Error(`Response status: ${response.status}`);
                     } else {
                         this.wasSubmissionSuccessful = true;
+                        this._('#title').style.display = 'none';
+                        this._('#description').style.display = 'none';
+                        this._('#accessible-exams-form').style.display = 'none';
                     }
 
                     this.submitted = this.wasSubmissionSuccessful;
@@ -192,10 +195,10 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.formData || {};
 
         return html`
-            <h2>${i18n.t('render-form.forms.accessible-exams-form.title')}</h2>
-            <p>${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}<br />
+            <h2 id="title">${i18n.t('render-form.forms.accessible-exams-form.title')}</h2>
+            <p id="description">${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}<br />
             ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}</p>
-            <form>
+            <form id="accessible-exams-form">
                 <fieldset>
                 <legend>${i18n.t('render-form.forms.accessible-exams-form.exam-data')}</legend>
                 <dbp-course-select-element
