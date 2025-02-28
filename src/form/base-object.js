@@ -109,7 +109,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const i18n = this._i18n;
         return html`
             <div class="button-row">
-                <button class="button is-secondary" type="button" @click=${this.resetForm}>
+                <button class="button is-secondary" type="button" @click=${this.resetForm} hidden>
                     ${i18n.t('render-form.button-row.reset')}
                 </button>
                 <button
