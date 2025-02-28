@@ -80,6 +80,10 @@ class FormalizeFormElement extends BaseFormElement {
                 data.formData.additionalExaminer = additionalExaminerdata[0];
                 data.formData.email_additionalExaminer = additionalExaminerdata[1];
 
+                // Cast checkboxes to boolean values
+                data.formData.online = data.formData.online === 'check';
+                data.formData.group = data.formData.group === 'check';
+
                 // Handle the event
                 console.log('Form submission data:', data);
 
