@@ -1,6 +1,6 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
-import {DbpStringElement, DbpDateTimeElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
+import {DbpStringElement, DbpDateElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {PersonSelect} from '@dbp-toolkit/person-select';
 import {CourseSelect} from './course-select.js';
@@ -139,7 +139,7 @@ class FormalizeFormElement extends BaseFormElement {
     static get scopedElements() {
         return {
             'dbp-form-string-element': DbpStringElement,
-            'dbp-form-datetime-element': DbpDateTimeElement,
+            'dbp-form-date-element': DbpDateElement,
             'dbp-form-checkbox-element': DbpCheckboxElement,
             'dbp-course-select-element': DbpCourseSelectElement,
             'dbp-room-select-element': DbpRoomSelectElement,
