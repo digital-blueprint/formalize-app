@@ -92,7 +92,9 @@
                 "group": "Genaue Gruppenzuteilung erfolgt noch",
                 "online": "Es handelt sich um eine Online-Prüfung",
                 "submission-result-thanks": "Vielen Dank für Ihre Anmeldung!",
-                "submission-result-notification": "Sie haben sich für einen barrierefreien Prüfungstermin angemeldet. Sie erhalten eine Bestätigung per E-Mail."
+                "submission-result-notification": "Sie haben sich für einen barrierefreien Prüfungstermin angemeldet. Sie erhalten eine Bestätigung per E-Mail.",
+                "submission-error": "Hoppla, da ist etwas schiefgelaufen.",
+                "submission-error-notification": "Ihre Daten konnten nicht abgeschickt werden. Bitte versuchen Sie es später noch einmal."
             }
         },
         "course-select": {

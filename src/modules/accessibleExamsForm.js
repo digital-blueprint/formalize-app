@@ -29,12 +29,14 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
         this.submitted = false;
+        this.submissionError = false;
     }
 
     static get properties() {
         return {
             ...super.properties,
             submitted: {type: Boolean},
+            submissionError: {type: Boolean}
         };
     }
 
@@ -104,9 +106,12 @@ class FormalizeFormElement extends BaseFormElement {
 
                     if (!response.ok) {
                         // this.handleErrorResponse(response);
+                        this.submissionError = true;
+                        this.saveButtonEnabled = true;
                         throw new Error(`Response status: ${response.status}`);
                     } else {
                         this.wasSubmissionSuccessful = true;
+                        this.submissionError = false;
                         // Hide form after successful submission
                         this._('#title').style.display = 'none';
                         this._('#description').style.display = 'none';
@@ -353,6 +358,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.submitted)}
+            ${this.renderErrorMessage(this.submissionError)}
         `;
     }
 
@@ -364,6 +370,21 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="container">
                     <h2>${i18n.t('render-form.forms.accessible-exams-form.submission-result-thanks')}</h2>
                     <p>${i18n.t('render-form.forms.accessible-exams-form.submission-result-notification')}</p>
+                </div>
+            `;
+        }
+
+        return html``;
+    }
+
+    renderErrorMessage(submissionError) {
+        const i18n = this._i18n;
+
+        if (submissionError) {
+            return html`
+                <div class="container">
+                    <h2>${i18n.t('render-form.forms.accessible-exams-form.submission-error')}</h2>
+                    <p>${i18n.t('render-form.forms.accessible-exams-form.submission-error-notification')}</p>
                 </div>
             `;
         }
