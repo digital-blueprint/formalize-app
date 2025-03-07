@@ -109,7 +109,6 @@ class FormalizeFormElement extends BaseFormElement {
                     });
 
                     if (!response.ok) {
-                        // this.handleErrorResponse(response);
                         this.submissionError = true;
                         this.saveButtonEnabled = true;
                         throw new Error(`Response status: ${response.status}`);
@@ -152,25 +151,25 @@ class FormalizeFormElement extends BaseFormElement {
 
     async fetchUserData() {
         console.log("Fetching user data ...");
-
-        // TODO: Error Handling
-
-        let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'] + '?includeLocal=email,matriculationNumber', {
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
-            },
-        });
-        if (!response.ok) {
-            throw new Error(response);
+        try {
+            let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'] + '?includeLocal=email,matriculationNumber', {
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: 'Bearer ' + this.auth.token,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(response);
+            }
+            this.formData = await response.json();
+            this.formData.identifier = `${this.formData['identifier']}`;
+            this.formData.givenName = `${this.formData['givenName']}`;
+            this.formData.familyName = `${this.formData['familyName']}`;
+            this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
+            this.formData.email_student = `${this.formData['localData']['email']}`;
+        } catch(error) {
+            console.error(error.message);
         }
-
-        this.formData = await response.json();
-        this.formData.identifier = `${this.formData['identifier']}`;
-        this.formData.givenName = `${this.formData['givenName']}`;
-        this.formData.familyName = `${this.formData['familyName']}`;
-        this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
-        this.formData.email_student = `${this.formData['localData']['email']}`;
     }
 
     createUUID() {
