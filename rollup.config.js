@@ -119,6 +119,7 @@ let input = [
     'src/dbp-formalize-render-form.js',
     'src/modules/demoForm.js',
     'src/modules/accessibleExamsForm.js',
+    'src/modules/ethicsCommissionForm.js',
 ];
 
 export default (async () => {

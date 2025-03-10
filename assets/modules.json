@@ -1,5 +1,6 @@
 {
   "forms": {
-    "demo-form": "./demoForm.js"
+    "demo-form": "./demoForm.js",
+    "ethics-commission-form": "./ethicsCommissionForm.js"
   }
 }

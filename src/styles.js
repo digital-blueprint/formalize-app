@@ -221,3 +221,25 @@ export function getSelectorFixCSS() {
         }
     `;
 }
+
+
+export function getEthicsCommissionFormCSS() {
+    // language=css
+    return css`
+
+        .form-title {
+            text-align: center;
+        }
+
+        .form-sub-title {
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .type-container {
+            display: flex;
+            justify-content: center;
+            gap: 3em;
+        }
+    `;
+}

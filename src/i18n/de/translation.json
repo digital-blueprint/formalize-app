@@ -96,6 +96,26 @@
                 "submission-result-notification": "Sie haben sich für einen barrierefreien Prüfungstermin angemeldet. Sie erhalten eine Bestätigung per E-Mail.",
                 "submission-error": "Hoppla, da ist etwas schiefgelaufen.",
                 "submission-error-notification": "Ihre Daten konnten nicht abgeschickt werden. Bitte versuchen Sie es später noch einmal."
+            },
+            "ethics-commission-form" : {
+                "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
+                "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
+                "applicant-label": "Antragsteller*in",
+                "applicant-placeholder": "Vor- und Nachname",
+                "studie": "Studie",
+                "publication": "Publikation",
+                "contact-details-label": "Kontaktdaten",
+                "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
+                "co-applicants-label": "Co-Antragssteller*innen an der Studie",
+                "co-applicants-placeholder": "Bitte geben Sie jeweils Vor- und Nachnamen der an der Studie mitwirkenden Forschenden samt der jeweiligen Zugehörigkeit und deren Rolle im Projekt an.",
+                "co-applicants-description": "Weitere Forschende/Institutionen, die an Ihrer Studie mitwirken (intern/extern)",
+                "fields-of-expertise-label": "Welchem/n Field/s of Expertise ist das Forschungsvorhaben zuzuordnen? ",
+                "advanced-material-sciences": "Advanced Material Sciences",
+                "human-and-biotechnology": "Human & Biotechnology",
+                "information-communication-computing": "Information, Communication & Computing",
+                "mobility-production": "Mobility & Production",
+                "sustainable-systems": "Sustainable Systems",
+                "keinem": "Keinem"
             }
         },
         "course-select": {
