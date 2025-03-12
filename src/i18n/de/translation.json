@@ -115,7 +115,19 @@
                 "information-communication-computing": "Information, Communication & Computing",
                 "mobility-production": "Mobility & Production",
                 "sustainable-systems": "Sustainable Systems",
-                "keinem": "Keinem"
+                "keinem": "Keinem",
+                "qualification-work-label": "Werden im Rahmen des Forschungsvorhabens auch Abschluss- oder Qualifizierungsarbeiten durchgeführt?\nWenn ja, welche Arbeiten?\nIst im Rahmen der Betreuung auch die Publikation von Ergebnissen geplant?",
+                "no-label": "nein",
+                "bachelor-label": "ja, Bachelor",
+                "master-label": "ja, Master/Diplomingenieur*in",
+                "doctorat-label": "ja, Doktorat",
+                "no-publikation-label": "nein, keine Publikation geplant",
+                "one-publikation-label": "ja, eine Publikation von Ergebnissen aus der/den Abschlussarbeit/en ist geplant",
+                "date-of-transmission-label": "Datum der Übermittlung",
+                "specification-office-label": "Angabe durch Geschäftsstelle",
+                "data-protection-date-label": "Datum der finalen Prüfung",
+                "job-position-label": "Berufliche Position",
+                "job-position-placeholder": "Bitte geben Sie Ihre berufliche Position an"
             }
         },
         "course-select": {
@@ -128,7 +140,7 @@
         },
         "button-row": {
             "submit": "Abschicken",
-            "reset": "Zurücksetzen"
+            "save-draft": "Entwurf speichern"
         }
     }
 }

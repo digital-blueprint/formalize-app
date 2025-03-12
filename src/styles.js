@@ -229,17 +229,60 @@ export function getEthicsCommissionFormCSS() {
 
         .form-title {
             text-align: center;
+            font-size: 2em;
+            line-height: 1.2;
         }
 
         .form-sub-title {
             text-align: center;
-            font-size: 1.2em;
+            font-size: 1.6em;
+            line-height: 1.2;
         }
 
         .type-container {
             display: flex;
             justify-content: center;
             gap: 3em;
+        }
+
+        .section-title {
+            font-size: 2.4em;
+            font-weight: bold;
+            line-height: 1.2;
+            margin: 1.8em 0 1em;
+        }
+
+        .section-sub-title {
+            font-size: 2em;
+            font-weight: bold;
+            line-height: 1.2;
+            margin: 1.5em 0 .8em;
+        }
+
+        .question-group-title {
+            font-size: 1.6em;
+            font-weight: bold;
+            line-height: 1.2;
+            margin: 1.2em 0 .6em;
+        }
+
+        [slot="label"] a {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .file-upload-container {
+            margin-bottom: 3em;
+        }
+
+        /* animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
         }
     `;
 }
