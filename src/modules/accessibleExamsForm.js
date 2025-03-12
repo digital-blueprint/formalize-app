@@ -48,13 +48,15 @@ class FormalizeFormElement extends BaseFormElement {
             this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function(select, params) {
                 return {
                     search: params.term.trim(),
-                    includeLocal: 'email'
+                    includeLocal: 'email',
+                    preparedFilter: 'staffAccountsOnly'
                 };
             };
             this._('#additional-examiner-picker-element')._('#additionalExaminer-picker').buildUrlData = function(select, params) {
                 return {
                     search: params.term.trim(),
-                    includeLocal: 'email'
+                    includeLocal: 'email',
+                    preparedFilter: 'staffAccountsOnly'
                 };
             };
 
