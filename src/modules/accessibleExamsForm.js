@@ -1,12 +1,13 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
-import {DbpStringElement, DbpDateElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
+import {DbpStringElement, DbpDateElement, DbpTimeElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {PersonSelect} from '@dbp-toolkit/person-select';
 import {CourseSelect} from './course-select.js';
 import {RoomSelect} from './room-select.js';
-import { DbpCourseSelectElement } from '../form/elements/courseselect.js';
-import { DbpRoomSelectElement } from '../form/elements/roomselect.js';
+import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
+import {DbpRoomSelectElement} from '../form/elements/roomselect.js';
+import {createRef, ref} from 'lit/directives/ref.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -30,6 +31,7 @@ class FormalizeFormElement extends BaseFormElement {
         super();
         this.submitted = false;
         this.submissionError = false;
+        this.beginTimeRef = createRef();
     }
 
     static get properties() {
@@ -141,6 +143,7 @@ class FormalizeFormElement extends BaseFormElement {
         return {
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
+            'dbp-form-time-element': DbpTimeElement,
             'dbp-form-checkbox-element': DbpCheckboxElement,
             'dbp-course-select-element': DbpCourseSelectElement,
             'dbp-room-select-element': DbpRoomSelectElement,
@@ -249,23 +252,27 @@ class FormalizeFormElement extends BaseFormElement {
                     >
                 </dbp-form-date-element>
 
-                <dbp-form-string-element
+                <dbp-form-time-element
+                    ${ref(this.beginTimeRef)}
                     subscribe="lang"
                     name="beginTime"
                     label=${i18n.t('render-form.forms.accessible-exams-form.begin-time')}
                     value=${data.beginTime || ''}
                     required
                     >
-                </dbp-form-string-element>
+                </dbp-form-time-element>
 
-                <dbp-form-string-element
+                <dbp-form-time-element
                     subscribe="lang"
                     name="endTime"
                     label=${i18n.t('render-form.forms.accessible-exams-form.end-time')}
+                    .customValidator=${(value) => {
+                        return (this.beginTimeRef.value.value > value) ? [i18n.t('render-form.forms.accessible-exams-form.time-validation-error')] : [];
+                    }}
                     value=${data.endTime || ''}
                     required
                     >
-                </dbp-form-string-element>
+                </dbp-form-time-element>
 
                 <dbp-person-select-element
                     id="examiner-picker-element"

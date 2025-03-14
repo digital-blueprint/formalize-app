@@ -81,6 +81,7 @@
                 "date-validation-error": "Bitte wählen Sie ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
                 "begin-time": "Beginnzeit der Prüfung",
                 "end-time": "Endzeit der Prüfung",
+                "time-validation-error": "Bitte wählen Sie eine Endzeit, die nach der Beginnzeit der Prüfung liegt.",
                 "matriculation-number": "Matrikelnummer",
                 "given-name": "Vorname",
                 "family-name": "Nachname",

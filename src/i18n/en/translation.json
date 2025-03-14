@@ -81,6 +81,7 @@
                 "date-validation-error": "Please choose a date that is at least two weeks ahead.",
                 "begin-time": "Begin time of exam",
                 "end-time": "End time of exam",
+                "time-validation-error": "Please choose an end time that is past the begin time of the exam.",
                 "matriculation-number": "Matriculation number",
                 "given-name": "Given name",
                 "family-name": "Family name",
