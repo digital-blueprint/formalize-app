@@ -140,7 +140,7 @@
         },
         "button-row": {
             "submit": "Abschicken",
-            "save-draft": "Entwurf speichern"
+            "reset": "Zurücksetzen"
         }
     }
 }
