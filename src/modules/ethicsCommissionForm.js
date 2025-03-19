@@ -1579,12 +1579,15 @@ Personen können nicht als Proband*innen in Ihrer Studie mitwirken, wenn sie in 
                     name="diversity-aspects"
                     display-mode="list"
                     required
-                    label="9.4.	Werden im Projekt diversitäts- und gendersensible Aspekte berücksichtigt (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>siehe Leitfaden der TU Graz)?"
+                    label=""
                     .items=${{
                         "yes": "Ja",
                         "no": "Nein",
                     }}
                     .value=${data.diversityAspects || ''}>
+                    <span slot="label">
+                        9.4. Werden im Projekt diversitäts- und gendersensible Aspekte berücksichtigt (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>siehe Leitfaden der TU Graz</a>)?
+                    </span>
                 </dbp-form-enum-element>
 
                 <h2 class="section-title">4. Weitere Unterlagen</h2>
