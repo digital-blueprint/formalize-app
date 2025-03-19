@@ -1023,7 +1023,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .next-btn dbp-icon,
             .back-btn dbp-icon {
                 height: 15px;
-                top: 0;
+                top: 3px;
             }
 
             .next-btn dbp-icon {
@@ -2068,7 +2068,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     <span class='checkmark'></span>
                                 </label>
                                 <div class='btn-row-left'>
-                                    <dbp-button class='button back-btn'
+                                    <dbp-button class='back-btn'
                                                 title='${i18n.t('show-registrations.last-entry-btn-title')}'
                                                 @click='${() => {
                                                     this.showEntryOfPos(
@@ -2088,7 +2088,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         },
                                     )}
                                     </div>
-                                    <dbp-button class='button next-btn'
+                                    <dbp-button class='next-btn'
                                                 title='${i18n.t('show-registrations.next-entry-btn-title')}'
                                                 @click='${() => {
                                                     this.showEntryOfPos(
