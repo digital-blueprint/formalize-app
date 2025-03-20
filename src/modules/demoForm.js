@@ -1,6 +1,12 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
-import {DbpStringElement, DbpDateElement, DbpDateTimeElement, DbpEnumElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
+import {
+    DbpStringElement,
+    DbpDateElement,
+    DbpDateTimeElement,
+    DbpEnumElement,
+    DbpCheckboxElement,
+} from '@dbp-toolkit/form-elements';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
 // import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
@@ -52,16 +58,38 @@ class FormalizeFormElement extends BaseFormElement {
 
     setRandomData() {
         // Sample data pools
-        const words = ['Premium', 'Deluxe', 'Advanced', 'Smart', 'Pro', 'Elite', 'Ultra',
-            'Essential', 'Classic', 'Modern', 'Digital', 'Custom'];
+        const words = [
+            'Premium',
+            'Deluxe',
+            'Advanced',
+            'Smart',
+            'Pro',
+            'Elite',
+            'Ultra',
+            'Essential',
+            'Classic',
+            'Modern',
+            'Digital',
+            'Custom',
+        ];
 
-        const types = ['Laptop', 'Phone', 'Tablet', 'Camera', 'Monitor', 'Keyboard',
-            'Mouse', 'Headphones', 'Speaker', 'Router'];
+        const types = [
+            'Laptop',
+            'Phone',
+            'Tablet',
+            'Camera',
+            'Monitor',
+            'Keyboard',
+            'Mouse',
+            'Headphones',
+            'Speaker',
+            'Router',
+        ];
 
         const enumValues = ['item1', 'item2'];
 
         // Helper function to get random array element
-        const randomFrom = arr => arr[Math.floor(Math.random() * arr.length)];
+        const randomFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
         // Generate random date within last year
         const randomDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000);
@@ -75,7 +103,7 @@ class FormalizeFormElement extends BaseFormElement {
             myDate: dateStr,
             myDateTime: dateTimeStr,
             myEnum: randomFrom(enumValues),
-            myCheckbox: Math.random() < 0.5
+            myCheckbox: Math.random() < 0.5,
         };
     }
 
@@ -118,8 +146,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="myString"
                     label="My string"
                     .value=${data.myString || ''}
-                    required>
-                </dbp-form-string-element>
+                    required></dbp-form-string-element>
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -127,8 +154,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My long string"
                     .value=${data.myLongString || ''}
                     rows="5"
-                    required>
-                </dbp-form-string-element>
+                    required></dbp-form-string-element>
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -137,19 +163,19 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My special string"
                     .customValidator=${(value, evaluationData) => {
                         // If the value is empty, return an error message with the evaluation data
-                        return value === '' ? ['evaluationData: ' + JSON.stringify(evaluationData)] : [];
+                        return value === ''
+                            ? ['evaluationData: ' + JSON.stringify(evaluationData)]
+                            : [];
                     }}
                     .value=${data.mySpecialString || ''}
-                    required>
-                </dbp-form-string-element>
+                    required></dbp-form-string-element>
 
                 <dbp-form-date-element
                     subscribe="lang"
                     name="myDate"
                     label="My date"
                     .value=${data.myDate || ''}
-                    required>
-                </dbp-form-date-element>
+                    required></dbp-form-date-element>
 
                 <dbp-form-datetime-element
                     subscribe="lang"
@@ -161,8 +187,7 @@ class FormalizeFormElement extends BaseFormElement {
                         return date < new Date() ? ['The date needs to be in the future'] : [];
                     }}
                     .value=${data.myDateTime || ''}
-                    required>
-                </dbp-form-datetime-element>
+                    required></dbp-form-datetime-element>
 
                 <dbp-form-enum-element
                     subscribe="lang"
@@ -170,8 +195,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My enum"
                     .items=${this.enumItems}
                     .value=${data.myEnum || ''}
-                    required>
-                </dbp-form-enum-element>
+                    required></dbp-form-enum-element>
 
                 <dbp-form-checkbox-element
                     subscribe="lang"
@@ -179,8 +203,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My checkbox"
                     description="Check me"
                     value="check"
-                    ?checked=${data.myCheckbox || false}>
-                </dbp-form-checkbox-element>
+                    ?checked=${data.myCheckbox || false}></dbp-form-checkbox-element>
 
                 ${this.getButtonRowHtml()}
             </form>

@@ -1,6 +1,14 @@
 import {css, html, unsafeCSS} from 'lit';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
-import {getIconSVGURL, Button, Icon, IconButton, LoadingButton, MiniSpinner, Translated} from '@dbp-toolkit/common';
+import {
+    getIconSVGURL,
+    Button,
+    Icon,
+    IconButton,
+    LoadingButton,
+    MiniSpinner,
+    Translated,
+} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
@@ -27,7 +35,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.initateOpenAdditionalSearchMenu = false;
         this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
         this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
-        this.boundCloseAdditionalSearchMenuHandlerInner = this.hideAdditionalSearchMenuInner.bind(this);
+        this.boundCloseAdditionalSearchMenuHandlerInner =
+            this.hideAdditionalSearchMenuInner.bind(this);
         this.navigateBetweenDetailedSubmissionsHandler =
             this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeCourse = '';
@@ -164,8 +173,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     let entry = data['hydra:member'][x];
                     // Only show forms for which the currently logged-in user has 'read_submissions' or 'manage' rights
                     const grantedActions = entry['grantedActions'];
-                    if (!Array.isArray(grantedActions) ||
-                        (!grantedActions.includes('read_submissions') && !grantedActions.includes('manage'))) {
+                    if (
+                        !Array.isArray(grantedActions) ||
+                        (!grantedActions.includes('read_submissions') &&
+                            !grantedActions.includes('manage'))
+                    ) {
                         continue;
                     }
                     let id = x + 1;
@@ -293,16 +305,21 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     setInitialSubmissionTableOrder() {
-        let submissionsTable = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
-        if (!submissionsTable)
-            return;
+        let submissionsTable = /** @type {TabulatorTable} */ (
+            this._('#tabulator-table-submissions')
+        );
+        if (!submissionsTable) return;
         let columns = submissionsTable.getColumns();
         columns.forEach((col) => {
             let name = col.getDefinition().title;
             let field = col.getDefinition().field;
             let visibility = col.isVisible();
             if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
-                this.submissionsColumnsInitial.push({name: name, field: field, visibility: visibility});
+                this.submissionsColumnsInitial.push({
+                    name: name,
+                    field: field,
+                    visibility: visibility,
+                });
             }
         });
     }
@@ -775,7 +792,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // add event listener for clicking *outside* of menu
             document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
             // add event listener for clicking *inside* of menu
-            searchBarMenu.addEventListener('click', this.boundCloseAdditionalSearchMenuHandlerInner);
+            searchBarMenu.addEventListener(
+                'click',
+                this.boundCloseAdditionalSearchMenuHandlerInner,
+            );
             this.initateOpenAdditionalSearchMenu = true;
         }
     }
@@ -806,7 +826,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (menu && !menu.classList.contains('hidden')) {
             menu.classList.add('hidden');
             document.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
-            searchBarMenu.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandlerInner);
+            searchBarMenu.removeEventListener(
+                'click',
+                this.boundCloseAdditionalSearchMenuHandlerInner,
+            );
         }
     }
 
@@ -893,7 +916,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['person-id'];
             localStorage.removeItem(
-                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId
+                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId,
             );
         }
     }
@@ -1139,7 +1162,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 padding-top: 1rem;
             }
 
-            .table-wrapper  {
+            .table-wrapper {
                 container-type: inline-size;
                 container-name: table-wrapper;
             }
@@ -1768,7 +1791,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let auto_columns = {
             langs: auto_langs,
             autoColumns: 'full',
-            autoColumnsDefinitions: function(definitions) {
+            autoColumnsDefinitions: function (definitions) {
                 definitions.forEach((column) => {
                     if (column.field.includes('date')) {
                         column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
@@ -1781,9 +1804,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             return timeStampA - timeStampB;
                         };
                     }
-                    column.sorter = "string"; // add header sorter to every column
+                    column.sorter = 'string'; // add header sorter to every column
                     if (column.field.includes('html')) {
-                        column.formatter = "html";
+                        column.formatter = 'html';
                         column.hozAlign = 'center';
                         column.headerSort = false;
                         column.title = 'Actions';
@@ -1932,8 +1955,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                         <div class='export-buttons'>
                             <dbp-button no-spinner-on-click type="is-secondary" @click='${() => {
-                                    this.openColumnOptionsModal();
-                                }}'>
+                                this.openColumnOptionsModal();
+                            }}'>
                                 <dbp-icon  title='${i18n.t('show-registrations.filter-options-button-text')}'
                                     aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
                                     name='iconoir_settings'></dbp-icon>

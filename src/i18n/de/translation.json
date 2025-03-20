@@ -97,7 +97,7 @@
                 "submission-error": "Hoppla, da ist etwas schiefgelaufen.",
                 "submission-error-notification": "Ihre Daten konnten nicht abgeschickt werden. Bitte versuchen Sie es später noch einmal."
             },
-            "ethics-commission-form" : {
+            "ethics-commission-form": {
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
                 "applicant-label": "Antragsteller*in",

@@ -59,8 +59,13 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
         console.log('handlePermissionsForCurrentForm formIdentifier', formIdentifier);
 
-        this.submissionAllowed = formIdentifier ? await this.checkPermissionsToForm(formIdentifier) : false;
-        console.log('handlePermissionsForCurrentForm this.submissionAllowed', this.submissionAllowed);
+        this.submissionAllowed = formIdentifier
+            ? await this.checkPermissionsToForm(formIdentifier)
+            : false;
+        console.log(
+            'handlePermissionsForCurrentForm this.submissionAllowed',
+            this.submissionAllowed,
+        );
     }
 
     async checkPermissionsToForm(identifier) {
@@ -110,9 +115,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         // Check if the user has the permission to manage the form or create submissions
-        return Array.isArray(data.grantedActions)  &&
+        return (
+            Array.isArray(data.grantedActions) &&
             (data.grantedActions.includes('manage') ||
-             data.grantedActions.includes('create_submissions'));
+                data.grantedActions.includes('create_submissions'))
+        );
     }
 
     async loadModules() {
@@ -219,9 +226,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     static get styles() {
         // language=css
-        return [
-            commonStyles.getNotificationCSS(),
-        ];
+        return [commonStyles.getNotificationCSS()];
     }
 
     render() {
@@ -229,9 +234,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (!this.isLoggedIn() && !this.isLoading()) {
             return html`
-                <div class="notification is-warning">
-                    ${i18n.t('error-login-message')}
-                </div>
+                <div class="notification is-warning">${i18n.t('error-login-message')}</div>
             `;
         }
 

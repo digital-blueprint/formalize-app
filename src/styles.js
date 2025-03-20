@@ -216,17 +216,16 @@ export function getSelectorFixCSS() {
     // language=css
     return css`
         /* For some reasons the selector chevron was very large */
-        select:not(.select), .dropdown-menu {
+        select:not(.select),
+        .dropdown-menu {
             background-size: 1em;
         }
     `;
 }
 
-
 export function getEthicsCommissionFormCSS() {
     // language=css
     return css`
-
         .form-title {
             text-align: center;
             font-size: 2em;
@@ -256,17 +255,17 @@ export function getEthicsCommissionFormCSS() {
             font-size: 2em;
             font-weight: bold;
             line-height: 1.2;
-            margin: 1.5em 0 .8em;
+            margin: 1.5em 0 0.8em;
         }
 
         .question-group-title {
             font-size: 1.6em;
             font-weight: bold;
             line-height: 1.2;
-            margin: 1.2em 0 .6em;
+            margin: 1.2em 0 0.6em;
         }
 
-        [slot="label"] a {
+        [slot='label'] a {
             text-decoration: underline;
             text-underline-offset: 2px;
         }
@@ -277,8 +276,12 @@ export function getEthicsCommissionFormCSS() {
 
         /* animations */
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         .fade-in {

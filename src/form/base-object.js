@@ -5,7 +5,10 @@ import {createInstance} from '../i18n.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {classMap} from 'lit/directives/class-map.js';
 import {getSelectorFixCSS} from '../styles.js';
-import {gatherFormDataFromElement, validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
+import {
+    gatherFormDataFromElement,
+    validateRequiredFields,
+} from '@dbp-toolkit/form-elements/src/utils.js';
 
 export class BaseObject {
     getUrlSlug() {
@@ -141,10 +144,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         console.log('-- Render BaseFormElement --');
 
         return html`
-            <form>
-                Please implement render() in your subclass!
-                ${this.getButtonRowHtml()}
-            </form>
+            <form>Please implement render() in your subclass! ${this.getButtonRowHtml()}</form>
         `;
     }
 }

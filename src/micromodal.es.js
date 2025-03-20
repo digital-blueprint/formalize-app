@@ -59,7 +59,7 @@ function _arrayLikeToArray(arr, len) {
 
 function _nonIterableSpread() {
     throw new TypeError(
-        'Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.'
+        'Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
     );
 }
 
@@ -216,7 +216,7 @@ var MicroModal = (function () {
                                 modal.classList.remove(openClass);
                                 modal.removeEventListener('animationend', handler, false);
                             },
-                            false
+                            false,
                         );
                     } else {
                         modal.classList.remove(this.config.openClass);
@@ -403,12 +403,12 @@ var MicroModal = (function () {
             console.warn(
                 "MicroModal: \u2757Seems like you have missed %c'".concat(id, "'"),
                 'background-color: #f8f9fa;color: #50596c;font-weight: bold;',
-                'ID somewhere in your code. Refer example below to resolve it.'
+                'ID somewhere in your code. Refer example below to resolve it.',
             );
             console.warn(
                 '%cExample:',
                 'background-color: #f8f9fa;color: #50596c;font-weight: bold;',
-                '<div class="modal" id="'.concat(id, '"></div>')
+                '<div class="modal" id="'.concat(id, '"></div>'),
             );
             return false;
         }
@@ -426,12 +426,12 @@ var MicroModal = (function () {
             console.warn(
                 "MicroModal: \u2757Please specify at least one %c'micromodal-trigger'",
                 'background-color: #f8f9fa;color: #50596c;font-weight: bold;',
-                'data attribute.'
+                'data attribute.',
             );
             console.warn(
                 '%cExample:',
                 'background-color: #f8f9fa;color: #50596c;font-weight: bold;',
-                '<a href="#" data-micromodal-trigger="my-modal"></a>'
+                '<a href="#" data-micromodal-trigger="my-modal"></a>',
             );
             return false;
         }
@@ -469,11 +469,11 @@ var MicroModal = (function () {
             {
                 openTrigger: 'data-micromodal-trigger',
             },
-            config
+            config,
         ); // Collects all the nodes with the trigger
 
         var triggers = _toConsumableArray(
-            document.querySelectorAll('['.concat(options.openTrigger, ']'))
+            document.querySelectorAll('['.concat(options.openTrigger, ']')),
         ); // Makes a mappings of modals with their trigger nodes
 
         var triggerMap = generateTriggerMap(triggers, options.openTrigger); // Checks if modals and triggers exist in dom

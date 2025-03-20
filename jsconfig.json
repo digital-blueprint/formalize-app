@@ -6,12 +6,6 @@
         "moduleResolution": "bundler",
         "target": "esnext"
     },
-    "include": [
-        "src"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "vendor"
-    ]
+    "include": ["src"],
+    "exclude": ["node_modules", "dist", "vendor"]
 }

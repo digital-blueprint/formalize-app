@@ -1,7 +1,7 @@
 {
-  "forms": {
-    "demo-form": "./demoForm.js",
-    "accessible-exams-form": "./accessibleExamsForm.js",
-    "ethics-commission-form": "./ethicsCommissionForm.js"
-  }
+    "forms": {
+        "demo-form": "./demoForm.js",
+        "accessible-exams-form": "./accessibleExamsForm.js",
+        "ethics-commission-form": "./ethicsCommissionForm.js"
+    }
 }

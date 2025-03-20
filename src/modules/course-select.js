@@ -63,7 +63,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
             disabled: {type: Boolean, reflect: true},
             name: {type: String},
             id: {type: String},
-            required: {type: Boolean}
+            required: {type: Boolean},
         };
     }
 
@@ -194,7 +194,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                                 value: identifier,
                             },
                             bubbles: true,
-                        })
+                        }),
                     );
                 }
             })
@@ -291,7 +291,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                     value: this.value,
                 },
                 bubbles: true,
-            })
+            }),
         );
     }
 

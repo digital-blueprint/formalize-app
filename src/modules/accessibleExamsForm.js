@@ -1,6 +1,11 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html} from 'lit';
-import {DbpStringElement, DbpDateElement, DbpTimeElement, DbpCheckboxElement} from '@dbp-toolkit/form-elements';
+import {
+    DbpStringElement,
+    DbpDateElement,
+    DbpTimeElement,
+    DbpCheckboxElement,
+} from '@dbp-toolkit/form-elements';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {PersonSelect} from '@dbp-toolkit/person-select';
 import {CourseSelect} from './course-select.js';
@@ -38,7 +43,7 @@ class FormalizeFormElement extends BaseFormElement {
         return {
             ...super.properties,
             submitted: {type: Boolean},
-            submissionError: {type: Boolean}
+            submissionError: {type: Boolean},
         };
     }
 
@@ -47,18 +52,23 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.updateComplete.then(() => {
             // Override buildUrlData method of person select to include email address of examiner
-            this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function(select, params) {
+            this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function (
+                select,
+                params,
+            ) {
                 return {
                     search: params.term.trim(),
                     includeLocal: 'email',
-                    preparedFilter: 'staffAccountsOnly'
+                    preparedFilter: 'staffAccountsOnly',
                 };
             };
-            this._('#additional-examiner-picker-element')._('#additionalExaminer-picker').buildUrlData = function(select, params) {
+            this._('#additional-examiner-picker-element')._(
+                '#additionalExaminer-picker',
+            ).buildUrlData = function (select, params) {
                 return {
                     search: params.term.trim(),
                     includeLocal: 'email',
-                    preparedFilter: 'staffAccountsOnly'
+                    preparedFilter: 'staffAccountsOnly',
                 };
             };
 
@@ -128,10 +138,8 @@ class FormalizeFormElement extends BaseFormElement {
                     this.submitted = this.wasSubmissionSuccessful;
                     console.log(this.wasSubmissionSuccessful, response);
                     return response;
-
                 } catch (error) {
                     console.error(error.message);
-
                 } finally {
                     this.isPostingSubmission = false;
                 }
@@ -150,19 +158,25 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-course-select': CourseSelect,
             'dbp-room-select': RoomSelect,
             'dbp-person-select-element': DbpPersonSelectElement,
-            'dbp-person-select': PersonSelect
+            'dbp-person-select': PersonSelect,
         };
     }
 
     async fetchUserData() {
-        console.log("Fetching user data ...");
+        console.log('Fetching user data ...');
         try {
-            let response = await fetch(this.entryPointUrl + '/base/people/' + this.auth['user-id'] + '?includeLocal=email,matriculationNumber', {
-                headers: {
-                    'Content-Type': 'application/ld+json',
-                    Authorization: 'Bearer ' + this.auth.token,
+            let response = await fetch(
+                this.entryPointUrl +
+                    '/base/people/' +
+                    this.auth['user-id'] +
+                    '?includeLocal=email,matriculationNumber',
+                {
+                    headers: {
+                        'Content-Type': 'application/ld+json',
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
                 },
-            });
+            );
             if (!response.ok) {
                 throw new Error(response);
             }
@@ -172,14 +186,14 @@ class FormalizeFormElement extends BaseFormElement {
             this.formData.familyName = `${this.formData['familyName']}`;
             this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
             this.formData.email_student = `${this.formData['localData']['email']}`;
-        } catch(error) {
+        } catch (error) {
             console.error(error.message);
         }
     }
 
     createUUID() {
         let uuid = self.crypto.randomUUID();
-        console.log("Created UUID: " + uuid);
+        console.log('Created UUID: ' + uuid);
         this.formData.uuid = uuid;
     }
 
@@ -188,13 +202,13 @@ class FormalizeFormElement extends BaseFormElement {
         let min = 10000;
         let max = 99999;
         let examid = Math.floor(Math.random() * (max - min + 1)) + min;
-        console.log("Created ExamID: " + examid);
+        console.log('Created ExamID: ' + examid);
         this.formData.examid = examid;
     }
 
     getExaminerMail(examinerdata) {
-        const nameAndMail = examinerdata.split(" ");
-        const name = nameAndMail.slice(0, -1).join(" ");
+        const nameAndMail = examinerdata.split(' ');
+        const name = nameAndMail.slice(0, -1).join(' ');
         const mail = nameAndMail[nameAndMail.length - 1];
         return [name, mail];
     }
@@ -212,165 +226,157 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <h2 id="title">${i18n.t('render-form.forms.accessible-exams-form.title')}</h2>
-            <p id="description">${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}<br />
-            ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}</p>
+            <p id="description">
+                ${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}
+                <br />
+                ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}
+            </p>
             <form id="accessible-exams-form">
                 <fieldset>
-                <legend>${i18n.t('render-form.forms.accessible-exams-form.exam-data')}</legend>
-                <dbp-course-select-element
-                    subscribe="lang"
-                    name="courseName"
-                    label="${i18n.t('render-form.forms.accessible-exams-form.course-name')}"
-                    value=${data.courseName || ''}
-                    required
-                    >
-                </dbp-course-select-element>
+                    <legend>${i18n.t('render-form.forms.accessible-exams-form.exam-data')}</legend>
+                    <dbp-course-select-element
+                        subscribe="lang"
+                        name="courseName"
+                        label="${i18n.t('render-form.forms.accessible-exams-form.course-name')}"
+                        value=${data.courseName || ''}
+                        required></dbp-course-select-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="differentTerm"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.different-term')}
-                    value=${data.differentTerm || ''}
-                    hidden
-                    >
-                </dbp-form-string-element>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="differentTerm"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.different-term')}
+                        value=${data.differentTerm || ''}
+                        hidden></dbp-form-string-element>
 
-                <dbp-form-date-element
-                    subscribe="lang"
-                    name="date"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.date')}
-                    .min=${new Date(Date.now() + 1209600000)}
-                    .customValidator=${(value) => {
-                        const date = new Date(value);
-                        // The minimum date has to be two weeks ahead
-                        const minDate = new Date(Date.now() + 1209600000);
-                        minDate.setHours(0, 0, 0);
-                        return (date < minDate) ? [i18n.t('render-form.forms.accessible-exams-form.date-validation-error')] : [];
-                    }}
-                    value=${data.date || ''}
-                    required
-                    >
-                </dbp-form-date-element>
+                    <dbp-form-date-element
+                        subscribe="lang"
+                        name="date"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.date')}
+                        .min=${new Date(Date.now() + 1209600000)}
+                        .customValidator=${(value) => {
+                            const date = new Date(value);
+                            // The minimum date has to be two weeks ahead
+                            const minDate = new Date(Date.now() + 1209600000);
+                            minDate.setHours(0, 0, 0);
+                            return date < minDate
+                                ? [
+                                      i18n.t(
+                                          'render-form.forms.accessible-exams-form.date-validation-error',
+                                      ),
+                                  ]
+                                : [];
+                        }}
+                        value=${data.date || ''}
+                        required></dbp-form-date-element>
 
-                <dbp-form-time-element
-                    ${ref(this.beginTimeRef)}
-                    subscribe="lang"
-                    name="beginTime"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.begin-time')}
-                    value=${data.beginTime || ''}
-                    required
-                    >
-                </dbp-form-time-element>
+                    <dbp-form-time-element
+                        ${ref(this.beginTimeRef)}
+                        subscribe="lang"
+                        name="beginTime"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.begin-time')}
+                        value=${data.beginTime || ''}
+                        required></dbp-form-time-element>
 
-                <dbp-form-time-element
-                    subscribe="lang"
-                    name="endTime"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.end-time')}
-                    .customValidator=${(value) => {
-                        return (this.beginTimeRef.value.value > value) ? [i18n.t('render-form.forms.accessible-exams-form.time-validation-error')] : [];
-                    }}
-                    value=${data.endTime || ''}
-                    required
-                    >
-                </dbp-form-time-element>
+                    <dbp-form-time-element
+                        subscribe="lang"
+                        name="endTime"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.end-time')}
+                        .customValidator=${(value) => {
+                            return this.beginTimeRef.value.value > value
+                                ? [
+                                      i18n.t(
+                                          'render-form.forms.accessible-exams-form.time-validation-error',
+                                      ),
+                                  ]
+                                : [];
+                        }}
+                        value=${data.endTime || ''}
+                        required></dbp-form-time-element>
 
-                <dbp-person-select-element
-                    id="examiner-picker-element"
-                    subscribe="lang"
-                    name="examiner"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
-                    value=${data.examiner || ''}
-                    required
-                    >
-                </dbp-person-select-element>
+                    <dbp-person-select-element
+                        id="examiner-picker-element"
+                        subscribe="lang"
+                        name="examiner"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
+                        value=${data.examiner || ''}
+                        required></dbp-person-select-element>
 
-                <dbp-person-select-element
-                    id="additional-examiner-picker-element"
-                    subscribe="lang"
-                    name="additionalExaminer"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.additional-examiner')}
-                    value=${data.additionalExaminer || ''}
-                    >
-                </dbp-person-select-element>
+                    <dbp-person-select-element
+                        id="additional-examiner-picker-element"
+                        subscribe="lang"
+                        name="additionalExaminer"
+                        label=${i18n.t(
+                            'render-form.forms.accessible-exams-form.additional-examiner',
+                        )}
+                        value=${data.additionalExaminer || ''}></dbp-person-select-element>
 
-                <dbp-room-select-element
-                    subscribe="lang"
-                    name="room"
-                    label="${i18n.t('render-form.forms.accessible-exams-form.room')}"
-                    value=${data.room || ''}
-                    hidden
-                    >
-                </dbp-room-select-element>
+                    <dbp-room-select-element
+                        subscribe="lang"
+                        name="room"
+                        label="${i18n.t('render-form.forms.accessible-exams-form.room')}"
+                        value=${data.room || ''}
+                        hidden></dbp-room-select-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="comment"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.comment')}
-                    value=${data.comment || ''}
-                    >
-                </dbp-form-string-element>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="comment"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.comment')}
+                        value=${data.comment || ''}></dbp-form-string-element>
 
-                <dbp-form-checkbox-element
-                    subscribe="lang"
-                    name="group"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.group')}
-                    hidden
-                    value="check"
-                    ?checked=${data.group || ''}>
-                </dbp-form-checkbox-element>
+                    <dbp-form-checkbox-element
+                        subscribe="lang"
+                        name="group"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.group')}
+                        hidden
+                        value="check"
+                        ?checked=${data.group || ''}></dbp-form-checkbox-element>
 
-                <dbp-form-checkbox-element
-                    subscribe="lang"
-                    name="online"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.online')}
-                    value="check"
-                    ?checked=${data.online || ''}>
-                </dbp-form-checkbox-element>
+                    <dbp-form-checkbox-element
+                        subscribe="lang"
+                        name="online"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.online')}
+                        value="check"
+                        ?checked=${data.online || ''}></dbp-form-checkbox-element>
                 </fieldset>
 
                 <fieldset>
-                <legend>${i18n.t('render-form.forms.accessible-exams-form.personal-data')}</legend>
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="matriculationNumber"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.matriculation-number')}
-                    value=${data.matriculationNumber || ''}
-                    disabled
-                    >
-                </dbp-form-string-element>
+                    <legend>
+                        ${i18n.t('render-form.forms.accessible-exams-form.personal-data')}
+                    </legend>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="matriculationNumber"
+                        label=${i18n.t(
+                            'render-form.forms.accessible-exams-form.matriculation-number',
+                        )}
+                        value=${data.matriculationNumber || ''}
+                        disabled></dbp-form-string-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="givenName"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.given-name')}
-                    value=${data.givenName || ''}
-                    disabled
-                    >
-                </dbp-form-string-element>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="givenName"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.given-name')}
+                        value=${data.givenName || ''}
+                        disabled></dbp-form-string-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="familyName"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.family-name')}
-                    value=${data.familyName || ''}
-                    disabled
-                    >
-                </dbp-form-string-element>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="familyName"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.family-name')}
+                        value=${data.familyName || ''}
+                        disabled></dbp-form-string-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="email_student"
-                    label=${i18n.t('render-form.forms.accessible-exams-form.email')}
-                    value=${data.email_student || ''}
-                    disabled
-                    >
-                </dbp-form-string-element>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="email_student"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.email')}
+                        value=${data.email_student || ''}
+                        disabled></dbp-form-string-element>
                 </fieldset>
 
                 ${this.getButtonRowHtml()}
             </form>
-            ${this.renderResult(this.submitted)}
-            ${this.renderErrorMessage(this.submissionError)}
+            ${this.renderResult(this.submitted)} ${this.renderErrorMessage(this.submissionError)}
         `;
     }
 
@@ -380,8 +386,16 @@ class FormalizeFormElement extends BaseFormElement {
         if (submitted) {
             return html`
                 <div class="container">
-                    <h2>${i18n.t('render-form.forms.accessible-exams-form.submission-result-thanks')}</h2>
-                    <p>${i18n.t('render-form.forms.accessible-exams-form.submission-result-notification')}</p>
+                    <h2>
+                        ${i18n.t(
+                            'render-form.forms.accessible-exams-form.submission-result-thanks',
+                        )}
+                    </h2>
+                    <p>
+                        ${i18n.t(
+                            'render-form.forms.accessible-exams-form.submission-result-notification',
+                        )}
+                    </p>
                 </div>
             `;
         }
@@ -396,7 +410,11 @@ class FormalizeFormElement extends BaseFormElement {
             return html`
                 <div class="container">
                     <h2>${i18n.t('render-form.forms.accessible-exams-form.submission-error')}</h2>
-                    <p>${i18n.t('render-form.forms.accessible-exams-form.submission-error-notification')}</p>
+                    <p>
+                        ${i18n.t(
+                            'render-form.forms.accessible-exams-form.submission-error-notification',
+                        )}
+                    </p>
                 </div>
             `;
         }

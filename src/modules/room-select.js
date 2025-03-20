@@ -63,7 +63,7 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
             disabled: {type: Boolean, reflect: true},
             name: {type: String},
             id: {type: String},
-            required: {type: Boolean}
+            required: {type: Boolean},
         };
     }
 
@@ -145,7 +145,7 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
                         jqXHR.setRequestHeader('Authorization', 'Bearer ' + that.auth.token);
                         that.isSearching = true;
                     },
-                    data: (params) => {                        
+                    data: (params) => {
                         return this.buildUrlData(this, params);
                     },
                     processResults: function (data) {
@@ -194,7 +194,7 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
                                 value: identifier,
                             },
                             bubbles: true,
-                        })
+                        }),
                     );
                 }
             })
@@ -284,7 +284,7 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
                     value: this.value,
                 },
                 bubbles: true,
-            })
+            }),
         );
     }
 

@@ -42,9 +42,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                     id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang, auth, entry-point-url"
-                    @change="${this.handleInputValue}"
-                    >
-                </dbp-course-select>
+                    @change="${this.handleInputValue}"></dbp-course-select>
             </div>
         `;
     }
@@ -58,7 +56,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                 select:not(.select) {
                     background-size: 1em;
                 }
-            `
+            `,
         ];
     }
 }

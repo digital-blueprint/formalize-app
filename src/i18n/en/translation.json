@@ -97,7 +97,7 @@
                 "submission-error": "Sorry, something went wrong.",
                 "submission-error-notification": "Your data could not be submitted. Please try again later."
             },
-            "ethics-commission-form" : {
+            "ethics-commission-form": {
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
                 "applicant-label": "Antragsteller*in",

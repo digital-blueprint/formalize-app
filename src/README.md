@@ -29,19 +29,19 @@ These templates will be converted to div containers when the page is loaded and 
 
 ### dbp-formalize-render-from
 
-An activity, hidden by the application, that renders forms for the user to fill out. 
+An activity, hidden by the application, that renders forms for the user to fill out.
 
 #### Attributes
 
 - `routing-url`: identifier of the form to render
-  - example `routing-url="demo-form"`
+    - example `routing-url="demo-form"`
 - `lang` (optional, default: `de`): set to `de` or `en` for German or English
-  - example `lang="de"`
+    - example `lang="de"`
 - `entry-point-url` (optional, default is the TU Graz entry point url): entry point url to access the api
-  - example `entry-point-url="https://api-dev.tugraz.at"`
+    - example `entry-point-url="https://api-dev.tugraz.at"`
 - `auth` object: you need to set that object property for the auth token
-  - example auth property: `{token: "THE_BEARER_TOKEN"}`
-  - note: most often this should be an attribute that is not set directly, but subscribed at a provider
+    - example auth property: `{token: "THE_BEARER_TOKEN"}`
+    - note: most often this should be an attribute that is not set directly, but subscribed at a provider
 
 ## Design Note
 
@@ -53,11 +53,5 @@ If you are not using the `provider-root` attribute to "terminate" all provider a
 you need to manually add these attributes so that the topic will work properly:
 
 ```html
-<dbp-formalize
-    auth
-    requested-login-status
-    analytics-event
-    entry-point-url
->
-</dbp-formalize>
+<dbp-formalize auth requested-login-status analytics-event entry-point-url></dbp-formalize>
 ```

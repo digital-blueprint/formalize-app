@@ -26,8 +26,8 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         // Specify the value to be included in the form submission
         if (personDataObject != null) {
             let name = `${personDataObject.givenName} ${personDataObject.familyName}`;
-            let email= `${personDataObject.localData.email}`;
-            this.value = name + " " + email;
+            let email = `${personDataObject.localData.email}`;
+            this.value = name + ' ' + email;
         }
     }
 
@@ -38,9 +38,7 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                     id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang, auth, entry-point-url"
-                    @change="${this.handleInputValue}"
-                    >
-                </dbp-person-select>
+                    @change="${this.handleInputValue}"></dbp-person-select>
             </div>
         `;
     }
@@ -54,7 +52,7 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                 select:not(.select) {
                     background-size: 1em;
                 }
-            `
+            `,
         ];
     }
 }
