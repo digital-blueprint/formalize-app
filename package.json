@@ -68,7 +68,7 @@
         "i18next": "i18next",
         "format": "npm run format:eslint && npm run format:prettier",
         "format:eslint": "eslint \"**/*.{js,ts}\" --fix",
-        "format:prettier": "prettier \"**/*.{js,json,ts}\" --write",
+        "format:prettier": "prettier \"**/*.{js,json,ts,md,yaml,yml}\" --write",
         "watch": "rollup -c --watch",
         "watch-wl": "rollup -c --watch",
         "watch-custom": "rollup -c --watch --environment APP_ENV:localCustom",
