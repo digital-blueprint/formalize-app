@@ -6,6 +6,7 @@ excludes = ["node_modules", "dist"]
 
 [formatter.prettier]
 command = "prettier"
+options = ["--write"]
 includes = ["*.js", "*.json", "*.md", "*.yaml", "*.yml"]
 
 [formatter.just]
