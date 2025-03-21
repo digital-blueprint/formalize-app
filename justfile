@@ -83,5 +83,5 @@ just-format:
 
 # Format all files
 [group('linter')]
-format:
-    nix-shell -p treefmt nodePackages.prettier nixfmt-rfc-style statix taplo --run treefmt
+format args='':
+    nix-shell -p treefmt nodePackages.prettier nixfmt-rfc-style statix taplo --run "treefmt {{ args }}"
