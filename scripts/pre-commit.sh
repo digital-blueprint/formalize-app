@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 # pre-commit hook script
 
-# Exit if any command fails
-set -e
+echo "Running pre-commit hook with npm run check"
 
-echo "Running pre-commit hook with npm run format"
-
-npm run format
-
-# Check if there are any changes after formatting
-if ! git diff --check --exit-code; then
-  echo -e "\nCode may have been formatted. Please review the changes and commit again."
+# Check if eslint and prettier are happy with the code
+# We can't just use `npm run format` and `git diff --check --exit-code`, because git will also complain about not yet staged changes
+if ! npm run check; then
+  echo -e "\nEslint or Prettier complained about the code. Please fix the issues and commit again. Often running 'npm run format' will fix the issues."
   exit 1
 fi
