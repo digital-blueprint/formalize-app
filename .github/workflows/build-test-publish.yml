@@ -44,6 +44,9 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Run formatter check
+        run: npm run format && git diff --check --exit-code
+
   format-check:
     name: Check code formatting with "just fmt"
     runs-on: ubuntu-latest
