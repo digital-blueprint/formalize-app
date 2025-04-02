@@ -2091,19 +2091,19 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     <span class='checkmark'></span>
                                 </label>
                                 <div class='btn-row-left'>
-                                    <dbp-button class='back-btn'
-                                                title='${i18n.t('show-registrations.last-entry-btn-title')}'
-                                                @click='${() => {
-                                                    this.showEntryOfPos(
-                                                        this.currentDetailPosition - 1,
-                                                        'previous',
-                                                    );
-                                                }}'
-                                                ?disabled='${!this.isPrevEnabled}'>
+                                    <dbp-button class='back-btn' no-spinner-on-click
+                                        title='${i18n.t('show-registrations.previous-entry-btn-title')}'
+                                        @click='${() => {
+                                            this.showEntryOfPos(
+                                                this.currentDetailPosition - 1,
+                                                'previous',
+                                            );
+                                        }}'
+                                        ?disabled=${!this.isPrevEnabled}>
                                         <dbp-icon name='chevron-left' aria-hidden='true'></dbp-icon>
-                                        ${i18n.t('show-registrations.last-entry-btn-title')}
+                                        ${i18n.t('show-registrations.previous-entry-btn-title')}
                                     </dbp-button>
-                                    <div>${i18n.t(
+                                    <div class="page-numbering">${i18n.t(
                                         'show-registrations.detailed-submission-dialog-id',
                                         {
                                             id: this.currentBeautyId,
@@ -2111,15 +2111,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         },
                                     )}
                                     </div>
-                                    <dbp-button class='next-btn'
-                                                title='${i18n.t('show-registrations.next-entry-btn-title')}'
-                                                @click='${() => {
-                                                    this.showEntryOfPos(
-                                                        this.currentDetailPosition + 1,
-                                                        'next',
-                                                    );
-                                                }}'
-                                                ?disabled='${!this.isNextEnabled}'>
+                                    <dbp-button class='next-btn' no-spinner-on-click
+                                        title='${i18n.t('show-registrations.next-entry-btn-title')}'
+                                        @click='${() => {
+                                            this.showEntryOfPos(
+                                                this.currentDetailPosition + 1,
+                                                'next',
+                                            );
+                                        }}'
+                                        ?disabled=${!this.isNextEnabled}>
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
                                         <dbp-icon name='chevron-right' aria-hidden='true'></dbp-icon>
                                     </dbp-button>

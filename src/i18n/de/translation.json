@@ -32,7 +32,7 @@
         "firstname": "Vorname",
         "lastname": "Nachname",
         "header-settings": "Spalteneinstellungen",
-        "last-entry-btn-title": "Vorheriger",
+        "previous-entry-btn-title": "Vorheriger",
         "load-courses-no-permission-body": "Sie besitzen nicht die Berechtigungen, um diese Funktion nutzen zu können!",
         "load-courses-no-permission-title": "Keine Berechtigung",
         "modal-close": "Dialog schließen",

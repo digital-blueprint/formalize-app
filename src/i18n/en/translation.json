@@ -32,7 +32,7 @@
         "firstname": "Firstname",
         "lastname": "Lastname",
         "header-settings": "Column setting",
-        "last-entry-btn-title": "Last entry",
+        "previous-entry-btn-title": "Previous entry",
         "load-courses-no-permission-body": "You do not have the permissions to use this function!",
         "load-courses-no-permission-title": "No permissions",
         "modal-close": "Close dialog",
