@@ -5,7 +5,7 @@ import {
     DbpDateElement,
     DbpDateTimeElement,
     DbpEnumElement,
-    DbpCheckboxElement,
+    DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
@@ -47,6 +47,10 @@ class FormalizeFormElement extends BaseFormElement {
                 console.log('Form submission data:', data);
 
                 // Add your event handling logic here
+
+                // In the demo form, we are enabling the save button again and update the form data
+                this.saveButtonEnabled = true;
+                this.formData = data;
             });
         });
     }
@@ -91,8 +95,8 @@ class FormalizeFormElement extends BaseFormElement {
         // Helper function to get random array element
         const randomFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-        // Generate random date within last year
-        const randomDate = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000);
+        // Generate random date between now and a year in the future
+        const randomDate = new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000);
         const dateStr = randomDate.toISOString().split('T')[0];
         const dateTimeStr = randomDate.toISOString();
 
@@ -113,7 +117,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-datetime-element': DbpDateTimeElement,
             'dbp-form-enum-element': DbpEnumElement,
-            'dbp-form-checkbox-element': DbpCheckboxElement,
+            'dbp-form-boolean-element': DbpBooleanElement,
         };
     }
 
@@ -197,13 +201,12 @@ class FormalizeFormElement extends BaseFormElement {
                     .value=${data.myEnum || ''}
                     required></dbp-form-enum-element>
 
-                <dbp-form-checkbox-element
+                <dbp-form-boolean-element
                     subscribe="lang"
                     name="myCheckbox"
                     label="My checkbox"
                     description="Check me"
-                    value="check"
-                    ?checked=${data.myCheckbox || false}></dbp-form-checkbox-element>
+                    ?state=${data.myCheckbox || false}></dbp-form-boolean-element>
 
                 ${this.getButtonRowHtml()}
             </form>
