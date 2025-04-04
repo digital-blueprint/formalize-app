@@ -6,7 +6,7 @@ import {getEthicsCommissionFormCSS} from '../styles.js';
 import {
     DbpStringElement,
     DbpDateElement,
-    DbpCheckboxElement,
+    DbpBooleanElement,
     DbpEnumElement,
 } from '@dbp-toolkit/form-elements';
 
@@ -132,7 +132,7 @@ class FormalizeFormElement extends BaseFormElement {
         return {
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
-            'dbp-form-checkbox-element': DbpCheckboxElement,
+            'dbp-form-boolean-element': DbpBooleanElement,
             'dbp-form-enum-element': DbpEnumElement,
         };
     }
