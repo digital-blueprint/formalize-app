@@ -4,7 +4,7 @@ import {
     DbpStringElement,
     DbpDateElement,
     DbpTimeElement,
-    DbpCheckboxElement,
+    DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {PersonSelect} from '@dbp-toolkit/person-select';
@@ -94,10 +94,6 @@ class FormalizeFormElement extends BaseFormElement {
                 data.formData.additionalExaminer = additionalExaminerdata[0];
                 data.formData.email_additionalExaminer = additionalExaminerdata[1];
 
-                // Cast checkboxes to boolean values
-                data.formData.online = data.formData.online === 'check';
-                data.formData.group = data.formData.group === 'check';
-
                 // Handle the event
                 console.log('Form submission data:', data);
 
@@ -152,7 +148,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-time-element': DbpTimeElement,
-            'dbp-form-checkbox-element': DbpCheckboxElement,
+            'dbp-form-boolean-element': DbpBooleanElement,
             'dbp-course-select-element': DbpCourseSelectElement,
             'dbp-room-select-element': DbpRoomSelectElement,
             'dbp-course-select': CourseSelect,
@@ -323,20 +319,18 @@ class FormalizeFormElement extends BaseFormElement {
                         label=${i18n.t('render-form.forms.accessible-exams-form.comment')}
                         value=${data.comment || ''}></dbp-form-string-element>
 
-                    <dbp-form-checkbox-element
+                    <dbp-form-boolean-element
                         subscribe="lang"
                         name="group"
                         label=${i18n.t('render-form.forms.accessible-exams-form.group')}
                         hidden
-                        value="check"
-                        ?checked=${data.group || ''}></dbp-form-checkbox-element>
+                        .state=${data.group || false}></dbp-form-boolean-element>
 
-                    <dbp-form-checkbox-element
+                    <dbp-form-boolean-element
                         subscribe="lang"
                         name="online"
                         label=${i18n.t('render-form.forms.accessible-exams-form.online')}
-                        value="check"
-                        ?checked=${data.online || ''}></dbp-form-checkbox-element>
+                        .state=${data.online || false}></dbp-form-boolean-element>
                 </fieldset>
 
                 <fieldset>
