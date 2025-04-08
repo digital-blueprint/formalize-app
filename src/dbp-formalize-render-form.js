@@ -206,8 +206,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         console.log('getDocumentEditFormHtml tagName', tagName);
         console.log('getDocumentEditFormHtml form', form);
 
-        if (!customElements.get(tagName)) {
-            customElements.define(tagName, form);
+        if (!this.registry.get(tagName)) {
+            this.registry.define(tagName, form);
         }
 
         // TODO: Add data
