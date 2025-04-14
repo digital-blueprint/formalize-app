@@ -98,11 +98,17 @@
                 "submission-error-notification": "Ihre Daten konnten nicht abgeschickt werden. Bitte versuchen Sie es später noch einmal."
             },
             "ethics-commission-form": {
+                "edit-mode": "Edit mode",
+                "view-mode": "View mode",
+                "submit-button-text": "Abschicken",
+                "save-draft-button-text": "Entwurf speichern",
+                "print-pdf-button-text": "PDF drucken",
+                "delete-submittion-button-text": "Löschen",
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
                 "applicant-label": "Antragsteller*in",
                 "applicant-placeholder": "Vor- und Nachname",
-                "studie": "Studie",
+                "study": "Studie",
                 "publication": "Publikation",
                 "contact-details-label": "Kontaktdaten",
                 "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
@@ -127,7 +133,11 @@
                 "specification-office-label": "Angabe durch Geschäftsstelle",
                 "data-protection-date-label": "Datum der finalen Prüfung",
                 "job-position-label": "Berufliche Position",
-                "job-position-placeholder": "Bitte geben Sie Ihre berufliche Position an"
+                "job-position-placeholder": "Bitte geben Sie Ihre berufliche Position an",
+                "submission-result-thanks": "Vielen Dank für Ihre Anmeldung!",
+                "submission-result-notification": "Sie haben das Formular der Ethik-Kommission erfolgreich eingereicht",
+                "submission-error": "Hoppla, da ist etwas schiefgelaufen.",
+                "submission-error-notification": "Ihre Daten konnten nicht abgeschickt werden. Bitte versuchen Sie es später noch einmal."
             }
         },
         "course-select": {

@@ -98,11 +98,17 @@
                 "submission-error-notification": "Your data could not be submitted. Please try again later."
             },
             "ethics-commission-form": {
+                "edit-mode": "Edit mode",
+                "view-mode": "View mode",
+                "submit-button-text": "Submit",
+                "save-draft-button-text": "Save draft",
+                "print-pdf-button-text": "Print PDF",
+                "delete-submittion-button-text": "Delete",
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
                 "applicant-label": "Antragsteller*in",
                 "applicant-placeholder": "Vor- und Nachname",
-                "studie": "Studie",
+                "study": "Studie",
                 "publication": "Publikation",
                 "contact-details-label": "Kontaktdaten",
                 "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
@@ -115,7 +121,11 @@
                 "information-communication-computing": "Information, Communication & Computing",
                 "mobility-production": "Mobility & Production",
                 "sustainable-systems": "Sustainable Systems",
-                "keinem": "Keinem"
+                "keinem": "Keinem",
+                "submission-result-thanks": "Vielen Dank für Ihren Beitrag!",
+                "submission-result-notification": "You have successfully submitted the Ethics Commission Form",
+                "submission-error": "Sorry, something went wrong.",
+                "submission-error-notification": "Your data could not be submitted. Please try again later."
             }
         },
         "course-select": {
