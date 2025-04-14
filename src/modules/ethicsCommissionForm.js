@@ -2,7 +2,9 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import { Button, Icon } from '@dbp-toolkit/common';
+import {Button, Icon} from '@dbp-toolkit/common';
+import {send} from '@dbp-toolkit/common/notification.js';
+import {FileSource} from '@dbp-toolkit/file-handling';
 import {getEthicsCommissionFormCSS} from '../styles.js';
 import {
     DbpStringElement,
@@ -13,7 +15,10 @@ import {
     DbpDateView,
     DbpEnumView,
 } from '@dbp-toolkit/form-elements';
-import {gatherFormDataFromElement /*, validateRequiredFields*/} from '@dbp-toolkit/form-elements/src/utils.js';
+import {SUBMISSION_STATE_DRAFT, SUBMISSION_STATE_SUBMITTED} from '../utils.js';
+import {
+    gatherFormDataFromElement /*, validateRequiredFields*/,
+} from '@dbp-toolkit/form-elements/src/utils.js';
 import html2pdf from 'html2pdf.js';
 
 export default class extends BaseObject {
@@ -38,9 +43,17 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
+        this.formIdentifier = '32297d33-1352-4cf2-ba06-1577911c3537';
         this.editMode = true;
         this.submitted = false;
         this.submissionError = false;
+        this.isSavingDraft = false;
+        this.draftSaveError = false;
+
+        this.attachedFiles = [];
+        this.attachedFilesCount = 0;
+        this.fileUploadError = false;
+
         this.humanTestSubjectsQuestionsEnabled = false;
         this.humanStemCellsQuestionsEnabled = false;
         this.stemCellFromHumanEmbryosQuestionsEnabled = false;
@@ -54,6 +67,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.hasConfidentialPartSubQuestion = false;
         this.hasConflictInContentControlSubQuestion = false;
         this.stakeholderParticipationPlannedSubQuestion = false;
+        this.riskSubQuestion = false;
+        this.stemCellFromEmbryosQuestionsEnabled = false;
     }
 
     static get properties() {
@@ -62,6 +77,7 @@ class FormalizeFormElement extends BaseFormElement {
             editMode: {type: Boolean},
             submitted: {type: Boolean},
             submissionError: {type: Boolean},
+            attachedFilesCount: {type: Number},
             humanTestSubjectsQuestionsEnabled: {type: Boolean},
             humanStemCellsQuestionsEnabled: {type: Boolean},
             stemCellFromHumanEmbryosQuestionsEnabled: {type: Boolean},
@@ -75,6 +91,8 @@ class FormalizeFormElement extends BaseFormElement {
             hasConfidentialPartSubQuestion: {type: Boolean},
             hasConflictInContentControlSubQuestion: {type: Boolean},
             stakeholderParticipationPlannedSubQuestion: {type: Boolean},
+            riskSubQuestion: {type: Boolean},
+            stemCellFromEmbryosQuestionsEnabled: {type: Boolean},
         };
     }
 
@@ -87,6 +105,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-string-view': DbpStringView,
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
+            'dbp-file-source': FileSource,
             'dbp-button': Button,
             'dbp-icon': Icon,
         };
@@ -101,44 +120,156 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    openFilePicker(event) {
+        event.preventDefault();
+        const fileSource = this._('dbp-file-source');
+        fileSource.setAttribute('dialog-open', '');
+    }
+
+    getAttachedFilesHtml() {
+        if (this.attachedFilesCount === 0) {
+            return;
+        }
+
+        let results = [];
+
+        this.attachedFiles.forEach((file) => {
+            results.push(html`
+                <div class="file-block">
+                    <strong>${file.name}</strong> (${file.type})</span>
+                </div>
+            `);
+        });
+
+        return results;
+    }
+
     connectedCallback() {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
+            // Listen to the event from file source
+            const fileSource = this._('dbp-file-source');
+            fileSource.addEventListener('dbp-file-source-file-selected', (event) => {
+                this.attachedFiles.push(event.detail.file);
+                this.attachedFilesCount = this.attachedFiles.length;
+            });
+
+            // Event listener for saving draft
+            this.addEventListener('DbpFormalizeFormSaveDraft', async (event) => {
+                // Access the data from the event detail
+                const data = event.detail;
+                // Include unique identifier for person who is submitting
+                data.formData.identifier = this.auth['person-id'];
+                // Create UUID for each submission
+                this.createUUID();
+                data.formData.uuid = this.formData.uuid;
+
+                try {
+                    this.isSavingDraft = true;
+                    const formData = new FormData();
+
+                    // Upload attached files
+                    if (this.attachedFilesCount > 0) {
+                        for (let i = 0; i < this.attachedFilesCount; i++) {
+                            const file = this.attachedFiles[i];
+                            formData.append('file[]', file, file.name);
+                        }
+                    }
+
+                    formData.append('form', '/formalize/forms/' + this.formIdentifier);
+                    formData.append('dataFeedElement', JSON.stringify(data.formData));
+                    formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
+
+                    const response = await fetch(
+                        this.entryPointUrl + '/formalize/submissions/multipart',
+                        {
+                            method: 'POST',
+                            headers: {
+                                Authorization: 'Bearer ' + this.auth.token,
+                            },
+                            body: formData,
+                        },
+                    );
+
+                    if (!response.ok) {
+                        this.draftSaveError = true;
+                        send({
+                            summary: 'Error',
+                            body: `Failed to save form DRAFT. Response status: ${response.status}`,
+                            type: 'danger',
+                            timeout: 5,
+                        });
+                    } else {
+                        this.draftSaveSuccessful = true;
+                        this.draftSaveError = false;
+                    }
+                } catch (error) {
+                    console.error(error);
+                    send({
+                        summary: 'Error',
+                        body: error.message,
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                } finally {
+                    if (this.draftSaveSuccessful) {
+                        send({
+                            summary: 'Success',
+                            body: 'Draft saved successfully',
+                            type: 'success',
+                            timeout: 5,
+                        });
+                    }
+                    this.isSavingDraft = false;
+                }
+            });
+
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 // Access the data from the event detail
                 const data = event.detail;
                 // Include unique identifier for person who is submitting
-                data.formData.identifier = this.formData.identifier;
+                data.formData.identifier = this.auth['person-id'];
                 // Create UUID for each submission
                 this.createUUID();
                 data.formData.uuid = this.formData.uuid;
 
-                // Handle the event
-                console.log('Form submission data:', data);
-
                 try {
                     this.isPostingSubmission = true;
+                    const formData = new FormData();
 
-                    let body = {
-                        form: '/formalize/forms/' + '32297d33-1352-4cf2-ba06-1577911c3537',
-                        dataFeedElement: JSON.stringify(data.formData),
-                    };
+                    // Upload attached files
+                    if (this.attachedFilesCount > 0) {
+                        for (let i = 0; i < this.attachedFilesCount; i++) {
+                            const file = this.attachedFiles[i];
+                            formData.append('file[]', file, file.name);
+                        }
+                    }
 
-                    const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/ld+json',
-                            Authorization: 'Bearer ' + this.auth.token,
+                    formData.append('form', '/formalize/forms/' + this.formIdentifier);
+                    formData.append('dataFeedElement', JSON.stringify(data.formData));
+                    formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+
+                    const response = await fetch(
+                        this.entryPointUrl + '/formalize/submissions/multipart',
+                        {
+                            method: 'POST',
+                            headers: {
+                                Authorization: 'Bearer ' + this.auth.token,
+                            },
+                            body: formData,
                         },
-                        body: JSON.stringify(body),
-                    });
+                    );
 
                     if (!response.ok) {
                         this.submissionError = true;
-                        this.saveButtonEnabled = true;
-                        throw new Error(`Response status: ${response.status}`);
+                        send({
+                            summary: 'Error',
+                            body: `Failed to submit form. Response status: ${response.status}`,
+                            type: 'danger',
+                            timeout: 5,
+                        });
                     } else {
                         this.wasSubmissionSuccessful = true;
                         this.submissionError = false;
@@ -147,11 +278,24 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     this.submitted = this.wasSubmissionSuccessful;
-                    console.log(this.wasSubmissionSuccessful, response);
                     return response;
                 } catch (error) {
                     console.error(error.message);
+                    send({
+                        summary: 'Error',
+                        body: error.message,
+                        type: 'danger',
+                        timeout: 5,
+                    });
                 } finally {
+                    if (this.wasSubmissionSuccessful) {
+                        send({
+                            summary: 'Success',
+                            body: 'Form submitted successfully',
+                            type: 'success',
+                            timeout: 5,
+                        });
+                    }
                     this.isPostingSubmission = false;
                 }
             });
@@ -175,22 +319,25 @@ class FormalizeFormElement extends BaseFormElement {
         window.scrollTo(0, 0);
 
         const opt = {
-            margin:       [80, 50],
-            filename:     'Ethical_Review_Application.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  {
+            margin: [80, 50],
+            filename: 'Ethical_Review_Application.pdf',
+            image: {type: 'jpeg', quality: 0.98},
+            html2canvas: {
                 scale: 1,
                 dpi: 192,
             },
-            jsPDF: { unit: 'pt', format: 'A4', orientation: 'portrait' },
+            jsPDF: {unit: 'pt', format: 'A4', orientation: 'portrait'},
             pagebreak: {
                 mode: ['css', 'legacy'],
-            }
+            },
         };
 
-        await html2pdf().set(opt).from(form)
+        await html2pdf()
+            .set(opt)
+            .from(form)
             .toPdf()
-            .get('pdf').then((pdf) => {
+            .get('pdf')
+            .then((pdf) => {
                 console.log(pdf);
 
                 var totalPages = pdf.internal.getNumberOfPages();
@@ -199,12 +346,12 @@ class FormalizeFormElement extends BaseFormElement {
                     pdf.setPage(i);
                     this.addHeader(pdf, i);
                 }
-            }
-        ).save();
+            })
+            .save();
 
         // Remove print style
         // form.classList.remove('print');
-    };
+    }
 
     addHeader(pdf, pageNumber) {
         const MARGIN_INLINE = 50;
@@ -213,35 +360,65 @@ class FormalizeFormElement extends BaseFormElement {
         pdf.setFontSize(9);
         pdf.setTextColor(25);
 
-        pdf.text('TU Graz', pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 10, MARGIN_BLOCK, {align: 'right'});
+        pdf.text('TU Graz', pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 10, MARGIN_BLOCK, {
+            align: 'right',
+        });
         // Add a TU graz red square
         pdf.setDrawColor(255, 0, 0);
         pdf.setFillColor(255, 0, 0);
         pdf.setLineWidth(1); // Set the line width
-        pdf.rect( pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 8, MARGIN_BLOCK - 8, 8, 8, 'F', {align: 'right'});
+        pdf.rect(
+            pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 8,
+            MARGIN_BLOCK - 8,
+            8,
+            8,
+            'F',
+            {align: 'right'},
+        );
 
         pdf.setDrawColor(0, 0, 0);
-        pdf.line(MARGIN_INLINE, MARGIN_BLOCK + 3, pdf.internal.pageSize.getWidth() - MARGIN_INLINE, MARGIN_BLOCK + 3, 'S');
+        pdf.line(
+            MARGIN_INLINE,
+            MARGIN_BLOCK + 3,
+            pdf.internal.pageSize.getWidth() - MARGIN_INLINE,
+            MARGIN_BLOCK + 3,
+            'S',
+        );
 
         pdf.setFontSize(8);
-        pdf.text('Antrag auf Prüfung der ethischen Vertretbarkeit',  MARGIN_INLINE , MARGIN_BLOCK + 12, {align: 'left'});
-        pdf.text('Ethikkommission TU Graz / Geschäftsstelle', pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - MARGIN_BLOCK, {align: 'center'});
-        pdf.text(String(pageNumber), pdf.internal.pageSize.getWidth() - MARGIN_INLINE, pdf.internal.pageSize.getHeight() - MARGIN_BLOCK, {align: 'right'});
+        pdf.text(
+            'Antrag auf Prüfung der ethischen Vertretbarkeit',
+            MARGIN_INLINE,
+            MARGIN_BLOCK + 12,
+            {align: 'left'},
+        );
+        pdf.text(
+            'Ethikkommission TU Graz / Geschäftsstelle',
+            pdf.internal.pageSize.getWidth() / 2,
+            pdf.internal.pageSize.getHeight() - MARGIN_BLOCK,
+            {align: 'center'},
+        );
+        pdf.text(
+            String(pageNumber),
+            pdf.internal.pageSize.getWidth() - MARGIN_INLINE,
+            pdf.internal.pageSize.getHeight() - MARGIN_BLOCK,
+            {align: 'right'},
+        );
     }
 
     extractShadowContent(element) {
         console.log('extractShadowContent', element);
         console.log('element instanceof HTMLElement', element instanceof HTMLElement);
 
-        element.querySelectorAll('*').forEach(el => {
+        element.querySelectorAll('*').forEach((el) => {
             if (el.shadowRoot) {
-            console.log('el', el);
+                console.log('el', el);
 
-            const shadowContent = el.shadowRoot.innerHTML;
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = shadowContent;
+                const shadowContent = el.shadowRoot.innerHTML;
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = shadowContent;
 
-            el.replaceWith(wrapper);
+                el.replaceWith(wrapper);
             }
         });
     }
@@ -250,7 +427,9 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
 
         return html`
-            <button id="toggle-edit-mode" class="toggle-edit-mode button is-secondary"
+            <button
+                id="toggle-edit-mode"
+                class="toggle-edit-mode button is-secondary"
                 @click="${() => {
                     this.editMode = !this.editMode;
 
@@ -263,21 +442,28 @@ class FormalizeFormElement extends BaseFormElement {
                         this.formData = data;
                     }
                 }}">
-
                 ${this.editMode
-                    ? html`<dbp-icon name="eye"></dbp-icon><span>${i18n.t('render-form.forms.ethics-commission-form.view-mode')}</span>`
-                    : html`<dbp-icon name="pencil"></dbp-icon><span>${i18n.t('render-form.forms.ethics-commission-form.edit-mode')}</span>`
-                }
+                    ? html`
+                          <dbp-icon name="eye"></dbp-icon>
+                          <span>
+                              ${i18n.t('render-form.forms.ethics-commission-form.view-mode')}
+                          </span>
+                      `
+                    : html`
+                          <dbp-icon name="pencil"></dbp-icon>
+                          <span>
+                              ${i18n.t('render-form.forms.ethics-commission-form.edit-mode')}
+                          </span>
+                      `}
             </button>
 
             ${this.editMode
                 ? html`
-                    ${this.renderFormElements()}
-                    `
+                      ${this.renderFormElements()}
+                  `
                 : html`
-                    ${this.renderFormViews()}
-                `
-            }
+                      ${this.renderFormViews()}
+                  `}
         `;
     }
 
@@ -298,7 +484,7 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         label="Typ"
                         .items=${{
-                            studie: i18n.t('render-form.forms.ethics-commission-form.studie'),
+                            study: i18n.t('render-form.forms.ethics-commission-form.study'),
                             publication: i18n.t(
                                 'render-form.forms.ethics-commission-form.publication',
                             ),
@@ -358,9 +544,13 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t('render-form.forms.ethics-commission-form.qualification-work-label')}"
                         .items=${{
                             no: i18n.t('render-form.forms.ethics-commission-form.no-label'),
-                            bachelor: i18n.t('render-form.forms.ethics-commission-form.bachelor-label'),
+                            bachelor: i18n.t(
+                                'render-form.forms.ethics-commission-form.bachelor-label',
+                            ),
                             master: i18n.t('render-form.forms.ethics-commission-form.master-label'),
-                            doctorat: i18n.t('render-form.forms.ethics-commission-form.doctorat-label'),
+                            doctorat: i18n.t(
+                                'render-form.forms.ethics-commission-form.doctorat-label',
+                            ),
                             'no-publication': i18n.t(
                                 'render-form.forms.ethics-commission-form.no-publikation-label',
                             ),
@@ -534,146 +724,150 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.testSubjects || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.humanTestSubjectsQuestionsEnabled
-                        ? html`
-                            <div class="question-group ${classMap({
-                                    'fade-in': this.humanTestSubjectsQuestionsEnabled,
-                                })}">
-                                <h4 class="question-group-title">
-                                    1.1. Menschen als Proband*innen im Forschungsvorhaben
-                                </h4>
+                    ${
+                        this.humanTestSubjectsQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.humanTestSubjectsQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          1.1. Menschen als Proband*innen im Forschungsvorhaben
+                                      </h4>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.1.1. Nehmen die Proband*innen freiwillig an der Studie teil?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsVoluntary || ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.1.1. Nehmen die Proband*innen freiwillig an der Studie teil?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsVoluntary ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.1.2. Wurden die Proband*innen über die an ihnen durchgeführte Studie im Vorfeld umfassend, in einfacher und verständlicher Sprache informiert (informed consent)?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsInformedConsent ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.1.2. Wurden die Proband*innen über die an ihnen durchgeführte Studie im Vorfeld umfassend, in einfacher und verständlicher Sprache informiert (informed consent)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsInformedConsent ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.1.3. Wird sichergestellt, dass die Teilnahme ausschließlich nach Unterfertigung der informierten Einwilligung durch die Proband*innen und/oder ihrer gesetzlichen Vertreter*innen erfolgt?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsConsentSigned ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.1.3. Wird sichergestellt, dass die Teilnahme ausschließlich nach Unterfertigung der informierten Einwilligung durch die Proband*innen und/oder ihrer gesetzlichen Vertreter*innen erfolgt?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsConsentSigned ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.1.4. Besteht die Möglichkeit, von der Teilnahme ohne persönliche negative Auswirkungen zurückzutreten?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsWithdrawPossible ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.1.4. Besteht die Möglichkeit, von der Teilnahme ohne persönliche negative Auswirkungen zurückzutreten?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsWithdrawPossible ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.1.5. Nehmen Personen, die in studienrechtlicher und/oder arbeitsrechtlicher Abhängigkeit zur Studienleitung stehen (z.B.: Mitarbeitende des gleichen Instituts) als Proband*innen an der Studie teil?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsDependent ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.1.5. Nehmen Personen, die in studienrechtlicher und/oder arbeitsrechtlicher Abhängigkeit zur Studienleitung stehen (z.B.: Mitarbeitende des gleichen Instituts) als Proband*innen an der Studie teil?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsDependent ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.1.6. Sind andere potentiell vulnerable Personen involviert (Kinder, nicht einwilligungsfähige Personen, Opfer von Missbrauch oder Gewalt etc.)?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsVulnerable ||
-                                    ''}></dbp-form-enum-view>
-                            </div>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.1.6. Sind andere potentiell vulnerable Personen involviert (Kinder, nicht einwilligungsfähige Personen, Opfer von Missbrauch oder Gewalt etc.)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsVulnerable ||
+                                          ''}></dbp-form-enum-view>
+                                  </div>
 
-                            <div class="question-group">
-                                <h4 class="question-group-title">
-                                    1.2. Physische oder psychische Eingriffe an Proband*innen
-                                </h4>
+                                  <div class="question-group">
+                                      <h4 class="question-group-title">
+                                          1.2. Physische oder psychische Eingriffe an Proband*innen
+                                      </h4>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.2.1. Werden invasive Techniken angewandt (z.B.: zur Sammlung von menschlichem Gewebe, Biopsien, Einwirkungen auf das Gehirn, etc.)?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.invasiveTechniquesUsed ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.2.1. Werden invasive Techniken angewandt (z.B.: zur Sammlung von menschlichem Gewebe, Biopsien, Einwirkungen auf das Gehirn, etc.)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.invasiveTechniquesUsed ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.2.2. Führt die Teilnahme an der Studie bei den Proband*innen zu mindestens einer der folgenden Konsequenzen wie z.B. dem Erleben von Erniedrigung, Scham, Folter, Schmerzen, psychischem Druck, oder überdurchschnittlichem Stress?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsTortured ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.2.2. Führt die Teilnahme an der Studie bei den Proband*innen zu mindestens einer der folgenden Konsequenzen wie z.B. dem Erleben von Erniedrigung, Scham, Folter, Schmerzen, psychischem Druck, oder überdurchschnittlichem Stress?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsTortured ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.2.3. Könnten Proband*innen zu Schaden kommen bzw. gibt es mögliche Risiken oder etwaige Folgeerscheinungen?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsHarmed ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.2.3. Könnten Proband*innen zu Schaden kommen bzw. gibt es mögliche Risiken oder etwaige Folgeerscheinungen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsHarmed ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.2.4. Wurden alle Schritte unternommen, um die Risiken zu minimieren?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsRiskMinimized ||
-                                    ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.2.4. Wurden alle Schritte unternommen, um die Risiken zu minimieren?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsRiskMinimized ||
+                                          ''}></dbp-form-enum-view>
 
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.2.5. Rechtfertigt der Nutzen der Studie die Risiken für die Proband*innen?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsRisksJustified ||
-                                    ''}></dbp-form-enum-view>
-                            </div>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.2.5. Rechtfertigt der Nutzen der Studie die Risiken für die Proband*innen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsRisksJustified ||
+                                          ''}></dbp-form-enum-view>
+                                  </div>
 
-                            <div class="question-group">
-                                <h4 class="question-group-title">
-                                    1.3. Zumutbarkeit des Forschungsvorhabens
-                                </h4>
-                                <dbp-form-enum-view
-                                    subscribe="lang"
-                                    label="1.3.1 Ist den Proband*innen die Teilnahme an der Studie im Gesamten zumutbar?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsReasonableToParticipate ||
-                                    ''}></dbp-form-enum-view>
-                            </div>`
-                        : ''
+                                  <div class="question-group">
+                                      <h4 class="question-group-title">
+                                          1.3. Zumutbarkeit des Forschungsvorhabens
+                                      </h4>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.3.1 Ist den Proband*innen die Teilnahme an der Studie im Gesamten zumutbar?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsReasonableToParticipate ||
+                                          ''}></dbp-form-enum-view>
+                                  </div>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-view
@@ -726,143 +920,145 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.humanStemCells || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.humanStemCellsQuestionsEnabled
-                        ? html`
-                                <div
-                                    class="question-group ${classMap({
-                                        'fade-in': this.humanStemCellsQuestionsEnabled,
-                                    })}">
-                                    <h4 class="question-group-title">
-                                        2.1. Art des Forschungsmaterials
-                                    </h4>
-                                    <!-- ITT TARTOK-->
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="2.1.1. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichem Gewebe?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.humanTissueUsed || ''}></dbp-form-enum-view>
+                    ${
+                        this.humanStemCellsQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.humanStemCellsQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          2.1. Art des Forschungsmaterials
+                                      </h4>
 
-                                    <dbp-form-enum-view
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.stemCellFromEmbryosQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        label="2.1.2. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Stammzellen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.humanStemCellsUsed ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="2.1.1. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichem Gewebe?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.humanTissueUsed || ''}></dbp-form-enum-view>
 
-                                    ${this.stemCellFromEmbryosQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-enum-view
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this.stemCellFromEmbryosQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                label="2.1.2.1.	Werden die Stammzellen direkt aus Embryos gewonnen?"
-                                                .items=${{
-                                                    yes: 'Ja',
-                                                    no: 'Nein',
-                                                }}
-                                                .value=${data.stemCellsFromEmbryos ||
-                                                ''}></dbp-form-enum-view>
-                                        `
-                                        : ''}
+                                      <dbp-form-enum-view
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.stemCellFromEmbryosQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          label="2.1.2. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Stammzellen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.humanStemCellsUsed ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.stemCellFromHumanEmbryosQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        label="2.1.3. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Embryos oder Föten?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.useOfHumanEmbryos ||
-                                        ''}></dbp-form-enum-view>
+                                      ${this.stemCellFromEmbryosQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-enum-view
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .stemCellFromEmbryosQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    label="2.1.2.1.	Werden die Stammzellen direkt aus Embryos gewonnen?"
+                                                    .items=${{
+                                                        yes: 'Ja',
+                                                        no: 'Nein',
+                                                    }}
+                                                    .value=${data.stemCellsFromEmbryos ||
+                                                    ''}></dbp-form-enum-view>
+                                            `
+                                          : ''}
 
-                                    ${this.stemCellFromHumanEmbryosQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-enum-view
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this
-                                                            .stemCellFromHumanEmbryosQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                label="2.1.2.1.	Werden die Stammzellen direkt aus Embryos gewonnen?"
-                                                .items=${{
-                                                    yes: 'Ja',
-                                                    no: 'Nein',
-                                                }}
-                                                .value=${data.stemCellsFromEmbryos ||
-                                                ''}></dbp-form-enum-view>
-                                        `
-                                        : ''}
-                                </div>
+                                      <dbp-form-enum-view
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.stemCellFromHumanEmbryosQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          label="2.1.3. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Embryos oder Föten?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.useOfHumanEmbryos ||
+                                          ''}></dbp-form-enum-view>
 
-                                <div class="question-group">
-                                    <h4 class="question-group-title">
-                                        2.2. Herkunft des Forschungsmaterials
-                                    </h4>
+                                      ${this.stemCellFromHumanEmbryosQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-enum-view
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .stemCellFromHumanEmbryosQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    label="2.1.3.1. Werden diese im Zuge der Forschung zerstört?"
+                                                    .items=${{
+                                                        yes: 'Ja',
+                                                        no: 'Nein',
+                                                    }}
+                                                    .value=${data.stemCellsFromEmbryosDestroyed ||
+                                                    ''}></dbp-form-enum-view>
+                                            `
+                                          : ''}
+                                  </div>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="2.2.1. Sind die im Forschungsvorhaben verwendeten Zellen (bzw. ist das menschliche Gewebe) kommerziell verfügbar?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.commerciallyAvailableCells ||
-                                        ''}></dbp-form-enum-view>
+                                  <div class="question-group">
+                                      <h4 class="question-group-title">
+                                          2.2. Herkunft des Forschungsmaterials
+                                      </h4>
 
-                                    <dbp-form-enum-view
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.cellsObtainedInResearchQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        label="2.2.2. Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.cellsObtainedInResearch ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="2.2.1. Sind die im Forschungsvorhaben verwendeten Zellen (bzw. ist das menschliche Gewebe) kommerziell verfügbar?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.commerciallyAvailableCells ||
+                                          ''}></dbp-form-enum-view>
 
-                                    ${!this.cellsObtainedInResearchQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-string-view
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this
-                                                            .cellsObtainedInResearchQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                label="2.2.2.1.	Woher stammt das im Forschungsvorhaben verwendete Gewebe bzw. die Stammzellen?"
-                                                value=${data.tissueOrCellsSource || ''}
-                                                ></dbp-form-string-view>
-                                        `
-                                        : ''}
-                                </div>
-                            `
-                        : ''
+                                      <dbp-form-enum-view
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.cellsObtainedInResearchQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          label="2.2.2. Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.cellsObtainedInResearch ||
+                                          ''}></dbp-form-enum-view>
+
+                                      ${!this.cellsObtainedInResearchQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-string-view
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .cellsObtainedInResearchQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    label="2.2.2.1.	Woher stammt das im Forschungsvorhaben verwendete Gewebe bzw. die Stammzellen?"
+                                                    value=${data.tissueOrCellsSource ||
+                                                    ''}></dbp-form-string-view>
+                                            `
+                                          : ''}
+                                  </div>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -872,7 +1068,8 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         @change="${(e) => {
                             if (e.detail.value) {
-                                this.animalQuestionsEnabled = e.detail.value === 'yes' ? true : false;
+                                this.animalQuestionsEnabled =
+                                    e.detail.value === 'yes' ? true : false;
                             }
                         }}"
                         subscribe="lang"
@@ -884,96 +1081,98 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.animalsInvolved || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.animalQuestionsEnabled
-                        ? html`
-                                <div
-                                    class="question-group ${classMap({
-                                        'fade-in': this.animalQuestionsEnabled,
-                                    })}">
-                                    <h4 class="question-group-title">
-                                        3.1. Tiere im Forschungsvorhaben
-                                    </h4>
-                                    vertebrates
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.1.	Handelt es sich dabei um Wirbeltiere?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.isAnimalVertebrate ||
-                                        ''}></dbp-form-enum-view>
+                    ${
+                        this.animalQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.animalQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          3.1. Tiere im Forschungsvorhaben
+                                      </h4>
+                                      vertebrates
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.1.	Handelt es sich dabei um Wirbeltiere?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.isAnimalVertebrate ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.2.	Handelt es sich dabei um nicht-menschliche Primaten (Affen, Schimpansen, Gorillas etc.)?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.nonHumanPrimates || ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.2.	Handelt es sich dabei um nicht-menschliche Primaten (Affen, Schimpansen, Gorillas etc.)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.nonHumanPrimates ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.3. Sind diese Tiere genetisch verändert?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.geneticallyModifiedAnimals ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.3. Sind diese Tiere genetisch verändert?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.geneticallyModifiedAnimals ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.4. Gehören diese Tiere einer bedrohten Tierart an?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.endangeredSpecies ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.4. Gehören diese Tiere einer bedrohten Tierart an?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.endangeredSpecies ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.5. Gibt es Alternativen zur Verwendung von Versuchstieren?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.alternativesToUseLaboratoryAnimals ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.5. Gibt es Alternativen zur Verwendung von Versuchstieren?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.alternativesToUseLaboratoryAnimals ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.6. Könnten Versuchstiere im Zuge des Forschungsvorhabens zu Schaden kommen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.laboratoryAnimalsHarmed ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.6. Könnten Versuchstiere im Zuge des Forschungsvorhabens zu Schaden kommen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.laboratoryAnimalsHarmed ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.7. Rechtfertigt der Nutzen der Studie die Risiken für die Versuchstiere?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.isRiskJustified || ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.7. Rechtfertigt der Nutzen der Studie die Risiken für die Versuchstiere?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.isRiskJustified || ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="3.1.8. Liegen entsprechende Rechtsgrundlagen/Dokumente vor?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.relevantLegalDocumentAvailable ||
-                                        ''}></dbp-form-enum-view>
-                                </div>
-                            `
-                        : ''
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="3.1.8. Liegen entsprechende Rechtsgrundlagen/Dokumente vor?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.relevantLegalDocumentAvailable ||
+                                          ''}></dbp-form-enum-view>
+                                  </div>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -995,90 +1194,94 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.nonEuCountries || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.nonEuCountriesQuestionsEnabled
-                        ? html`
-                                <div
-                                    class="question-group ${classMap({
-                                        'fade-in': this.nonEuCountriesQuestionsEnabled,
-                                    })}">
-                                    <h4 class="question-group-title">
-                                        4.1. Forschungsvorhaben außerhalb der EU bzw. in Drittstaaten
-                                    </h4>
+                    ${
+                        this.nonEuCountriesQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.nonEuCountriesQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          4.1. Forschungsvorhaben außerhalb der EU bzw. in
+                                          Drittstaaten
+                                      </h4>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="4.1.1. Berühren die in Drittstaaten ausgeführten Aktivitäten potentiell ethische Themen entweder aus EU-Sicht oder aus Sicht des Drittstaats?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.ethicalIssues || ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="4.1.1. Berühren die in Drittstaaten ausgeführten Aktivitäten potentiell ethische Themen entweder aus EU-Sicht oder aus Sicht des Drittstaats?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.ethicalIssues || ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.questionResearchFoundsQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        label="4.1.2. Ist die Nutzung von lokalen Ressourcen in Drittstaaten geplant?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.thirdCountriesLocalResources ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.questionResearchFoundsQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          label="4.1.2. Ist die Nutzung von lokalen Ressourcen in Drittstaaten geplant?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.thirdCountriesLocalResources ||
+                                          ''}></dbp-form-enum-view>
 
-                                    ${this.questionResearchFoundsQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-enum-view
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this.questionResearchFoundsQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                label="4.1.2.1.	Ergeben sich dadurch Fragestellungen in Zusammenhang mit der Verteilung von Forschungsmitteln?"
-                                                .items=${{
-                                                    yes: 'Ja',
-                                                    no: 'Nein',
-                                                }}
-                                                .value=${data.questionResearchFounds ||
-                                                ''}></dbp-form-enum-view>
-                                        `
-                                        : ''}
+                                      ${this.questionResearchFoundsQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-enum-view
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .questionResearchFoundsQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    label="4.1.2.1.	Ergeben sich dadurch Fragestellungen in Zusammenhang mit der Verteilung von Forschungsmitteln?"
+                                                    .items=${{
+                                                        yes: 'Ja',
+                                                        no: 'Nein',
+                                                    }}
+                                                    .value=${data.questionResearchFounds ||
+                                                    ''}></dbp-form-enum-view>
+                                            `
+                                          : ''}
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="4.1.3. Ist der Import von Material (außer Daten) aus Drittstaaten in die EU oder in andere Drittstaaten geplant? "
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.importMaterialFromThirdCountries ||
-                                        ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="4.1.3. Ist der Import von Material (außer Daten) aus Drittstaaten in die EU oder in andere Drittstaaten geplant? "
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.importMaterialFromThirdCountries ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="4.1.4. Beinhaltet das Forschungsvorhaben Staaten mit niedrigerem und/oder unterem mittlerem Einkommen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.lowIncomeCountries || ''}></dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="4.1.4. Beinhaltet das Forschungsvorhaben Staaten mit niedrigerem und/oder unterem mittlerem Einkommen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.lowIncomeCountries ||
+                                          ''}></dbp-form-enum-view>
 
-                                    <dbp-form-enum-view
-                                        subscribe="lang"
-                                        label="4.1.5. Könnte die Teilnahme am Forschungsvorhaben die Beteiligten aufgrund der Situation in dem entsprechenden Drittstaat bzw. in dem Land außerhalb der EU einem Risiko aussetzen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.exposeParticipantsToRisk ||
-                                        ''}></dbp-form-enum-view>
-                                </div>
-                            `
-                        : ''
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="4.1.5. Könnte die Teilnahme am Forschungsvorhaben die Beteiligten aufgrund der Situation in dem entsprechenden Drittstaat bzw. in dem Land außerhalb der EU einem Risiko aussetzen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.exposeParticipantsToRisk ||
+                                          ''}></dbp-form-enum-view>
+                                  </div>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -1121,21 +1324,23 @@ class FormalizeFormElement extends BaseFormElement {
                             .value=${data.harmfulSubstancesOnSubjects || ''}>
                         </dbp-form-enum-view>
 
-                        ${this.harmfulSubstancesOnSubjects
-                            ? html`
-                                    <dbp-form-enum-view
-                                        class="${classMap({
-                                            'fade-in': this.harmfulSubstancesOnSubjects,
-                                        })}"
-                                        subscribe="lang"
-                                        label="5.3.1. Wurden adäquate Sicherheitsmaßnahmen zur Reduktion des Risikos für Proband*innen und Forscher*innen getroffen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.adequateSafetyMeasures || ''}></dbp-form-enum-view>
-                                `
-                            : ''
+                        ${
+                            this.harmfulSubstancesOnSubjects
+                                ? html`
+                                      <dbp-form-enum-view
+                                          class="${classMap({
+                                              'fade-in': this.harmfulSubstancesOnSubjects,
+                                          })}"
+                                          subscribe="lang"
+                                          label="5.3.1. Wurden adäquate Sicherheitsmaßnahmen zur Reduktion des Risikos für Proband*innen und Forscher*innen getroffen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.adequateSafetyMeasures ||
+                                          ''}></dbp-form-enum-view>
+                                  `
+                                : ''
                         }
 
                         <dbp-form-enum-view
@@ -1221,17 +1426,19 @@ class FormalizeFormElement extends BaseFormElement {
                             .value=${data.hasEthicalIssues || ''}>
                         </dbp-form-enum-view>
 
-                        ${this.ethicalIssuesListQuestion
-                            ? html`
-                                <dbp-form-string-view
-                                    class="${classMap({
-                                        'fade-in': this.ethicalIssuesListQuestion,
-                                    })}"
-                                    subscribe="lang"
-                                    label="Welche"
-                                    value=${data.ethicalIssuesList || ''}></dbp-form-string-view>
-                                `
-                            : ''
+                        ${
+                            this.ethicalIssuesListQuestion
+                                ? html`
+                                      <dbp-form-string-view
+                                          class="${classMap({
+                                              'fade-in': this.ethicalIssuesListQuestion,
+                                          })}"
+                                          subscribe="lang"
+                                          label="Welche"
+                                          value=${data.ethicalIssuesList ||
+                                          ''}></dbp-form-string-view>
+                                  `
+                                : ''
                         }
 
                         <dbp-form-string-view
@@ -1261,17 +1468,19 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasConflictOfInterest || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.hasConflictOfInterestSubQuestion
-                        ? html`
-                            <dbp-form-string-view
-                                class="${classMap({
-                                    'fade-in': this.hasConflictOfInterestSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                label="Welche"
-                                value=${data.conflictOfInterestList || ''}></dbp-form-string-view>
-                        `
-                        : ''
+                    ${
+                        this.hasConflictOfInterestSubQuestion
+                            ? html`
+                                  <dbp-form-string-view
+                                      class="${classMap({
+                                          'fade-in': this.hasConflictOfInterestSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      label="Welche"
+                                      value=${data.conflictOfInterestList ||
+                                      ''}></dbp-form-string-view>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-view
@@ -1290,33 +1499,35 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasConfidentalPart || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.hasConfidentialPartSubQuestion
-                        ? html`
-                            <dbp-form-string-view
-                                class="${classMap({
-                                    'fade-in': this.hasConfidentialPartSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                label="7.2.1. Von welcher Art ist diese Sperrung?"
-                                value=${data.natureOfBlocking || ''}></dbp-form-string-view>
+                    ${
+                        this.hasConfidentialPartSubQuestion
+                            ? html`
+                                  <dbp-form-string-view
+                                      class="${classMap({
+                                          'fade-in': this.hasConfidentialPartSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      label="7.2.1. Von welcher Art ist diese Sperrung?"
+                                      value=${data.natureOfBlocking || ''}></dbp-form-string-view>
 
-                            <dbp-form-string-view
-                                class="${classMap({
-                                    'fade-in': this.hasConfidentialPartSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                label="7.2.2. Welche Begründung gibt es für die Sperrung?"
-                                value=${data.reasonOfBlocking || ''}></dbp-form-string-view>
+                                  <dbp-form-string-view
+                                      class="${classMap({
+                                          'fade-in': this.hasConfidentialPartSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      label="7.2.2. Welche Begründung gibt es für die Sperrung?"
+                                      value=${data.reasonOfBlocking || ''}></dbp-form-string-view>
 
-                            <dbp-form-string-view
-                                class="${classMap({
-                                    'fade-in': this.hasConfidentialPartSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                label="7.2.3. Welche Konsequenzen sind für die Forschenden durch eine Sperrung zu erwarten (insbesondere in Bezug auf Qualifikationsarbeiten)?"
-                                value=${data.consequencesOfBlocking || ''}></dbp-form-string-view>
-                        `
-                        : ''
+                                  <dbp-form-string-view
+                                      class="${classMap({
+                                          'fade-in': this.hasConfidentialPartSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      label="7.2.3. Welche Konsequenzen sind für die Forschenden durch eine Sperrung zu erwarten (insbesondere in Bezug auf Qualifikationsarbeiten)?"
+                                      value=${data.consequencesOfBlocking ||
+                                      ''}></dbp-form-string-view>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-view
@@ -1335,17 +1546,19 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasConflictInContentControl || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.hasConflictInContentControlSubQuestion
-                        ? html`
-                            <dbp-form-string-view
-                                class="${classMap({
-                                    'fade-in': this.hasConflictInContentControlSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                label="Welche"
-                                value=${data.conflictInContentControlList || ''}></dbp-form-string-view>
-                            `
-                        : ''
+                    ${
+                        this.hasConflictInContentControlSubQuestion
+                            ? html`
+                                  <dbp-form-string-view
+                                      class="${classMap({
+                                          'fade-in': this.hasConflictInContentControlSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      label="Welche"
+                                      value=${data.conflictInContentControlList ||
+                                      ''}></dbp-form-string-view>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-view
@@ -1364,22 +1577,24 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.stakeholderParticipationPlanned || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.stakeholderParticipationPlannedSubQuestion
-                        ? html`
-                                <dbp-form-enum-view
-                                    class="${classMap({
-                                        'fade-in': this.stakeholderParticipationPlannedSubQuestion,
-                                    })}"
-                                    subscribe="lang"
-                                    label="7.4.1. Ist eine angemessene Anerkennung von deren Aufwand vorgesehen?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.hasProvisionForAppropriateRecognition ||
-                                    ''}></dbp-form-enum-view>
-                            `
-                        : ''
+                    ${
+                        this.stakeholderParticipationPlannedSubQuestion
+                            ? html`
+                                  <dbp-form-enum-view
+                                      class="${classMap({
+                                          'fade-in':
+                                              this.stakeholderParticipationPlannedSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      label="7.4.1. Ist eine angemessene Anerkennung von deren Aufwand vorgesehen?"
+                                      .items=${{
+                                          yes: 'Ja',
+                                          no: 'Nein',
+                                      }}
+                                      .value=${data.hasProvisionForAppropriateRecognition ||
+                                      ''}></dbp-form-enum-view>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -1441,15 +1656,16 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasAnyRisks || ''}>
                     </dbp-form-enum-view>
 
-                    ${this.riskSubQuestion
-                        ? html`
-                                <dbp-form-string-view
-                                    class="${classMap({'fade-in': this.riskSubQuestion})}"
-                                    subscribe="lang"
-                                    label="Begründung"
-                                    value=${data.risksReasons || ''}></dbp-form-string-view>
-                            `
-                        : ''
+                    ${
+                        this.riskSubQuestion
+                            ? html`
+                                  <dbp-form-string-view
+                                      class="${classMap({'fade-in': this.riskSubQuestion})}"
+                                      subscribe="lang"
+                                      label="Begründung"
+                                      value=${data.risksReasons || ''}></dbp-form-string-view>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -1517,7 +1733,6 @@ class FormalizeFormElement extends BaseFormElement {
                 ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.submitted)}
-            ${this.renderErrorMessage(this.submissionError)}
         `;
     }
 
@@ -1541,7 +1756,7 @@ class FormalizeFormElement extends BaseFormElement {
                         label="Typ"
                         display-mode="list"
                         .items=${{
-                            studie: i18n.t('render-form.forms.ethics-commission-form.studie'),
+                            study: i18n.t('render-form.forms.ethics-commission-form.study'),
                             publication: i18n.t(
                                 'render-form.forms.ethics-commission-form.publication',
                             ),
@@ -1618,9 +1833,13 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t('render-form.forms.ethics-commission-form.qualification-work-label')}"
                         .items=${{
                             no: i18n.t('render-form.forms.ethics-commission-form.no-label'),
-                            bachelor: i18n.t('render-form.forms.ethics-commission-form.bachelor-label'),
+                            bachelor: i18n.t(
+                                'render-form.forms.ethics-commission-form.bachelor-label',
+                            ),
                             master: i18n.t('render-form.forms.ethics-commission-form.master-label'),
-                            doctorat: i18n.t('render-form.forms.ethics-commission-form.doctorat-label'),
+                            doctorat: i18n.t(
+                                'render-form.forms.ethics-commission-form.doctorat-label',
+                            ),
                             'no-publication': i18n.t(
                                 'render-form.forms.ethics-commission-form.no-publikation-label',
                             ),
@@ -1859,182 +2078,186 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.testSubjects || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.humanTestSubjectsQuestionsEnabled
-                        ? html`
-                            <div class="question-group ${classMap({
-                                    'fade-in': this.humanTestSubjectsQuestionsEnabled,
-                                })}">
-                                <h4 class="question-group-title">
-                                    1.1. Menschen als Proband*innen im Forschungsvorhaben
-                                </h4>
+                    ${
+                        this.humanTestSubjectsQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.humanTestSubjectsQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          1.1. Menschen als Proband*innen im Forschungsvorhaben
+                                      </h4>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsVoluntary"
-                                    display-mode="list"
-                                    required
-                                    label="1.1.1. Nehmen die Proband*innen freiwillig an der Studie teil?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsVoluntary || ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsVoluntary"
+                                          display-mode="list"
+                                          required
+                                          label="1.1.1. Nehmen die Proband*innen freiwillig an der Studie teil?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsVoluntary ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsInformedConsent"
-                                    display-mode="list"
-                                    required
-                                    label="1.1.2. Wurden die Proband*innen über die an ihnen durchgeführte Studie im Vorfeld umfassend, in einfacher und verständlicher Sprache informiert (informed consent)?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsInformedConsent ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsInformedConsent"
+                                          display-mode="list"
+                                          required
+                                          label="1.1.2. Wurden die Proband*innen über die an ihnen durchgeführte Studie im Vorfeld umfassend, in einfacher und verständlicher Sprache informiert (informed consent)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsInformedConsent ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsConsentSigned"
-                                    display-mode="list"
-                                    required
-                                    label="1.1.3. Wird sichergestellt, dass die Teilnahme ausschließlich nach Unterfertigung der informierten Einwilligung durch die Proband*innen und/oder ihrer gesetzlichen Vertreter*innen erfolgt?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsConsentSigned ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsConsentSigned"
+                                          display-mode="list"
+                                          required
+                                          label="1.1.3. Wird sichergestellt, dass die Teilnahme ausschließlich nach Unterfertigung der informierten Einwilligung durch die Proband*innen und/oder ihrer gesetzlichen Vertreter*innen erfolgt?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsConsentSigned ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsWithdrawPossible"
-                                    display-mode="list"
-                                    required
-                                    label="1.1.4. Besteht die Möglichkeit, von der Teilnahme ohne persönliche negative Auswirkungen zurückzutreten?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsWithdrawPossible ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsWithdrawPossible"
+                                          display-mode="list"
+                                          required
+                                          label="1.1.4. Besteht die Möglichkeit, von der Teilnahme ohne persönliche negative Auswirkungen zurückzutreten?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsWithdrawPossible ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsDependent"
-                                    display-mode="list"
-                                    required
-                                    label="1.1.5. Nehmen Personen, die in studienrechtlicher und/oder arbeitsrechtlicher Abhängigkeit zur Studienleitung stehen (z.B.: Mitarbeitende des gleichen Instituts) als Proband*innen an der Studie teil?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsDependent ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsDependent"
+                                          display-mode="list"
+                                          required
+                                          label="1.1.5. Nehmen Personen, die in studienrechtlicher und/oder arbeitsrechtlicher Abhängigkeit zur Studienleitung stehen (z.B.: Mitarbeitende des gleichen Instituts) als Proband*innen an der Studie teil?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsDependent ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsVulnerable"
-                                    display-mode="list"
-                                    required
-                                    label="1.1.6. Sind andere potentiell vulnerable Personen involviert (Kinder, nicht einwilligungsfähige Personen, Opfer von Missbrauch oder Gewalt etc.)?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsVulnerable ||
-                                    ''}></dbp-form-enum-element>
-                            </div>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsVulnerable"
+                                          display-mode="list"
+                                          required
+                                          label="1.1.6. Sind andere potentiell vulnerable Personen involviert (Kinder, nicht einwilligungsfähige Personen, Opfer von Missbrauch oder Gewalt etc.)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsVulnerable ||
+                                          ''}></dbp-form-enum-element>
+                                  </div>
 
-                            <div class="question-group">
-                                <h4 class="question-group-title">
-                                    1.2. Physische oder psychische Eingriffe an Proband*innen
-                                </h4>
+                                  <div class="question-group">
+                                      <h4 class="question-group-title">
+                                          1.2. Physische oder psychische Eingriffe an Proband*innen
+                                      </h4>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="invasiveTechniquesUsed"
-                                    display-mode="list"
-                                    required
-                                    label="1.2.1. Werden invasive Techniken angewandt (z.B.: zur Sammlung von menschlichem Gewebe, Biopsien, Einwirkungen auf das Gehirn, etc.)?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.invasiveTechniquesUsed ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="invasiveTechniquesUsed"
+                                          display-mode="list"
+                                          required
+                                          label="1.2.1. Werden invasive Techniken angewandt (z.B.: zur Sammlung von menschlichem Gewebe, Biopsien, Einwirkungen auf das Gehirn, etc.)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.invasiveTechniquesUsed ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsTortured"
-                                    display-mode="list"
-                                    required
-                                    label="1.2.2. Führt die Teilnahme an der Studie bei den Proband*innen zu mindestens einer der folgenden Konsequenzen wie z.B. dem Erleben von Erniedrigung, Scham, Folter, Schmerzen, psychischem Druck, oder überdurchschnittlichem Stress?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsTortured ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsTortured"
+                                          display-mode="list"
+                                          required
+                                          label="1.2.2. Führt die Teilnahme an der Studie bei den Proband*innen zu mindestens einer der folgenden Konsequenzen wie z.B. dem Erleben von Erniedrigung, Scham, Folter, Schmerzen, psychischem Druck, oder überdurchschnittlichem Stress?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsTortured ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsHarmed"
-                                    display-mode="list"
-                                    required
-                                    label="1.2.3. Könnten Proband*innen zu Schaden kommen bzw. gibt es mögliche Risiken oder etwaige Folgeerscheinungen?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsHarmed ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsHarmed"
+                                          display-mode="list"
+                                          required
+                                          label="1.2.3. Könnten Proband*innen zu Schaden kommen bzw. gibt es mögliche Risiken oder etwaige Folgeerscheinungen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsHarmed ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsRiskMinimized"
-                                    display-mode="list"
-                                    required
-                                    label="1.2.4. Wurden alle Schritte unternommen, um die Risiken zu minimieren?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsRiskMinimized ||
-                                    ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsRiskMinimized"
+                                          display-mode="list"
+                                          required
+                                          label="1.2.4. Wurden alle Schritte unternommen, um die Risiken zu minimieren?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsRiskMinimized ||
+                                          ''}></dbp-form-enum-element>
 
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsRisksJustified"
-                                    display-mode="list"
-                                    required
-                                    label="1.2.5. Rechtfertigt der Nutzen der Studie die Risiken für die Proband*innen?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsRisksJustified ||
-                                    ''}></dbp-form-enum-element>
-                            </div>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsRisksJustified"
+                                          display-mode="list"
+                                          required
+                                          label="1.2.5. Rechtfertigt der Nutzen der Studie die Risiken für die Proband*innen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsRisksJustified ||
+                                          ''}></dbp-form-enum-element>
+                                  </div>
 
-                            <div class="question-group">
-                                <h4 class="question-group-title">
-                                    1.3. Zumutbarkeit des Forschungsvorhabens
-                                </h4>
-                                <dbp-form-enum-element
-                                    subscribe="lang"
-                                    name="testSubjectsReasonableToParticipate"
-                                    display-mode="list"
-                                    required
-                                    label="1.3.1 Ist den Proband*innen die Teilnahme an der Studie im Gesamten zumutbar?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.testSubjectsReasonableToParticipate ||
-                                    ''}></dbp-form-enum-element>
-                            </div>`
-                        : ''
+                                  <div class="question-group">
+                                      <h4 class="question-group-title">
+                                          1.3. Zumutbarkeit des Forschungsvorhabens
+                                      </h4>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="testSubjectsReasonableToParticipate"
+                                          display-mode="list"
+                                          required
+                                          label="1.3.1 Ist den Proband*innen die Teilnahme an der Studie im Gesamten zumutbar?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.testSubjectsReasonableToParticipate ||
+                                          ''}></dbp-form-enum-element>
+                                  </div>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-element
@@ -2099,165 +2322,168 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.humanStemCells || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.humanStemCellsQuestionsEnabled
-                        ? html`
-                                <div
-                                    class="question-group ${classMap({
-                                        'fade-in': this.humanStemCellsQuestionsEnabled,
-                                    })}">
-                                    <h4 class="question-group-title">
-                                        2.1. Art des Forschungsmaterials
-                                    </h4>
-                                    <!-- ITT TARTOK-->
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="humanTissueUsed"
-                                        display-mode="list"
-                                        required
-                                        label="2.1.1. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichem Gewebe?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.humanTissueUsed || ''}></dbp-form-enum-element>
+                    ${
+                        this.humanStemCellsQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.humanStemCellsQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          2.1. Art des Forschungsmaterials
+                                      </h4>
+                                      <!-- ITT TARTOK-->
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="humanTissueUsed"
+                                          display-mode="list"
+                                          required
+                                          label="2.1.1. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichem Gewebe?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.humanTissueUsed ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.stemCellFromEmbryosQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        name="humanStemCellsUsed"
-                                        display-mode="list"
-                                        required
-                                        label="2.1.2. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Stammzellen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.humanStemCellsUsed ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.stemCellFromEmbryosQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          name="humanStemCellsUsed"
+                                          display-mode="list"
+                                          required
+                                          label="2.1.2. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Stammzellen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.humanStemCellsUsed ||
+                                          ''}></dbp-form-enum-element>
 
-                                    ${this.stemCellFromEmbryosQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-enum-element
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this.stemCellFromEmbryosQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                name="stemCellsFromEmbryos"
-                                                display-mode="list"
-                                                required
-                                                label="2.1.2.1.	Werden die Stammzellen direkt aus Embryos gewonnen?"
-                                                .items=${{
-                                                    yes: 'Ja',
-                                                    no: 'Nein',
-                                                }}
-                                                .value=${data.stemCellsFromEmbryos ||
-                                                ''}></dbp-form-enum-element>
-                                        `
-                                        : ''}
+                                      ${this.stemCellFromEmbryosQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-enum-element
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .stemCellFromEmbryosQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    name="stemCellsFromEmbryos"
+                                                    display-mode="list"
+                                                    required
+                                                    label="2.1.2.1.	Werden die Stammzellen direkt aus Embryos gewonnen?"
+                                                    .items=${{
+                                                        yes: 'Ja',
+                                                        no: 'Nein',
+                                                    }}
+                                                    .value=${data.stemCellsFromEmbryos ||
+                                                    ''}></dbp-form-enum-element>
+                                            `
+                                          : ''}
 
-                                    <dbp-form-enum-element
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.stemCellFromHumanEmbryosQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        name="useOfHumanEmbryos"
-                                        display-mode="list"
-                                        required
-                                        label="2.1.3. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Embryos oder Föten?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.useOfHumanEmbryos ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.stemCellFromHumanEmbryosQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          name="useOfHumanEmbryos"
+                                          display-mode="list"
+                                          required
+                                          label="2.1.3. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Embryos oder Föten?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.useOfHumanEmbryos ||
+                                          ''}></dbp-form-enum-element>
 
-                                    ${this.stemCellFromHumanEmbryosQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-enum-element
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this
-                                                            .stemCellFromHumanEmbryosQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                name="stemCellsFromEmbryos"
-                                                display-mode="list"
-                                                required
-                                                label="2.1.2.1.	Werden die Stammzellen direkt aus Embryos gewonnen?"
-                                                .items=${{
-                                                    yes: 'Ja',
-                                                    no: 'Nein',
-                                                }}
-                                                .value=${data.stemCellsFromEmbryos ||
-                                                ''}></dbp-form-enum-element>
-                                        `
-                                        : ''}
-                                </div>
+                                      ${this.stemCellFromHumanEmbryosQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-enum-element
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .stemCellFromHumanEmbryosQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    name="stemCellsFromEmbryosDestroyed"
+                                                    display-mode="list"
+                                                    required
+                                                    label="2.1.3.1. Werden diese im Zuge der Forschung zerstört?"
+                                                    .items=${{
+                                                        yes: 'Ja',
+                                                        no: 'Nein',
+                                                    }}
+                                                    .value=${data.stemCellsFromEmbryosDestroyed ||
+                                                    ''}></dbp-form-enum-element>
+                                            `
+                                          : ''}
+                                  </div>
 
-                                <div class="question-group">
-                                    <h4 class="question-group-title">
-                                        2.2. Herkunft des Forschungsmaterials
-                                    </h4>
+                                  <div class="question-group">
+                                      <h4 class="question-group-title">
+                                          2.2. Herkunft des Forschungsmaterials
+                                      </h4>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="commerciallyAvailableCells"
-                                        display-mode="list"
-                                        required
-                                        label="2.2.1. Sind die im Forschungsvorhaben verwendeten Zellen (bzw. ist das menschliche Gewebe) kommerziell verfügbar?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.commerciallyAvailableCells ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="commerciallyAvailableCells"
+                                          display-mode="list"
+                                          required
+                                          label="2.2.1. Sind die im Forschungsvorhaben verwendeten Zellen (bzw. ist das menschliche Gewebe) kommerziell verfügbar?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.commerciallyAvailableCells ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.cellsObtainedInResearchQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        name="cellsObtainedInResearch"
-                                        display-mode="list"
-                                        required
-                                        label="2.2.2. Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.cellsObtainedInResearch ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.cellsObtainedInResearchQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          name="cellsObtainedInResearch"
+                                          display-mode="list"
+                                          required
+                                          label="2.2.2. Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.cellsObtainedInResearch ||
+                                          ''}></dbp-form-enum-element>
 
-                                    ${!this.cellsObtainedInResearchQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-string-element
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this
-                                                            .cellsObtainedInResearchQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                name="tissueOrCellsSource"
-                                                label="2.2.2.1.	Woher stammt das im Forschungsvorhaben verwendete Gewebe bzw. die Stammzellen?"
-                                                value=${data.tissueOrCellsSource || ''}
-                                                required></dbp-form-string-element>
-                                        `
-                                        : ''}
-                                </div>
-                            `
-                        : ''
+                                      ${!this.cellsObtainedInResearchQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-string-element
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .cellsObtainedInResearchQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    name="tissueOrCellsSource"
+                                                    label="2.2.2.1.	Woher stammt das im Forschungsvorhaben verwendete Gewebe bzw. die Stammzellen?"
+                                                    value=${data.tissueOrCellsSource || ''}
+                                                    required></dbp-form-string-element>
+                                            `
+                                          : ''}
+                                  </div>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -2267,7 +2493,8 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-element
                         @change="${(e) => {
                             if (e.detail.value) {
-                                this.animalQuestionsEnabled = e.detail.value === 'yes' ? true : false;
+                                this.animalQuestionsEnabled =
+                                    e.detail.value === 'yes' ? true : false;
                             }
                         }}"
                         subscribe="lang"
@@ -2282,120 +2509,123 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.animalsInvolved || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.animalQuestionsEnabled
-                        ? html`
-                                <div
-                                    class="question-group ${classMap({
-                                        'fade-in': this.animalQuestionsEnabled,
-                                    })}">
-                                    <h4 class="question-group-title">
-                                        3.1. Tiere im Forschungsvorhaben
-                                    </h4>
-                                    vertebrates
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="isAnimalVertebrate"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.1.	Handelt es sich dabei um Wirbeltiere?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.isAnimalVertebrate ||
-                                        ''}></dbp-form-enum-element>
+                    ${
+                        this.animalQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.animalQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          3.1. Tiere im Forschungsvorhaben
+                                      </h4>
+                                      vertebrates
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="isAnimalVertebrate"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.1.	Handelt es sich dabei um Wirbeltiere?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.isAnimalVertebrate ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="nonHumanPrimates"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.2.	Handelt es sich dabei um nicht-menschliche Primaten (Affen, Schimpansen, Gorillas etc.)?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.nonHumanPrimates || ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="nonHumanPrimates"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.2.	Handelt es sich dabei um nicht-menschliche Primaten (Affen, Schimpansen, Gorillas etc.)?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.nonHumanPrimates ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="geneticallyModifiedAnimals"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.3. Sind diese Tiere genetisch verändert?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.geneticallyModifiedAnimals ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="geneticallyModifiedAnimals"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.3. Sind diese Tiere genetisch verändert?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.geneticallyModifiedAnimals ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="endangeredSpecies"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.4. Gehören diese Tiere einer bedrohten Tierart an?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.endangeredSpecies ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="endangeredSpecies"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.4. Gehören diese Tiere einer bedrohten Tierart an?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.endangeredSpecies ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="alternativesToUseLaboratoryAnimals"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.5. Gibt es Alternativen zur Verwendung von Versuchstieren?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.alternativesToUseLaboratoryAnimals ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="alternativesToUseLaboratoryAnimals"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.5. Gibt es Alternativen zur Verwendung von Versuchstieren?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.alternativesToUseLaboratoryAnimals ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="laboratoryAnimalsHarmed"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.6. Könnten Versuchstiere im Zuge des Forschungsvorhabens zu Schaden kommen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.laboratoryAnimalsHarmed ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="laboratoryAnimalsHarmed"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.6. Könnten Versuchstiere im Zuge des Forschungsvorhabens zu Schaden kommen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.laboratoryAnimalsHarmed ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="isRiskJustified"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.7. Rechtfertigt der Nutzen der Studie die Risiken für die Versuchstiere?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.isRiskJustified || ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="isRiskJustified"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.7. Rechtfertigt der Nutzen der Studie die Risiken für die Versuchstiere?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.isRiskJustified ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="relevantLegalDocumentAvailable"
-                                        display-mode="list"
-                                        required
-                                        label="3.1.8. Liegen entsprechende Rechtsgrundlagen/Dokumente vor?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.relevantLegalDocumentAvailable ||
-                                        ''}></dbp-form-enum-element>
-                                </div>
-                            `
-                        : ''
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="relevantLegalDocumentAvailable"
+                                          display-mode="list"
+                                          required
+                                          label="3.1.8. Liegen entsprechende Rechtsgrundlagen/Dokumente vor?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.relevantLegalDocumentAvailable ||
+                                          ''}></dbp-form-enum-element>
+                                  </div>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -2420,109 +2650,113 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.nonEuCountries || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.nonEuCountriesQuestionsEnabled
-                        ? html`
-                                <div
-                                    class="question-group ${classMap({
-                                        'fade-in': this.nonEuCountriesQuestionsEnabled,
-                                    })}">
-                                    <h4 class="question-group-title">
-                                        4.1. Forschungsvorhaben außerhalb der EU bzw. in Drittstaaten
-                                    </h4>
+                    ${
+                        this.nonEuCountriesQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.nonEuCountriesQuestionsEnabled,
+                                      })}">
+                                      <h4 class="question-group-title">
+                                          4.1. Forschungsvorhaben außerhalb der EU bzw. in
+                                          Drittstaaten
+                                      </h4>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="ethicalIssues"
-                                        display-mode="list"
-                                        required
-                                        label="4.1.1. Berühren die in Drittstaaten ausgeführten Aktivitäten potentiell ethische Themen entweder aus EU-Sicht oder aus Sicht des Drittstaats?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.ethicalIssues || ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="ethicalIssues"
+                                          display-mode="list"
+                                          required
+                                          label="4.1.1. Berühren die in Drittstaaten ausgeführten Aktivitäten potentiell ethische Themen entweder aus EU-Sicht oder aus Sicht des Drittstaats?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.ethicalIssues ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        @change="${(e) => {
-                                            if (e.detail.value) {
-                                                this.questionResearchFoundsQuestionsEnabled =
-                                                    e.detail.value === 'yes' ? true : false;
-                                            }
-                                        }}"
-                                        subscribe="lang"
-                                        name="thirdCountriesLocalResources"
-                                        display-mode="list"
-                                        required
-                                        label="4.1.2. Ist die Nutzung von lokalen Ressourcen in Drittstaaten geplant?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.thirdCountriesLocalResources ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          @change="${(e) => {
+                                              if (e.detail.value) {
+                                                  this.questionResearchFoundsQuestionsEnabled =
+                                                      e.detail.value === 'yes' ? true : false;
+                                              }
+                                          }}"
+                                          subscribe="lang"
+                                          name="thirdCountriesLocalResources"
+                                          display-mode="list"
+                                          required
+                                          label="4.1.2. Ist die Nutzung von lokalen Ressourcen in Drittstaaten geplant?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.thirdCountriesLocalResources ||
+                                          ''}></dbp-form-enum-element>
 
-                                    ${this.questionResearchFoundsQuestionsEnabled
-                                        ? html`
-                                            <dbp-form-enum-element
-                                                class="${classMap({
-                                                    'fade-in':
-                                                        this.questionResearchFoundsQuestionsEnabled,
-                                                })}"
-                                                subscribe="lang"
-                                                name="questionResearchFounds"
-                                                display-mode="list"
-                                                required
-                                                label="4.1.2.1.	Ergeben sich dadurch Fragestellungen in Zusammenhang mit der Verteilung von Forschungsmitteln?"
-                                                .items=${{
-                                                    yes: 'Ja',
-                                                    no: 'Nein',
-                                                }}
-                                                .value=${data.questionResearchFounds ||
-                                                ''}></dbp-form-enum-element>
-                                        `
-                                        : ''}
+                                      ${this.questionResearchFoundsQuestionsEnabled
+                                          ? html`
+                                                <dbp-form-enum-element
+                                                    class="${classMap({
+                                                        'fade-in':
+                                                            this
+                                                                .questionResearchFoundsQuestionsEnabled,
+                                                    })}"
+                                                    subscribe="lang"
+                                                    name="questionResearchFounds"
+                                                    display-mode="list"
+                                                    required
+                                                    label="4.1.2.1.	Ergeben sich dadurch Fragestellungen in Zusammenhang mit der Verteilung von Forschungsmitteln?"
+                                                    .items=${{
+                                                        yes: 'Ja',
+                                                        no: 'Nein',
+                                                    }}
+                                                    .value=${data.questionResearchFounds ||
+                                                    ''}></dbp-form-enum-element>
+                                            `
+                                          : ''}
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="importMaterialFromThirdCountries"
-                                        display-mode="list"
-                                        required
-                                        label="4.1.3. Ist der Import von Material (außer Daten) aus Drittstaaten in die EU oder in andere Drittstaaten geplant? "
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.importMaterialFromThirdCountries ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="importMaterialFromThirdCountries"
+                                          display-mode="list"
+                                          required
+                                          label="4.1.3. Ist der Import von Material (außer Daten) aus Drittstaaten in die EU oder in andere Drittstaaten geplant? "
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.importMaterialFromThirdCountries ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="lowIncomeCountries"
-                                        display-mode="list"
-                                        required
-                                        label="4.1.4. Beinhaltet das Forschungsvorhaben Staaten mit niedrigerem und/oder unterem mittlerem Einkommen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.lowIncomeCountries ||
-                                        ''}></dbp-form-enum-element>
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="lowIncomeCountries"
+                                          display-mode="list"
+                                          required
+                                          label="4.1.4. Beinhaltet das Forschungsvorhaben Staaten mit niedrigerem und/oder unterem mittlerem Einkommen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.lowIncomeCountries ||
+                                          ''}></dbp-form-enum-element>
 
-                                    <dbp-form-enum-element
-                                        subscribe="lang"
-                                        name="exposeParticipantsToRisk"
-                                        display-mode="list"
-                                        required
-                                        label="4.1.5. Könnte die Teilnahme am Forschungsvorhaben die Beteiligten aufgrund der Situation in dem entsprechenden Drittstaat bzw. in dem Land außerhalb der EU einem Risiko aussetzen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.exposeParticipantsToRisk ||
-                                        ''}></dbp-form-enum-element>
-                                </div>
-                            `
-                        : ''
+                                      <dbp-form-enum-element
+                                          subscribe="lang"
+                                          name="exposeParticipantsToRisk"
+                                          display-mode="list"
+                                          required
+                                          label="4.1.5. Könnte die Teilnahme am Forschungsvorhaben die Beteiligten aufgrund der Situation in dem entsprechenden Drittstaat bzw. in dem Land außerhalb der EU einem Risiko aussetzen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.exposeParticipantsToRisk ||
+                                          ''}></dbp-form-enum-element>
+                                  </div>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -2574,25 +2808,26 @@ class FormalizeFormElement extends BaseFormElement {
                             .value=${data.harmfulSubstancesOnSubjects || ''}>
                         </dbp-form-enum-element>
 
-                        ${this.harmfulSubstancesOnSubjects
-                            ? html`
-                                    <dbp-form-enum-element
-                                        class="${classMap({
-                                            'fade-in': this.harmfulSubstancesOnSubjects,
-                                        })}"
-                                        subscribe="lang"
-                                        name="adequateSafetyMeasures"
-                                        display-mode="list"
-                                        required
-                                        label="5.3.1. Wurden adäquate Sicherheitsmaßnahmen zur Reduktion des Risikos für Proband*innen und Forscher*innen getroffen?"
-                                        .items=${{
-                                            yes: 'Ja',
-                                            no: 'Nein',
-                                        }}
-                                        .value=${data.adequateSafetyMeasures ||
-                                        ''}></dbp-form-enum-element>
-                                `
-                            : ''
+                        ${
+                            this.harmfulSubstancesOnSubjects
+                                ? html`
+                                      <dbp-form-enum-element
+                                          class="${classMap({
+                                              'fade-in': this.harmfulSubstancesOnSubjects,
+                                          })}"
+                                          subscribe="lang"
+                                          name="adequateSafetyMeasures"
+                                          display-mode="list"
+                                          required
+                                          label="5.3.1. Wurden adäquate Sicherheitsmaßnahmen zur Reduktion des Risikos für Proband*innen und Forscher*innen getroffen?"
+                                          .items=${{
+                                              yes: 'Ja',
+                                              no: 'Nein',
+                                          }}
+                                          .value=${data.adequateSafetyMeasures ||
+                                          ''}></dbp-form-enum-element>
+                                  `
+                                : ''
                         }
 
                         <dbp-form-enum-element
@@ -2700,21 +2935,22 @@ class FormalizeFormElement extends BaseFormElement {
                             .value=${data.hasEthicalIssues || ''}>
                         </dbp-form-enum-element>
 
-                        ${this.ethicalIssuesListQuestion
-                            ? html`
-                                    <dbp-form-string-element
-                                        class="${classMap({
-                                            'fade-in': this.ethicalIssuesListQuestion,
-                                        })}"
-                                        subscribe="lang"
-                                        name="ethicalIssuesList"
-                                        label="Welche"
-                                        placeholder="Liste der ethischen Fragen hier"
-                                        value=${data.ethicalIssuesList || ''}
-                                        rows="5"
-                                        required></dbp-form-string-element>
-                                `
-                            : ''
+                        ${
+                            this.ethicalIssuesListQuestion
+                                ? html`
+                                      <dbp-form-string-element
+                                          class="${classMap({
+                                              'fade-in': this.ethicalIssuesListQuestion,
+                                          })}"
+                                          subscribe="lang"
+                                          name="ethicalIssuesList"
+                                          label="Welche"
+                                          placeholder="Liste der ethischen Fragen hier"
+                                          value=${data.ethicalIssuesList || ''}
+                                          rows="5"
+                                          required></dbp-form-string-element>
+                                  `
+                                : ''
                         }
 
                         <dbp-form-string-element
@@ -2751,21 +2987,22 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasConflictOfInterest || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.hasConflictOfInterestSubQuestion
-                        ? html`
-                            <dbp-form-string-element
-                                class="${classMap({
-                                    'fade-in': this.hasConflictOfInterestSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                name="conflictOfInterestList"
-                                label="Welche"
-                                placeholder="Liste der Interessenskonflikten hier"
-                                value=${data.conflictOfInterestList || ''}
-                                rows="5"
-                                required></dbp-form-string-element>
-                        `
-                        : ''
+                    ${
+                        this.hasConflictOfInterestSubQuestion
+                            ? html`
+                                  <dbp-form-string-element
+                                      class="${classMap({
+                                          'fade-in': this.hasConflictOfInterestSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      name="conflictOfInterestList"
+                                      label="Welche"
+                                      placeholder="Liste der Interessenskonflikten hier"
+                                      value=${data.conflictOfInterestList || ''}
+                                      rows="5"
+                                      required></dbp-form-string-element>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-element
@@ -2787,45 +3024,46 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasConfidentalPart || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.hasConfidentialPartSubQuestion
-                        ? html`
-                            <dbp-form-string-element
-                                class="${classMap({
-                                    'fade-in': this.hasConfidentialPartSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                name="natureOfBlocking"
-                                label="7.2.1. Von welcher Art ist diese Sperrung?"
-                                placeholder=""
-                                value=${data.natureOfBlocking || ''}
-                                rows="3"
-                                required></dbp-form-string-element>
+                    ${
+                        this.hasConfidentialPartSubQuestion
+                            ? html`
+                                  <dbp-form-string-element
+                                      class="${classMap({
+                                          'fade-in': this.hasConfidentialPartSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      name="natureOfBlocking"
+                                      label="7.2.1. Von welcher Art ist diese Sperrung?"
+                                      placeholder=""
+                                      value=${data.natureOfBlocking || ''}
+                                      rows="3"
+                                      required></dbp-form-string-element>
 
-                            <dbp-form-string-element
-                                class="${classMap({
-                                    'fade-in': this.hasConfidentialPartSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                name="reasonOfBlocking"
-                                label="7.2.2. Welche Begründung gibt es für die Sperrung?"
-                                placeholder=""
-                                value=${data.reasonOfBlocking || ''}
-                                rows="3"
-                                required></dbp-form-string-element>
+                                  <dbp-form-string-element
+                                      class="${classMap({
+                                          'fade-in': this.hasConfidentialPartSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      name="reasonOfBlocking"
+                                      label="7.2.2. Welche Begründung gibt es für die Sperrung?"
+                                      placeholder=""
+                                      value=${data.reasonOfBlocking || ''}
+                                      rows="3"
+                                      required></dbp-form-string-element>
 
-                            <dbp-form-string-element
-                                class="${classMap({
-                                    'fade-in': this.hasConfidentialPartSubQuestion,
-                                })}"
-                                subscribe="lang"
-                                name="consequencesOfBlocking"
-                                label="7.2.3. Welche Konsequenzen sind für die Forschenden durch eine Sperrung zu erwarten (insbesondere in Bezug auf Qualifikationsarbeiten)?"
-                                placeholder=""
-                                value=${data.consequencesOfBlocking || ''}
-                                rows="3"
-                                required></dbp-form-string-element>
-                        `
-                        : ''
+                                  <dbp-form-string-element
+                                      class="${classMap({
+                                          'fade-in': this.hasConfidentialPartSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      name="consequencesOfBlocking"
+                                      label="7.2.3. Welche Konsequenzen sind für die Forschenden durch eine Sperrung zu erwarten (insbesondere in Bezug auf Qualifikationsarbeiten)?"
+                                      placeholder=""
+                                      value=${data.consequencesOfBlocking || ''}
+                                      rows="3"
+                                      required></dbp-form-string-element>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-element
@@ -2847,21 +3085,22 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasConflictInContentControl || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.hasConflictInContentControlSubQuestion
-                        ? html`
-                                <dbp-form-string-element
-                                    class="${classMap({
-                                        'fade-in': this.hasConflictInContentControlSubQuestion,
-                                    })}"
-                                    subscribe="lang"
-                                    name="conflictInContentControlList"
-                                    label="Welche"
-                                    placeholder="Liste der Interessenskonflikten hier"
-                                    value=${data.conflictInContentControlList || ''}
-                                    rows="5"
-                                    required></dbp-form-string-element>
-                            `
-                        : ''
+                    ${
+                        this.hasConflictInContentControlSubQuestion
+                            ? html`
+                                  <dbp-form-string-element
+                                      class="${classMap({
+                                          'fade-in': this.hasConflictInContentControlSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      name="conflictInContentControlList"
+                                      label="Welche"
+                                      placeholder="Liste der Interessenskonflikten hier"
+                                      value=${data.conflictInContentControlList || ''}
+                                      rows="5"
+                                      required></dbp-form-string-element>
+                              `
+                            : ''
                     }
 
                     <dbp-form-enum-element
@@ -2883,25 +3122,27 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.stakeholderParticipationPlanned || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.stakeholderParticipationPlannedSubQuestion
-                        ? html`
-                                <dbp-form-enum-element
-                                    class="${classMap({
-                                        'fade-in': this.stakeholderParticipationPlannedSubQuestion,
-                                    })}"
-                                    subscribe="lang"
-                                    name="hasProvisionForAppropriateRecognition"
-                                    display-mode="list"
-                                    required
-                                    label="7.4.1. Ist eine angemessene Anerkennung von deren Aufwand vorgesehen?"
-                                    .items=${{
-                                        yes: 'Ja',
-                                        no: 'Nein',
-                                    }}
-                                    .value=${data.hasProvisionForAppropriateRecognition ||
-                                    ''}></dbp-form-enum-element>
-                            `
-                        : ''
+                    ${
+                        this.stakeholderParticipationPlannedSubQuestion
+                            ? html`
+                                  <dbp-form-enum-element
+                                      class="${classMap({
+                                          'fade-in':
+                                              this.stakeholderParticipationPlannedSubQuestion,
+                                      })}"
+                                      subscribe="lang"
+                                      name="hasProvisionForAppropriateRecognition"
+                                      display-mode="list"
+                                      required
+                                      label="7.4.1. Ist eine angemessene Anerkennung von deren Aufwand vorgesehen?"
+                                      .items=${{
+                                          yes: 'Ja',
+                                          no: 'Nein',
+                                      }}
+                                      .value=${data.hasProvisionForAppropriateRecognition ||
+                                      ''}></dbp-form-enum-element>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -2978,17 +3219,18 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.hasAnyRisks || ''}>
                     </dbp-form-enum-element>
 
-                    ${this.riskSubQuestion
-                        ? html`
-                                <dbp-form-string-element
-                                    class="${classMap({'fade-in': this.riskSubQuestion})}"
-                                    subscribe="lang"
-                                    name="risksReasons"
-                                    label="Begründung"
-                                    required
-                                    value=${data.risksReasons || ''}></dbp-form-string-element>
-                            `
-                        : ''
+                    ${
+                        this.riskSubQuestion
+                            ? html`
+                                  <dbp-form-string-element
+                                      class="${classMap({'fade-in': this.riskSubQuestion})}"
+                                      subscribe="lang"
+                                      name="risksReasons"
+                                      label="Begründung"
+                                      required
+                                      value=${data.risksReasons || ''}></dbp-form-string-element>
+                              `
+                            : ''
                     }
                 </article>
 
@@ -3059,17 +3301,40 @@ class FormalizeFormElement extends BaseFormElement {
                     </div>
                 </article>
 
-                <!--
+
                 <div class="file-upload-container">
-                    <input type="file" name="attachments" multiple>
+                    <button @click="${this.openFilePicker}">Attache files</button>
+
+                    ${this.getAttachedFilesHtml()}
+
+                    <dbp-file-source
+                        id="file-source"
+                        class="file-source"
+                        allowed-mime-types="*/*"
+                        subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
+                        enabled-targets="local,nextcloud"></dbp-file-source>
                 </div>
-                -->
 
                 ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.submitted)}
-            ${this.renderErrorMessage(this.submissionError)}
         `;
+    }
+
+    sendDraft(event) {
+        this.draftButtonEnabled = false;
+        const formElement = this.shadowRoot.querySelector('form');
+        const data = {
+            formData: gatherFormDataFromElement(formElement),
+        };
+        console.log('sendDraft data', data);
+
+        const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
     }
 
     getButtonRowHtml() {
@@ -3077,27 +3342,40 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
             <div class="button-row">
                 <div class="left-buttons">
-                    <dbp-button class="form-delete-submission-button"
-                        type="is-danger" no-spinner-on-click>${i18n.t('render-form.forms.ethics-commission-form.delete-submittion-button-text')}</dbp-button>
+                    <dbp-button
+                        class="form-delete-submission-button"
+                        type="is-danger"
+                        no-spinner-on-click>
+                        ${i18n.t(
+                            'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                        )}
+                    </dbp-button>
                 </div>
                 <div class="right-buttons">
                     <dbp-button
                         class="form-print-pdf-button"
-                        type="is-secondary" no-spinner-on-click
+                        type="is-secondary"
+                        no-spinner-on-click
                         @click=${this.generatePDF}>
-                        <dbp-icon
-                            name="printer"
-                            aria-hidden="true"></dbp-icon>
+                        <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
                         ${i18n.t('render-form.forms.ethics-commission-form.print-pdf-button-text')}
                     </dbp-button>
                     <dbp-button
                         class="form-save-draft-button"
-                        type="is-success" no-spinner-on-click>${i18n.t('render-form.forms.ethics-commission-form.save-draft-button-text')}</dbp-button>
+                        type="is-success"
+                        no-spinner-on-click
+                        ?disabled=${this.isSavingDraft}
+                        @click=${this.sendDraft}>
+                        ${i18n.t('render-form.forms.ethics-commission-form.save-draft-button-text')}
+                    </dbp-button>
                     <dbp-button
-                        ?disabled=${!this.saveButtonEnabled}
+                        ?disabled=${this.isPostingSubmission}
                         class="form-submit-button"
-                        type="is-primary" no-spinner-on-click
-                        @click=${this.validateAndSendSubmission}>${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}</dbp-button>
+                        type="is-primary"
+                        no-spinner-on-click
+                        @click=${this.validateAndSendSubmission}>
+                        ${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}
+                    </dbp-button>
                 </div>
             </div>
         `;
@@ -3126,22 +3404,22 @@ class FormalizeFormElement extends BaseFormElement {
         return html``;
     }
 
-    renderErrorMessage(submissionError) {
-        const i18n = this._i18n;
+    // renderErrorMessage(submissionError) {
+    //     const i18n = this._i18n;
 
-        if (submissionError) {
-            return html`
-                <div class="container">
-                    <h2>${i18n.t('render-form.forms.ethics-commission-form.submission-error')}</h2>
-                    <p>
-                        ${i18n.t(
-                            'render-form.forms.ethics-commission-form.submission-error-notification',
-                        )}
-                    </p>
-                </div>
-            `;
-        }
+    //     if (submissionError) {
+    //         return html`
+    //             <div class="container">
+    //                 <h2>${i18n.t('render-form.forms.ethics-commission-form.submission-error')}</h2>
+    //                 <p>
+    //                     ${i18n.t(
+    //                         'render-form.forms.ethics-commission-form.submission-error-notification',
+    //                     )}
+    //                 </p>
+    //             </div>
+    //         `;
+    //     }
 
-        return html``;
-    }
+    //     return html``;
+    // }
 }
