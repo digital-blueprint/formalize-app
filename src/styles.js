@@ -228,8 +228,8 @@ export function getEthicsCommissionFormCSS() {
     return css`
         #ethics-commission-form {
             position: relative;
-            background-color: #ffb9b9;
         }
+
         .form-title {
             text-align: center;
             font-size: 2em;
