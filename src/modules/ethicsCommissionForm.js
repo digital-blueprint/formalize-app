@@ -424,39 +424,7 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     render() {
-        const i18n = this._i18n;
-
         return html`
-            <button
-                id="toggle-edit-mode"
-                class="toggle-edit-mode button is-secondary"
-                @click="${() => {
-                    this.editMode = !this.editMode;
-
-                    const form = this._('#ethics-commission-form');
-                    const data = gatherFormDataFromElement(form);
-
-                    console.log('gatherFormDataFromElement', data);
-
-                    if (Object.keys(data).length) {
-                        this.formData = data;
-                    }
-                }}">
-                ${this.editMode
-                    ? html`
-                          <dbp-icon name="eye"></dbp-icon>
-                          <span>
-                              ${i18n.t('render-form.forms.ethics-commission-form.view-mode')}
-                          </span>
-                      `
-                    : html`
-                          <dbp-icon name="pencil"></dbp-icon>
-                          <span>
-                              ${i18n.t('render-form.forms.ethics-commission-form.edit-mode')}
-                          </span>
-                      `}
-            </button>
-
             ${this.editMode
                 ? html`
                       ${this.renderFormElements()}
@@ -476,6 +444,8 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
+
+                ${this.getButtonRowHtml()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -1723,14 +1693,6 @@ class FormalizeFormElement extends BaseFormElement {
                         <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
                     </div>
                 </article>
-
-                <!--
-                <div class="file-upload-container">
-                    <input type="file" name="attachments" multiple>
-                </div>
-                -->
-
-                ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.submitted)}
         `;
@@ -1746,6 +1708,8 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
+
+                ${this.getButtonRowHtml()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -3342,6 +3306,39 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
             <div class="button-row">
                 <div class="left-buttons">
+                    <button
+                        id="toggle-edit-mode"
+                        class="toggle-edit-mode button is-secondary"
+                        @click="${() => {
+                            this.editMode = !this.editMode;
+
+                            const form = this._('#ethics-commission-form');
+                            const data = gatherFormDataFromElement(form);
+
+                            console.log('gatherFormDataFromElement', data);
+
+                            if (Object.keys(data).length) {
+                                this.formData = data;
+                            }
+                        }}">
+                        ${this.editMode
+                            ? html`
+                                  <dbp-icon name="eye"></dbp-icon>
+                                  <span>
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.view-mode',
+                                      )}
+                                  </span>
+                              `
+                            : html`
+                                  <dbp-icon name="pencil"></dbp-icon>
+                                  <span>
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.edit-mode',
+                                      )}
+                                  </span>
+                              `}
+                    </button>
                     <dbp-button
                         class="form-delete-submission-button"
                         type="is-danger"

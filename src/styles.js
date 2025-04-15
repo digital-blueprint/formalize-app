@@ -226,6 +226,10 @@ export function getSelectorFixCSS() {
 export function getEthicsCommissionFormCSS() {
     // language=css
     return css`
+        #ethics-commission-form {
+            position: relative;
+            background-color: #ffb9b9;
+        }
         .form-title {
             text-align: center;
             font-size: 2em;
@@ -274,10 +278,13 @@ export function getEthicsCommissionFormCSS() {
         .button-row {
             display: flex;
             justify-content: space-between;
-            position: fixed;
-            bottom: 5em;
-            right: 5em;
-            width: 500px;
+
+            position: sticky;
+            top: 0;
+            z-index: 9;
+
+            right: 0;
+            left: 0;
             background: var(--dbp-background);
             padding: 1em;
             border: 1px solid black;
