@@ -2,11 +2,11 @@
     "error-login-message": "You need to be logged in to use this function!",
     "error-permission-message": "You do not have the permissions to use this function!",
     "errors": {
-        "notfound-body": "Requested ressource not found.",
+        "notfound-body": "Requested resource not found.",
         "notfound-title": "Ressource not found",
-        "other-body": "There was an error accessing requested ressource.",
+        "other-body": "There was an error accessing requested resource.",
         "other-title": "Error",
-        "unauthorized-body": "No authorization to access requested ressource.",
+        "unauthorized-body": "No authorization to access requested resource.",
         "unauthorized-title": "Unauthorized",
         "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
         "unprocessable_entity-title": "Registration data invalid"
@@ -110,7 +110,7 @@
         "reset-filter": "Reset all",
         "save-columns": "Save",
         "search-button": "Search",
-        "search-in": "Search in colums",
+        "search-in": "Search in columns",
         "search-in-column": "Select column",
         "search-operator": "Searchoperator",
         "search-operator-ends": "ends with",
