@@ -1,22 +1,86 @@
 {
     "error-login-message": "You need to be logged in to use this function!",
     "error-permission-message": "You do not have the permissions to use this function!",
-    "loading-message": "Loading...",
     "errors": {
-        "unauthorized-title": "Unauthorized",
-        "unauthorized-body": "No authorization to access requested ressource.",
-        "notfound-title": "Ressource not found",
-        "notfound-body": "Requested ressource not found.",
-        "unprocessable_entity-title": "Registration data invalid",
-        "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
-        "other-title": "Error",
-        "other-body": "There was an error accessing requested ressource.",
-        "language": "You must choose a language.",
+        "agreement": "You must agree or disagree.",
         "date": "You must choose a date.",
-        "agreement": "You must agree or disagree."
+        "language": "You must choose a language.",
+        "notfound-body": "Requested ressource not found.",
+        "notfound-title": "Ressource not found",
+        "other-body": "There was an error accessing requested ressource.",
+        "other-title": "Error",
+        "unauthorized-body": "No authorization to access requested ressource.",
+        "unauthorized-title": "Unauthorized",
+        "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
+        "unprocessable_entity-title": "Registration data invalid"
+    },
+    "loading-message": "Loading...",
+    "render-form": {
+        "button-row": {
+            "reset": "Reset",
+            "submit": "Submit"
+        },
+        "course-select": {
+            "login-required": "Login required",
+            "placeholder": "Please select a course"
+        },
+        "form-not-accessible": "This form is not available for you!",
+        "forms": {
+            "accessible-exams-form": {
+                "additional-examiner": "Additional examiner",
+                "begin-time": "Begin time of exam",
+                "comment": "Comment",
+                "course-name": "Subject",
+                "date": "Date of exam",
+                "date-validation-error": "Please choose a date that is at least two weeks ahead.",
+                "different-term": "Different teaching term of the subject",
+                "email": "Email address",
+                "end-time": "End time of exam",
+                "exam-data": "Exam data",
+                "exam-date": "Please note that the exam date must be at least 14 days in the future.",
+                "examiner": "Examiner",
+                "family-name": "Family name",
+                "given-name": "Given name",
+                "group": "Exact group allocation will follow",
+                "mandatory-fields": "Please fill in all mandatory fields.",
+                "matriculation-number": "Matriculation number",
+                "online": "This is an online exam",
+                "personal-data": "Personal data (prefilled)",
+                "room": "Original room",
+                "submission-error": "Sorry, something went wrong.",
+                "submission-error-notification": "Your data could not be submitted. Please try again later.",
+                "submission-result-notification": "You have registered for an accessible exam date. You will receive a confirmation by e-mail.",
+                "submission-result-thanks": "Thank you for your registration!",
+                "time-validation-error": "Please choose an end time that is past the begin time of the exam.",
+                "title": "Register for an accessible exam date"
+            },
+            "ethics-commission-form": {
+                "advanced-material-sciences": "Advanced Material Sciences",
+                "applicant-label": "Antragsteller*in",
+                "applicant-placeholder": "Vor- und Nachname",
+                "co-applicants-description": "Weitere Forschende/Institutionen, die an Ihrer Studie mitwirken (intern/extern)",
+                "co-applicants-label": "Co-Antragssteller*innen an der Studie",
+                "co-applicants-placeholder": "Bitte geben Sie jeweils Vor- und Nachnamen der an der Studie mitwirkenden Forschenden samt der jeweiligen Zugehörigkeit und deren Rolle im Projekt an.",
+                "contact-details-label": "Kontaktdaten",
+                "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
+                "fields-of-expertise-label": "Welchem/n Field/s of Expertise ist das Forschungsvorhaben zuzuordnen? ",
+                "human-and-biotechnology": "Human & Biotechnology",
+                "information-communication-computing": "Information, Communication & Computing",
+                "keinem": "Keinem",
+                "mobility-production": "Mobility & Production",
+                "publication": "Publikation",
+                "studie": "Studie",
+                "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
+                "sustainable-systems": "Sustainable Systems",
+                "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens"
+            }
+        },
+        "room-select": {
+            "login-required": "Login required",
+            "placeholder": "Please select a room"
+        }
     },
     "show-registrations": {
-        "table-config-button-text": "Table configuration",
         "abort": "Cancel",
         "all-columns": "All columns",
         "apply-col-settings": "Apply filter options",
@@ -30,19 +94,21 @@
         "detailed-submission-dialog-title": "Detailed view",
         "filter-options-button-text": "Filter Options",
         "firstname": "Firstname",
-        "lastname": "Lastname",
         "header-settings": "Column setting",
-        "previous-entry-btn-title": "Previous entry",
+        "id": "ID",
+        "lastname": "Lastname",
         "load-courses-no-permission-body": "You do not have the permissions to use this function!",
         "load-courses-no-permission-title": "No permissions",
         "modal-close": "Close dialog",
         "more-menu": "More",
         "move-down": "Move column down",
         "move-up": "Move column up",
+        "name": "Name",
         "next-entry-btn-title": "Next entry",
         "no-data": "No data available",
-        "open-forms": "Show form submissions",
         "open-detailed-view-modal": "Open detailed view modal",
+        "open-forms": "Show form submissions",
+        "previous-entry-btn-title": "Previous entry",
         "reset-filter": "Reset all",
         "save-columns": "Save",
         "search-button": "Search",
@@ -63,72 +129,6 @@
         "searchbar-placeholder": "Search",
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!",
-        "id": "ID",
-        "name": "Name"
-    },
-    "render-form": {
-        "form-not-accessible": "This form is not available for you!",
-        "forms": {
-            "accessible-exams-form": {
-                "title": "Register for an accessible exam date",
-                "mandatory-fields": "Please fill in all mandatory fields.",
-                "exam-date": "Please note that the exam date must be at least 14 days in the future.",
-                "exam-data": "Exam data",
-                "personal-data": "Personal data (prefilled)",
-                "course-name": "Subject",
-                "different-term": "Different teaching term of the subject",
-                "date": "Date of exam",
-                "date-validation-error": "Please choose a date that is at least two weeks ahead.",
-                "begin-time": "Begin time of exam",
-                "end-time": "End time of exam",
-                "time-validation-error": "Please choose an end time that is past the begin time of the exam.",
-                "matriculation-number": "Matriculation number",
-                "given-name": "Given name",
-                "family-name": "Family name",
-                "email": "Email address",
-                "room": "Original room",
-                "examiner": "Examiner",
-                "additional-examiner": "Additional examiner",
-                "comment": "Comment",
-                "group": "Exact group allocation will follow",
-                "online": "This is an online exam",
-                "submission-result-thanks": "Thank you for your registration!",
-                "submission-result-notification": "You have registered for an accessible exam date. You will receive a confirmation by e-mail.",
-                "submission-error": "Sorry, something went wrong.",
-                "submission-error-notification": "Your data could not be submitted. Please try again later."
-            },
-            "ethics-commission-form": {
-                "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
-                "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
-                "applicant-label": "Antragsteller*in",
-                "applicant-placeholder": "Vor- und Nachname",
-                "studie": "Studie",
-                "publication": "Publikation",
-                "contact-details-label": "Kontaktdaten",
-                "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
-                "co-applicants-label": "Co-Antragssteller*innen an der Studie",
-                "co-applicants-placeholder": "Bitte geben Sie jeweils Vor- und Nachnamen der an der Studie mitwirkenden Forschenden samt der jeweiligen Zugehörigkeit und deren Rolle im Projekt an.",
-                "co-applicants-description": "Weitere Forschende/Institutionen, die an Ihrer Studie mitwirken (intern/extern)",
-                "fields-of-expertise-label": "Welchem/n Field/s of Expertise ist das Forschungsvorhaben zuzuordnen? ",
-                "advanced-material-sciences": "Advanced Material Sciences",
-                "human-and-biotechnology": "Human & Biotechnology",
-                "information-communication-computing": "Information, Communication & Computing",
-                "mobility-production": "Mobility & Production",
-                "sustainable-systems": "Sustainable Systems",
-                "keinem": "Keinem"
-            }
-        },
-        "course-select": {
-            "login-required": "Login required",
-            "placeholder": "Please select a course"
-        },
-        "room-select": {
-            "login-required": "Login required",
-            "placeholder": "Please select a room"
-        },
-        "button-row": {
-            "submit": "Submit",
-            "reset": "Reset"
-        }
+        "table-config-button-text": "Table configuration"
     }
 }
