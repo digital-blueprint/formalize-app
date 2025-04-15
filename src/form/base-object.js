@@ -4,6 +4,7 @@ import {css, html} from 'lit';
 import {createInstance} from '../i18n.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {classMap} from 'lit/directives/class-map.js';
+import {getElementWebComponents} from '@dbp-toolkit/form-elements/src/utils.js';
 import {getSelectorFixCSS} from '../styles.js';
 import {
     gatherFormDataFromElement,
@@ -44,10 +45,27 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const validationResult = await validateRequiredFields(formElement);
         console.log('validateAndSendSubmission validationResult', validationResult);
         if (!validationResult) {
+            this.scrollToFirstInvalidField(formElement);
             return;
         }
 
         this.sendSubmission(event);
+    }
+
+    /**
+     * Scroll to the first invalid field in the form
+     * @param {HTMLFormElement} formElement
+     */
+    scrollToFirstInvalidField(formElement) {
+        const elementWebComponents = getElementWebComponents(formElement);
+        for (const element of elementWebComponents) {
+            const invalidElement = element.shadowRoot.querySelector('.validation-errors');
+            if (invalidElement) {
+                invalidElement.style.scrollMarginTop = '40px';
+                invalidElement.scrollIntoView({behavior: 'smooth'});
+                break;
+            }
+        }
     }
 
     sendSubmission(event) {
