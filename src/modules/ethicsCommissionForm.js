@@ -1702,7 +1702,21 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         console.log('-- Render FormalizeFormElement --');
 
-        console.log('this.formData', this.formData);
+        // Load data from previous submission
+        if (Object.keys(this.data).length > 0) {
+            try {
+                this.formData = JSON.parse(this.data);
+            } catch (e) {
+                console.error('Error parsing form data', e);
+                send({
+                    summary: 'Error',
+                    body: `Failed to load form data.`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            }
+        }
+
         const data = this.formData || {};
 
         return html`
