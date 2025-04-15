@@ -61,8 +61,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         for (const element of elementWebComponents) {
             const invalidElement = element.shadowRoot.querySelector('.validation-errors');
             if (invalidElement) {
-                invalidElement.style.scrollMarginTop = '40px';
-                invalidElement.scrollIntoView({behavior: 'smooth'});
+                const invalidFieldLabel = invalidElement.closest('fieldset').querySelector('label');
+                invalidFieldLabel.style.scrollMarginTop = '70px';
+                invalidFieldLabel.scrollIntoView({behavior: 'smooth'});
                 break;
             }
         }
