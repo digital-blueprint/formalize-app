@@ -60,9 +60,9 @@
                 "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
                 "data-protection-date-label": "Datum der finalen Prüfung",
                 "date-of-transmission-label": "Datum der Übermittlung",
-                "delete-submittion-button-text": "",
+                "delete-submittion-button-text": "Einreichung löschen",
                 "doctorat-label": "ja, Doktorat",
-                "edit-mode": "",
+                "edit-mode": "Edit mode",
                 "fields-of-expertise-label": "Welchem/n Field/s of Expertise ist das Forschungsvorhaben zuzuordnen? ",
                 "human-and-biotechnology": "Human & Biotechnology",
                 "information-communication-computing": "Information, Communication & Computing",
@@ -74,19 +74,19 @@
                 "no-label": "nein",
                 "no-publikation-label": "nein, keine Publikation geplant",
                 "one-publikation-label": "ja, eine Publikation von Ergebnissen aus der/den Abschlussarbeit/en ist geplant",
-                "print-pdf-button-text": "",
+                "print-pdf-button-text": "PDF drucken",
                 "publication": "Publikation",
                 "qualification-work-label": "Werden im Rahmen des Forschungsvorhabens auch Abschluss- oder Qualifizierungsarbeiten durchgeführt?\nWenn ja, welche Arbeiten?\nIst im Rahmen der Betreuung auch die Publikation von Ergebnissen geplant?",
-                "save-draft-button-text": "",
+                "save-draft-button-text": "Entwurf speichern",
                 "specification-office-label": "Angabe durch Geschäftsstelle",
-                "study": "",
+                "study": "Studie",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
-                "submission-result-notification": "",
-                "submission-result-thanks": "",
-                "submit-button-text": "",
+                "submission-result-notification": "Sie haben das Formular der Ethik-Kommission erfolgreich eingereicht",
+                "submission-result-thanks": "Vielen Dank für Ihre Anmeldung!",
+                "submit-button-text": "Abschicken",
                 "sustainable-systems": "Sustainable Systems",
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
-                "view-mode": ""
+                "view-mode": "View mode"
             }
         },
         "room-select": {
@@ -131,6 +131,6 @@
         "searchbar-placeholder": "Suchen",
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
-        "table-config-button-text": ""
+        "table-config-button-text": "Tabellenkonfiguration"
     }
 }
