@@ -214,7 +214,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const data = {};
 
         // We need to use staticHtml and unsafeStatic here, because we want to set the tag name from
-        // a variable and need to set the "fileHitData" property from a variable too!
+        // a variable and need to set the "data" property from a variable too!
         return staticHtml`
             <${unsafeStatic(tagName)}
              ${ref(this.formRef)}
