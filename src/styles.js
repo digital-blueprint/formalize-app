@@ -228,6 +228,9 @@ export function getEthicsCommissionFormCSS() {
     return css`
         #ethics-commission-form {
             position: relative;
+
+            container-type: inline-size;
+            container-name: form;
         }
 
         .form-title {
@@ -278,6 +281,7 @@ export function getEthicsCommissionFormCSS() {
         .button-row {
             display: flex;
             justify-content: space-between;
+            gap: 1em;
 
             position: sticky;
             top: 0;
@@ -288,6 +292,19 @@ export function getEthicsCommissionFormCSS() {
             background: var(--dbp-background);
             padding: 1em;
             border: 1px solid black;
+        }
+
+        .right-buttons,
+        .left-buttons {
+            display: flex;
+            gap: 1em;
+        }
+
+        @container form (width < 820px) {
+            /* Make icon buttons for small screens ? */
+            .button-row {
+                flex-direction: column;
+            }
         }
 
         .toggle-edit-mode {
