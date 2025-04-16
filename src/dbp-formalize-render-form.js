@@ -210,6 +210,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.registry.define(tagName, form);
         }
 
+        const formIdentifier = this.formIdentifiers[this.formUrlSlug];
+
         // TODO: Add data
         const data = {};
 
@@ -220,6 +222,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
              ${ref(this.formRef)}
              id="edit-form"
              subscribe="auth,lang,entry-point-url"
+             form-identifier="${formIdentifier}"
+             form-url-slug="${formUrlSlug}"
              .data=${data}></${unsafeStatic(tagName)}>
         `;
     }

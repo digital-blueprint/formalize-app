@@ -33,6 +33,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.entryPointUrl = '';
         this.auth = {};
         this.saveButtonEnabled = true;
+        this.formIdentifier = '';
+        this.formUrlSlug = '';
     }
 
     async validateAndSendSubmission(event) {
@@ -78,6 +80,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             data: {type: Object},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
+            formIdentifier: {type: String, attribute: 'form-identifier'},
+            formUrlSlug: {type: String, attribute: 'form-url-slug'},
             saveButtonEnabled: {type: Boolean, attribute: false},
         };
     }
