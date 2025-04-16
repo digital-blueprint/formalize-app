@@ -4,6 +4,7 @@ import {css, html} from 'lit';
 import {createInstance} from '../i18n.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {classMap} from 'lit/directives/class-map.js';
+import {getElementWebComponents} from '@dbp-toolkit/form-elements/src/utils.js';
 import {getSelectorFixCSS} from '../styles.js';
 import {
     gatherFormDataFromElement,
@@ -46,10 +47,28 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const validationResult = await validateRequiredFields(formElement);
         console.log('validateAndSendSubmission validationResult', validationResult);
         if (!validationResult) {
+            this.scrollToFirstInvalidField(formElement);
             return;
         }
 
         this.sendSubmission(event);
+    }
+
+    /**
+     * Scroll to the first invalid field in the form
+     * @param {HTMLFormElement} formElement
+     */
+    scrollToFirstInvalidField(formElement) {
+        const elementWebComponents = getElementWebComponents(formElement);
+        for (const element of elementWebComponents) {
+            const invalidElement = element.shadowRoot.querySelector('.validation-errors');
+            if (invalidElement) {
+                const invalidFieldLabel = invalidElement.closest('fieldset').querySelector('label');
+                invalidFieldLabel.style.scrollMarginTop = '70px';
+                invalidFieldLabel.scrollIntoView({behavior: 'smooth'});
+                break;
+            }
+        }
     }
 
     sendSubmission(event) {
@@ -68,6 +87,42 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
+    sendDraft(event) {
+        this.draftButtonEnabled = false;
+        const formElement = this.shadowRoot.querySelector('form');
+        const data = {
+            formData: gatherFormDataFromElement(formElement),
+        };
+        console.log('sendDraft data', data);
+
+        const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
+    /**
+     * Sends a delete submission event with the given submission ID.
+     * @param {string} submissionId - The ID of the submission to delete.
+     */
+    sendDeleteSubmission(submissionId) {
+        this.deleteButtonEnabled = false;
+        console.log('submissionId', submissionId);
+
+        const data = {
+            submissionId: submissionId,
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormDeleteSubmission', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
     static get properties() {
         return {
             ...super.properties,
@@ -78,6 +133,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             // object was set by Keycloak, so we use this.formData instead
             formData: {type: Object, attribute: false},
             data: {type: Object},
+            submissionData: {type: Object, attribute: 'submission-data'},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             formIdentifier: {type: String, attribute: 'form-identifier'},

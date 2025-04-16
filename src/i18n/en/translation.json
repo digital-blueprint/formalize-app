@@ -60,7 +60,9 @@
                 "contact-details-placeholder": "Institut/Organisationseinheit/Unternehmen/berufliche Kontaktdaten",
                 "data-protection-date-label": "",
                 "date-of-transmission-label": "",
+                "delete-submittion-button-text": "",
                 "doctorat-label": "",
+                "edit-mode": "",
                 "fields-of-expertise-label": "Welchem/n Field/s of Expertise ist das Forschungsvorhaben zuzuordnen? ",
                 "human-and-biotechnology": "Human & Biotechnology",
                 "information-communication-computing": "Information, Communication & Computing",
@@ -72,17 +74,19 @@
                 "no-label": "",
                 "no-publikation-label": "",
                 "one-publikation-label": "",
+                "print-pdf-button-text": "",
                 "publication": "Publikation",
                 "qualification-work-label": "",
+                "save-draft-button-text": "",
                 "specification-office-label": "",
-                "studie": "Studie",
+                "study": "",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
-                "submission-error": "",
-                "submission-error-notification": "",
                 "submission-result-notification": "",
                 "submission-result-thanks": "",
+                "submit-button-text": "",
                 "sustainable-systems": "Sustainable Systems",
-                "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens"
+                "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
+                "view-mode": ""
             }
         },
         "room-select": {
@@ -127,6 +131,6 @@
         "searchbar-placeholder": "Search",
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!",
-        "table-config-button-text": "Table configuration"
+        "table-config-button-text": ""
     }
 }

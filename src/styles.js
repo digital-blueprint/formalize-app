@@ -226,6 +226,13 @@ export function getSelectorFixCSS() {
 export function getEthicsCommissionFormCSS() {
     // language=css
     return css`
+        #ethics-commission-form {
+            position: relative;
+
+            container-type: inline-size;
+            container-name: form;
+        }
+
         .form-title {
             text-align: center;
             font-size: 2em;
@@ -270,6 +277,42 @@ export function getEthicsCommissionFormCSS() {
             text-underline-offset: 2px;
         }
 
+        /* buttons */
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1em;
+
+            position: sticky;
+            top: 0;
+            z-index: 9;
+
+            right: 0;
+            left: 0;
+            background: var(--dbp-background);
+            padding: 1em;
+            border: 1px solid black;
+        }
+
+        .right-buttons,
+        .left-buttons {
+            display: flex;
+            gap: 1em;
+        }
+
+        @container form (width < 820px) {
+            /* Make icon buttons for small screens ? */
+            .button-row {
+                flex-direction: column;
+            }
+        }
+
+        .toggle-edit-mode {
+            dbp-icon {
+                padding-right: 0.5em;
+            }
+        }
+
         .file-upload-container {
             margin-bottom: 3em;
         }
@@ -286,6 +329,50 @@ export function getEthicsCommissionFormCSS() {
 
         .fade-in {
             animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        /* PRINTING STYLES */
+        .print {
+            padding: 0;
+            font-size: 14px;
+
+            fieldset {
+                background: red;
+                border: none;
+                padding: 0;
+            }
+
+            fieldset label {
+                font-weight: bold;
+            }
+
+            article {
+                page-break-before: auto;
+                page-break-inside: avoid;
+            }
+
+            .section-title {
+                page-break-before: always;
+            }
+
+            .textarea {
+                page-break-inside: auto;
+            }
+
+            li,
+            p,
+            .textarea {
+                page-break-inside: avoid;
+            }
+
+            textarea,
+            input[type='text'] {
+                border: none;
+            }
+
+            .button-row {
+                display: none;
+            }
         }
     `;
 }

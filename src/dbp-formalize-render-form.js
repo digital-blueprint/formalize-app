@@ -6,6 +6,7 @@ import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
 import {pascalToKebab} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
+import {send} from '@dbp-toolkit/common/notification.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
@@ -15,8 +16,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.formIdentifiers = {};
         this.formRef = createRef();
         this.formUrlSlug = '';
+        this.submissionId = '';
+        this.loadedSubmission = {};
         this.authTokenExists = false;
         this.submissionAllowed = false;
+        this.formDisplayDenied = false;
     }
 
     static get scopedElements() {
@@ -27,6 +31,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return {
             ...super.properties,
             submissionAllowed: {type: Boolean, attribute: false},
+            formDisplayDenied: {type: Boolean, attribute: false},
+            loadedSubmission: {type: Object, attribute: false},
         };
     }
 
@@ -39,11 +45,21 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     updateFormUrlSlug() {
-        // console.log('updateFormUrlSlug this.routingUrl', this.routingUrl);
-        // console.log('updateFormUrlSlug this.getRoutingData()', this.getRoutingData());
+        console.log('updateFormUrlSlug this.routingUrl', this.routingUrl);
+        console.log('updateFormUrlSlug this.getRoutingData()', this.getRoutingData());
 
         // We will use the first URL segment after the activity as identifier for the form
         const formUrlSlug = this.getRoutingData().pathSegments[0] || '';
+
+        // Get submission ID
+        const pathSegment = this.getRoutingData().pathSegments[1] || '';
+        const regex = /^[a-z,0-9,-]{36,36}$/;
+        if (regex.test(pathSegment)) {
+            this.submissionId = pathSegment;
+        }
+
+        // Get query parameters
+        // this.getRoutingData().queryParams || '';
 
         // Update the formUrlSlug if it has changed
         if (this.formUrlSlug !== formUrlSlug) {
@@ -77,6 +93,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.authTokenExists = true;
         let response;
         let data = [];
+
         const options = {
             method: 'GET',
             headers: {
@@ -168,6 +185,48 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    async getSubmissionData() {
+        if (!this.submissionId) {
+            return false;
+        }
+
+        let data = {};
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+
+        try {
+            const response = await this.httpGetAsync(
+                this.entryPointUrl + '/formalize/submissions/' + this.submissionId,
+                options,
+            );
+
+            if (!response.ok) {
+                this.handleErrorResponse(response);
+                this.formDisplayDenied = true;
+            }
+
+            data = await response.json();
+        } catch (e) {
+            console.error(e);
+            this.formDisplayDenied = true;
+        }
+
+        this.loadedSubmission = {
+            submissionId: this.submissionId,
+            form: data.form,
+            submissionState: data.submissionState,
+            dataFeedElement: data.dataFeedElement,
+            submittedFiles: data.submittedFiles,
+            grantedActions: data.grantedActions,
+        };
+    }
+
     getFormHtml() {
         const formUrlSlug = this.formUrlSlug;
         const formComponents = this.formComponents;
@@ -213,7 +272,34 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
 
         // TODO: Add data
-        const data = {};
+        let data = {};
+
+        // Load submission data if available
+        if (Object.keys(this.loadedSubmission).length > 0) {
+            // Check if the submission is for the current form
+            if (
+                this.loadedSubmission.form ===
+                `/formalize/forms/${this.formIdentifiers[formUrlSlug]}`
+            ) {
+                data = this.loadedSubmission;
+            } else {
+                send({
+                    summary: 'Error',
+                    body: 'Invalid submission data',
+                    type: 'danger',
+                    timeout: 5,
+                });
+                this.formDisplayDenied = true;
+            }
+        }
+
+        if (this.formDisplayDenied) {
+            return html`
+                <div class="notification is-warning">
+                    ${this._i18n.t('render-form.form-not-accessible')}
+                </div>
+            `;
+        }
 
         // We need to use staticHtml and unsafeStatic here, because we want to set the tag name from
         // a variable and need to set the "data" property from a variable too!
@@ -264,6 +350,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (!this.authTokenExists && this.auth.token !== '') {
                         this.authTokenExists = true;
                         this.handlePermissionsForCurrentForm();
+                        this.getSubmissionData();
                     }
                     break;
                 case 'routingUrl':
