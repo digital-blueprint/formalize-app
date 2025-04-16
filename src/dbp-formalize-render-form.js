@@ -218,6 +218,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.loadedSubmission = {
+            submissionId: this.submissionId,
             form: data.form,
             submissionState: data.submissionState,
             dataFeedElement: data.dataFeedElement,
@@ -278,7 +279,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.loadedSubmission.form ===
                 `/formalize/forms/${this.formIdentifiers[formUrlSlug]}`
             ) {
-                data = this.loadedSubmission.dataFeedElement;
+                data = this.loadedSubmission;
             } else {
                 send({
                     summary: 'Error',

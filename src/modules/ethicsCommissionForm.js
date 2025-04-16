@@ -126,7 +126,7 @@ class FormalizeFormElement extends BaseFormElement {
         fileSource.setAttribute('dialog-open', '');
     }
 
-    getAttachedFilesHtml() {
+    renderAttachedFilesHtml() {
         if (this.attachedFilesCount === 0) {
             return;
         }
@@ -299,6 +299,71 @@ class FormalizeFormElement extends BaseFormElement {
                     this.isPostingSubmission = false;
                 }
             });
+
+            // Event listener for form submission
+            this.addEventListener('DbpFormalizeFormDeleteSubmission', async (event) => {
+                const data = event.detail;
+                const submissionId = data.submissionId;
+
+                if (!submissionId) {
+                    send({
+                        summary: 'Error',
+                        body: `No submission id provided`,
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                        this.entryPointUrl + `/formalize/submissions/${submissionId}`,
+                        {
+                            method: 'DELETE',
+                            headers: {
+                                Authorization: 'Bearer ' + this.auth.token,
+                            },
+                        },
+                    );
+
+                    if (!response.ok) {
+                        this.deleteSubmissionError = true;
+                        send({
+                            summary: 'Error',
+                            body: `Failed to delete submission. Response status: ${response.status}`,
+                            type: 'danger',
+                            timeout: 5,
+                        });
+                    } else {
+                        this.wasDeleteSubmissionSuccessful = true;
+                        this.deleteSubmissionError = false;
+                        // Hide form after successful deletion
+                        this._('#ethics-commission-form').style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error(error.message);
+                    send({
+                        summary: 'Error',
+                        body: error.message,
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                } finally {
+                    if (this.wasDeleteSubmissionSuccessful) {
+                        send({
+                            summary: 'Success',
+                            body: 'Form submission deleted successfully',
+                            type: 'success',
+                            timeout: 5,
+                        });
+                        // Redirect to submission list page or to the empty form?
+                        // Maybe wait 5 sec before redirecting to allow user to read the success message?
+                        // const routingUrl = '/show-registrations';
+                        const routingUrl = 'ethics-commission'; //getUrlSlug();
+                        this.sendSetPropertyEvent('routing-url', routingUrl, true);
+                    }
+                }
+            });
         });
     }
 
@@ -424,6 +489,22 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     render() {
+        // console.log('submissionData', this.submissionData);
+        console.log('data', this.data);
+
+        if (Object.keys(this.data).length > 0) {
+            try {
+                this.submissionId = this.data.submissionId;
+                this.formData = JSON.parse(this.data.dataFeedElement);
+                this.attachedFiles = this.data.attachedFiles;
+                this.submissionState = this.data.submissionState;
+                this.grantedActions = this.data.grantedActions;
+                this.submittedFiles = this.data.submittedFiles;
+            } catch (e) {
+                console.error('Error parsing submission data:', e);
+            }
+        }
+
         return html`
             ${this.editMode
                 ? html`
@@ -1701,21 +1782,6 @@ class FormalizeFormElement extends BaseFormElement {
     renderFormElements() {
         const i18n = this._i18n;
         console.log('-- Render FormalizeFormElement --');
-
-        // Load data from previous submission
-        if (Object.keys(this.data).length > 0) {
-            try {
-                this.formData = JSON.parse(this.data);
-            } catch (e) {
-                console.error('Error parsing form data', e);
-                send({
-                    summary: 'Error',
-                    body: `Failed to load form data.`,
-                    type: 'danger',
-                    timeout: 5,
-                });
-            }
-        }
 
         const data = this.formData || {};
 
@@ -3283,7 +3349,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="file-upload-container">
                     <button @click="${this.openFilePicker}">Attache files</button>
 
-                    ${this.getAttachedFilesHtml()}
+                    ${this.renderAttachedFilesHtml()}
 
                     <dbp-file-source
                         id="file-source"
@@ -3292,27 +3358,9 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
                         enabled-targets="local,nextcloud"></dbp-file-source>
                 </div>
-
-                ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.submitted)}
         `;
-    }
-
-    sendDraft(event) {
-        this.draftButtonEnabled = false;
-        const formElement = this.shadowRoot.querySelector('form');
-        const data = {
-            formData: gatherFormDataFromElement(formElement),
-        };
-        console.log('sendDraft data', data);
-
-        const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
-            bubbles: true,
-            composed: true,
-            detail: data,
-        });
-        this.dispatchEvent(customEvent);
     }
 
     getButtonRowHtml() {
@@ -3355,8 +3403,13 @@ class FormalizeFormElement extends BaseFormElement {
                     </button>
                     <dbp-button
                         class="form-delete-submission-button"
+                        ?disabled=${this.deleteSubmissionButtonIsDisabled()}
+                        @click=${() => {
+                            this.sendDeleteSubmission(this.submissionId);
+                        }}
                         type="is-danger"
                         no-spinner-on-click>
+                        <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
                         ${i18n.t(
                             'render-form.forms.ethics-commission-form.delete-submittion-button-text',
                         )}
@@ -3367,6 +3420,7 @@ class FormalizeFormElement extends BaseFormElement {
                         class="form-print-pdf-button"
                         type="is-secondary"
                         no-spinner-on-click
+                        ?disabled=${this.printButtonIsDisabled()}
                         @click=${this.generatePDF}>
                         <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
                         ${i18n.t('render-form.forms.ethics-commission-form.print-pdf-button-text')}
@@ -3375,21 +3429,39 @@ class FormalizeFormElement extends BaseFormElement {
                         class="form-save-draft-button"
                         type="is-success"
                         no-spinner-on-click
-                        ?disabled=${this.isSavingDraft}
+                        ?disabled=${this.draftButtonIsDisabled()}
                         @click=${this.sendDraft}>
+                        <dbp-icon name="save" aria-hidden="true"></dbp-icon>
                         ${i18n.t('render-form.forms.ethics-commission-form.save-draft-button-text')}
                     </dbp-button>
                     <dbp-button
-                        ?disabled=${this.isPostingSubmission}
+                        ?disabled=${this.submitButtonIsDisabled()}
                         class="form-submit-button"
                         type="is-primary"
                         no-spinner-on-click
                         @click=${this.validateAndSendSubmission}>
+                        <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
                         ${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}
                     </dbp-button>
                 </div>
             </div>
         `;
+    }
+
+    deleteSubmissionButtonIsDisabled() {
+        return false;
+    }
+
+    printButtonIsDisabled() {
+        return false;
+    }
+
+    draftButtonIsDisabled() {
+        return this.isSavingDraft;
+    }
+
+    submitButtonIsDisabled() {
+        return this.isPostingSubmission;
     }
 
     renderResult(submitted) {

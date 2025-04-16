@@ -85,6 +85,42 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
+    sendDraft(event) {
+        this.draftButtonEnabled = false;
+        const formElement = this.shadowRoot.querySelector('form');
+        const data = {
+            formData: gatherFormDataFromElement(formElement),
+        };
+        console.log('sendDraft data', data);
+
+        const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
+    /**
+     * Sends a delete submission event with the given submission ID.
+     * @param {string} submissionId - The ID of the submission to delete.
+     */
+    sendDeleteSubmission(submissionId) {
+        this.deleteButtonEnabled = false;
+        console.log('submissionId', submissionId);
+
+        const data = {
+            submissionId: submissionId,
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormDeleteSubmission', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
     static get properties() {
         return {
             ...super.properties,
@@ -95,6 +131,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             // object was set by Keycloak, so we use this.formData instead
             formData: {type: Object, attribute: false},
             data: {type: Object},
+            submissionData: {type: Object, attribute: 'submission-data'},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             saveButtonEnabled: {type: Boolean, attribute: false},
