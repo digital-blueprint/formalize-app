@@ -292,6 +292,10 @@ export function getEthicsCommissionFormCSS() {
             background: var(--dbp-background);
             padding: 1em;
             border: 1px solid black;
+
+            .button-label {
+                padding-left: 0.5em;
+            }
         }
 
         .right-buttons,
@@ -303,13 +307,12 @@ export function getEthicsCommissionFormCSS() {
         @container form (width < 820px) {
             /* Make icon buttons for small screens ? */
             .button-row {
-                flex-direction: column;
-            }
-        }
-
-        .toggle-edit-mode {
-            dbp-icon {
-                padding-right: 0.5em;
+                button,
+                dbp-button {
+                    .button-label {
+                        display: none;
+                    }
+                }
             }
         }
 

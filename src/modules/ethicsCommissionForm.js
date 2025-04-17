@@ -3441,7 +3441,7 @@ class FormalizeFormElement extends BaseFormElement {
                         ${this.editMode
                             ? html`
                                   <dbp-icon name="eye"></dbp-icon>
-                                  <span>
+                                  <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.view-mode',
                                       )}
@@ -3449,7 +3449,7 @@ class FormalizeFormElement extends BaseFormElement {
                               `
                             : html`
                                   <dbp-icon name="pencil"></dbp-icon>
-                                  <span>
+                                  <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.edit-mode',
                                       )}
@@ -3463,11 +3463,19 @@ class FormalizeFormElement extends BaseFormElement {
                             this.sendDeleteSubmission(this.submissionId);
                         }}
                         type="is-danger"
-                        no-spinner-on-click>
-                        <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                        ${i18n.t(
+                        no-spinner-on-click
+                        title="${i18n.t(
                             'render-form.forms.ethics-commission-form.delete-submittion-button-text',
-                        )}
+                        )}"
+                        aria-label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                        )}">
+                        <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                        <span class="button-label">
+                            ${i18n.t(
+                                'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                            )}
+                        </span>
                     </dbp-button>
                 </div>
                 <div class="right-buttons">
@@ -3476,9 +3484,19 @@ class FormalizeFormElement extends BaseFormElement {
                         type="is-secondary"
                         no-spinner-on-click
                         ?disabled=${this.printButtonIsDisabled()}
-                        @click=${this.generatePDF}>
+                        @click=${this.generatePDF}
+                        title="${i18n.t(
+                            'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                        )}"
+                        aria-label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                        )}">
                         <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('render-form.forms.ethics-commission-form.print-pdf-button-text')}
+                        <span class="button-label">
+                            ${i18n.t(
+                                'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                            )}
+                        </span>
                     </dbp-button>
                     <dbp-button
                         class="form-save-draft-button"
@@ -3489,14 +3507,41 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-icon name="save" aria-hidden="true"></dbp-icon>
                         ${i18n.t('render-form.forms.ethics-commission-form.save-draft-button-text')}
                     </dbp-button>
+                              <dbp-button
+                                  class="form-save-draft-button"
+                                  type="is-success"
+                                  no-spinner-on-click
+                                  ?disabled=${this.draftButtonIsDisabled()}
+                                  @click=${this.sendDraft}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
+                                  )}">
+                                  <dbp-icon name="save" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.save-draft-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
                     <dbp-button
                         ?disabled=${this.submitButtonIsDisabled()}
                         class="form-submit-button"
                         type="is-primary"
                         no-spinner-on-click
-                        @click=${this.validateAndSendSubmission}>
+                        @click=${this.validateAndSendSubmission}
+                        title="${i18n.t(
+                            'render-form.forms.ethics-commission-form.submit-button-text',
+                        )}"
+                        aria-label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.submit-button-text',
+                        )}">
                         <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}
+                        <span class="button-label">
+                            ${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}
+                        </span>
                     </dbp-button>
                 </div>
             </div>
