@@ -18,6 +18,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.formUrlSlug = '';
         this.submissionId = '';
         this.loadedSubmission = {};
+        this.formProperties = {};
         this.authTokenExists = false;
         this.submissionAllowed = false;
         this.formDisplayDenied = false;
@@ -130,6 +131,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             console.error('checkPermissionsToForm hydra:Error', data.detail);
             return false;
         }
+
+        this.formProperties = data;
+        console.log('this.formProperties', data);
 
         // Check if the user has the permission to manage the form or create submissions
         return (
@@ -270,6 +274,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
+        const allowedSubmissionStates = this.formProperties.allowedSubmissionStates;
+        const maxNumberOfSubmissionsPerUser = this.formProperties.maxNumSubmissionsPerCreator;
 
         // TODO: Add data
         let data = {};
@@ -305,12 +311,14 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // a variable and need to set the "data" property from a variable too!
         return staticHtml`
             <${unsafeStatic(tagName)}
-             ${ref(this.formRef)}
-             id="edit-form"
-             subscribe="auth,lang,entry-point-url"
-             form-identifier="${formIdentifier}"
-             form-url-slug="${formUrlSlug}"
-             .data=${data}></${unsafeStatic(tagName)}>
+                ${ref(this.formRef)}
+                id="edit-form"
+                subscribe="auth,lang,entry-point-url"
+                form-identifier="${formIdentifier}"
+                form-url-slug="${formUrlSlug}"
+                max-number-of-submissions="${maxNumberOfSubmissionsPerUser}"
+                allowed-submission-states="${allowedSubmissionStates}"
+                .data=${data}></${unsafeStatic(tagName)}>
         `;
     }
 

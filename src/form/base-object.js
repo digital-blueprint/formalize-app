@@ -36,6 +36,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.saveButtonEnabled = true;
         this.formIdentifier = '';
         this.formUrlSlug = '';
+        this.allowedSubmissionStates = 4;
+        this.maxNumberOfSubmissionsPerUser = 10;
     }
 
     async validateAndSendSubmission(event) {
@@ -138,6 +140,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             formIdentifier: {type: String, attribute: 'form-identifier'},
             formUrlSlug: {type: String, attribute: 'form-url-slug'},
+            allowedSubmissionStates: {type: Number, attribute: 'allowed-submission-states'},
+            maxNumberOfSubmissionsPerUser: {type: String, attribute: 'max-number-of-submissions'},
             saveButtonEnabled: {type: Boolean, attribute: false},
         };
     }
