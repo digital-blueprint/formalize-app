@@ -315,6 +315,27 @@ export function getEthicsCommissionFormCSS() {
 
         .file-upload-container {
             margin-bottom: 3em;
+            border: var(--dbp-border);
+            padding: 1em 1em 0 1em;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+        }
+
+        .attachments-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .uploaded-files {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }
+
+        .attachment-upload-button {
+            width: fit-content;
+            margin-top: 1em;
         }
 
         /* animations */

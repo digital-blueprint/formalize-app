@@ -111,6 +111,27 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
+    async update(changedProperties) {
+        if (changedProperties.has('data')) {
+            if (Object.keys(this.data).length > 0) {
+                try {
+                    this.submissionId = this.data.submissionId;
+                    this.formData = JSON.parse(this.data.dataFeedElement);
+                    this.attachedFiles = this.data.attachedFiles;
+                    this.submissionState = this.data.submissionState;
+                    this.grantedActions = this.data.grantedActions;
+
+                    this.attachedFiles = await this.transformApiResponseToFile(
+                        this.data.submittedFiles,
+                    );
+                } catch (e) {
+                    console.error('Error parsing submission data:', e);
+                }
+            }
+        }
+        super.update(changedProperties);
+    }
+
     static get styles() {
         // language=css
         return css`
@@ -127,7 +148,8 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     renderAttachedFilesHtml() {
-        if (this.attachedFilesCount === 0) {
+        console.log('*** renderAttachedFilesHtml attachedFiles', this.attachedFiles);
+        if (!Array.isArray(this.attachedFiles) || this.attachedFiles.length === 0) {
             return;
         }
 
@@ -488,22 +510,50 @@ class FormalizeFormElement extends BaseFormElement {
         });
     }
 
+    async transformApiResponseToFile(apiFileResponse) {
+        if (!apiFileResponse || apiFileResponse.length === 0) {
+            return [];
+        }
+
+        const attachedFiles = [];
+        try {
+            for (const apiFile of apiFileResponse) {
+                // Fetch the file content from the download URL
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
+                };
+                const response = await fetch(apiFile.downloadUrl, options);
+                if (!response.ok) {
+                    // this.handleErrorResponse(response);
+                    send({
+                        summary: this._i18n.t('errors.other-title'),
+                        body: this._i18n.t('errors.other-body'),
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                } else {
+                    const fileBlob = await response.blob();
+
+                    // Create a new File object
+                    const attachmentFile = new File([fileBlob], apiFile.fileName, {
+                        type: apiFile.mimeType,
+                    });
+                    attachedFiles.push(attachmentFile);
+                }
+            }
+            return attachedFiles;
+        } catch (error) {
+            console.error('Error transforming API response to File:', error);
+            throw error;
+        }
+    }
+
     render() {
         // console.log('submissionData', this.submissionData);
         console.log('data', this.data);
-
-        if (Object.keys(this.data).length > 0) {
-            try {
-                this.submissionId = this.data.submissionId;
-                this.formData = JSON.parse(this.data.dataFeedElement);
-                this.attachedFiles = this.data.attachedFiles;
-                this.submissionState = this.data.submissionState;
-                this.grantedActions = this.data.grantedActions;
-                this.submittedFiles = this.data.submittedFiles;
-            } catch (e) {
-                console.error('Error parsing submission data:', e);
-            }
-        }
 
         return html`
             ${this.editMode
@@ -522,6 +572,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         console.log('this.formData', this.formData);
         const data = this.formData || {};
+
         return html`
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
@@ -3343,21 +3394,25 @@ class FormalizeFormElement extends BaseFormElement {
                         <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
                         <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
                     </div>
+
+                    <div class="file-upload-container">
+
+                        <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
+
+                        <div class="uploaded-files">
+                            ${this.renderAttachedFilesHtml()}
+                        </div>
+
+                        <button @click="${this.openFilePicker}" class="button is-primary attachment-upload-button">${i18n.t('render-form.forms.ethics-commission-form.attache-file-button-label')}</button>
+
+                        <dbp-file-source
+                            id="file-source"
+                            class="file-source"
+                            allowed-mime-types="*/*"
+                            subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
+                            enabled-targets="local,nextcloud"></dbp-file-source>
+                    </div>
                 </article>
-
-
-                <div class="file-upload-container">
-                    <button @click="${this.openFilePicker}">Attache files</button>
-
-                    ${this.renderAttachedFilesHtml()}
-
-                    <dbp-file-source
-                        id="file-source"
-                        class="file-source"
-                        allowed-mime-types="*/*"
-                        subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
-                        enabled-targets="local,nextcloud"></dbp-file-source>
-                </div>
             </form>
             ${this.renderResult(this.submitted)}
         `;
