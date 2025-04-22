@@ -5,6 +5,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {Button, Icon} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {FileSource} from '@dbp-toolkit/file-handling';
+import {getBasePath} from '../utils.js';
 import {getEthicsCommissionFormCSS} from '../styles.js';
 import {
     DbpStringElement,
@@ -53,6 +54,9 @@ class FormalizeFormElement extends BaseFormElement {
         this.isDraftAllowed = false;
         this.isDeleteSubmissionAllowed = false;
         this.isAcceptButtonEnabled = false;
+
+        this.userAllDraftSubmissions = [];
+        this.userAllSubmittedSubmissions = [];
 
         this.attachedFiles = [];
         this.attachedFilesCount = 0;
@@ -159,20 +163,39 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         if (changedProperties.has('userAllSubmissions')) {
-            this.usersSubmissionCount = this.userAllSubmissions.length;
+            this.userAllSubmittedSubmissions = this.userAllSubmissions.filter(
+                (submission) => submission.submissionState == 4,
+            );
+            this.userAllDraftSubmissions = this.userAllSubmissions.filter(
+                (submission) => submission.submissionState == 1,
+            );
+            this.setButtonStates();
         }
         super.update(changedProperties);
     }
 
     setButtonStates() {
+        // Show draft button if DRAFT state is allowed
         this.isDraftAllowed = this.allowedSubmissionStates === 5 ? true : false;
 
+        // Show delete button if the user has delete permission
         if (this.submissionId && Object.keys(this.formProperties).length > 0) {
             this.isDeleteSubmissionAllowed =
                 this.formProperties.allowedActionsWhenSubmitted.includes('delete') ? true : false;
-            this.isAcceptButtonEnabled = this.formProperties.grantedActions.includes('manage')
-                ? true
-                : false;
+        }
+
+        // Show accept button if user has manage permission and the submission state is SUBMITTED
+        if (this.userAllSubmittedSubmissions.length > 0) {
+            const isSubmission =
+                this.userAllSubmittedSubmissions.filter(
+                    (submission) => submission.identifier === this.submissionId,
+                ).length == 1;
+
+            if (this.submissionId && isSubmission && Object.keys(this.formProperties).length > 0) {
+                this.isAcceptButtonEnabled = this.formProperties.grantedActions.includes('manage')
+                    ? true
+                    : false;
+            }
         }
     }
 
@@ -192,7 +215,7 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     renderAttachedFilesHtml() {
-        console.log('*** renderAttachedFilesHtml attachedFiles', this.attachedFiles);
+        console.log('renderAttachedFilesHtml attachedFiles', this.attachedFiles);
         if (!Array.isArray(this.attachedFiles) || this.attachedFiles.length === 0) {
             return;
         }
@@ -241,16 +264,36 @@ class FormalizeFormElement extends BaseFormElement {
                     formData.append('dataFeedElement', JSON.stringify(data.formData));
                     formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
 
-                    const response = await fetch(
-                        this.entryPointUrl + '/formalize/submissions/multipart',
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: 'Bearer ' + this.auth.token,
-                            },
-                            body: formData,
+                    console.log('this.userAllDraftSubmissions', this.userAllDraftSubmissions);
+
+                    // POST or PATCH
+                    const existingDraft = this.userAllDraftSubmissions.find(
+                        (item) => item.identifier === this.submissionId,
+                    )
+                        ? true
+                        : false;
+                    // const existingSubmission = true;
+
+                    console.log('formData', formData);
+                    console.log('data', data);
+
+                    let draftUrl = '';
+                    let options = {
+                        headers: {
+                            Authorization: 'Bearer ' + this.auth.token,
                         },
-                    );
+                        body: formData,
+                    };
+                    if (existingDraft) {
+                        draftUrl = `${this.entryPointUrl}/formalize/submissions/${this.submissionId}/multipart`;
+                        options.method = 'PATCH';
+                    } else {
+                        draftUrl = `${this.entryPointUrl}/formalize/submissions/multipart`;
+                        options.method = 'POST';
+                    }
+
+                    const response = await fetch(draftUrl, options);
+                    let responseBody = await response.json();
 
                     if (!response.ok) {
                         this.draftSaveError = true;
@@ -261,6 +304,7 @@ class FormalizeFormElement extends BaseFormElement {
                             timeout: 5,
                         });
                     } else {
+                        this.newSubmissionId = responseBody.identifier;
                         this.draftSaveSuccessful = true;
                         this.draftSaveError = false;
                     }
@@ -282,6 +326,15 @@ class FormalizeFormElement extends BaseFormElement {
                         });
                     }
                     this.isSavingDraft = false;
+
+                    setTimeout(() => {
+                        // Update URL with the submission ID
+                        const newSubmissionUrl =
+                            new URL(window.location.href).pathname + `/${this.newSubmissionId}`;
+                        window.history.pushState({}, '', newSubmissionUrl.toString());
+                        // Reload the page to reflect the new submission ID
+                        window.location.reload();
+                    }, 5000);
                 }
             });
 
@@ -360,6 +413,15 @@ class FormalizeFormElement extends BaseFormElement {
                 }
             });
 
+            // Event listener for accepting submission
+            this.addEventListener('DbpFormalizeFormAcceptSubmission', async (event) => {
+                send({
+                    summary: 'Warning',
+                    body: 'Not yet implemented',
+                    type: 'warning',
+                    timeout: 5,
+                });
+            });
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormDeleteSubmission', async (event) => {
                 const data = event.detail;
@@ -412,15 +474,24 @@ class FormalizeFormElement extends BaseFormElement {
                     if (this.wasDeleteSubmissionSuccessful) {
                         send({
                             summary: 'Success',
-                            body: 'Form submission deleted successfully',
+                            body: 'Form submission deleted successfully. You will be redirected to the empty form.',
                             type: 'success',
                             timeout: 5,
                         });
+
                         // Redirect to submission list page or to the empty form?
-                        // Maybe wait 5 sec before redirecting to allow user to read the success message?
-                        // const routingUrl = '/show-registrations';
-                        const routingUrl = 'ethics-commission'; //getUrlSlug();
-                        this.sendSetPropertyEvent('routing-url', routingUrl, true);
+                        // Wait 5 sec before redirecting to allow user to read the success message?
+                        setTimeout(() => {
+                            const currentUrl = new URL(window.location.href);
+                            // Redirect to the empty form
+                            const basePath = getBasePath(currentUrl.pathname);
+                            const formPath = `${basePath}/render-form/${this.formUrlSlug}`;
+                            const emptyFormUrl = new URL(formPath, currentUrl.origin);
+
+                            window.history.pushState({}, '', emptyFormUrl.toString());
+                            // Reload the page to reflect the new submission ID
+                            window.location.reload();
+                        }, 5000);
                     }
                 }
             });
@@ -590,9 +661,6 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     render() {
-        // console.log('submissionData', this.submissionData);
-        console.log('data', this.data);
-
         return html`
             ${this.editMode
                 ? html`
@@ -3498,7 +3566,6 @@ class FormalizeFormElement extends BaseFormElement {
                         ? html`
                               <dbp-button
                                   class="form-delete-submission-button"
-                                  ?disabled=${this.deleteSubmissionButtonIsDisabled()}
                                   @click=${() => {
                                       this.sendDeleteSubmission(this.submissionId);
                                   }}
@@ -3525,7 +3592,6 @@ class FormalizeFormElement extends BaseFormElement {
                         class="form-print-pdf-button"
                         type="is-secondary"
                         no-spinner-on-click
-                        ?disabled=${this.printButtonIsDisabled()}
                         @click=${this.generatePDF}
                         title="${i18n.t(
                             'render-form.forms.ethics-commission-form.print-pdf-button-text',
@@ -3546,7 +3612,6 @@ class FormalizeFormElement extends BaseFormElement {
                                   class="form-save-draft-button"
                                   type="is-success"
                                   no-spinner-on-click
-                                  ?disabled=${this.draftButtonIsDisabled()}
                                   @click=${this.sendDraft}
                                   title="${i18n.t(
                                       'render-form.forms.ethics-commission-form.save-draft-button-text',
@@ -3564,7 +3629,6 @@ class FormalizeFormElement extends BaseFormElement {
                           `
                         : ''}
                     <dbp-button
-                        ?disabled=${this.submitButtonIsDisabled()}
                         class="form-submit-button"
                         type="is-primary"
                         no-spinner-on-click
@@ -3583,13 +3647,10 @@ class FormalizeFormElement extends BaseFormElement {
                     ${this.isAcceptButtonEnabled
                         ? html`
                               <dbp-button
-                                  ?disabled=${this.acceptButtonIsDisabled()}
                                   class="form-accept-button"
                                   type="is-success"
                                   no-spinner-on-click
-                                  @click="${() => {
-                                      this.acceptSubmission(this.submissionId);
-                                  }};"
+                                  @click=${this.acceptSubmission}
                                   title="${i18n.t(
                                       'render-form.forms.ethics-commission-form.accept-button-text',
                                   )}"
@@ -3608,27 +3669,6 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
             </div>
         `;
-    }
-
-    deleteSubmissionButtonIsDisabled() {
-        return false;
-    }
-
-    printButtonIsDisabled() {
-        return false;
-    }
-
-    draftButtonIsDisabled() {
-        return this.isSavingDraft;
-    }
-
-    submitButtonIsDisabled() {
-        return this.isPostingSubmission;
-    }
-
-    acceptButtonIsDisabled() {
-        // Only show for admins
-        return false;
     }
 
     renderResult(submitted) {
@@ -3653,23 +3693,4 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html``;
     }
-
-    // renderErrorMessage(submissionError) {
-    //     const i18n = this._i18n;
-
-    //     if (submissionError) {
-    //         return html`
-    //             <div class="container">
-    //                 <h2>${i18n.t('render-form.forms.ethics-commission-form.submission-error')}</h2>
-    //                 <p>
-    //                     ${i18n.t(
-    //                         'render-form.forms.ethics-commission-form.submission-error-notification',
-    //                     )}
-    //                 </p>
-    //             </div>
-    //         `;
-    //     }
-
-    //     return html``;
-    // }
 }
