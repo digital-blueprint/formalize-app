@@ -43,12 +43,16 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.formIdentifier = '32297d33-1352-4cf2-ba06-1577911c3537';
         this.editMode = true;
         this.submitted = false;
         this.submissionError = false;
+
         this.isSavingDraft = false;
         this.draftSaveError = false;
+        // Button
+        this.isDraftAllowed = false;
+        this.isDeleteSubmissionAllowed = false;
+        this.isAcceptButtonEnabled = false;
 
         this.attachedFiles = [];
         this.attachedFilesCount = 0;
@@ -77,7 +81,14 @@ class FormalizeFormElement extends BaseFormElement {
             editMode: {type: Boolean},
             submitted: {type: Boolean},
             submissionError: {type: Boolean},
+
             attachedFilesCount: {type: Number},
+
+            // Buttons
+            isDeleteSubmissionAllowed: {type: Boolean},
+            isDraftAllowed: {type: Boolean},
+            isAcceptButtonEnabled: {type: Boolean},
+
             humanTestSubjectsQuestionsEnabled: {type: Boolean},
             humanStemCellsQuestionsEnabled: {type: Boolean},
             stemCellFromHumanEmbryosQuestionsEnabled: {type: Boolean},
@@ -111,16 +122,26 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
+    async firstUpdated() {
+        // Listen to the event from file source
+        const fileSource = this._('dbp-file-source');
+        if (fileSource) {
+            fileSource.addEventListener('dbp-file-source-file-selected', (event) => {
+                this.attachedFiles.push(event.detail.file);
+                this.attachedFilesCount = this.attachedFiles.length;
+            });
+        }
+    }
+
     async update(changedProperties) {
+        // console.log('changedProperties', changedProperties);
         if (changedProperties.has('data')) {
             if (Object.keys(this.data).length > 0) {
                 try {
                     this.submissionId = this.data.submissionId;
                     this.formData = JSON.parse(this.data.dataFeedElement);
-                    this.attachedFiles = this.data.attachedFiles;
                     this.submissionState = this.data.submissionState;
                     this.grantedActions = this.data.grantedActions;
-
                     this.attachedFiles = await this.transformApiResponseToFile(
                         this.data.submittedFiles,
                     );
@@ -129,7 +150,30 @@ class FormalizeFormElement extends BaseFormElement {
                 }
             }
         }
+
+        if (changedProperties.has('formProperties')) {
+            if (Object.keys(this.formProperties).length > 0) {
+                this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
+                this.setButtonStates();
+            }
+        }
+
+        if (changedProperties.has('userAllSubmissions')) {
+            this.usersSubmissionCount = this.userAllSubmissions.length;
+        }
         super.update(changedProperties);
+    }
+
+    setButtonStates() {
+        this.isDraftAllowed = this.allowedSubmissionStates === 5 ? true : false;
+
+        if (this.submissionId && Object.keys(this.formProperties).length > 0) {
+            this.isDeleteSubmissionAllowed =
+                this.formProperties.allowedActionsWhenSubmitted.includes('delete') ? true : false;
+            this.isAcceptButtonEnabled = this.formProperties.grantedActions.includes('manage')
+                ? true
+                : false;
+        }
     }
 
     static get styles() {
@@ -170,13 +214,6 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
-            // Listen to the event from file source
-            const fileSource = this._('dbp-file-source');
-            fileSource.addEventListener('dbp-file-source-file-selected', (event) => {
-                this.attachedFiles.push(event.detail.file);
-                this.attachedFilesCount = this.attachedFiles.length;
-            });
-
             // Event listener for saving draft
             this.addEventListener('DbpFormalizeFormSaveDraft', async (event) => {
                 // Access the data from the event detail
@@ -197,6 +234,7 @@ class FormalizeFormElement extends BaseFormElement {
                             const file = this.attachedFiles[i];
                             formData.append('file[]', file, file.name);
                         }
+                        // @TODO: also check for `submittedFilesToDelete`
                     }
 
                     formData.append('form', '/formalize/forms/' + this.formIdentifier);
@@ -3456,27 +3494,31 @@ class FormalizeFormElement extends BaseFormElement {
                                   </span>
                               `}
                     </button>
-                    <dbp-button
-                        class="form-delete-submission-button"
-                        ?disabled=${this.deleteSubmissionButtonIsDisabled()}
-                        @click=${() => {
-                            this.sendDeleteSubmission(this.submissionId);
-                        }}
-                        type="is-danger"
-                        no-spinner-on-click
-                        title="${i18n.t(
-                            'render-form.forms.ethics-commission-form.delete-submittion-button-text',
-                        )}"
-                        aria-label="${i18n.t(
-                            'render-form.forms.ethics-commission-form.delete-submittion-button-text',
-                        )}">
-                        <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                        <span class="button-label">
-                            ${i18n.t(
-                                'render-form.forms.ethics-commission-form.delete-submittion-button-text',
-                            )}
-                        </span>
-                    </dbp-button>
+                    ${this.isDeleteSubmissionAllowed
+                        ? html`
+                              <dbp-button
+                                  class="form-delete-submission-button"
+                                  ?disabled=${this.deleteSubmissionButtonIsDisabled()}
+                                  @click=${() => {
+                                      this.sendDeleteSubmission(this.submissionId);
+                                  }}
+                                  type="is-danger"
+                                  no-spinner-on-click
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                                  )}">
+                                  <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
                 </div>
                 <div class="right-buttons">
                     <dbp-button
@@ -3498,15 +3540,8 @@ class FormalizeFormElement extends BaseFormElement {
                             )}
                         </span>
                     </dbp-button>
-                    <dbp-button
-                        class="form-save-draft-button"
-                        type="is-success"
-                        no-spinner-on-click
-                        ?disabled=${this.draftButtonIsDisabled()}
-                        @click=${this.sendDraft}>
-                        <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('render-form.forms.ethics-commission-form.save-draft-button-text')}
-                    </dbp-button>
+                    ${this.isDraftAllowed
+                        ? html`
                               <dbp-button
                                   class="form-save-draft-button"
                                   type="is-success"
@@ -3526,6 +3561,8 @@ class FormalizeFormElement extends BaseFormElement {
                                       )}
                                   </span>
                               </dbp-button>
+                          `
+                        : ''}
                     <dbp-button
                         ?disabled=${this.submitButtonIsDisabled()}
                         class="form-submit-button"
@@ -3543,6 +3580,31 @@ class FormalizeFormElement extends BaseFormElement {
                             ${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}
                         </span>
                     </dbp-button>
+                    ${this.isAcceptButtonEnabled
+                        ? html`
+                              <dbp-button
+                                  ?disabled=${this.acceptButtonIsDisabled()}
+                                  class="form-accept-button"
+                                  type="is-success"
+                                  no-spinner-on-click
+                                  @click="${() => {
+                                      this.acceptSubmission(this.submissionId);
+                                  }};"
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.accept-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.accept-button-text',
+                                  )}">
+                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.accept-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
                 </div>
             </div>
         `;
@@ -3562,6 +3624,11 @@ class FormalizeFormElement extends BaseFormElement {
 
     submitButtonIsDisabled() {
         return this.isPostingSubmission;
+    }
+
+    acceptButtonIsDisabled() {
+        // Only show for admins
+        return false;
     }
 
     renderResult(submitted) {

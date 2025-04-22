@@ -52,6 +52,7 @@
                 "title": "Register for an accessible exam date"
             },
             "ethics-commission-form": {
+                "accept-button-text": "Accept",
                 "advanced-material-sciences": "Advanced Material Sciences",
                 "applicant-label": "Antragsteller*in",
                 "applicant-placeholder": "Vor- und Nachname",

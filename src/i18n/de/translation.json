@@ -52,6 +52,7 @@
                 "title": "Barrierefreien Prüfungstermin anmelden"
             },
             "ethics-commission-form": {
+                "accept-button-text": "Akzeptieren",
                 "advanced-material-sciences": "Advanced Material Sciences",
                 "applicant-label": "Antragsteller*in",
                 "applicant-placeholder": "Vor- und Nachname",
