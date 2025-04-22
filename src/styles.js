@@ -233,6 +233,10 @@ export function getEthicsCommissionFormCSS() {
             container-name: form;
         }
 
+        .notification {
+            margin-bottom: 2em;
+        }
+
         .form-title {
             text-align: center;
             font-size: 2em;

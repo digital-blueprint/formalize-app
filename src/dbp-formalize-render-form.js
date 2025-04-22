@@ -1,10 +1,10 @@
-import {html} from 'lit';
+import {html, css} from 'lit';
 import {html as staticHtml, unsafeStatic} from 'lit/static-html.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
-import {pascalToKebab} from './utils.js';
+import {pascalToKebab, getBasePath} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {send} from '@dbp-toolkit/common/notification.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
@@ -19,6 +19,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionId = '';
         this.loadedSubmission = {};
         this.userAllSubmissions = [];
+        this.userAllDraftSubmissions = [];
+        this.usersSubmissionCount = 0;
         this.formProperties = {};
         this.authTokenExists = false;
         this.submissionAllowed = false;
@@ -220,6 +222,13 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 responseBody['hydra:member'].length > 0
             ) {
                 this.userAllSubmissions = responseBody['hydra:member'];
+                this.userAllSubmittedSubmissions = responseBody['hydra:member'].filter(
+                    (submission) => submission.submissionState == 4,
+                );
+                this.userAllDraftSubmissions = responseBody['hydra:member'].filter(
+                    (submission) => submission.submissionState == 1,
+                );
+                this.usersSubmissionCount = this.userAllSubmittedSubmissions.length;
                 this.requestUpdate();
             }
         } catch (e) {
@@ -316,6 +325,35 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
         const allowedSubmissionStates = this.formProperties.allowedSubmissionStates;
         const maxNumberOfSubmissionsPerUser = this.formProperties.maxNumSubmissionsPerCreator;
+        const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
+
+        if (this.usersSubmissionCount > 0) {
+            if (maxNumberOfSubmissionsPerUser == 1) {
+                // Form already submitted, can't submit again
+                if (allowedActionsWhenSubmitted.includes('read')) {
+                    // User can read the submission
+                    const currentUrl = new URL(window.location.href);
+                    // @TODO: Better URL handling
+                    const oldSubmissionId = this.userAllSubmittedSubmissions.pop().identifier;
+                    const submissionUrl = new URL(`${oldSubmissionId}/readonly`, currentUrl);
+                    return html`
+                        <div class="notification is-warning">
+                            ${this._i18n.t('render-form.form-already-submitted-warning')}
+                            <a href="${submissionUrl.toString()}">
+                                ${this._i18n.t('render-form.check-previous-submissions-warning')}
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    // User can't read the submission
+                    return html`
+                        <div class="notification is-warning">
+                            ${this._i18n.t('render-form.form-already-submitted-warning')}
+                        </div>
+                    `;
+                }
+            }
+        }
 
         // TODO: Add data
         let data = {};
@@ -347,6 +385,48 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `;
         }
 
+        if (this.usersSubmissionCount >= maxNumberOfSubmissionsPerUser) {
+            // User can't submit the form again
+            const currentUrl = new URL(window.location.href);
+            // @TODO: Better URL handling
+            const basePath = getBasePath(currentUrl.pathname);
+            const showRegistrationsUrl = new URL(
+                `${basePath}/show-registrations`,
+                currentUrl.origin,
+            );
+            return html`
+                <div class="notification is-warning">
+                    ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
+                        n: this.usersSubmissionCount,
+                    })}
+                    <a href="${showRegistrationsUrl.toString()}">
+                        ${this._i18n.t('render-form.check-previous-submissions-warning')}
+                    </a>
+                </div>
+            `;
+        }
+
+        let formAlreadySubmittedWarning = html``;
+        if (this.usersSubmissionCount > 0 && allowedActionsWhenSubmitted.includes('read')) {
+            // An empty form is shown with the message that the user already submitted the form
+            // and show a link to the submission in the show-registrations page
+            const currentUrl = new URL(window.location.href);
+            // @TODO: Better URL handling
+            const basePath = getBasePath(currentUrl.pathname);
+            const showRegistrationsUrl = new URL(
+                `${basePath}/show-registrations`,
+                currentUrl.origin,
+            );
+            formAlreadySubmittedWarning = html`
+                <div class="notification is-warning">
+                    ${this._i18n.t('render-form.form-already-submitted-warning')}
+                    <a href="${showRegistrationsUrl.toString()}">
+                        ${this._i18n.t('render-form.check-previous-submissions-warning')}
+                    </a>
+                </div>
+            `;
+        }
+
         console.log('RENDER-FORM-RENDER: formProperties', this.formProperties);
         console.log('RENDER-FORM-RENDER: usersSubmissions', this.userAllSubmissions);
         console.log('RENDER-FORM-RENDER: data', data);
@@ -354,6 +434,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // We need to use staticHtml and unsafeStatic here, because we want to set the tag name from
         // a variable and need to set the "data" property from a variable too!
         return staticHtml`
+
+            ${formAlreadySubmittedWarning}
+
             <${unsafeStatic(tagName)}
                 ${ref(this.formRef)}
                 id="edit-form"
@@ -370,7 +453,13 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     static get styles() {
         // language=css
-        return [commonStyles.getNotificationCSS()];
+        return css`
+            ${commonStyles.getNotificationCSS()}
+
+            .notification {
+                margin-bottom: 2em;
+            }
+        `;
     }
 
     render() {

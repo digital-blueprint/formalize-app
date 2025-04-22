@@ -17,10 +17,13 @@
             "reset": "Zurücksetzen",
             "submit": "Abschicken"
         },
+        "check-previous-submissions-warning": "Hier können Sie Ihre früheren Einreichungen überprüfen.",
         "course-select": {
             "login-required": "Anmeldung erforderlich",
             "placeholder": "Bitte wählen Sie einen Kurs aus"
         },
+        "form-already-submitted-n-times-warning": "Sie haben dieses Formular bereits {{n}} Mal abgeschickt. Sie können es nicht noch einmal abschicken",
+        "form-already-submitted-warning": "Sie haben dieses Formular bereits abgeschickt!",
         "form-not-accessible": "Dieses Formular ist für Sie nicht verfügbar!",
         "forms": {
             "accessible-exams-form": {

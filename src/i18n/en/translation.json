@@ -17,10 +17,13 @@
             "reset": "Reset",
             "submit": "Submit"
         },
+        "check-previous-submissions-warning": "You can check your previous submissions here.",
         "course-select": {
             "login-required": "Login required",
             "placeholder": "Please select a course"
         },
+        "form-already-submitted-n-times-warning": "You already submitted this form {{n}} times. You can't submit it again.",
+        "form-already-submitted-warning": "You already submitted this form!",
         "form-not-accessible": "This form is not available for you!",
         "forms": {
             "accessible-exams-form": {
