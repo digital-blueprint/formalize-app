@@ -36,8 +36,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.saveButtonEnabled = true;
         this.formIdentifier = '';
         this.formUrlSlug = '';
+        this.formProperties = {};
+        this.userAllSubmissions = [];
         this.allowedSubmissionStates = 4;
         this.maxNumberOfSubmissionsPerUser = 10;
+        this.submissionId = '';
     }
 
     async validateAndSendSubmission(event) {
@@ -73,6 +76,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
+    /**
+     * Sends a submission event with the given form data.
+     * @param {object} event
+     */
     sendSubmission(event) {
         this.saveButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
@@ -89,13 +96,16 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
+    /**
+     * Sends a draft submission event with the given form data.
+     * @param {object} event
+     */
     sendDraft(event) {
         this.draftButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
         const data = {
             formData: gatherFormDataFromElement(formElement),
         };
-        console.log('sendDraft data', data);
 
         const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
             bubbles: true,
@@ -106,18 +116,43 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Sends a delete submission event with the given submission ID.
-     * @param {string} submissionId - The ID of the submission to delete.
+     * Sends a delete submission event with the submission ID to delete.
+     * @param {object} event
      */
-    sendDeleteSubmission(submissionId) {
+    sendDeleteSubmission(event) {
+        if (!this.submissionId) {
+            return;
+        }
+
         this.deleteButtonEnabled = false;
-        console.log('submissionId', submissionId);
 
         const data = {
-            submissionId: submissionId,
+            submissionId: this.submissionId,
         };
 
         const customEvent = new CustomEvent('DbpFormalizeFormDeleteSubmission', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
+    /**
+     * Sends an accept submission event with the submission ID to accept.
+     * @param {object} event
+     */
+    acceptSubmission(event) {
+        if (!this.submissionId) {
+            return;
+        }
+
+        this.acceptButtonEnabled = false;
+        const data = {
+            submissionId: this.submissionId,
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormAcceptSubmission', {
             bubbles: true,
             composed: true,
             detail: data,
@@ -135,13 +170,16 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             // object was set by Keycloak, so we use this.formData instead
             formData: {type: Object, attribute: false},
             data: {type: Object},
-            submissionData: {type: Object, attribute: 'submission-data'},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             formIdentifier: {type: String, attribute: 'form-identifier'},
             formUrlSlug: {type: String, attribute: 'form-url-slug'},
             allowedSubmissionStates: {type: Number, attribute: 'allowed-submission-states'},
             maxNumberOfSubmissionsPerUser: {type: String, attribute: 'max-number-of-submissions'},
+
+            formProperties: {type: Object},
+            userAllSubmissions: {type: Array},
+
             saveButtonEnabled: {type: Boolean, attribute: false},
         };
     }

@@ -18,6 +18,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.formUrlSlug = '';
         this.submissionId = '';
         this.loadedSubmission = {};
+        this.userAllSubmissions = [];
         this.formProperties = {};
         this.authTokenExists = false;
         this.submissionAllowed = false;
@@ -34,6 +35,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submissionAllowed: {type: Boolean, attribute: false},
             formDisplayDenied: {type: Boolean, attribute: false},
             loadedSubmission: {type: Object, attribute: false},
+            userAllSubmissions: {type: Object, attribute: false},
+            formProperties: {type: Array, attribute: false},
         };
     }
 
@@ -74,15 +77,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async handlePermissionsForCurrentForm() {
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
-        console.log('handlePermissionsForCurrentForm formIdentifier', formIdentifier);
 
         this.submissionAllowed = formIdentifier
             ? await this.checkPermissionsToForm(formIdentifier)
             : false;
-        console.log(
-            'handlePermissionsForCurrentForm this.submissionAllowed',
-            this.submissionAllowed,
-        );
     }
 
     async checkPermissionsToForm(identifier) {
@@ -133,7 +131,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.formProperties = data;
-        console.log('this.formProperties', data);
 
         // Check if the user has the permission to manage the form or create submissions
         return (
@@ -148,9 +145,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Fetch the JSON file containing module paths
             const response = await fetch(this.basePath + 'modules.json');
             const data = await response.json();
-            console.log('loadModules data', data);
 
-            console.log('data', data);
+            // console.log('loadModules data', data);
+
             let formComponents = {};
             let formIdentifiers = {};
 
@@ -159,8 +156,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const module = await import(path);
 
                 console.log('formKey', formKey);
-                console.log('path', path);
-                console.log('module', module);
+                // console.log('path', path);
+                // console.log('module', module);
 
                 /**
                  * @type {BaseObject}
@@ -178,15 +175,57 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             this.formComponents = formComponents;
             this.formIdentifiers = formIdentifiers;
-            console.log('formComponents', formComponents);
-            console.log('formIdentifiers', formIdentifiers);
+            // console.log('formComponents', formComponents);
+            // console.log('formIdentifiers', formIdentifiers);
 
             // We want to check permissions after the modules have been loaded,
             // because we finally have a formIdentifier
             await this.handlePermissionsForCurrentForm();
+
+            // Get users all submission for this form
+            await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
         } catch (error) {
             console.error('Error loading modules:', error);
         }
+    }
+
+    async getUserAllSubmissionsData(formIdentifier) {
+        if (!formIdentifier || this.auth.token === '') {
+            return;
+        }
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+
+        try {
+            // @TODO: API does not return DRAFT state submissions!
+            const response = await this.httpGetAsync(
+                this.entryPointUrl + `/formalize/submissions?formIdentifier=${formIdentifier}`,
+                options,
+            );
+
+            if (!response.ok) {
+                return;
+            }
+
+            const responseBody = await response.json();
+            if (
+                responseBody !== undefined &&
+                responseBody['hydra:member'] &&
+                responseBody['hydra:member'].length > 0
+            ) {
+                this.userAllSubmissions = responseBody['hydra:member'];
+                this.requestUpdate();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        console.log('Users submissions data:', this.userAllSubmissions);
     }
 
     async getSubmissionData() {
@@ -229,6 +268,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submittedFiles: data.submittedFiles,
             grantedActions: data.grantedActions,
         };
+        console.log('this.loadedSubmission', this.loadedSubmission);
     }
 
     getFormHtml() {
@@ -236,7 +276,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formComponents = this.formComponents;
 
         if (formUrlSlug === '') {
-            console.log('formUrlSlug empty', formUrlSlug);
+            // console.log('formUrlSlug empty', formUrlSlug);
             // TODO: Show better error message
             return html`
                 No form identifier provided!
@@ -249,8 +289,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `;
         }
 
-        console.log('getFormHtml formComponents', formComponents);
-        console.log('getFormHtml formUrlSlug', formUrlSlug);
+        // console.log('getFormHtml formComponents', formComponents);
+        // console.log('getFormHtml formUrlSlug', formUrlSlug);
 
         if (!formComponents[formUrlSlug]) {
             console.log('formUrlSlug not found', formUrlSlug);
@@ -265,9 +305,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const tagName = 'dbp-formalize-form-' + tagPart;
         const form = this.formComponents[formUrlSlug];
 
-        console.log('getDocumentEditFormHtml formUrlSlug', formUrlSlug);
-        console.log('getDocumentEditFormHtml tagName', tagName);
-        console.log('getDocumentEditFormHtml form', form);
+        // console.log('getDocumentEditFormHtml formUrlSlug', formUrlSlug);
+        // console.log('getDocumentEditFormHtml tagName', tagName);
+        // console.log('getDocumentEditFormHtml form', form);
 
         if (!this.registry.get(tagName)) {
             this.registry.define(tagName, form);
@@ -307,6 +347,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `;
         }
 
+        console.log('RENDER-FORM-RENDER: formProperties', this.formProperties);
+        console.log('RENDER-FORM-RENDER: usersSubmissions', this.userAllSubmissions);
+        console.log('RENDER-FORM-RENDER: data', data);
+
         // We need to use staticHtml and unsafeStatic here, because we want to set the tag name from
         // a variable and need to set the "data" property from a variable too!
         return staticHtml`
@@ -314,10 +358,12 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 ${ref(this.formRef)}
                 id="edit-form"
                 subscribe="auth,lang,entry-point-url"
-                form-identifier="${formIdentifier}"
-                form-url-slug="${formUrlSlug}"
-                max-number-of-submissions="${maxNumberOfSubmissionsPerUser}"
-                allowed-submission-states="${allowedSubmissionStates}"
+                form-identifier=${formIdentifier}
+                form-url-slug=${formUrlSlug}
+                max-number-of-submissions=${maxNumberOfSubmissionsPerUser}
+                allowed-submission-states=${allowedSubmissionStates}
+                .formProperties=${this.formProperties}
+                .userAllSubmissions=${this.userAllSubmissions}
                 .data=${data}></${unsafeStatic(tagName)}>
         `;
     }
@@ -349,7 +395,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
-    update(changedProperties) {
+    async update(changedProperties) {
+        if (changedProperties.has('auth')) {
+            if (!this.authTokenExists && this.auth.token !== '') {
+                this.authTokenExists = true;
+                this.handlePermissionsForCurrentForm();
+
+                await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+                await this.getSubmissionData();
+            }
+        }
+        if (changedProperties.has('auth')) {
+            this.updateFormUrlSlug();
+        }
+        /*
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'auth':
@@ -358,6 +417,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (!this.authTokenExists && this.auth.token !== '') {
                         this.authTokenExists = true;
                         this.handlePermissionsForCurrentForm();
+
+                        this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
                         this.getSubmissionData();
                     }
                     break;
@@ -366,6 +427,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     break;
             }
         });
+        */
 
         super.update(changedProperties);
     }
