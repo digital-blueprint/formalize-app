@@ -243,57 +243,39 @@ class FormalizeFormElement extends BaseFormElement {
                 const data = event.detail;
                 // Include unique identifier for person who is submitting
                 data.formData.identifier = this.auth['person-id'];
-                // Create UUID for each submission
-                this.createUUID();
-                data.formData.uuid = this.formData.uuid;
+
+                this.isSavingDraft = true;
+                const formData = new FormData();
+
+                // Upload attached files
+                if (this.attachedFilesCount > 0) {
+                    for (let i = 0; i < this.attachedFilesCount; i++) {
+                        const file = this.attachedFiles[i];
+                        formData.append('file[]', file, file.name);
+                    }
+                    // @TODO: also check for `submittedFilesToDelete`
+                }
+
+                formData.append('form', '/formalize/forms/' + this.formIdentifier);
+                formData.append('dataFeedElement', JSON.stringify(data.formData));
+                formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
+
+                console.log('this.userAllDraftSubmissions', this.userAllDraftSubmissions);
+
+                // POST or PATCH
+                const isExistingDraft = this.userAllDraftSubmissions?.find(
+                    (item) => item.identifier === this.submissionId,
+                );
+
+                console.log('formData', formData);
+                console.log('data', data);
+
+                const method = isExistingDraft ? 'PATCH' : 'POST';
+                const options = this._buildRequestOptions(formData, method);
+                const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
 
                 try {
-                    this.isSavingDraft = true;
-                    const formData = new FormData();
-
-                    // Upload attached files
-                    if (this.attachedFilesCount > 0) {
-                        for (let i = 0; i < this.attachedFilesCount; i++) {
-                            const file = this.attachedFiles[i];
-                            formData.append('file[]', file, file.name);
-                        }
-                        // @TODO: also check for `submittedFilesToDelete`
-                    }
-
-                    formData.append('form', '/formalize/forms/' + this.formIdentifier);
-                    formData.append('dataFeedElement', JSON.stringify(data.formData));
-                    formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
-
-                    console.log('this.userAllDraftSubmissions', this.userAllDraftSubmissions);
-
-                    // POST or PATCH
-                    const existingDraft = this.userAllDraftSubmissions.find(
-                        (item) => item.identifier === this.submissionId,
-                    )
-                        ? true
-                        : false;
-                    // const existingSubmission = true;
-
-                    console.log('formData', formData);
-                    console.log('data', data);
-
-                    let draftUrl = '';
-                    let options = {
-                        headers: {
-                            Authorization: 'Bearer ' + this.auth.token,
-                        },
-                        body: formData,
-                    };
-                    if (existingDraft) {
-                        draftUrl = `${this.entryPointUrl}/formalize/submissions/${this.submissionId}/multipart`;
-                        options.method = 'PATCH';
-                    } else {
-                        draftUrl = `${this.entryPointUrl}/formalize/submissions/multipart`;
-                        options.method = 'POST';
-                    }
-
-                    const response = await fetch(draftUrl, options);
-                    let responseBody = await response.json();
+                    const response = await fetch(url, options);
 
                     if (!response.ok) {
                         this.draftSaveError = true;
@@ -304,6 +286,7 @@ class FormalizeFormElement extends BaseFormElement {
                             timeout: 5,
                         });
                     } else {
+                        let responseBody = await response.json();
                         this.newSubmissionId = responseBody.identifier;
                         this.draftSaveSuccessful = true;
                         this.draftSaveError = false;
@@ -320,7 +303,7 @@ class FormalizeFormElement extends BaseFormElement {
                     if (this.draftSaveSuccessful) {
                         send({
                             summary: 'Success',
-                            body: 'Draft saved successfully',
+                            body: 'Draft saved successfully. The page will be reloaded.',
                             type: 'success',
                             timeout: 5,
                         });
@@ -344,36 +327,33 @@ class FormalizeFormElement extends BaseFormElement {
                 const data = event.detail;
                 // Include unique identifier for person who is submitting
                 data.formData.identifier = this.auth['person-id'];
-                // Create UUID for each submission
-                this.createUUID();
-                data.formData.uuid = this.formData.uuid;
+
+                this.isPostingSubmission = true;
+                const formData = new FormData();
+
+                // Upload attached files
+                if (this.attachedFilesCount > 0) {
+                    for (let i = 0; i < this.attachedFilesCount; i++) {
+                        const file = this.attachedFiles[i];
+                        formData.append('file[]', file, file.name);
+                    }
+                }
+
+                formData.append('form', '/formalize/forms/' + this.formIdentifier);
+                formData.append('dataFeedElement', JSON.stringify(data.formData));
+                formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+
+                // If we have a draft submission, we need to update it
+                const isExistingDraft = this.userAllDraftSubmissions?.find(
+                    (item) => item.identifier === this.submissionId,
+                );
+
+                const method = isExistingDraft ? 'PATCH' : 'POST';
+                const options = this._buildRequestOptions(formData, method);
+                const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
 
                 try {
-                    this.isPostingSubmission = true;
-                    const formData = new FormData();
-
-                    // Upload attached files
-                    if (this.attachedFilesCount > 0) {
-                        for (let i = 0; i < this.attachedFilesCount; i++) {
-                            const file = this.attachedFiles[i];
-                            formData.append('file[]', file, file.name);
-                        }
-                    }
-
-                    formData.append('form', '/formalize/forms/' + this.formIdentifier);
-                    formData.append('dataFeedElement', JSON.stringify(data.formData));
-                    formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
-
-                    const response = await fetch(
-                        this.entryPointUrl + '/formalize/submissions/multipart',
-                        {
-                            method: 'POST',
-                            headers: {
-                                Authorization: 'Bearer ' + this.auth.token,
-                            },
-                            body: formData,
-                        },
-                    );
+                    const response = await fetch(url, options);
 
                     if (!response.ok) {
                         this.submissionError = true;
@@ -384,13 +364,13 @@ class FormalizeFormElement extends BaseFormElement {
                             timeout: 5,
                         });
                     } else {
+                        // let responseBody = await response.json();
                         this.wasSubmissionSuccessful = true;
                         this.submissionError = false;
                         // Hide form after successful submission
                         this._('#ethics-commission-form').style.display = 'none';
                     }
 
-                    this.submitted = this.wasSubmissionSuccessful;
                     return response;
                 } catch (error) {
                     console.error(error.message);
@@ -493,10 +473,19 @@ class FormalizeFormElement extends BaseFormElement {
         });
     }
 
-    createUUID() {
-        let uuid = self.crypto.randomUUID();
-        console.log('Created UUID: ' + uuid);
-        this.formData.uuid = uuid;
+    _buildRequestOptions(formData, method) {
+        return {
+            method,
+            headers: {
+                Authorization: `Bearer ${this.auth.token}`,
+            },
+            body: formData,
+        };
+    }
+
+    _buildSubmissionUrl(submissionId = null) {
+        const baseUrl = `${this.entryPointUrl}/formalize/submissions`;
+        return submissionId ? `${baseUrl}/${submissionId}/multipart` : `${baseUrl}/multipart`;
     }
 
     async generatePDF() {
