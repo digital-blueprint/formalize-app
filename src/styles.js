@@ -237,6 +237,29 @@ export function getEthicsCommissionFormCSS() {
             margin-bottom: 2em;
         }
 
+        .draft-mode {
+            z-index: 9;
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 200px 200px;
+            border-color: transparent transparent var(--dbp-warning-surface) transparent;
+        }
+
+        .draft-mode__text {
+            position: absolute;
+            top: 120px;
+            left: -131px;
+            transform: rotate(-45deg);
+            font-weight: bold;
+            font-size: 24px;
+            color: white;
+            white-space: nowrap;
+        }
+
         .form-title {
             text-align: center;
             font-size: 2em;

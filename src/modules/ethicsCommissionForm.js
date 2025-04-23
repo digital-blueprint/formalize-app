@@ -1948,6 +1948,16 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${this.getButtonRowHtml()}
 
+                ${
+                    this.isDraftMode
+                        ? html`
+                              <div class="draft-mode">
+                                  <span class="draft-mode__text">Draft mode</span>
+                              </div>
+                          `
+                        : ''
+                }
+
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
                 <div class="type-container">
