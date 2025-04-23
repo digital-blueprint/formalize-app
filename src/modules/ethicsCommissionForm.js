@@ -61,8 +61,11 @@ class FormalizeFormElement extends BaseFormElement {
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
 
-        this.attachedFiles = [];
-        this.attachedFilesCount = 0;
+        this.submittedFiles = new Map();
+        this.submittedFilesCount = 0;
+        this.filesToSubmit = new Map();
+        this.filesToSubmitCount = 0;
+        this.filesToRemove = [];
         this.fileUploadError = false;
 
         this.humanTestSubjectsQuestionsEnabled = false;
@@ -89,7 +92,8 @@ class FormalizeFormElement extends BaseFormElement {
             submitted: {type: Boolean},
             submissionError: {type: Boolean},
 
-            attachedFilesCount: {type: Number},
+            submittedFilesCount: {type: Number},
+            filesToSubmitCount: {type: Number},
 
             // Buttons
             isDeleteSubmissionButtonAllowed: {type: Boolean},
@@ -130,16 +134,7 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
-    async firstUpdated() {
-        // Listen to the event from file source
-        const fileSource = this._('dbp-file-source');
-        if (fileSource) {
-            fileSource.addEventListener('dbp-file-source-file-selected', (event) => {
-                this.attachedFiles.push(event.detail.file);
-                this.attachedFilesCount = this.attachedFiles.length;
-            });
-        }
-    }
+    async firstUpdated() {}
 
     async update(changedProperties) {
         // console.log('changedProperties', changedProperties);
@@ -150,9 +145,10 @@ class FormalizeFormElement extends BaseFormElement {
                     this.formData = JSON.parse(this.data.dataFeedElement);
                     this.submissionState = this.data.submissionState;
                     this.grantedActions = this.data.grantedActions;
-                    this.attachedFiles = await this.transformApiResponseToFile(
+                    this.submittedFiles = await this.transformApiResponseToFile(
                         this.data.submittedFiles,
                     );
+                    this.submittedFilesCount = this.submittedFiles.size;
                     this.isDraftMode = this.submissionState == 1 ? true : false;
                     this.isSubmittedMode = this.submissionState == 4 ? true : false;
                 } catch (e) {
@@ -230,17 +226,35 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     renderAttachedFilesHtml() {
-        console.log('renderAttachedFilesHtml attachedFiles', this.attachedFiles);
-        if (!Array.isArray(this.attachedFiles) || this.attachedFiles.length === 0) {
+        console.log('renderAttachedFilesHtml submittedFiles', this.submittedFiles);
+        console.log('renderAttachedFilesHtml filesToSubmit', this.filesToSubmit);
+
+        if (this.submittedFiles.size === 0 && this.filesToSubmit.size === 0) {
             return;
         }
 
         let results = [];
 
-        this.attachedFiles.forEach((file) => {
+        const allAttachments = new Map([...this.submittedFiles, ...this.filesToSubmit]);
+
+        allAttachments.forEach((file, identifier) => {
             results.push(html`
                 <div class="file-block">
-                    <strong>${file.name}</strong> (${file.type})</span>
+                    <span class="file-info">
+                        <strong>${file.name}</strong>
+                        (${file.type})
+                    </span>
+                    <button
+                        class="delete-file-button button is-secondary"
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this.deleteAttachment(identifier);
+                        }}>
+                        <dbp-icon name="trash"></dbp-icon>
+                        ${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.delete-attachment',
+                        )}
+                    </button>
                 </div>
             `);
         });
@@ -252,6 +266,12 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
+            // Listen to the event from file source
+            this.addEventListener('dbp-file-source-file-selected', (event) => {
+                this.filesToSubmit.set(event.detail.file.name, event.detail.file);
+                this.filesToSubmitCount = this.filesToSubmit.size;
+            });
+
             // Event listener for saving draft
             this.addEventListener('DbpFormalizeFormSaveDraft', async (event) => {
                 // Access the data from the event detail
@@ -263,12 +283,15 @@ class FormalizeFormElement extends BaseFormElement {
                 const formData = new FormData();
 
                 // Upload attached files
-                if (this.attachedFilesCount > 0) {
-                    for (let i = 0; i < this.attachedFilesCount; i++) {
-                        const file = this.attachedFiles[i];
-                        formData.append('file[]', file, file.name);
-                    }
-                    // @TODO: also check for `submittedFilesToDelete`
+                if (this.filesToSubmitCount > 0) {
+                    this.filesToSubmit.forEach((fileToAttach) => {
+                        formData.append('file[]', fileToAttach, fileToAttach.name);
+                    });
+                }
+
+                // Set file to be removed
+                if (this.filesToRemove.length > 0) {
+                    formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
                 }
 
                 formData.append('form', '/formalize/forms/' + this.formIdentifier);
@@ -346,12 +369,16 @@ class FormalizeFormElement extends BaseFormElement {
                 this.isPostingSubmission = true;
                 const formData = new FormData();
 
+                // Set file to be removed
+                if (this.filesToRemove.length > 0) {
+                    formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
+                }
+
                 // Upload attached files
-                if (this.attachedFilesCount > 0) {
-                    for (let i = 0; i < this.attachedFilesCount; i++) {
-                        const file = this.attachedFiles[i];
+                if (this.filesToSubmitCount > 0) {
+                    this.filesToSubmit.forEach((file) => {
                         formData.append('file[]', file, file.name);
-                    }
+                    });
                 }
 
                 formData.append('form', '/formalize/forms/' + this.formIdentifier);
@@ -369,17 +396,16 @@ class FormalizeFormElement extends BaseFormElement {
 
                 try {
                     const response = await fetch(url, options);
-
+                    let responseBody = await response.json();
                     if (!response.ok) {
                         this.submissionError = true;
                         send({
                             summary: 'Error',
-                            body: `Failed to submit form. Response status: ${response.status}`,
+                            body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
                             type: 'danger',
                             timeout: 5,
                         });
                     } else {
-                        // let responseBody = await response.json();
                         this.wasSubmissionSuccessful = true;
                         this.submissionError = false;
                         // Hide form after successful submission
@@ -504,6 +530,15 @@ class FormalizeFormElement extends BaseFormElement {
         return submissionId ? `${baseUrl}/${submissionId}/multipart` : `${baseUrl}/multipart`;
     }
 
+    deleteAttachment(identifier) {
+        this.filesToRemove.push(identifier);
+        this.filesToSubmit.delete(identifier);
+        this.filesToSubmitCount = this.filesToSubmit.size;
+        this.submittedFiles.delete(identifier);
+        this.submittedFilesCount = this.submittedFiles.size;
+        this.requestUpdate();
+    }
+
     async generatePDF() {
         const form = this._('#ethics-commission-form');
 
@@ -619,12 +654,17 @@ class FormalizeFormElement extends BaseFormElement {
         });
     }
 
+    /**
+     * Transforms the API response to a File object.
+     * @param {object} apiFileResponse
+     * @returns {Promise<Map<any, any>>} A promise that resolves to a map of file identifiers to File objects
+     */
     async transformApiResponseToFile(apiFileResponse) {
         if (!apiFileResponse || apiFileResponse.length === 0) {
-            return [];
+            return new Map();
         }
 
-        const attachedFiles = [];
+        const attachedFiles = new Map();
         try {
             for (const apiFile of apiFileResponse) {
                 // Fetch the file content from the download URL
@@ -650,7 +690,7 @@ class FormalizeFormElement extends BaseFormElement {
                     const attachmentFile = new File([fileBlob], apiFile.fileName, {
                         type: apiFile.mimeType,
                     });
-                    attachedFiles.push(attachmentFile);
+                    attachedFiles.set(apiFile.identifier, attachmentFile);
                 }
             }
             return attachedFiles;

@@ -333,6 +333,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 if (allowedActionsWhenSubmitted.includes('read')) {
                     // User can read the submission
                     const oldSubmissionId = this.userAllSubmittedSubmissions.pop().identifier;
+                    // @TODO: We need to access the form in readonly mode. Not yet implemented!
                     const submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
                     return html`
                         <div class="notification is-warning">

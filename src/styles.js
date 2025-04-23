@@ -360,12 +360,23 @@ export function getEthicsCommissionFormCSS() {
         .uploaded-files {
             display: flex;
             flex-direction: column;
-            gap: 0.5em;
         }
 
         .attachment-upload-button {
             width: fit-content;
             margin-top: 1em;
+        }
+
+        .file-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #dadada;
+            padding: 0.5em;
+        }
+
+        .file-block:nth-child(2n + 1) {
+            background-color: #dadada;
         }
 
         /* animations */
