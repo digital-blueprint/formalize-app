@@ -5,7 +5,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {Button, Icon} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {FileSource} from '@dbp-toolkit/file-handling';
-import {getBasePath} from '../utils.js';
+import {getFormRenderUrl} from '../utils.js';
 import {getEthicsCommissionFormCSS} from '../styles.js';
 import {
     DbpStringElement,
@@ -330,7 +330,7 @@ class FormalizeFormElement extends BaseFormElement {
                     setTimeout(() => {
                         // Update URL with the submission ID
                         const newSubmissionUrl =
-                            new URL(window.location.href).pathname + `/${this.newSubmissionId}`;
+                            getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
                         window.history.pushState({}, '', newSubmissionUrl.toString());
                         // Reload the page to reflect the new submission ID
                         window.location.reload();
@@ -482,12 +482,7 @@ class FormalizeFormElement extends BaseFormElement {
                         // Redirect to submission list page or to the empty form?
                         // Wait 5 sec before redirecting to allow user to read the success message?
                         setTimeout(() => {
-                            const currentUrl = new URL(window.location.href);
-                            // Redirect to the empty form
-                            const basePath = getBasePath(currentUrl.pathname);
-                            const formPath = `${basePath}/render-form/${this.formUrlSlug}`;
-                            const emptyFormUrl = new URL(formPath, currentUrl.origin);
-
+                            const emptyFormUrl = getFormRenderUrl(this.formUrlSlug);
                             window.history.pushState({}, '', emptyFormUrl.toString());
                             // Reload the page to reflect the new submission ID
                             window.location.reload();
