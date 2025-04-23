@@ -45,15 +45,18 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
         this.editMode = true;
+        this.isDraftMode = false;
+        this.isSubmittedMode = false;
         this.submitted = false;
         this.submissionError = false;
 
         this.isSavingDraft = false;
         this.draftSaveError = false;
         // Button
-        this.isDraftAllowed = false;
-        this.isDeleteSubmissionAllowed = false;
+        this.isDraftButtonAllowed = false;
+        this.isDeleteSubmissionButtonAllowed = false;
         this.isAcceptButtonEnabled = false;
+        this.isSubmitButtonEnabled = true;
 
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
@@ -89,9 +92,10 @@ class FormalizeFormElement extends BaseFormElement {
             attachedFilesCount: {type: Number},
 
             // Buttons
-            isDeleteSubmissionAllowed: {type: Boolean},
-            isDraftAllowed: {type: Boolean},
+            isDeleteSubmissionButtonAllowed: {type: Boolean},
+            isDraftButtonAllowed: {type: Boolean},
             isAcceptButtonEnabled: {type: Boolean},
+            isSubmitButtonEnabled: {type: Boolean},
 
             humanTestSubjectsQuestionsEnabled: {type: Boolean},
             humanStemCellsQuestionsEnabled: {type: Boolean},
@@ -149,6 +153,8 @@ class FormalizeFormElement extends BaseFormElement {
                     this.attachedFiles = await this.transformApiResponseToFile(
                         this.data.submittedFiles,
                     );
+                    this.isDraftMode = this.submissionState == 1 ? true : false;
+                    this.isSubmittedMode = this.submissionState == 4 ? true : false;
                 } catch (e) {
                     console.error('Error parsing submission data:', e);
                 }
@@ -175,12 +181,21 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     setButtonStates() {
-        // Show draft button if DRAFT state is allowed
-        this.isDraftAllowed = this.allowedSubmissionStates === 5 ? true : false;
+        // Show draft button if DRAFT state is allowed and not yet submitted
+        if (this.allowedSubmissionStates === 5) {
+            this.isDraftButtonAllowed = true;
+            if (this.isSubmittedMode) {
+                this.isDraftButtonAllowed = false;
+            }
+        }
+
+        if (this.isSubmittedMode) {
+            this.isSubmitButtonEnabled = false;
+        }
 
         // Show delete button if the user has delete permission
         if (this.submissionId && Object.keys(this.formProperties).length > 0) {
-            this.isDeleteSubmissionAllowed =
+            this.isDeleteSubmissionButtonAllowed =
                 this.formProperties.allowedActionsWhenSubmitted.includes('delete') ? true : false;
         }
 
@@ -389,6 +404,7 @@ class FormalizeFormElement extends BaseFormElement {
                             timeout: 5,
                         });
                     }
+                    this.submitted = true;
                     this.isPostingSubmission = false;
                 }
             });
@@ -3546,7 +3562,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   </span>
                               `}
                     </button>
-                    ${this.isDeleteSubmissionAllowed
+                    ${this.isDeleteSubmissionButtonAllowed
                         ? html`
                               <dbp-button
                                   class="form-delete-submission-button"
@@ -3590,7 +3606,7 @@ class FormalizeFormElement extends BaseFormElement {
                             )}
                         </span>
                     </dbp-button>
-                    ${this.isDraftAllowed
+                    ${this.isDraftButtonAllowed
                         ? html`
                               <dbp-button
                                   class="form-save-draft-button"
@@ -3612,22 +3628,28 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
-                    <dbp-button
-                        class="form-submit-button"
-                        type="is-primary"
-                        no-spinner-on-click
-                        @click=${this.validateAndSendSubmission}
-                        title="${i18n.t(
-                            'render-form.forms.ethics-commission-form.submit-button-text',
-                        )}"
-                        aria-label="${i18n.t(
-                            'render-form.forms.ethics-commission-form.submit-button-text',
-                        )}">
-                        <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
-                        <span class="button-label">
-                            ${i18n.t('render-form.forms.ethics-commission-form.submit-button-text')}
-                        </span>
-                    </dbp-button>
+                    ${this.isSubmitButtonEnabled
+                        ? html`
+                              <dbp-button
+                                  class="form-submit-button"
+                                  type="is-primary"
+                                  no-spinner-on-click
+                                  @click=${this.validateAndSendSubmission}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submit-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submit-button-text',
+                                  )}">
+                                  <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.submit-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
                     ${this.isAcceptButtonEnabled
                         ? html`
                               <dbp-button
