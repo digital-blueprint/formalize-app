@@ -68,6 +68,11 @@ class FormalizeFormElement extends BaseFormElement {
         this.filesToRemove = [];
         this.fileUploadError = false;
 
+        this.handleSaveDraft = this.handleSaveDraft.bind(this);
+        this.handleFormSubmission = this.handleFormSubmission.bind(this);
+        this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
+        this.handleFormAcceptSubmission = this.handleFormAcceptSubmission.bind(this);
+
         this.humanTestSubjectsQuestionsEnabled = false;
         this.humanStemCellsQuestionsEnabled = false;
         this.stemCellFromHumanEmbryosQuestionsEnabled = false;
@@ -273,245 +278,274 @@ class FormalizeFormElement extends BaseFormElement {
             });
 
             // Event listener for saving draft
-            this.addEventListener('DbpFormalizeFormSaveDraft', async (event) => {
-                // Access the data from the event detail
-                const data = event.detail;
-                // Include unique identifier for person who is submitting
-                data.formData.identifier = this.auth['person-id'];
-
-                this.isSavingDraft = true;
-                const formData = new FormData();
-
-                // Upload attached files
-                if (this.filesToSubmitCount > 0) {
-                    this.filesToSubmit.forEach((fileToAttach) => {
-                        formData.append('file[]', fileToAttach, fileToAttach.name);
-                    });
-                }
-
-                // Set file to be removed
-                if (this.filesToRemove.length > 0) {
-                    formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
-                }
-
-                formData.append('form', '/formalize/forms/' + this.formIdentifier);
-                formData.append('dataFeedElement', JSON.stringify(data.formData));
-                formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
-
-                console.log('this.userAllDraftSubmissions', this.userAllDraftSubmissions);
-
-                // POST or PATCH
-                const isExistingDraft = this.userAllDraftSubmissions?.find(
-                    (item) => item.identifier === this.submissionId,
-                );
-
-                console.log('formData', formData);
-                console.log('data', data);
-
-                const method = isExistingDraft ? 'PATCH' : 'POST';
-                const options = this._buildRequestOptions(formData, method);
-                const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
-
-                try {
-                    const response = await fetch(url, options);
-
-                    if (!response.ok) {
-                        this.draftSaveError = true;
-                        send({
-                            summary: 'Error',
-                            body: `Failed to save form DRAFT. Response status: ${response.status}`,
-                            type: 'danger',
-                            timeout: 5,
-                        });
-                    } else {
-                        let responseBody = await response.json();
-                        this.newSubmissionId = responseBody.identifier;
-                        this.draftSaveSuccessful = true;
-                        this.draftSaveError = false;
-                    }
-                } catch (error) {
-                    console.error(error);
-                    send({
-                        summary: 'Error',
-                        body: error.message,
-                        type: 'danger',
-                        timeout: 5,
-                    });
-                } finally {
-                    if (this.draftSaveSuccessful) {
-                        send({
-                            summary: 'Success',
-                            body: 'Draft saved successfully. The page will be reloaded.',
-                            type: 'success',
-                            timeout: 5,
-                        });
-                    }
-                    this.isSavingDraft = false;
-
-                    setTimeout(() => {
-                        // Update URL with the submission ID
-                        const newSubmissionUrl =
-                            getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
-                        window.history.pushState({}, '', newSubmissionUrl.toString());
-                        // Reload the page to reflect the new submission ID
-                        window.location.reload();
-                    }, 5000);
-                }
-            });
+            this.addEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
 
             // Event listener for form submission
-            this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
-                // Access the data from the event detail
-                const data = event.detail;
-                // Include unique identifier for person who is submitting
-                data.formData.identifier = this.auth['person-id'];
+            this.addEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
 
-                this.isPostingSubmission = true;
-                const formData = new FormData();
-
-                // Set file to be removed
-                if (this.filesToRemove.length > 0) {
-                    formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
-                }
-
-                // Upload attached files
-                if (this.filesToSubmitCount > 0) {
-                    this.filesToSubmit.forEach((file) => {
-                        formData.append('file[]', file, file.name);
-                    });
-                }
-
-                formData.append('form', '/formalize/forms/' + this.formIdentifier);
-                formData.append('dataFeedElement', JSON.stringify(data.formData));
-                formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
-
-                // If we have a draft submission, we need to update it
-                const isExistingDraft = this.userAllDraftSubmissions?.find(
-                    (item) => item.identifier === this.submissionId,
-                );
-
-                const method = isExistingDraft ? 'PATCH' : 'POST';
-                const options = this._buildRequestOptions(formData, method);
-                const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
-
-                try {
-                    const response = await fetch(url, options);
-                    let responseBody = await response.json();
-                    if (!response.ok) {
-                        this.submissionError = true;
-                        send({
-                            summary: 'Error',
-                            body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
-                            type: 'danger',
-                            timeout: 5,
-                        });
-                    } else {
-                        this.wasSubmissionSuccessful = true;
-                        this.submissionError = false;
-                        // Hide form after successful submission
-                        this._('#ethics-commission-form').style.display = 'none';
-                    }
-
-                    return response;
-                } catch (error) {
-                    console.error(error.message);
-                    send({
-                        summary: 'Error',
-                        body: error.message,
-                        type: 'danger',
-                        timeout: 5,
-                    });
-                } finally {
-                    if (this.wasSubmissionSuccessful) {
-                        send({
-                            summary: 'Success',
-                            body: 'Form submitted successfully',
-                            type: 'success',
-                            timeout: 5,
-                        });
-                    }
-                    this.submitted = true;
-                    this.isPostingSubmission = false;
-                }
-            });
+            // Event listener for form submission
+            this.addEventListener(
+                'DbpFormalizeFormDeleteSubmission',
+                this.handleFormDeleteSubmission,
+            );
 
             // Event listener for accepting submission
-            this.addEventListener('DbpFormalizeFormAcceptSubmission', async (event) => {
+            this.addEventListener(
+                'DbpFormalizeFormAcceptSubmission',
+                this.handleFormAcceptSubmission,
+            );
+        });
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.removeEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
+        this.removeEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
+        this.removeEventListener(
+            'DbpFormalizeFormDeleteSubmission',
+            this.handleFormDeleteSubmission,
+        );
+        this.removeEventListener(
+            'DbpFormalizeFormAcceptSubmission',
+            this.handleFormAcceptSubmission,
+        );
+    }
+
+    async handleSaveDraft(event) {
+        // Access the data from the event detail
+        const data = event.detail;
+        // Include unique identifier for person who is submitting
+        data.formData.identifier = this.auth['person-id'];
+
+        this.isSavingDraft = true;
+        const formData = new FormData();
+
+        // Upload attached files
+        if (this.filesToSubmitCount > 0) {
+            this.filesToSubmit.forEach((fileToAttach) => {
+                formData.append('file[]', fileToAttach, fileToAttach.name);
+            });
+        }
+
+        // Set file to be removed
+        if (this.filesToRemove.length > 0) {
+            formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
+        }
+
+        formData.append('form', '/formalize/forms/' + this.formIdentifier);
+        formData.append('dataFeedElement', JSON.stringify(data.formData));
+        formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
+
+        console.log('this.userAllDraftSubmissions', this.userAllDraftSubmissions);
+
+        // POST or PATCH
+        const isExistingDraft = this.userAllDraftSubmissions?.find(
+            (item) => item.identifier === this.submissionId,
+        );
+
+        console.log('formData', formData);
+        console.log('data', data);
+
+        const method = isExistingDraft ? 'PATCH' : 'POST';
+        const options = this._buildRequestOptions(formData, method);
+        const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
+
+        try {
+            const response = await fetch(url, options);
+
+            if (!response.ok) {
+                this.draftSaveError = true;
                 send({
-                    summary: 'Warning',
-                    body: 'Not yet implemented',
-                    type: 'warning',
+                    summary: 'Error',
+                    body: `Failed to save form DRAFT. Response status: ${response.status}`,
+                    type: 'danger',
                     timeout: 5,
                 });
+            } else {
+                let responseBody = await response.json();
+                this.newSubmissionId = responseBody.identifier;
+                this.draftSaveSuccessful = true;
+                this.draftSaveError = false;
+            }
+        } catch (error) {
+            console.error(error);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
             });
-            // Event listener for form submission
-            this.addEventListener('DbpFormalizeFormDeleteSubmission', async (event) => {
-                const data = event.detail;
-                const submissionId = data.submissionId;
+        } finally {
+            if (this.draftSaveSuccessful) {
+                send({
+                    summary: 'Success',
+                    body: 'Draft saved successfully. The page will be reloaded.',
+                    type: 'success',
+                    timeout: 5,
+                });
+            }
+            this.isSavingDraft = false;
 
-                if (!submissionId) {
-                    send({
-                        summary: 'Error',
-                        body: `No submission id provided`,
-                        type: 'danger',
-                        timeout: 5,
-                    });
-                    return;
-                }
+            setTimeout(() => {
+                // Update URL with the submission ID
+                const newSubmissionUrl =
+                    getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
+                window.history.pushState({}, '', newSubmissionUrl.toString());
+                // Reload the page to reflect the new submission ID
+                window.location.reload();
+            }, 5000);
+        }
+    }
 
-                try {
-                    const response = await fetch(
-                        this.entryPointUrl + `/formalize/submissions/${submissionId}`,
-                        {
-                            method: 'DELETE',
-                            headers: {
-                                Authorization: 'Bearer ' + this.auth.token,
-                            },
-                        },
-                    );
+    async handleFormSubmission(event) {
+        // Access the data from the event detail
+        const data = event.detail;
+        // Include unique identifier for person who is submitting
+        data.formData.identifier = this.auth['person-id'];
 
-                    if (!response.ok) {
-                        this.deleteSubmissionError = true;
-                        send({
-                            summary: 'Error',
-                            body: `Failed to delete submission. Response status: ${response.status}`,
-                            type: 'danger',
-                            timeout: 5,
-                        });
-                    } else {
-                        this.wasDeleteSubmissionSuccessful = true;
-                        this.deleteSubmissionError = false;
-                        // Hide form after successful deletion
-                        this._('#ethics-commission-form').style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error(error.message);
-                    send({
-                        summary: 'Error',
-                        body: error.message,
-                        type: 'danger',
-                        timeout: 5,
-                    });
-                } finally {
-                    if (this.wasDeleteSubmissionSuccessful) {
-                        send({
-                            summary: 'Success',
-                            body: 'Form submission deleted successfully. You will be redirected to the empty form.',
-                            type: 'success',
-                            timeout: 5,
-                        });
+        this.isPostingSubmission = true;
+        const formData = new FormData();
 
-                        // Redirect to submission list page or to the empty form?
-                        // Wait 5 sec before redirecting to allow user to read the success message?
-                        setTimeout(() => {
-                            const emptyFormUrl = getFormRenderUrl(this.formUrlSlug);
-                            window.history.pushState({}, '', emptyFormUrl.toString());
-                            // Reload the page to reflect the new submission ID
-                            window.location.reload();
-                        }, 5000);
-                    }
-                }
+        // Set file to be removed
+        if (this.filesToRemove.length > 0) {
+            formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
+        }
+
+        // Upload attached files
+        if (this.filesToSubmitCount > 0) {
+            this.filesToSubmit.forEach((file) => {
+                formData.append('file[]', file, file.name);
             });
+        }
+
+        formData.append('form', '/formalize/forms/' + this.formIdentifier);
+        formData.append('dataFeedElement', JSON.stringify(data.formData));
+        formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+
+        // If we have a draft submission, we need to update it
+        const isExistingDraft = this.userAllDraftSubmissions?.find(
+            (item) => item.identifier === this.submissionId,
+        );
+
+        const method = isExistingDraft ? 'PATCH' : 'POST';
+        const options = this._buildRequestOptions(formData, method);
+        const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
+
+        try {
+            const response = await fetch(url, options);
+            let responseBody = await response.json();
+            if (!response.ok) {
+                this.submissionError = true;
+                send({
+                    summary: 'Error',
+                    body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            } else {
+                this.wasSubmissionSuccessful = true;
+                this.submissionError = false;
+                // Hide form after successful submission
+                this._('#ethics-commission-form').style.display = 'none';
+            }
+
+            return response;
+        } catch (error) {
+            console.error(error.message);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
+            });
+        } finally {
+            if (this.wasSubmissionSuccessful) {
+                send({
+                    summary: 'Success',
+                    body: 'Form submitted successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
+            }
+            this.submitted = true;
+            this.isPostingSubmission = false;
+        }
+    }
+
+    async handleFormDeleteSubmission(event) {
+        const data = event.detail;
+        const submissionId = data.submissionId;
+
+        if (!submissionId) {
+            send({
+                summary: 'Error',
+                body: `No submission id provided`,
+                type: 'danger',
+                timeout: 5,
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                this.entryPointUrl + `/formalize/submissions/${submissionId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                this.deleteSubmissionError = true;
+                send({
+                    summary: 'Error',
+                    body: `Failed to delete submission. Response status: ${response.status}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            } else {
+                this.wasDeleteSubmissionSuccessful = true;
+                this.deleteSubmissionError = false;
+                // Hide form after successful deletion
+                this._('#ethics-commission-form').style.display = 'none';
+            }
+        } catch (error) {
+            console.error(error.message);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
+            });
+        } finally {
+            if (this.wasDeleteSubmissionSuccessful) {
+                send({
+                    summary: 'Success',
+                    body: 'Form submission deleted successfully. You will be redirected to the empty form.',
+                    type: 'success',
+                    timeout: 5,
+                });
+
+                // Redirect to submission list page or to the empty form?
+                // Wait 5 sec before redirecting to allow user to read the success message?
+                setTimeout(() => {
+                    const emptyFormUrl = getFormRenderUrl(this.formUrlSlug);
+                    window.history.pushState({}, '', emptyFormUrl.toString());
+                    // Reload the page to reflect the new submission ID
+                    window.location.reload();
+                }, 5000);
+            }
+        }
+    }
+
+    async handleFormAcceptSubmission(event) {
+        send({
+            summary: 'Warning',
+            body: 'Not yet implemented',
+            type: 'warning',
+            timeout: 5,
         });
     }
 
