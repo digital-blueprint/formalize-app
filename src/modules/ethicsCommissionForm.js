@@ -179,6 +179,9 @@ class FormalizeFormElement extends BaseFormElement {
         super.update(changedProperties);
     }
 
+    /**
+     * Sets the button states based on the submission state and user permissions.
+     */
     setButtonStates() {
         // Show draft button if DRAFT state is allowed and not yet submitted
         if (this.allowedSubmissionStates === 5) {
@@ -188,11 +191,13 @@ class FormalizeFormElement extends BaseFormElement {
             }
         }
 
+        // Don't show submit button if form already submitted
         if (this.isSubmittedMode) {
             this.isSubmitButtonEnabled = false;
         }
 
         // Show delete button if the user has delete permission
+        // @TODO: Do we need to check for 'manage' permission here?
         if (this.submissionId && Object.keys(this.formProperties).length > 0) {
             this.isDeleteSubmissionButtonAllowed =
                 this.formProperties.allowedActionsWhenSubmitted.includes('delete') ? true : false;
@@ -222,18 +227,23 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Opens the file picker dialog.
+     * @param {object} event - Click event
+     */
     openFilePicker(event) {
         event.preventDefault();
         const fileSource = this._('dbp-file-source');
         fileSource.setAttribute('dialog-open', '');
     }
 
+    /**
+     * Renders attached file list with action buttons
+     * @returns {Array|null} An array of rendered file elements or null if no files are present.
+     */
     renderAttachedFilesHtml() {
-        console.log('renderAttachedFilesHtml submittedFiles', this.submittedFiles);
-        console.log('renderAttachedFilesHtml filesToSubmit', this.filesToSubmit);
-
         if (this.submittedFiles.size === 0 && this.filesToSubmit.size === 0) {
-            return;
+            return null;
         }
 
         let results = [];
@@ -309,6 +319,10 @@ class FormalizeFormElement extends BaseFormElement {
         );
     }
 
+    /**
+     * Handle saving draft submission.
+     * @param {object} event - The event object containing the form data.
+     */
     async handleSaveDraft(event) {
         // Access the data from the event detail
         const data = event.detail;
@@ -395,6 +409,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Handle saving submission.
+     * @param {object} event - The event object containing the form data.
+     */
     async handleFormSubmission(event) {
         // Access the data from the event detail
         const data = event.detail;
@@ -470,6 +488,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Handle deleting submission.
+     * @param {object} event - The event object containing the submission id to delete.
+     */
     async handleFormDeleteSubmission(event) {
         const data = event.detail;
         const submissionId = data.submissionId;
@@ -538,6 +560,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Handle accepting submission.
+     * @param {object} event - The event object containing the form data.
+     */
     async handleFormAcceptSubmission(event) {
         send({
             summary: 'Warning',
@@ -547,6 +573,12 @@ class FormalizeFormElement extends BaseFormElement {
         });
     }
 
+    /**
+     * Build request options for the fetch call.
+     * @param {object} formData - The form data to be sent in the request body.
+     * @param {string} method - The HTTP method to use (POST, PATCH, etc.)
+     * @returns {object} The request options object.
+     */
     _buildRequestOptions(formData, method) {
         return {
             method,
@@ -557,20 +589,34 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
+    /**
+     * Build the submission URL. If submissionId is provided, it will be included to the URL.
+     * @param {string} submissionId
+     * @returns {string} The submission URL.
+     */
     _buildSubmissionUrl(submissionId = null) {
         const baseUrl = `${this.entryPointUrl}/formalize/submissions`;
         return submissionId ? `${baseUrl}/${submissionId}/multipart` : `${baseUrl}/multipart`;
     }
 
+    /**
+     * Handle removing files from the list of attachments.
+     * @param {string} identifier
+     */
     deleteAttachment(identifier) {
         this.filesToRemove.push(identifier);
+
         this.filesToSubmit.delete(identifier);
         this.filesToSubmitCount = this.filesToSubmit.size;
+
         this.submittedFiles.delete(identifier);
         this.submittedFilesCount = this.submittedFiles.size;
         this.requestUpdate();
     }
 
+    /**
+     * Generates a PDF from the form content.
+     */
     async generatePDF() {
         const form = this._('#ethics-commission-form');
 
@@ -616,6 +662,11 @@ class FormalizeFormElement extends BaseFormElement {
         // form.classList.remove('print');
     }
 
+    /**
+     * Add header and footer to the PDF.
+     * @param {object} pdf
+     * @param {number} pageNumber
+     */
     addHeader(pdf, pageNumber) {
         const MARGIN_INLINE = 50;
         const MARGIN_BLOCK = 25;
@@ -623,10 +674,11 @@ class FormalizeFormElement extends BaseFormElement {
         pdf.setFontSize(9);
         pdf.setTextColor(25);
 
+        // Header
         pdf.text('TU Graz', pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 10, MARGIN_BLOCK, {
             align: 'right',
         });
-        // Add a TU graz red square
+        // Add a TU graz red square to the header
         pdf.setDrawColor(255, 0, 0);
         pdf.setFillColor(255, 0, 0);
         pdf.setLineWidth(1); // Set the line width
@@ -655,12 +707,16 @@ class FormalizeFormElement extends BaseFormElement {
             MARGIN_BLOCK + 12,
             {align: 'left'},
         );
+
+        // Footer
         pdf.text(
             'Ethikkommission TU Graz / Geschäftsstelle',
             pdf.internal.pageSize.getWidth() / 2,
             pdf.internal.pageSize.getHeight() - MARGIN_BLOCK,
             {align: 'center'},
         );
+
+        // Page number
         pdf.text(
             String(pageNumber),
             pdf.internal.pageSize.getWidth() - MARGIN_INLINE,
@@ -669,6 +725,11 @@ class FormalizeFormElement extends BaseFormElement {
         );
     }
 
+    /**
+     * Replace shadow DOM content with its inner HTML.
+     * This is a workaround for the issue with html2pdf.js not being able to handle shadow DOM.
+     * @param {HTMLElement} element
+     */
     extractShadowContent(element) {
         console.log('extractShadowContent', element);
         console.log('element instanceof HTMLElement', element instanceof HTMLElement);
@@ -744,6 +805,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Renders the form in read-only mode.
+     * @returns {import('lit').TemplateResult} The HTML for the button row.
+     */
     renderFormViews() {
         const i18n = this._i18n;
         console.log('-- Render FormalizeFormView --');
@@ -2017,6 +2082,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Renders the form in natural (edit) mode.
+     * @returns {import('lit').TemplateResult} The HTML for the button row.
+     */
     renderFormElements() {
         const i18n = this._i18n;
         console.log('-- Render FormalizeFormElement --');
@@ -3616,6 +3685,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Render the buttons needed for the form.
+     * @returns {import('lit').TemplateResult} HTML for the button row.
+     */
     getButtonRowHtml() {
         const i18n = this._i18n;
         return html`
@@ -3662,9 +3735,7 @@ class FormalizeFormElement extends BaseFormElement {
                         ? html`
                               <dbp-button
                                   class="form-delete-submission-button"
-                                  @click=${() => {
-                                      this.sendDeleteSubmission(this.submissionId);
-                                  }}
+                                  @click=${this.sendDeleteSubmission}
                                   type="is-danger"
                                   no-spinner-on-click
                                   title="${i18n.t(
@@ -3801,6 +3872,11 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Render text after successfull submission.
+     * @param {boolean} submitted
+     * @returns {import('lit').TemplateResult} HTML for the result of the submission.
+     */
     renderResult(submitted) {
         const i18n = this._i18n;
 

@@ -212,6 +212,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
+    /**
+     * Render the buttons needed for the form.
+     * @returns {import('lit').TemplateResult} HTML for the button row.
+     */
     getButtonRowHtml() {
         const i18n = this._i18n;
         return html`
