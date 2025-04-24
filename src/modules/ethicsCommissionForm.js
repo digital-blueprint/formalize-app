@@ -3626,14 +3626,18 @@ class FormalizeFormElement extends BaseFormElement {
                         class="toggle-edit-mode button is-secondary"
                         @click="${() => {
                             this.readOnly = !this.readOnly;
-
                             const form = this._('#ethics-commission-form');
                             const data = gatherFormDataFromElement(form);
 
-                            console.log('gatherFormDataFromElement', data);
-
                             if (Object.keys(data).length) {
                                 this.formData = data;
+                            }
+
+                            // Add/remove 'readonly' from the current url
+                            if (this.readOnly) {
+                                this.redirectToReadonlyForm();
+                            } else {
+                                this.redirectToEditForm();
                             }
                         }}">
                         ${this.readOnly
@@ -3767,6 +3771,34 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
             </div>
         `;
+    }
+
+    /**
+     * Redirects to the readonly form by appending '/readonly' to the current URL.
+     */
+    redirectToReadonlyForm() {
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        url.pathname = url.pathname + '/readonly';
+        window.history.pushState({}, '', url);
+        // Redirect to the new URL
+        window.location.href = url.toString();
+    }
+
+    /**
+     * Redirects to the edit form by removing '/readonly' from the current URL.
+     */
+    redirectToEditForm() {
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        if (url.pathname.endsWith('/readonly')) {
+            // Remove '/readonly' from the pathname
+            const readOnlyPath = url.pathname.replace(/\/readonly$/, '');
+            url.pathname = readOnlyPath;
+            window.history.pushState({}, '', url);
+            // Redirect to the new URL
+            window.location.href = url.toString();
+        }
     }
 
     renderResult(submitted) {
