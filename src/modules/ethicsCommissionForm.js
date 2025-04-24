@@ -48,6 +48,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isSubmittedMode = false;
         this.submitted = false;
         this.submissionError = false;
+        this.scrollTimeout = null;
 
         this.isSavingDraft = false;
         this.draftSaveError = false;
@@ -72,6 +73,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
         this.handleFormAcceptSubmission = this.handleFormAcceptSubmission.bind(this);
+        this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
 
         this.humanTestSubjectsQuestionsEnabled = false;
         this.humanStemCellsQuestionsEnabled = false;
@@ -284,41 +286,8 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
-            const i18n = this._i18n;
-
             // Handle scroller icon changes
-            let scrollTimeout;
-            const html = document.documentElement;
-            window.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    // Update scroller icon based on scroll position
-                    const form = this._('#ethics-commission-form');
-                    const icon = this._('#form-scroller dbp-icon');
-                    const screenReaderText = this._('#form-scroller .visually-hidden');
-                    if (html.scrollTop < form.scrollHeight / 2) {
-                        icon.setAttribute('name', 'chevron-down');
-                        icon.setAttribute(
-                            'title',
-                            i18n.t(
-                                'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
-                            ),
-                        );
-                        screenReaderText.textContent = i18n.t(
-                            'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
-                        );
-                    } else {
-                        icon.setAttribute('name', 'chevron-up');
-                        icon.setAttribute(
-                            'title',
-                            i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text'),
-                        );
-                        screenReaderText.textContent = i18n.t(
-                            'render-form.forms.ethics-commission-form.scroll-to-top-text',
-                        );
-                    }
-                }, 150);
-            });
+            window.addEventListener('scroll', this.handleScrollToTopBottom);
 
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', (event) => {
@@ -358,6 +327,38 @@ class FormalizeFormElement extends BaseFormElement {
             'DbpFormalizeFormAcceptSubmission',
             this.handleFormAcceptSubmission,
         );
+        window.removeEventListener('scroll', this.handleScrollToTopBottom);
+    }
+
+    handleScrollToTopBottom() {
+        const i18n = this._i18n;
+        clearTimeout(this.scrollTimeout);
+        this.scrollTimeout = setTimeout(() => {
+            // Update scroller icon based on scroll position
+            const html = document.documentElement;
+            const form = this._('#ethics-commission-form');
+            const icon = this._('#form-scroller dbp-icon');
+            const screenReaderText = this._('#form-scroller .visually-hidden');
+            if (html.scrollTop < form.scrollHeight / 2) {
+                icon.setAttribute('name', 'chevron-down');
+                icon.setAttribute(
+                    'title',
+                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text'),
+                );
+                screenReaderText.textContent = i18n.t(
+                    'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
+                );
+            } else {
+                icon.setAttribute('name', 'chevron-up');
+                icon.setAttribute(
+                    'title',
+                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text'),
+                );
+                screenReaderText.textContent = i18n.t(
+                    'render-form.forms.ethics-commission-form.scroll-to-top-text',
+                );
+            }
+        }, 150);
     }
 
     /**
