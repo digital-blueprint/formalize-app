@@ -56,6 +56,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isDeleteSubmissionButtonAllowed = false;
         this.isAcceptButtonEnabled = false;
         this.isSubmitButtonEnabled = true;
+        this.isPrintButtonAllowed = false;
 
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
@@ -194,6 +195,10 @@ class FormalizeFormElement extends BaseFormElement {
         // Don't show submit button if form already submitted
         if (this.isSubmittedMode) {
             this.isSubmitButtonEnabled = false;
+        }
+
+        if (this.readOnly) {
+            this.isPrintButtonAllowed = true;
         }
 
         // Show delete button if the user has delete permission
@@ -3699,7 +3704,7 @@ class FormalizeFormElement extends BaseFormElement {
                         class="toggle-edit-mode button is-secondary"
                         @click="${() => {
                             this.readOnly = !this.readOnly;
-                            const form = this._('#ethics-commission-form');
+                            const form = this.shadowRoot.querySelector('form');
                             const data = gatherFormDataFromElement(form);
 
                             if (Object.keys(data).length) {
@@ -3755,24 +3760,28 @@ class FormalizeFormElement extends BaseFormElement {
                         : ''}
                 </div>
                 <div class="right-buttons">
-                    <dbp-button
-                        class="form-print-pdf-button"
-                        type="is-secondary"
-                        no-spinner-on-click
-                        @click=${this.generatePDF}
-                        title="${i18n.t(
-                            'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                        )}"
-                        aria-label="${i18n.t(
-                            'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                        )}">
-                        <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
-                        <span class="button-label">
-                            ${i18n.t(
-                                'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                            )}
-                        </span>
-                    </dbp-button>
+                    ${this.isPrintButtonAllowed
+                        ? html`
+                              <dbp-button
+                                  class="form-print-pdf-button"
+                                  type="is-secondary"
+                                  no-spinner-on-click
+                                  @click=${this.generatePDF}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                  )}">
+                                  <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
                     ${this.isDraftButtonAllowed
                         ? html`
                               <dbp-button
