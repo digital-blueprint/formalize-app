@@ -44,7 +44,6 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.editMode = true;
         this.isDraftMode = false;
         this.isSubmittedMode = false;
         this.submitted = false;
@@ -93,7 +92,6 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
-            editMode: {type: Boolean},
             submitted: {type: Boolean},
             submissionError: {type: Boolean},
 
@@ -736,12 +734,12 @@ class FormalizeFormElement extends BaseFormElement {
 
     render() {
         return html`
-            ${this.editMode
+            ${this.readOnly
                 ? html`
-                      ${this.renderFormElements()}
+                      ${this.renderFormViews()}
                   `
                 : html`
-                      ${this.renderFormViews()}
+                      ${this.renderFormElements()}
                   `}
         `;
     }
@@ -3617,7 +3615,7 @@ class FormalizeFormElement extends BaseFormElement {
                         id="toggle-edit-mode"
                         class="toggle-edit-mode button is-secondary"
                         @click="${() => {
-                            this.editMode = !this.editMode;
+                            this.readOnly = !this.readOnly;
 
                             const form = this._('#ethics-commission-form');
                             const data = gatherFormDataFromElement(form);
@@ -3628,20 +3626,20 @@ class FormalizeFormElement extends BaseFormElement {
                                 this.formData = data;
                             }
                         }}">
-                        ${this.editMode
+                        ${this.readOnly
                             ? html`
-                                  <dbp-icon name="eye"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.view-mode',
-                                      )}
-                                  </span>
-                              `
-                            : html`
                                   <dbp-icon name="pencil"></dbp-icon>
                                   <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.edit-mode',
+                                      )}
+                                  </span>
+                              `
+                            : html`
+                                  <dbp-icon name="eye"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.view-mode',
                                       )}
                                   </span>
                               `}

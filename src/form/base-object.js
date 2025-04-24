@@ -40,6 +40,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.userAllSubmissions = [];
         this.allowedSubmissionStates = 4;
         this.maxNumberOfSubmissionsPerUser = 10;
+        this.readOnly = false;
         this.submissionId = '';
     }
 
@@ -174,6 +175,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             formIdentifier: {type: String, attribute: 'form-identifier'},
             formUrlSlug: {type: String, attribute: 'form-url-slug'},
+            readOnly: {type: Boolean, attribute: 'read-only'},
             allowedSubmissionStates: {type: Number, attribute: 'allowed-submission-states'},
             maxNumberOfSubmissionsPerUser: {type: String, attribute: 'max-number-of-submissions'},
 

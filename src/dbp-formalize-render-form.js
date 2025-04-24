@@ -64,8 +64,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.submissionId = pathSegment;
         }
 
-        // Get query parameters
-        // this.getRoutingData().queryParams || '';
+        if (this.submissionId && this.getRoutingData().pathSegments[2] === 'readonly') {
+            // Load the submission data in readonly mode
+            this.readOnly = true;
+        }
 
         // Update the formUrlSlug if it has changed
         if (this.formUrlSlug !== formUrlSlug) {
@@ -432,6 +434,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 form-url-slug=${formUrlSlug}
                 max-number-of-submissions=${maxNumberOfSubmissionsPerUser}
                 allowed-submission-states=${allowedSubmissionStates}
+                ?read-only=${this.readOnly}
                 .formProperties=${this.formProperties}
                 .userAllSubmissions=${this.userAllSubmissions}
                 .data=${data}></${unsafeStatic(tagName)}>
@@ -481,29 +484,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 await this.getSubmissionData();
             }
         }
-        if (changedProperties.has('auth')) {
+        if (changedProperties.has('routingUrl')) {
             this.updateFormUrlSlug();
         }
-        /*
-        changedProperties.forEach((oldValue, propName) => {
-            switch (propName) {
-                case 'auth':
-                    // We need to check permissions again once, because the user might not have been
-                    // logged in yet when the modules were loaded
-                    if (!this.authTokenExists && this.auth.token !== '') {
-                        this.authTokenExists = true;
-                        this.handlePermissionsForCurrentForm();
-
-                        this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
-                        this.getSubmissionData();
-                    }
-                    break;
-                case 'routingUrl':
-                    this.updateFormUrlSlug();
-                    break;
-            }
-        });
-        */
 
         super.update(changedProperties);
     }
