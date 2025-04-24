@@ -318,7 +318,7 @@ export function getEthicsCommissionFormCSS() {
             left: 0;
             background: var(--dbp-background);
             padding: 1em;
-            border: 1px solid black;
+            border: var(--dbp-border);
 
             .button-label {
                 padding-left: 0.5em;
@@ -376,6 +376,52 @@ export function getEthicsCommissionFormCSS() {
 
         .file-block:nth-child(2n + 1) {
             background-color: #dadada;
+        }
+
+        /* Add some space to the scroller under the form */
+        form > article:last-child {
+            margin-bottom: 8em;
+        }
+
+        .scroller-container {
+            position: sticky;
+            top: 90vh;
+            text-align: right;
+            pointer-events: none;
+            z-index: 9;
+        }
+
+        .scroller {
+            width: 50px;
+            height: 50px;
+            font-size: 48px;
+            border: var(--dbp-border);
+            padding: 10px;
+            color: var(--dbp-content);
+            background-color: var(--dbp-background);
+            transform: translateX(150%);
+            pointer-events: all;
+            cursor: pointer;
+        }
+
+        @media only screen and (max-width: 1600px) {
+            .scroller {
+                opacity: 0.7;
+                transform: translateX(0);
+            }
+            .scroller:hover {
+                opacity: 1;
+            }
+        }
+
+        /* utils */
+        .visually-hidden {
+            position: absolute !important;
+            clip: rect(1px, 1px, 1px, 1px);
+            overflow: hidden;
+            height: 1px;
+            width: 1px;
+            word-wrap: normal;
         }
 
         /* animations */

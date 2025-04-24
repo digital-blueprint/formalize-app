@@ -284,6 +284,42 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
+            const i18n = this._i18n;
+
+            // Handle scroller icon changes
+            let scrollTimeout;
+            const html = document.documentElement;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    // Update scroller icon based on scroll position
+                    const form = this._('#ethics-commission-form');
+                    const icon = this._('#form-scroller dbp-icon');
+                    const screenReaderText = this._('#form-scroller .visually-hidden');
+                    if (html.scrollTop < form.scrollHeight / 2) {
+                        icon.setAttribute('name', 'chevron-down');
+                        icon.setAttribute(
+                            'title',
+                            i18n.t(
+                                'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
+                            ),
+                        );
+                        screenReaderText.textContent = i18n.t(
+                            'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
+                        );
+                    } else {
+                        icon.setAttribute('name', 'chevron-up');
+                        icon.setAttribute(
+                            'title',
+                            i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text'),
+                        );
+                        screenReaderText.textContent = i18n.t(
+                            'render-form.forms.ethics-commission-form.scroll-to-top-text',
+                        );
+                    }
+                }, 150);
+            });
+
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', (event) => {
                 this.filesToSubmit.set(event.detail.file.name, event.detail.file);
@@ -753,6 +789,45 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
+     * Handles scolling up and down the form.
+     * @param {object} event - The click event object.
+     */
+    handleScroller(event) {
+        const i18n = this._i18n;
+        event.preventDefault();
+        const html = document.documentElement;
+        const form = this._('#ethics-commission-form');
+        const icon = this._('#form-scroller dbp-icon');
+        const screenReaderText = this._('#form-scroller .visually-hidden');
+
+        if (html.scrollTop < form.scrollHeight / 2) {
+            html.scrollTo({top: form.scrollHeight, behavior: 'smooth'});
+            setTimeout(() => {
+                icon.setAttribute('name', 'chevron-up');
+                icon.setAttribute(
+                    'title',
+                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text'),
+                );
+                screenReaderText.textContent = i18n.t(
+                    'render-form.forms.ethics-commission-form.scroll-to-top-text',
+                );
+            }, 1500);
+        } else {
+            html.scrollTo({top: 0, behavior: 'smooth'});
+            setTimeout(() => {
+                icon.setAttribute('name', 'chevron-down');
+                icon.setAttribute(
+                    'title',
+                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text'),
+                );
+                screenReaderText.textContent = i18n.t(
+                    'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
+                );
+            }, 1500);
+        }
+    }
+
+    /**
      * Transforms the API response to a File object.
      * @param {object} apiFileResponse
      * @returns {Promise<Map<any, any>>} A promise that resolves to a map of file identifiers to File objects
@@ -824,6 +899,13 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
+
+                <div class="scroller-container">
+                    <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
+                        <dbp-icon name="chevron-down" title=${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}></dbp-icon>
+                        <span class="visually-hidden">${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}</span>
+                    </button>
+                </div>
 
                 ${this.getButtonRowHtml()}
 
@@ -2100,6 +2182,13 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
+
+            <div class="scroller-container">
+                <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
+                    <dbp-icon name="chevron-down" title=${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}></dbp-icon>
+                    <span class="visually-hidden">${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}</span>
+                </button>
+            </div>
 
                 ${this.getButtonRowHtml()}
 
