@@ -2002,6 +2002,15 @@ class FormalizeFormElement extends BaseFormElement {
                         <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
                         <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
                     </div>
+
+                    <div class="file-upload-container">
+
+                        <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
+
+                        <div class="uploaded-files">
+                            ${this.renderAttachedFilesHtml()}
+                        </div>
+                    </div>
                 </article>
             </form>
             ${this.renderResult(this.submitted)}
@@ -3592,16 +3601,17 @@ class FormalizeFormElement extends BaseFormElement {
                         </div>
 
                         <button @click="${this.openFilePicker}" class="button is-primary attachment-upload-button">${i18n.t('render-form.forms.ethics-commission-form.attache-file-button-label')}</button>
-
-                        <dbp-file-source
-                            id="file-source"
-                            class="file-source"
-                            allowed-mime-types="*/*"
-                            subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
-                            enabled-targets="local,nextcloud"></dbp-file-source>
                     </div>
+
+                    <dbp-file-source
+                        id="file-source"
+                        class="file-source"
+                        allowed-mime-types="*/*"
+                        subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
+                        enabled-targets="local,nextcloud"></dbp-file-source>
                 </article>
             </form>
+
             ${this.renderResult(this.submitted)}
         `;
     }

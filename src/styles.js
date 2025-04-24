@@ -346,7 +346,7 @@ export function getEthicsCommissionFormCSS() {
         .file-upload-container {
             margin-bottom: 3em;
             border: var(--dbp-border);
-            padding: 1em 1em 0 1em;
+            padding: 1em 1em 1.5em 1em;
             display: flex;
             flex-direction: column;
             gap: 1em;
@@ -364,7 +364,6 @@ export function getEthicsCommissionFormCSS() {
 
         .attachment-upload-button {
             width: fit-content;
-            margin-top: 1em;
         }
 
         .file-block {
