@@ -5,6 +5,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {Button, Icon} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {FileSource} from '@dbp-toolkit/file-handling';
+import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {getFormRenderUrl} from '../utils.js';
 import {getEthicsCommissionFormCSS} from '../styles.js';
 import {
@@ -135,6 +136,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
             'dbp-file-source': FileSource,
+            'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-button': Button,
             'dbp-icon': Icon,
         };
@@ -2192,6 +2194,21 @@ class FormalizeFormElement extends BaseFormElement {
             </div>
 
                 ${this.getButtonRowHtml()}
+
+                <div class="form-details">
+                    <dbp-button class="edit-permissions"
+                        no-spinner-on-click
+                        @click=${() => this._('#grant-permission-dialog').open()}>
+                        ${i18n.t('render-form.forms.ethics-commission-form.edit-permission-button-text')}
+                    </dbp-button>
+                    <dbp-grant-permission-dialog
+                        id="grant-permission-dialog"
+                        lang="${this.lang}"
+                        subscribe="auth"
+                        entry-point-url="${this.entryPointUrl}"
+                        resource-identifier="${this.formIdentifier}"
+                        resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
+                </div>
 
                 ${
                     this.isDraftMode

@@ -238,7 +238,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .draft-mode {
-            z-index: 9;
+            z-index: 5;
             position: fixed;
             bottom: 0;
             right: 0;
