@@ -340,6 +340,12 @@ export function getEthicsCommissionFormCSS() {
             gap: 1em;
         }
 
+        .edit-permissions {
+            .button-text {
+                padding-left: 5px;
+            }
+        }
+
         @container form (width < 820px) {
             /* Make icon buttons for small screens ? */
             .button-row {
@@ -393,7 +399,7 @@ export function getEthicsCommissionFormCSS() {
             width: calc(100% - 2em);
             justify-content: space-between;
             padding-right: 2em;
-            max-width: 70%;
+            max-width: 56%;
         }
 
         .file-name {
@@ -424,7 +430,7 @@ export function getEthicsCommissionFormCSS() {
                 display: none;
             }
             .file-info {
-                max-width: 60%;
+                max-width: 42%;
             }
         }
 
@@ -486,6 +492,10 @@ export function getEthicsCommissionFormCSS() {
             --dbp-modal-max-height: 95vh;
         }
 
+        .modal--permissions {
+            --dbp-modal-width: 80vw;
+        }
+
         /* utils */
         .visually-hidden {
             position: absolute !important;
@@ -497,6 +507,18 @@ export function getEthicsCommissionFormCSS() {
         }
 
         /* animations */
+
+        .button,
+        dbp-button {
+            dbp-icon {
+                transition: transform 0.1s ease-in;
+            }
+
+            &:hover dbp-icon {
+                transform: scale(1.25);
+            }
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;

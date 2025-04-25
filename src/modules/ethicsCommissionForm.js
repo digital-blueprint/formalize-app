@@ -4,7 +4,7 @@ import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {Button, Icon} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
-import {FileSource} from '@dbp-toolkit/file-handling';
+import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
@@ -138,6 +138,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
             'dbp-file-source': FileSource,
+            'dbp-file-sink': FileSink,
             'dbp-pdf-viewer': PdfViewer,
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
@@ -287,6 +288,20 @@ class FormalizeFormElement extends BaseFormElement {
                             <dbp-icon name="eye"></dbp-icon>
                             ${this._i18n.t(
                                 'render-form.forms.ethics-commission-form.view-attachment',
+                            )}
+                        </button>
+                        <button
+                            class="download-file-button button is-secondary"
+                            @click=${(e) => {
+                                e.preventDefault();
+                                console.log('file', file);
+                                console.log('file-sink', this._('#file-sink'));
+
+                                this._('#file-sink').files = [file];
+                            }}>
+                            <dbp-icon name="download"></dbp-icon>
+                            ${this._i18n.t(
+                                'render-form.forms.ethics-commission-form.download-attachment',
                             )}
                         </button>
                         <button
@@ -2235,7 +2250,8 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-button class="edit-permissions"
                         no-spinner-on-click
                         @click=${() => this._('#grant-permission-dialog').open()}>
-                        ${i18n.t('render-form.forms.ethics-commission-form.edit-permission-button-text')}
+                        <dbp-icon name="lock" aria-hidden="true"></dbp-icon>
+                        <span class="button-text">${i18n.t('render-form.forms.ethics-commission-form.edit-permission-button-text')}</span>
                     </dbp-button>
                     <dbp-grant-permission-dialog
                         id="grant-permission-dialog"
@@ -3827,6 +3843,14 @@ class FormalizeFormElement extends BaseFormElement {
                         max-file-size="50000"
                         subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
                         enabled-targets="local,nextcloud"></dbp-file-source>
+
+                    <dbp-file-sink
+                        id="file-sink"
+                        class="file-sink"
+                        subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
+                        enabled-targets="local,nextcloud"
+                        filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
+                        ></dbp-file-sink>
                 </article>
                 <dbp-modal
                     id="pdf-view-modal"
