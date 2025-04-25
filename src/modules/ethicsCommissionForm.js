@@ -6,6 +6,8 @@ import {Button, Icon} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {FileSource} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
+import {Modal} from '@dbp-toolkit/common/src/modal.js';
+import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {getFormRenderUrl} from '../utils.js';
 import {getEthicsCommissionFormCSS} from '../styles.js';
 import {
@@ -136,7 +138,9 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
             'dbp-file-source': FileSource,
+            'dbp-pdf-viewer': PdfViewer,
             'dbp-grant-permission-dialog': GrantPermissionDialog,
+            'dbp-modal': Modal,
             'dbp-button': Button,
             'dbp-icon': Icon,
         };
@@ -232,6 +236,7 @@ class FormalizeFormElement extends BaseFormElement {
         return css`
             ${commonStyles.getGeneralCSS(false)}
             ${commonStyles.getButtonCSS()}
+            ${commonStyles.getModalDialogCSS()}
             ${getEthicsCommissionFormCSS()}
         `;
     }
@@ -263,20 +268,39 @@ class FormalizeFormElement extends BaseFormElement {
             results.push(html`
                 <div class="file-block">
                     <span class="file-info">
-                        <strong>${file.name}</strong>
-                        (${file.type})
+                        <strong class="file-name">${file.name}</strong>
+                        <span class="additional-data">
+                            <span class="file-type">(${file.type})</span>
+                            <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                        </span>
                     </span>
-                    <button
-                        class="delete-file-button button is-secondary"
-                        @click=${(e) => {
-                            e.preventDefault();
-                            this.deleteAttachment(identifier);
-                        }}>
-                        <dbp-icon name="trash"></dbp-icon>
-                        ${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.delete-attachment',
-                        )}
-                    </button>
+                    <div class="file-action-buttons">
+                        <button
+                            class="view-file-button button is-secondary"
+                            @click=${(e) => {
+                                e.preventDefault();
+                                // Open modal
+                                this._('#pdf-view-modal').open();
+                                // Open PDF viewer
+                                this._('dbp-pdf-viewer').showPDF(file);
+                            }}>
+                            <dbp-icon name="eye"></dbp-icon>
+                            ${this._i18n.t(
+                                'render-form.forms.ethics-commission-form.view-attachment',
+                            )}
+                        </button>
+                        <button
+                            class="delete-file-button button is-secondary"
+                            @click=${(e) => {
+                                e.preventDefault();
+                                this.deleteAttachment(identifier);
+                            }}>
+                            <dbp-icon name="trash"></dbp-icon>
+                            ${this._i18n.t(
+                                'render-form.forms.ethics-commission-form.delete-attachment',
+                            )}
+                        </button>
+                    </div>
                 </div>
             `);
         });
@@ -2167,6 +2191,18 @@ class FormalizeFormElement extends BaseFormElement {
                         </div>
                     </div>
                 </article>
+                <dbp-modal
+                    id="pdf-view-modal"
+                    class="pdf-view-modal"
+                    modal-id="pdf-viewer-modal"
+                    subscribe="lang">
+                    <div slot="content">
+                        <dbp-pdf-viewer
+                            id="dbp-pdf-viewer"
+                            lang="${this.lang}"
+                            auto-resize="cover"></dbp-pdf-viewer>
+                    </div>
+                </dbp-modal>
             </form>
             ${this.renderResult(this.submitted)}
         `;
@@ -3787,10 +3823,23 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-file-source
                         id="file-source"
                         class="file-source"
-                        allowed-mime-types="*/*"
+                        allowed-mime-types='application/pdf'
+                        max-file-size="50000"
                         subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
                         enabled-targets="local,nextcloud"></dbp-file-source>
                 </article>
+                <dbp-modal
+                    id="pdf-view-modal"
+                    class="pdf-view-modal"
+                    modal-id="pdf-viewer-modal"
+                    subscribe="lang">
+                    <div slot="content">
+                        <dbp-pdf-viewer
+                            id="dbp-pdf-viewer"
+                            lang="${this.lang}"
+                            auto-resize="cover"></dbp-pdf-viewer>
+                    </div>
+                </dbp-modal>
             </form>
 
             ${this.renderResult(this.submitted)}

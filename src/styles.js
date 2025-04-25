@@ -241,12 +241,13 @@ export function getEthicsCommissionFormCSS() {
             z-index: 5;
             position: fixed;
             bottom: 0;
-            right: 0;
+            left: 0;
             width: 0;
             height: 0;
             border-style: solid;
             border-width: 0 0 200px 200px;
             border-color: transparent transparent var(--dbp-warning-surface) transparent;
+            transform: rotate(90deg);
         }
 
         .draft-mode__text {
@@ -258,6 +259,14 @@ export function getEthicsCommissionFormCSS() {
             font-size: 24px;
             color: white;
             white-space: nowrap;
+        }
+
+        .form-details {
+            margin-top: 0;
+            padding: 1rem;
+            background: #e6e6e6;
+            display: flex;
+            justify-content: flex-end;
         }
 
         .form-title {
@@ -378,6 +387,60 @@ export function getEthicsCommissionFormCSS() {
             background-color: #dadada;
         }
 
+        .file-info {
+            display: flex;
+            gap: 1em;
+            width: calc(100% - 2em);
+            justify-content: space-between;
+            padding-right: 2em;
+            max-width: 70%;
+        }
+
+        .file-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-size {
+            font-weight: bolder;
+        }
+
+        .file-action-buttons {
+            display: flex;
+            gap: 1em;
+            flex-wrap: nowrap;
+        }
+
+        .additional-data {
+            display: flex;
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+            gap: 0.5em;
+        }
+
+        @container form (width < 820px) {
+            .additional-data {
+                display: none;
+            }
+            .file-info {
+                max-width: 60%;
+            }
+        }
+
+        @container form (width < 540px) {
+            .file-block {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 1em;
+            }
+
+            .file-action-buttons {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
         /* Add some space to the scroller under the form */
         form > article:last-child {
             margin-bottom: 8em;
@@ -412,6 +475,15 @@ export function getEthicsCommissionFormCSS() {
             .scroller:hover {
                 opacity: 1;
             }
+        }
+
+        /* modal */
+        .pdf-view-modal {
+            --dbp-modal-width: 80vw;
+            --dbp-modal-min-width: 320px;
+            --dbp-modal-max-width: 1000px;
+            --dbp-modal-min-height: 35vh;
+            --dbp-modal-max-height: 95vh;
         }
 
         /* utils */

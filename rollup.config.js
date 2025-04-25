@@ -302,6 +302,14 @@ export default (async () => {
                                     'tabulator-tables',
                                 )),
                         },
+                        {
+                            src: await getPackagePath('pdfjs-dist', 'legacy/build/pdf.worker.mjs'),
+                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
+                        },
+                        {
+                            src: await getPackagePath('pdfjs-dist', 'cmaps/*'),
+                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
+                        },
                     ],
                 }),
             whitelabel &&
@@ -355,6 +363,14 @@ export default (async () => {
                                     '@dbp-toolkit/tabulator-table',
                                     'tabulator-tables',
                                 )),
+                        },
+                        {
+                            src: await getPackagePath('pdfjs-dist', 'legacy/build/pdf.worker.mjs'),
+                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
+                        },
+                        {
+                            src: await getPackagePath('pdfjs-dist', 'cmaps/*'),
+                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
                         },
                     ],
                 }),
