@@ -164,6 +164,10 @@ class FormalizeFormElement extends BaseFormElement {
                     this.submittedFilesCount = this.submittedFiles.size;
                     this.isDraftMode = this.submissionState == 1 ? true : false;
                     this.isSubmittedMode = this.submissionState == 4 ? true : false;
+
+                    this.updateComplete.then(async () => {
+                        await this.processConditionalFields();
+                    });
                 } catch (e) {
                     console.error('Error parsing submission data:', e);
                 }
@@ -229,6 +233,35 @@ class FormalizeFormElement extends BaseFormElement {
                     ? true
                     : false;
             }
+        }
+    }
+
+    /**
+     * Handle conditional fields initialization.
+     */
+    async processConditionalFields() {
+        const conditionalFields = this._a('.conditional-field');
+        const conditionalFieldsCount = conditionalFields.length;
+
+        conditionalFields.forEach((field) => {
+            const value = field.value;
+            if (!value) return;
+
+            if (field.dataset.targetVariable) {
+                const targetVariable = field.dataset.targetVariable;
+                const condition = field.dataset.condition || 'yes';
+                if (this[targetVariable] !== undefined) {
+                    this[targetVariable] = value === condition;
+                }
+            }
+        });
+
+        await this.updateComplete;
+
+        // Run again to handle conditional fields inside other conditional fields
+        const newConditionalFieldsCount = this._a('.conditional-field').length;
+        if (newConditionalFieldsCount > conditionalFieldsCount) {
+            this.processConditionalFields();
         }
     }
 
@@ -706,7 +739,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Set print style
         form.classList.add('print');
 
-        this.extractShadowContent(form);
+        // this.extractShadowContent(form);
 
         window.scrollTo(0, 0);
 
@@ -1182,12 +1215,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <h4 class="section-sub-title">1. Menschen</h4>
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.humanTestSubjectsQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="humanTestSubjectsQuestionsEnabled"
+                        data-condition="yes"
                         subscribe="lang"
                         label="Nehmen Menschen am Forschungsvorhaben als Proband*innen teil?"
                         description="(z.B.: durch Interviews; über per Ton und/oder Video aufgezeichnete Beobachtungen; bei Technologie-/Prototypentestungen)"
@@ -1379,12 +1409,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">2. Menschliche Stammzellen, Embryos bzw. Föten</h3>
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.humanStemCellsQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="humanStemCellsQuestionsEnabled"
+                        data-condition="yes"
                         subscribe="lang"
                         label="Bezieht sich das Forschungsvorhaben auf die Verwendung von menschlichen Stammzellen oder menschlichem Gewebe?"
                         .items=${{
@@ -1415,12 +1442,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.humanTissueUsed || ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          @change="${(e) => {
-                                              if (e.detail.value) {
-                                                  this.stemCellFromEmbryosQuestionsEnabled =
-                                                      e.detail.value === 'yes' ? true : false;
-                                              }
-                                          }}"
+                                          class="conditional-field"
+                                          data-target-variable="stemCellFromEmbryosQuestionsEnabled"
+                                          data-condition="yes"
                                           subscribe="lang"
                                           label="2.1.2. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Stammzellen?"
                                           .items=${{
@@ -1450,12 +1474,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           : ''}
 
                                       <dbp-form-enum-view
-                                          @change="${(e) => {
-                                              if (e.detail.value) {
-                                                  this.stemCellFromHumanEmbryosQuestionsEnabled =
-                                                      e.detail.value === 'yes' ? true : false;
-                                              }
-                                          }}"
+                                          class="conditional-field"
+                                          data-target-variable="stemCellFromHumanEmbryosQuestionsEnabled"
+                                          data-condition="yes"
                                           subscribe="lang"
                                           label="2.1.3. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Embryos oder Föten?"
                                           .items=${{
@@ -1501,12 +1522,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          @change="${(e) => {
-                                              if (e.detail.value) {
-                                                  this.cellsObtainedInResearchQuestionsEnabled =
-                                                      e.detail.value === 'yes' ? true : false;
-                                              }
-                                          }}"
+                                          class="conditional-field"
+                                          data-target-variable="cellsObtainedInResearchQuestionsEnabled"
+                                          data-condition="yes"
                                           subscribe="lang"
                                           label="2.2.2. Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
                                           .items=${{
@@ -1540,12 +1558,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">3. Tiere</h3>
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.animalQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="animalQuestionsEnabled"
+                        data-condition="yes"
                         subscribe="lang"
                         label="Werden im Zuge des Forschungsvorhabens Tiere herangezogen?"
                         .items=${{
@@ -1565,7 +1580,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       <h4 class="question-group-title">
                                           3.1. Tiere im Forschungsvorhaben
                                       </h4>
-                                      vertebrates
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           label="3.1.1.	Handelt es sich dabei um Wirbeltiere?"
@@ -1653,12 +1667,9 @@ class FormalizeFormElement extends BaseFormElement {
                 <article>
                     <h3 class="section-sub-title">4. Nicht-EU-Staaten / Drittstaaten</h3>
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.nonEuCountriesQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="nonEuCountriesQuestionsEnabled"
+                        data-condition="yes"
                         subscribe="lang"
                         label="Wird ein Teil des Forschungsvorhabens außerhalb der EU/in Drittstaaten durchgeführt?"
                         .items=${{
@@ -1690,12 +1701,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.ethicalIssues || ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          @change="${(e) => {
-                                              if (e.detail.value) {
-                                                  this.questionResearchFoundsQuestionsEnabled =
-                                                      e.detail.value === 'yes' ? true : false;
-                                              }
-                                          }}"
+                                          class="conditional-field"
+                                          data-target-variable="questionResearchFoundsQuestionsEnabled"
+                                          data-condition="yes"
                                           subscribe="lang"
                                           label="4.1.2. Ist die Nutzung von lokalen Ressourcen in Drittstaaten geplant?"
                                           .items=${{
@@ -1783,12 +1791,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         <dbp-form-enum-view
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.harmfulSubstancesOnSubjects =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
+                            class="conditional-field"
+                            data-target-variable="harmfulSubstancesOnSubjects"
+                            data-condition="yes"
                             subscribe="lang"
                             label="5.3. Kommt es zum Einsatz von Stoffen, die für Proband*innen und/oder Forscher*innen potentiell schädliche Konsequenzen haben können?"
                             .items=${{
@@ -1885,12 +1890,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         <dbp-form-enum-view
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.ethicalIssuesListQuestion =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
+                            class="conditional-field"
+                            data-target-variable="ethicalIssuesListQuestion"
+                            data-condition="yes"
                             subscribe="lang"
                             label="6.5.	Wirft die Entwicklung und/oder Anwendung dieser informationsverarbeitenden Systeme noch weitere ethische Fragen auf, die nicht von der Liste abgedeckt sind?"
                             .items=${{
@@ -1927,12 +1929,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">7. Interessenskonflikte</h3>
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.hasConflictOfInterestSubQuestion =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="hasConflictOfInterestSubQuestion"
+                        data-condition="yes"
                         subscribe="lang"
                         label="7.1. Bestehen mögliche Interessenskonflikte mit dem Auftraggeber und/oder mit Projektpartner*innen?"
                         .items=${{
@@ -1958,12 +1957,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.hasConfidentialPartSubQuestion =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="hasConfidentialPartSubQuestion"
+                        data-condition="yes"
                         subscribe="lang"
                         label="7.2.	Unterliegen die Ergebnisse Ihres Forschungsvorhabens oder Teile davon der Geheimhaltung bzw. ist die Veröffentlichung und/oder weitere Nutzung untersagt?"
                         .items=${{
@@ -2005,12 +2001,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.hasConflictInContentControlSubQuestion =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="hasConflictInContentControlSubQuestion"
+                        data-condition="yes"
                         subscribe="lang"
                         label="7.3.	Kann es Interessenskonflikte über die Inhaltskontrolle der Veröffentlichung geben?"
                         .items=${{
@@ -2036,12 +2029,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.stakeholderParticipationPlannedSubQuestion =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="stakeholderParticipationPlannedSubQuestion"
+                        data-condition="yes"
                         subscribe="lang"
                         label="7.4.	Ist die Beteiligung von Stakeholdern geplant?"
                         .items=${{
@@ -2116,11 +2106,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     <dbp-form-enum-view
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.riskSubQuestion = e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        class="conditional-field"
+                        data-target-variable="riskSubQuestion"
+                        data-condition="yes"
                         subscribe="lang"
                         label="8.5.	Ergeben sich unter Berücksichtigung aller Antworten aus Ihrer Sicht Risiken oder Folgeerscheinungen?"
                         .items=${{
@@ -2178,14 +2166,13 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
-                        label=""
                         .items=${{
                             yes: 'Ja',
                             no: 'Nein',
                         }}
                         .value=${data.diversityAspects || ''}>
                         <span slot="label">
-                            9.4. Werden im Projekt diversitäts- und gendersensible Aspekte berücksichtigt (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>siehe Leitfaden der TU Graz</a>)?
+                            <label>9.4. Werden im Projekt diversitäts- und gendersensible Aspekte berücksichtigt (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>siehe Leitfaden der TU Graz</a>)?</label>
                         </span>
                     </dbp-form-enum-view>
                 </article>
@@ -3366,7 +3353,7 @@ class FormalizeFormElement extends BaseFormElement {
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
                                 <span slot="label">
-                                    5.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
+                                    <label>5.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?</label>
                                 </span>
                         </dbp-form-enum-element>
 
