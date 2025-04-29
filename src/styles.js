@@ -463,9 +463,8 @@ export function getEthicsCommissionFormCSS() {
         .scroller {
             width: 50px;
             height: 50px;
-            font-size: 48px;
+            font-size: 38px;
             border: var(--dbp-border);
-            padding: 10px;
             color: var(--dbp-content);
             background-color: var(--dbp-background);
             transform: translateX(150%);
@@ -531,49 +530,98 @@ export function getEthicsCommissionFormCSS() {
         .fade-in {
             animation: fadeIn 0.5s ease-in-out forwards;
         }
+    `;
+}
 
+export function getEthicsCommissionFormPrintCSS() {
+    // language=css
+    return css`
         /* PRINTING STYLES */
         .print {
-            padding: 0;
-            font-size: 14px;
+            --dbp-form-font-size: 16px;
+            --dbp-form-line-height: 24px;
+
+            padding: 0 !important;
+            font-size: var(--dbp-form-font-size) !important;
+            line-height: var(--dbp-form-line-height) !important;
+
+            /* PAGE BREAKS */
+            .section-title {
+                page-break-before: always;
+                break-before: always;
+            }
 
             fieldset {
-                background: red;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* Title styles */
+            .form-title,
+            .form-sub-title,
+            .section-title,
+            .section-sub-title,
+            .question-group-title {
+                line-height: var(--dbp-form-line-height) !important;
+                font-size: var(--dbp-form-line-height);
+                margin: 0;
+                padding: 0 0 24px 0;
+                text-align: center;
+            }
+
+            .section-sub-title {
+                font-size: 20px;
+                padding: 0 0 24px 0;
+                margin: 0;
+                text-align: center;
+            }
+
+            .question-group-title {
+                font-size: 18px;
+                padding: 0 0 24px 0;
+                margin: 0;
+                text-align: center;
+            }
+
+            .button-row,
+            button,
+            dbp-button,
+            .scroller-container {
+                display: none !important;
+            }
+
+            sup {
+                vertical-align: baseline;
+                padding-left: 3px;
+            }
+
+            fieldset {
                 border: none;
-                padding: 0;
+                margin: 0;
+                padding: 0 0 var(--dbp-form-line-height) 0;
+            }
+
+            p,
+            ul,
+            ol {
+                margin: var(--dbp-form-line-height);
             }
 
             fieldset label {
                 font-weight: bold;
+                display: block;
             }
 
-            article {
-                page-break-before: auto;
-                page-break-inside: avoid;
-            }
-
-            .section-title {
-                page-break-before: always;
-            }
-
-            .textarea {
-                page-break-inside: auto;
-            }
-
-            li,
-            p,
-            .textarea {
-                page-break-inside: avoid;
-            }
-
-            textarea,
-            input[type='text'] {
-                border: none;
-            }
-
-            .button-row {
-                display: none;
-            }
+            /* Line height debug background*/
+            background-image: linear-gradient(
+                to bottom,
+                rgba(0, 120, 255, 0.1) 0,
+                rgba(0, 120, 255, 0.1) 1px,
+                transparent 1px,
+                transparent var(--dbp-form-line-height)
+            );
+            background-size: 100% var(--dbp-form-line-height);
+            background-position: 0 0;
         }
     `;
 }

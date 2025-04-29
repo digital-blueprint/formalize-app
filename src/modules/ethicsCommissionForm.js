@@ -9,7 +9,7 @@ import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {getFormRenderUrl} from '../utils.js';
-import {getEthicsCommissionFormCSS} from '../styles.js';
+import {getEthicsCommissionFormCSS, getEthicsCommissionFormPrintCSS} from '../styles.js';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -412,6 +412,9 @@ class FormalizeFormElement extends BaseFormElement {
             const html = document.documentElement;
             const form = this._('#ethics-commission-form');
             const icon = this._('#form-scroller dbp-icon');
+            if (!icon) {
+                return;
+            }
             const screenReaderText = this._('#form-scroller .visually-hidden');
             if (html.scrollTop < form.scrollHeight / 2) {
                 icon.setAttribute('name', 'chevron-down');
@@ -740,42 +743,53 @@ class FormalizeFormElement extends BaseFormElement {
         form.classList.add('print');
 
         // this.extractShadowContent(form);
+        const restoreElements = this.extractShadowContent(form);
 
-        window.scrollTo(0, 0);
+        // window.scrollTo(0, 0);
 
         const opt = {
-            margin: [80, 50],
+            margin: [70, 50], // Don't change vertical margin or lines can break when printing.
             filename: 'Ethical_Review_Application.pdf',
             image: {type: 'jpeg', quality: 0.98},
             html2canvas: {
-                scale: 1,
+                scale: 2,
                 dpi: 192,
+                scrollY: 0, // Scrolls to page top
             },
-            jsPDF: {unit: 'pt', format: 'A4', orientation: 'portrait'},
+            jsPDF: {
+                unit: 'pt',
+                format: 'A4',
+                orientation: 'portrait',
+            },
             pagebreak: {
-                mode: ['css', 'legacy'],
+                mode: ['css'],
+                // before: [ '.page-break' ],
             },
         };
 
-        await html2pdf()
-            .set(opt)
-            .from(form)
-            .toPdf()
-            .get('pdf')
-            .then((pdf) => {
-                console.log(pdf);
-
-                var totalPages = pdf.internal.getNumberOfPages();
-
-                for (let i = 1; i <= totalPages; i++) {
-                    pdf.setPage(i);
-                    this.addHeader(pdf, i);
-                }
-            })
-            .save();
-
-        // Remove print style
-        // form.classList.remove('print');
+        try {
+            await html2pdf()
+                .set(opt)
+                .from(form)
+                .toPdf()
+                .get('pdf')
+                .then((pdf) => {
+                    // console.log(pdf);
+                    var totalPages = pdf.internal.getNumberOfPages();
+                    for (let i = 1; i <= totalPages; i++) {
+                        pdf.setPage(i);
+                        this.addHeader(pdf, i);
+                    }
+                })
+                .save();
+        } finally {
+            // Remove print style after PDF is generated or if there's an error
+            form.classList.remove('print');
+            // Restore original elements
+            restoreElements();
+            // Force a re-render
+            // this.requestUpdate();
+        }
     }
 
     /**
@@ -850,17 +864,43 @@ class FormalizeFormElement extends BaseFormElement {
         console.log('extractShadowContent', element);
         console.log('element instanceof HTMLElement', element instanceof HTMLElement);
 
+        // Store original elements and their clones
+        const shadowElements = [];
         element.querySelectorAll('*').forEach((el) => {
-            if (el.shadowRoot) {
-                console.log('el', el);
-
+            if (el.tagName.startsWith('DBP-FORM') && el.shadowRoot) {
                 const shadowContent = el.shadowRoot.innerHTML;
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = shadowContent;
 
-                el.replaceWith(wrapper);
+                const slot = el.querySelector('[slot="label"]');
+                if (slot) {
+                    const slotLabel = slot.textContent;
+                    const label = document.createElement('label');
+                    label.textContent = slotLabel;
+                    const fieldset = wrapper.querySelector('fieldset');
+                    fieldset.prepend(label);
+                }
+
+                // Store original element and its clone for later restoration
+                shadowElements.push({
+                    original: el,
+                    clone: wrapper,
+                });
+
+                // Hide original element and insert clone
+                el.style.display = 'none';
+                el.insertAdjacentElement('afterend', wrapper);
             }
         });
+
+        // Return function to restore original state
+        return function restoreElements() {
+            shadowElements.forEach(({original, clone}) => {
+                // Remove clone and restore original element
+                clone.remove();
+                original.style.display = '';
+            });
+        };
     }
 
     /**
@@ -972,6 +1012,11 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.formData || {};
 
         return html`
+
+            <style>
+                /* Style needs to be inline for html2pdf.js */
+                ${getEthicsCommissionFormPrintCSS()}
+            </style>
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
 
