@@ -7,6 +7,8 @@ import {
     DbpEnumElement,
     DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
+import {SUBMISSION_STATE_SUBMITTED} from '../utils.js';
+import {send} from '@dbp-toolkit/common/notification.js';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
 // import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
@@ -39,7 +41,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.updateComplete.then(() => {
             // Add the event listener if you don't want to override the sendSubmission method
-            this.addEventListener('DbpFormalizeFormSubmission', (event) => {
+            this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 // Access the data from the event detail
                 const data = event.detail;
 
@@ -47,6 +49,50 @@ class FormalizeFormElement extends BaseFormElement {
                 console.log('Form submission data:', data);
 
                 // Add your event handling logic here
+                const postFormData = new FormData();
+                postFormData.append('form', '/formalize/forms/' + this.formIdentifier);
+                postFormData.append('dataFeedElement', JSON.stringify(data.formData));
+                postFormData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+
+                try {
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            Authorization: `Bearer ${this.auth.token}`,
+                        },
+                        body: postFormData,
+                    };
+                    const url = `${this.entryPointUrl}/formalize/submissions/multipart`;
+                    const response = await fetch(url, options);
+                    let responseBody = await response.json();
+                    if (!response.ok) {
+                        send({
+                            summary: 'Error',
+                            body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
+                            type: 'danger',
+                            timeout: 5,
+                        });
+                    } else {
+                        this.wasSubmissionSuccessful = true;
+                    }
+                } catch (error) {
+                    console.error(error.message);
+                    send({
+                        summary: 'Error',
+                        body: error.message,
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                } finally {
+                    if (this.wasSubmissionSuccessful) {
+                        send({
+                            summary: 'Success',
+                            body: 'Form submitted successfully',
+                            type: 'success',
+                            timeout: 5,
+                        });
+                    }
+                }
 
                 // In the demo form, we are enabling the save button again and update the form data
                 this.saveButtonEnabled = true;
