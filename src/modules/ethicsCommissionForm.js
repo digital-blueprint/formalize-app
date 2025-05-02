@@ -474,7 +474,7 @@ class FormalizeFormElement extends BaseFormElement {
             (item) => item.identifier === this.submissionId,
         );
 
-        console.log('formData', formData);
+        console.log('formData', [...formData]);
         console.log('data', data);
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
@@ -583,8 +583,6 @@ class FormalizeFormElement extends BaseFormElement {
                 // Hide form after successful submission
                 this._('#ethics-commission-form').style.display = 'none';
             }
-
-            return response;
         } catch (error) {
             console.error(error.message);
             send({
@@ -700,7 +698,7 @@ class FormalizeFormElement extends BaseFormElement {
      */
     _buildRequestOptions(formData, method) {
         return {
-            method,
+            method: method,
             headers: {
                 Authorization: `Bearer ${this.auth.token}`,
             },
