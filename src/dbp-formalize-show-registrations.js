@@ -209,8 +209,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                             if (this.submissions.length === 0) {
                                 table.setColumns([]);
-                            } else if (this.submissionsColumns.length !== 0) {
-                                table.setColumns(this.submissionsColumns);
                             }
                             this.defineSettings();
                         });
@@ -1805,11 +1803,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         };
                     }
                     column.sorter = 'string'; // add header sorter to every column
-                    if (column.field.includes('html')) {
+                    if (column.field === 'htmlButtons') {
                         column.formatter = 'html';
                         column.hozAlign = 'center';
                         column.headerSort = false;
-                        column.title = 'Actions';
+                        column.title = '';
+                        column.minWidth = 64;
+                        column.frozen = true;
                     }
                 });
                 return definitions;
