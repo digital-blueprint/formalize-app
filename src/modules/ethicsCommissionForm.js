@@ -756,12 +756,12 @@ class FormalizeFormElement extends BaseFormElement {
             },
             jsPDF: {
                 unit: 'pt',
-                format: 'A4',
+                format: 'a4',
                 orientation: 'portrait',
             },
             pagebreak: {
-                mode: ['css'],
-                // before: [ '.page-break' ],
+                // mode: ['css'],
+                // before: [ '.section-title' ],
             },
         };
 

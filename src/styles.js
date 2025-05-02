@@ -546,9 +546,10 @@ export function getEthicsCommissionFormPrintCSS() {
             line-height: var(--dbp-form-line-height) !important;
 
             /* PAGE BREAKS */
+            .form-sub-title,
             .section-title {
                 page-break-before: always;
-                break-before: always;
+                break-before: page;
             }
 
             fieldset {
@@ -588,6 +589,8 @@ export function getEthicsCommissionFormPrintCSS() {
             dbp-button,
             .scroller-container {
                 display: none !important;
+                height: 0;
+                overflow: hidden;
             }
 
             sup {
@@ -612,7 +615,7 @@ export function getEthicsCommissionFormPrintCSS() {
                 display: block;
             }
 
-            /* Line height debug background*/
+            /* Line height debug background
             background-image: linear-gradient(
                 to bottom,
                 rgba(0, 120, 255, 0.1) 0,
@@ -622,6 +625,7 @@ export function getEthicsCommissionFormPrintCSS() {
             );
             background-size: 100% var(--dbp-form-line-height);
             background-position: 0 0;
+            */
         }
     `;
 }
