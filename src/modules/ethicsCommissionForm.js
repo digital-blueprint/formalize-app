@@ -8,7 +8,7 @@ import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
-import {getFormRenderUrl} from '../utils.js';
+import {getFormRenderUrl, formatDate, httpGetAsync} from '../utils.js';
 import {getEthicsCommissionFormCSS, getEthicsCommissionFormPrintCSS} from '../styles.js';
 import {
     DbpStringElement,
@@ -52,6 +52,9 @@ class FormalizeFormElement extends BaseFormElement {
         this.submitted = false;
         this.submissionError = false;
         this.scrollTimeout = null;
+
+        this.submitterName = null;
+        this.resourceActions = [];
 
         this.isSavingDraft = false;
         this.draftSaveError = false;
@@ -164,6 +167,76 @@ class FormalizeFormElement extends BaseFormElement {
                     this.submittedFilesCount = this.submittedFiles.size;
                     this.isDraftMode = this.submissionState == 1 ? true : false;
                     this.isSubmittedMode = this.submissionState == 4 ? true : false;
+
+                    if (this.formData) {
+                        try {
+                            const submitterDetailsResponse = await this.apiGetUserDetails(
+                                this.formData.identifier,
+                            );
+                            if (!submitterDetailsResponse.ok) {
+                                send({
+                                    summary: 'Error',
+                                    body: `Failed to get submitter details. Response status: ${submitterDetailsResponse.status}`,
+                                    type: 'danger',
+                                    timeout: 5,
+                                });
+                            }
+                            const submitterDetails = await submitterDetailsResponse.json();
+                            console.log('submitterDetails', submitterDetails);
+                            this.submitterName = `${submitterDetails.givenName} ${submitterDetails.familyName}`;
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    }
+
+                    try {
+                        const resourceActionsResponse = await this.apiGetResourceActionGrants();
+                        if (!resourceActionsResponse.ok) {
+                            send({
+                                summary: 'Error',
+                                body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
+                                type: 'danger',
+                                timeout: 5,
+                            });
+                        }
+                        const resourceActionsBody = await resourceActionsResponse.json();
+                        console.log('resourceActions', resourceActionsBody);
+                        let resourceActions = [];
+                        if (resourceActionsBody['hydra:member'].length > 0) {
+                            for (const resourceAction of resourceActionsBody['hydra:member']) {
+                                const userDetailsResponse = await this.apiGetUserDetails(
+                                    resourceAction.userIdentifier,
+                                );
+                                if (!userDetailsResponse.ok) {
+                                    send({
+                                        summary: 'Error',
+                                        body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
+                                        type: 'danger',
+                                        timeout: 5,
+                                    });
+                                }
+                                const userDetails = await userDetailsResponse.json();
+                                const userFullName = `${userDetails.givenName} ${userDetails.familyName}`;
+
+                                // Find existing user entry or create new one
+                                let userEntry = resourceActions.find(
+                                    (entry) => entry.userId === resourceAction.userIdentifier,
+                                );
+                                if (!userEntry) {
+                                    userEntry = {
+                                        userId: resourceAction.userIdentifier,
+                                        userName: userFullName,
+                                        actions: [],
+                                    };
+                                    resourceActions.push(userEntry);
+                                }
+                                userEntry.actions.push(resourceAction.action);
+                            }
+                            this.resourceActions = resourceActions;
+                        }
+                    } catch (e) {
+                        console.log(e);
+                    }
 
                     this.updateComplete.then(async () => {
                         await this.processConditionalFields();
@@ -995,6 +1068,128 @@ class FormalizeFormElement extends BaseFormElement {
                 : html`
                       ${this.renderFormElements()}
                   `}
+        `;
+    }
+
+    /**
+     * Gets user details from API
+     * @param {string} userIdentifier
+     * @returns {Promise<object>} response
+     */
+    async apiGetUserDetails(userIdentifier) {
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+        return await httpGetAsync(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
+    }
+
+    /**
+     * Gets the list of Resource Action Grants
+     * @returns {Promise<object>} response
+     */
+    async apiGetResourceActionGrants() {
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+        return await httpGetAsync(
+            this.entryPointUrl +
+                `/authorization/resource-action-grants?resourceClass=DbpRelayFormalizeForm&resourceIdentifier=${this.formIdentifier}&page=1&perPage=9999`,
+            options,
+        );
+    }
+
+    /**
+     * Render submission details
+     * submission date, submitter, last changed.
+     * @returns {import('lit').TemplateResult} The HTML template result
+     */
+    renderSubmissionDetails() {
+        const i18n = this._i18n;
+        const currentSubmission = this.userAllSubmissions.find(
+            (submission) => submission.identifier == this.submissionId,
+        );
+        const dateCreated = formatDate(currentSubmission.dateCreated);
+        const dateLastModified = formatDate(currentSubmission.dateLastModified);
+        const deadLine = formatDate(this.formProperties.availabilityEnds);
+
+        return html`
+            <div class="submission-details">
+                <div class="submission-dates">
+                    ${deadLine
+                        ? html`
+                              <div class="submission-deadline">
+                                  <span class="label">Submission deadline:</span>
+                                  <span class="value">${deadLine}</span>
+                              </div>
+                          `
+                        : ''}
+                    ${dateCreated
+                        ? html`
+                              <div class="submission-date">
+                                  <span class="label">Submission date:</span>
+                                  <span class="value">${dateCreated}</span>
+                              </div>
+                          `
+                        : ''}
+                    ${dateCreated
+                        ? html`
+                              <div class="last-modified">
+                                  <span class="label">Last modified:</span>
+                                  <span class="value">${dateLastModified}</span>
+                              </div>
+                          `
+                        : ''}
+                    ${this.submitterName
+                        ? html`
+                              <div class="submitter">
+                                  <span class="label">Submitter:</span>
+                                  <span class="value">${this.submitterName}</span>
+                              </div>
+                          `
+                        : ''}
+                </div>
+                <div class="submission-permissions">
+                    <div class="permissions-header">
+                        <span class="user-permissions-title">Access management</span>
+                        <dbp-button
+                            class="edit-permissions"
+                            no-spinner-on-click
+                            type="is-primary"
+                            @click=${() => this._('#grant-permission-dialog').open()}>
+                            <dbp-icon name="lock" aria-hidden="true"></dbp-icon>
+                            <span class="button-text">
+                                ${i18n.t(
+                                    'render-form.forms.ethics-commission-form.edit-permission-button-text',
+                                )}
+                            </span>
+                        </dbp-button>
+                    </div>
+                    <span class="users-permissions">
+                        ${this.resourceActions.map(
+                            (userEntry) => html`
+                                <div class="user-entry">
+                                    <span class="person-name">${userEntry.userName}:</span>
+                                    <span class="person-permissions">
+                                        ${userEntry.actions.map(
+                                            (action) => html`
+                                                <span class="person-permission">${action}</span>
+                                            `,
+                                        )}
+                                    </span>
+                                </div>
+                            `,
+                        )}
+                    </span>
+                </div>
+            </div>
         `;
     }
 
@@ -2277,19 +2472,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${this.getButtonRowHtml()}
 
                 <div class="form-details">
-                    <dbp-button class="edit-permissions"
-                        no-spinner-on-click
-                        @click=${() => this._('#grant-permission-dialog').open()}>
-                        <dbp-icon name="lock" aria-hidden="true"></dbp-icon>
-                        <span class="button-text">${i18n.t('render-form.forms.ethics-commission-form.edit-permission-button-text')}</span>
-                    </dbp-button>
-                    <dbp-grant-permission-dialog
-                        id="grant-permission-dialog"
-                        lang="${this.lang}"
-                        subscribe="auth"
-                        entry-point-url="${this.entryPointUrl}"
-                        resource-identifier="${this.formIdentifier}"
-                        resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
+                    ${this.renderSubmissionDetails()}
                 </div>
 
                 ${
@@ -3882,6 +4065,7 @@ class FormalizeFormElement extends BaseFormElement {
                         filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
                         ></dbp-file-sink>
                 </article>
+
                 <dbp-modal
                     id="pdf-view-modal"
                     class="pdf-view-modal"
@@ -3894,6 +4078,14 @@ class FormalizeFormElement extends BaseFormElement {
                             auto-resize="cover"></dbp-pdf-viewer>
                     </div>
                 </dbp-modal>
+
+                <dbp-grant-permission-dialog
+                    id="grant-permission-dialog"
+                    lang="${this.lang}"
+                    subscribe="auth"
+                    entry-point-url="${this.entryPointUrl}"
+                    resource-identifier="${this.formIdentifier}"
+                    resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
             </form>
 
             ${this.renderResult(this.submitted)}

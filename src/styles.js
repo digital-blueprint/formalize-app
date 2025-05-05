@@ -263,10 +263,70 @@ export function getEthicsCommissionFormCSS() {
 
         .form-details {
             margin-top: 0;
-            padding: 1rem;
+            padding: 1em;
             background: #e6e6e6;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+        }
+
+        .submission-details {
+            display: flex;
+            justify-content: space-between;
+            gap: 1em;
+            width: 100%;
+
+            .label {
+                display: inline-block;
+            }
+
+            .permissions-header {
+                display: flex;
+                gap: 1em;
+                justify-content: space-between;
+                margin-bottom: 1em;
+            }
+
+            .users-permissions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5em;
+            }
+
+            .user-entry {
+                display: flex;
+                align-items: center;
+                gap: 0.5em;
+                justify-content: space-between;
+            }
+
+            .person-name {
+                width: 200px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .user-permissions-title {
+                font-weight: bold;
+                display: block;
+                font-size: 20px;
+                margin-bottom: 1em;
+            }
+
+            .person-permissions {
+                display: flex;
+                gap: 0.5em;
+                flex-wrap: nowrap;
+            }
+
+            .person-permission {
+                display: inline-block;
+                border: 1px solid var(--dbp-content);
+                border-radius: 4px;
+                padding: 0 6px;
+                line-height: 26px;
+                background-color: var(--dbp-background);
+            }
         }
 
         .form-title {
@@ -354,6 +414,23 @@ export function getEthicsCommissionFormCSS() {
                     .button-label {
                         display: none;
                     }
+                }
+            }
+
+            .submission-details {
+                flex-direction: column;
+            }
+        }
+
+        @container form (width < 420px) {
+            .submission-details {
+                .user-entry {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                .person-permissions {
+                    width: 100%;
+                    justify-content: flex-end;
                 }
             }
         }
