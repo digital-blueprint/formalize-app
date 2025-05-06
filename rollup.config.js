@@ -96,6 +96,16 @@ if (devConfig != undefined && appEnv in devConfig) {
     process.exit(1);
 }
 
+if (config.nextcloudBaseURL) {
+    config.nextcloudFileURL = config.nextcloudBaseURL + '/index.php/apps/files/?dir=';
+    config.nextcloudWebAppPasswordURL = config.nextcloudBaseURL + '/index.php/apps/webapppassword';
+    config.nextcloudWebDavURL = config.nextcloudBaseURL + '/remote.php/dav/files';
+} else {
+    config.nextcloudFileURL = '';
+    config.nextcloudWebAppPasswordURL = '';
+    config.nextcloudWebDavURL = '';
+}
+
 if (watch) {
     config.basePath = '/dist/';
 }
@@ -165,6 +175,11 @@ export default (async () => {
                         buildInfo: getBuildInfo(appEnv),
                         universityShortName: config.universityShortName,
                         universityFullName: config.universityFullName,
+                        nextcloudWebAppPasswordURL: config.nextcloudWebAppPasswordURL,
+                        nextcloudWebDavURL: config.nextcloudWebDavURL,
+                        nextcloudBaseURL: config.nextcloudBaseURL,
+                        nextcloudFileURL: config.nextcloudFileURL,
+                        nextcloudName: config.nextcloudName,
                     },
                 }),
             whitelabel &&
@@ -190,6 +205,11 @@ export default (async () => {
                         buildInfo: getBuildInfo(appEnv),
                         universityShortName: config.universityShortName,
                         universityFullName: config.universityFullName,
+                        nextcloudWebAppPasswordURL: config.nextcloudWebAppPasswordURL,
+                        nextcloudWebDavURL: config.nextcloudWebDavURL,
+                        nextcloudBaseURL: config.nextcloudBaseURL,
+                        nextcloudFileURL: config.nextcloudFileURL,
+                        nextcloudName: config.nextcloudName,
                     },
                 }),
             resolve({

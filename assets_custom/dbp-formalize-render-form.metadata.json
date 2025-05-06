@@ -14,5 +14,5 @@
         "de": "Zeigt ein Formular an",
         "en": "Shows a form"
     },
-    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url"
+    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url,nextcloud-auth-url,nextcloud-web-app-password-url,nextcloud-webdav-url,nextcloud-name,nextcloud-file-url"
 }

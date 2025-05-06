@@ -58,6 +58,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.isSavingDraft = false;
         this.draftSaveError = false;
+
         // Button
         this.isDraftButtonAllowed = false;
         this.isDeleteSubmissionButtonAllowed = false;
@@ -4061,16 +4062,17 @@ class FormalizeFormElement extends BaseFormElement {
                         class="file-source"
                         allowed-mime-types='application/pdf'
                         max-file-size="50000"
-                        subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
-                        enabled-targets="local,nextcloud"></dbp-file-source>
+                        enabled-targets="local,clipboard,nextcloud"
+                        subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
 
                     <dbp-file-sink
                         id="file-sink"
                         class="file-sink"
-                        subscribe="nextcloud-auth-url:nextcloud-auth-url,nextcloud-web-dav-url:nextcloud-web-dav-url,nextcloud-name:nextcloud-name,nextcloud-file-url:nextcloud-file-url"
-                        enabled-targets="local,nextcloud"
+                        allowed-mime-types="application/pdf,.pdf"
+                        decompress-zip
+                        enabled-targets="local,clipboard,nextcloud"
                         filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
-                        ></dbp-file-sink>
+                        subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
                 </article>
 
                 <dbp-modal

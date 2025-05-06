@@ -429,7 +429,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <${unsafeStatic(tagName)}
                 ${ref(this.formRef)}
                 id="edit-form"
-                subscribe="auth,lang,entry-point-url"
+                subscribe="auth,lang,entry-point-url,nextcloud-web-app-password-url,nextcloud-web-dav-url,nextcloud-auth-url,nextcloud-name,nextcloud-file-url"
                 form-identifier=${formIdentifier}
                 form-url-slug=${formUrlSlug}
                 max-number-of-submissions=${maxNumberOfSubmissionsPerUser}

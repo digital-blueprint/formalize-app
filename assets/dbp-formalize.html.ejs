@@ -119,6 +119,11 @@
     provider-root
     lang="de"
     entry-point-url="<%= entryPointURL %>"
+    nextcloud-auth-url="<%= nextcloudWebAppPasswordURL %>"
+    nextcloud-web-app-password-url="<%= nextcloudWebAppPasswordURL %>"
+    nextcloud-webdav-url="<%= nextcloudWebDavURL %>"
+    nextcloud-name="<%= nextcloudName %>"
+    nextcloud-file-url="<%= nextcloudFileURL %>"
     src="<%= getUrl(name + '.topic.metadata.json') %>"
     base-path="<%= getUrl('') %>"
     keycloak-config='{"url": "<%= keyCloakBaseURL %>", "realm": "<%= keyCloakRealm %>", "clientId": "<%= keyCloakClientId %>", "silentCheckSsoRedirectUri": "<%= getUrl('silent-check-sso.html') %>"}'

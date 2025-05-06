@@ -19,7 +19,9 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "dbp",
-        "universityFullName": "Digital Blueprint"
+        "universityFullName": "Digital Blueprint",
+        "nextcloudBaseURL": "http://localhost:8081",
+        "nextcloudName": "cloud"
     },
     "localCustom": {
         "basePath": "/dist/",
@@ -30,7 +32,9 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "TU Graz",
-        "universityFullName": "Technische Universität Graz"
+        "universityFullName": "Technische Universität Graz",
+        "nextcloudBaseURL": "http://localhost:8081",
+        "nextcloudName": "cloud"
     },
     "development": {
         "basePath": "/apps/formalize/",
@@ -41,7 +45,9 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "dbp",
-        "universityFullName": "Digital Blueprint"
+        "universityFullName": "Digital Blueprint",
+        "nextcloudBaseURL": "https://cloud-dev.tugraz.at",
+        "nextcloudName": "cloud"
     },
     "developmentCustom": {
         "basePath": "/tugapps/formalize/",
@@ -52,7 +58,9 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "TU Graz",
-        "universityFullName": "Technische Universität Graz"
+        "universityFullName": "Technische Universität Graz",
+        "nextcloudBaseURL": "https://cloud-dev.tugraz.at",
+        "nextcloudName": "cloud"
     },
     "demo": {
         "basePath": "/apps/formalize/",
@@ -74,7 +82,9 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "TU Graz",
-        "universityFullName": "Technische Universität Graz"
+        "universityFullName": "Technische Universität Graz",
+        "nextcloudBaseURL": "https://cloud-demo.tugraz.at",
+        "nextcloudName": "dbp cloud"
     },
     "production": {
         "basePath": "/",
@@ -85,7 +95,9 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "177",
         "universityShortName": "TU Graz",
-        "universityFullName": "Technische Universität Graz"
+        "universityFullName": "Technische Universität Graz",
+        "nextcloudBaseURL": "https://cloud.tugraz.at",
+        "nextcloudName": "TU Graz cloud"
     },
     "bs": {
         "basePath": "/dist/",
