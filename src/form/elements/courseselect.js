@@ -15,7 +15,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         };
     }
 
-    static get ScopedElements() {
+    static get scopedElements() {
         return {
             'dbp-course-select': CourseSelect,
         };

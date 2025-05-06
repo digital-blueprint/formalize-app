@@ -15,7 +15,7 @@ export class DbpRoomSelectElement extends ScopedElementsMixin(DbpBaseElement) {
         };
     }
 
-    static get ScopedElements() {
+    static get scopedElements() {
         return {
             'dbp-room-select': RoomSelect,
         };

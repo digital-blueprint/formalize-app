@@ -15,7 +15,7 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         };
     }
 
-    static get ScopedElements() {
+    static get scopedElements() {
         return {
             'dbp-person-select': PersonSelect,
         };
