@@ -1116,9 +1116,16 @@ class FormalizeFormElement extends BaseFormElement {
         const currentSubmission = this.userAllSubmissions.find(
             (submission) => submission.identifier == this.submissionId,
         );
-        const dateCreated = formatDate(currentSubmission.dateCreated);
-        const dateLastModified = formatDate(currentSubmission.dateLastModified);
-        const deadLine = formatDate(this.formProperties.availabilityEnds);
+
+        const dateCreated = currentSubmission?.dateCreated
+            ? formatDate(currentSubmission.dateCreated)
+            : null;
+        const dateLastModified = currentSubmission?.dateLastModified
+            ? formatDate(currentSubmission.dateLastModified)
+            : null;
+        const deadLine = this.formProperties?.availabilityEnds
+            ? formatDate(this.formProperties.availabilityEnds)
+            : null;
 
         return html`
             <div class="submission-details">
