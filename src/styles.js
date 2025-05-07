@@ -263,7 +263,7 @@ export function getEthicsCommissionFormCSS() {
 
         .form-details {
             margin-top: 0;
-            padding: 1em;
+            padding: 1.5em;
             background: #e6e6e6;
             display: flex;
             justify-content: space-between;
@@ -664,6 +664,7 @@ export function getEthicsCommissionFormPrintCSS() {
             .button-row,
             button,
             dbp-button,
+            .submission-permissions,
             .scroller-container {
                 display: none !important;
                 height: 0;
@@ -692,7 +693,11 @@ export function getEthicsCommissionFormPrintCSS() {
                 display: block;
             }
 
-            /* Line height debug background
+            .submission-date .abel {
+                margin-bottom: 0;
+            }
+
+            /* Line height debug background*/
             background-image: linear-gradient(
                 to bottom,
                 rgba(0, 120, 255, 0.1) 0,
@@ -702,7 +707,6 @@ export function getEthicsCommissionFormPrintCSS() {
             );
             background-size: 100% var(--dbp-form-line-height);
             background-position: 0 0;
-            */
         }
     `;
 }

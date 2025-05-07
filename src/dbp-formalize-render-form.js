@@ -271,14 +271,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.formDisplayDenied = true;
         }
 
-        this.loadedSubmission = {
-            submissionId: this.submissionId,
-            form: data.form,
-            submissionState: data.submissionState,
-            dataFeedElement: data.dataFeedElement,
-            submittedFiles: data.submittedFiles,
-            grantedActions: data.grantedActions,
-        };
+        this.loadedSubmission = data;
         console.log('this.loadedSubmission', this.loadedSubmission);
     }
 

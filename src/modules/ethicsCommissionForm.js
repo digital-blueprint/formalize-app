@@ -54,6 +54,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.scrollTimeout = null;
 
         this.submitterName = null;
+        this.newSubmissionId = null;
         this.resourceActions = [];
 
         this.isSavingDraft = false;
@@ -108,6 +109,8 @@ class FormalizeFormElement extends BaseFormElement {
             submittedFilesCount: {type: Number},
             filesToSubmitCount: {type: Number},
 
+            resourceActions: {type: Object},
+
             // Buttons
             isDeleteSubmissionButtonAllowed: {type: Boolean},
             isDraftButtonAllowed: {type: Boolean},
@@ -157,104 +160,7 @@ class FormalizeFormElement extends BaseFormElement {
         // console.log('changedProperties', changedProperties);
         if (changedProperties.has('data')) {
             if (Object.keys(this.data).length > 0) {
-                try {
-                    this.submissionId = this.data.submissionId;
-                    this.formData = JSON.parse(this.data.dataFeedElement);
-                    this.submissionState = this.data.submissionState;
-                    this.grantedActions = this.data.grantedActions;
-                    this.submittedFiles = await this.transformApiResponseToFile(
-                        this.data.submittedFiles,
-                    );
-                    this.submittedFilesCount = this.submittedFiles.size;
-                    this.isDraftMode = this.submissionState == 1 ? true : false;
-                    this.isSubmittedMode = this.submissionState == 4 ? true : false;
-
-                    if (this.formData) {
-                        try {
-                            const submitterDetailsResponse = await this.apiGetUserDetails(
-                                this.formData.identifier,
-                            );
-                            if (!submitterDetailsResponse.ok) {
-                                send({
-                                    summary: 'Error',
-                                    body: `Failed to get submitter details. Response status: ${submitterDetailsResponse.status}`,
-                                    type: 'danger',
-                                    timeout: 5,
-                                });
-                            }
-                            const submitterDetails = await submitterDetailsResponse.json();
-                            this.submitterName = `${submitterDetails.givenName} ${submitterDetails.familyName}`;
-                        } catch (e) {
-                            console.log(e);
-                            send({
-                                summary: 'Error',
-                                body: `Failed to get submitter details`,
-                                type: 'danger',
-                                timeout: 5,
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error parsing submission data:', e);
-                }
-            }
-
-            try {
-                // Get user permissions for the form
-                const resourceActionsResponse = await this.apiGetResourceActionGrants();
-                if (!resourceActionsResponse.ok) {
-                    send({
-                        summary: 'Error',
-                        body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
-                        type: 'danger',
-                        timeout: 5,
-                    });
-                }
-                const resourceActionsBody = await resourceActionsResponse.json();
-                let resourceActions = [];
-                if (resourceActionsBody['hydra:member'].length > 0) {
-                    for (const resourceAction of resourceActionsBody['hydra:member']) {
-                        // Only process user grant, skip group permissions
-                        if (resourceAction.userIdentifier) {
-                            const userDetailsResponse = await this.apiGetUserDetails(
-                                resourceAction.userIdentifier,
-                            );
-                            if (!userDetailsResponse.ok) {
-                                send({
-                                    summary: 'Error',
-                                    body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
-                                    type: 'danger',
-                                    timeout: 5,
-                                });
-                            }
-                            const userDetails = await userDetailsResponse.json();
-                            const userFullName = `${userDetails.givenName} ${userDetails.familyName}`;
-
-                            // Group permissions by user id
-                            let userEntry = resourceActions.find(
-                                (entry) => entry.userId === resourceAction.userIdentifier,
-                            );
-                            if (!userEntry) {
-                                userEntry = {
-                                    userId: resourceAction.userIdentifier,
-                                    userName: userFullName,
-                                    actions: [],
-                                };
-                                resourceActions.push(userEntry);
-                            }
-                            userEntry.actions.push(resourceAction.action);
-                        }
-                    }
-                    this.resourceActions = resourceActions;
-                }
-            } catch (e) {
-                console.log(e);
-                send({
-                    summary: 'Error',
-                    body: `Failed to process user permissions`,
-                    type: 'danger',
-                    timeout: 5,
-                });
+                await this.processFormData();
             }
 
             this.updateComplete.then(async () => {
@@ -266,6 +172,12 @@ class FormalizeFormElement extends BaseFormElement {
             if (Object.keys(this.formProperties).length > 0) {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
                 this.setButtonStates();
+            }
+        }
+
+        if (changedProperties.has('formIdentifier')) {
+            if (this.formIdentifier) {
+                await this.getUsersGrants();
             }
         }
 
@@ -321,6 +233,110 @@ class FormalizeFormElement extends BaseFormElement {
                     ? true
                     : false;
             }
+        }
+    }
+
+    async processFormData() {
+        try {
+            this.submissionId = this.data.identifier;
+            this.formData = JSON.parse(this.data.dataFeedElement);
+            this.submissionState = this.data.submissionState;
+            this.grantedActions = this.data.grantedActions;
+            this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
+            this.submittedFilesCount = this.submittedFiles.size;
+
+            console.log(`this.submittedFilesCount`, this.submittedFilesCount);
+
+            this.isDraftMode = this.submissionState == 1 ? true : false;
+            this.isSubmittedMode = this.submissionState == 4 ? true : false;
+
+            if (this.formData) {
+                try {
+                    const submitterDetailsResponse = await this.apiGetUserDetails(
+                        this.formData.identifier,
+                    );
+                    if (!submitterDetailsResponse.ok) {
+                        send({
+                            summary: 'Error',
+                            body: `Failed to get submitter details. Response status: ${submitterDetailsResponse.status}`,
+                            type: 'danger',
+                            timeout: 5,
+                        });
+                    }
+                    const submitterDetails = await submitterDetailsResponse.json();
+                    this.submitterName = `${submitterDetails.givenName} ${submitterDetails.familyName}`;
+                } catch (e) {
+                    console.log(e);
+                    send({
+                        summary: 'Error',
+                        body: `Failed to get submitter details`,
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing submission data:', e);
+        }
+    }
+
+    async getUsersGrants() {
+        try {
+            // Get user permissions for the form
+            const resourceActionsResponse = await this.apiGetResourceActionGrants();
+            if (!resourceActionsResponse.ok) {
+                send({
+                    summary: 'Error',
+                    body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            }
+            const resourceActionsBody = await resourceActionsResponse.json();
+            let resourceActions = [];
+            if (resourceActionsBody['hydra:member'].length > 0) {
+                for (const resourceAction of resourceActionsBody['hydra:member']) {
+                    // Only process user grant, skip group permissions
+                    if (resourceAction.userIdentifier) {
+                        const userDetailsResponse = await this.apiGetUserDetails(
+                            resourceAction.userIdentifier,
+                        );
+                        if (!userDetailsResponse.ok) {
+                            send({
+                                summary: 'Error',
+                                body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
+                                type: 'danger',
+                                timeout: 5,
+                            });
+                        }
+                        const userDetails = await userDetailsResponse.json();
+                        const userFullName = `${userDetails.givenName} ${userDetails.familyName}`;
+
+                        // Group permissions by user id
+                        let userEntry = resourceActions.find(
+                            (entry) => entry.userId === resourceAction.userIdentifier,
+                        );
+                        if (!userEntry) {
+                            userEntry = {
+                                userId: resourceAction.userIdentifier,
+                                userName: userFullName,
+                                actions: [],
+                            };
+                            resourceActions.push(userEntry);
+                        }
+                        userEntry.actions.push(resourceAction.action);
+                    }
+                }
+                this.resourceActions = resourceActions;
+            }
+        } catch (e) {
+            console.log(e);
+            send({
+                summary: 'Error',
+                body: `Failed to process user permissions`,
+                type: 'danger',
+                timeout: 5,
+            });
         }
     }
 
@@ -582,6 +598,7 @@ class FormalizeFormElement extends BaseFormElement {
                 });
             } else {
                 let responseBody = await response.json();
+                this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
                 this.draftSaveSuccessful = true;
                 this.draftSaveError = false;
@@ -598,21 +615,17 @@ class FormalizeFormElement extends BaseFormElement {
             if (this.draftSaveSuccessful) {
                 send({
                     summary: 'Success',
-                    body: 'Draft saved successfully. The page will be reloaded.',
+                    body: 'Draft saved successfully',
                     type: 'success',
                     timeout: 5,
                 });
             }
             this.isSavingDraft = false;
 
-            setTimeout(() => {
-                // Update URL with the submission ID
-                const newSubmissionUrl =
-                    getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
-                window.history.pushState({}, '', newSubmissionUrl.toString());
-                // Reload the page to reflect the new submission ID
-                window.location.reload();
-            }, 5000);
+            // Update URL with the submission ID
+            const newSubmissionUrl =
+                getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
+            window.history.pushState({}, '', newSubmissionUrl.toString());
         }
     }
 
@@ -1128,19 +1141,22 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderSubmissionDetails() {
         const i18n = this._i18n;
+
         const currentSubmission = this.userAllSubmissions.find(
             (submission) => submission.identifier == this.submissionId,
         );
 
-        const dateCreated = currentSubmission?.dateCreated
-            ? formatDate(currentSubmission.dateCreated)
-            : null;
-        const dateLastModified = currentSubmission?.dateLastModified
-            ? formatDate(currentSubmission.dateLastModified)
-            : null;
-        const deadLine = this.formProperties?.availabilityEnds
-            ? formatDate(this.formProperties.availabilityEnds)
-            : null;
+        const dateCreated = this.newSubmissionId
+            ? formatDate(this.data.dateCreated)
+            : formatDate(currentSubmission?.dateCreated);
+
+        const dateLastModified = this.newSubmissionId
+            ? formatDate(this.data.dateLastModified)
+            : formatDate(currentSubmission?.dateLastModified);
+
+        const deadLine = this.newSubmissionId
+            ? formatDate(this.data.availabilityEnds)
+            : formatDate(currentSubmission?.availabilityEnds);
 
         return html`
             <div class="submission-details">
@@ -1161,7 +1177,7 @@ class FormalizeFormElement extends BaseFormElement {
                               </div>
                           `
                         : ''}
-                    ${dateCreated
+                    ${dateLastModified
                         ? html`
                               <div class="last-modified">
                                   <span class="label">Last modified:</span>
@@ -1243,6 +1259,10 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 ${this.getButtonRowHtml()}
+
+                <div class="form-details">
+                    ${this.renderSubmissionDetails()}
+                </div>
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -2476,7 +2496,7 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderFormElements() {
         const i18n = this._i18n;
-        console.log('-- Render FormalizeFormElement --');
+        console.log('-- Render ethics-commission-form --');
 
         const data = this.formData || {};
 
