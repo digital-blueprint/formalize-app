@@ -66,6 +66,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isAcceptButtonEnabled = false;
         this.isSubmitButtonEnabled = true;
         this.isPrintButtonAllowed = false;
+        this.isDownloadButtonAllowed = false;
 
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
@@ -213,6 +214,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (this.readOnly) {
             this.isPrintButtonAllowed = true;
+            this.isDownloadButtonAllowed = true;
         }
 
         // Show delete button if the user has delete permission
@@ -430,9 +432,6 @@ class FormalizeFormElement extends BaseFormElement {
                             class="download-file-button button is-secondary"
                             @click=${(e) => {
                                 e.preventDefault();
-                                console.log('file', file);
-                                console.log('file-sink', this._('#file-sink'));
-
                                 this._('#file-sink').files = [file];
                             }}>
                             <dbp-icon name="download"></dbp-icon>
@@ -847,7 +846,7 @@ class FormalizeFormElement extends BaseFormElement {
     /**
      * Generates a PDF from the form content.
      */
-    async generatePDF() {
+    async generatePDF(save = true) {
         const form = this._('#ethics-commission-form');
 
         // Set print style
@@ -879,7 +878,7 @@ class FormalizeFormElement extends BaseFormElement {
         };
 
         try {
-            await html2pdf()
+            const formPdf = await html2pdf()
                 .set(opt)
                 .from(form)
                 .toPdf()
@@ -891,8 +890,16 @@ class FormalizeFormElement extends BaseFormElement {
                         pdf.setPage(i);
                         this.addHeader(pdf, i);
                     }
-                })
-                .save();
+                    return pdf;
+                });
+            if (save) {
+                await formPdf.save(opt.filename);
+            } else {
+                // Convert pdf to blob and create File object
+                const pdfBlob = formPdf.output('blob');
+                const pdfOutput = new File([pdfBlob], opt.filename, {type: 'application/pdf'});
+                return pdfOutput;
+            }
         } finally {
             // Remove print style after PDF is generated or if there's an error
             form.classList.remove('print');
@@ -1012,6 +1019,18 @@ class FormalizeFormElement extends BaseFormElement {
                 original.style.display = '';
             });
         };
+    }
+
+    /**
+     * Download all attachments and pdf version of the form as a zip file.
+     * @param {object} event
+     */
+    async downloadAllFiles(event) {
+        // Get PDF as File object
+        const pdfFile = await this.generatePDF(false);
+        const attachmentFiles = Array.from(this.submittedFiles.values());
+
+        this._('#file-sink').files = [pdfFile, ...attachmentFiles];
     }
 
     /**
@@ -2485,6 +2504,16 @@ class FormalizeFormElement extends BaseFormElement {
                         </div>
                     </div>
                 </article>
+
+                <dbp-file-sink
+                    id="file-sink"
+                    class="file-sink"
+                    allowed-mime-types="application/pdf,.pdf"
+                    decompress-zip
+                    enabled-targets="local,clipboard,nextcloud"
+                    filename="ethics-commission-form-${this.submissionId || ''}-attachments.zip"
+                    subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
+
                 <dbp-modal
                     id="pdf-view-modal"
                     class="pdf-view-modal"
@@ -4223,7 +4252,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   class="form-print-pdf-button"
                                   type="is-secondary"
                                   no-spinner-on-click
-                                  @click=${this.generatePDF}
+                                  @click=${() => this.generatePDF(true)}
                                   title="${i18n.t(
                                       'render-form.forms.ethics-commission-form.print-pdf-button-text',
                                   )}"
@@ -4234,6 +4263,28 @@ class FormalizeFormElement extends BaseFormElement {
                                   <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
+                    ${this.isDownloadButtonAllowed
+                        ? html`
+                              <dbp-button
+                                  class="form-download-files-button"
+                                  type="is-secondary"
+                                  no-spinner-on-click
+                                  @click=${this.downloadAllFiles}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.download-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.download-button-text',
+                                  )}">
+                                  <dbp-icon name="download" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.download-button-text',
                                       )}
                                   </span>
                               </dbp-button>
