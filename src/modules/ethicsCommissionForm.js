@@ -245,8 +245,6 @@ class FormalizeFormElement extends BaseFormElement {
             this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
             this.submittedFilesCount = this.submittedFiles.size;
 
-            console.log(`this.submittedFilesCount`, this.submittedFilesCount);
-
             this.isDraftMode = this.submissionState == 1 ? true : false;
             this.isSubmittedMode = this.submissionState == 4 ? true : false;
 
@@ -560,11 +558,15 @@ class FormalizeFormElement extends BaseFormElement {
             this.filesToSubmit.forEach((fileToAttach) => {
                 formData.append('file[]', fileToAttach, fileToAttach.name);
             });
+            // Remove files added to the request
+            this.filesToSubmit = new Map();
         }
 
         // Set file to be removed
         if (this.filesToRemove.length > 0) {
             formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
+            // Remove files added to the request
+            this.filesToRemove = [];
         }
 
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
