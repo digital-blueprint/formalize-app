@@ -183,69 +183,83 @@ class FormalizeFormElement extends BaseFormElement {
                                 });
                             }
                             const submitterDetails = await submitterDetailsResponse.json();
-                            console.log('submitterDetails', submitterDetails);
                             this.submitterName = `${submitterDetails.givenName} ${submitterDetails.familyName}`;
                         } catch (e) {
                             console.log(e);
-                        }
-                    }
-
-                    try {
-                        const resourceActionsResponse = await this.apiGetResourceActionGrants();
-                        if (!resourceActionsResponse.ok) {
                             send({
                                 summary: 'Error',
-                                body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
+                                body: `Failed to get submitter details`,
                                 type: 'danger',
                                 timeout: 5,
                             });
                         }
-                        const resourceActionsBody = await resourceActionsResponse.json();
-                        console.log('resourceActions', resourceActionsBody);
-                        let resourceActions = [];
-                        if (resourceActionsBody['hydra:member'].length > 0) {
-                            for (const resourceAction of resourceActionsBody['hydra:member']) {
-                                const userDetailsResponse = await this.apiGetUserDetails(
-                                    resourceAction.userIdentifier,
-                                );
-                                if (!userDetailsResponse.ok) {
-                                    send({
-                                        summary: 'Error',
-                                        body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
-                                        type: 'danger',
-                                        timeout: 5,
-                                    });
-                                }
-                                const userDetails = await userDetailsResponse.json();
-                                const userFullName = `${userDetails.givenName} ${userDetails.familyName}`;
-
-                                // Find existing user entry or create new one
-                                let userEntry = resourceActions.find(
-                                    (entry) => entry.userId === resourceAction.userIdentifier,
-                                );
-                                if (!userEntry) {
-                                    userEntry = {
-                                        userId: resourceAction.userIdentifier,
-                                        userName: userFullName,
-                                        actions: [],
-                                    };
-                                    resourceActions.push(userEntry);
-                                }
-                                userEntry.actions.push(resourceAction.action);
-                            }
-                            this.resourceActions = resourceActions;
-                        }
-                    } catch (e) {
-                        console.log(e);
                     }
-
-                    this.updateComplete.then(async () => {
-                        await this.processConditionalFields();
-                    });
                 } catch (e) {
                     console.error('Error parsing submission data:', e);
                 }
             }
+
+            try {
+                // Get user permissions for the form
+                const resourceActionsResponse = await this.apiGetResourceActionGrants();
+                if (!resourceActionsResponse.ok) {
+                    send({
+                        summary: 'Error',
+                        body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
+                        type: 'danger',
+                        timeout: 5,
+                    });
+                }
+                const resourceActionsBody = await resourceActionsResponse.json();
+                let resourceActions = [];
+                if (resourceActionsBody['hydra:member'].length > 0) {
+                    for (const resourceAction of resourceActionsBody['hydra:member']) {
+                        // Only process user grant, skip group permissions
+                        if (resourceAction.userIdentifier) {
+                            const userDetailsResponse = await this.apiGetUserDetails(
+                                resourceAction.userIdentifier,
+                            );
+                            if (!userDetailsResponse.ok) {
+                                send({
+                                    summary: 'Error',
+                                    body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
+                                    type: 'danger',
+                                    timeout: 5,
+                                });
+                            }
+                            const userDetails = await userDetailsResponse.json();
+                            const userFullName = `${userDetails.givenName} ${userDetails.familyName}`;
+
+                            // Group permissions by user id
+                            let userEntry = resourceActions.find(
+                                (entry) => entry.userId === resourceAction.userIdentifier,
+                            );
+                            if (!userEntry) {
+                                userEntry = {
+                                    userId: resourceAction.userIdentifier,
+                                    userName: userFullName,
+                                    actions: [],
+                                };
+                                resourceActions.push(userEntry);
+                            }
+                            userEntry.actions.push(resourceAction.action);
+                        }
+                    }
+                    this.resourceActions = resourceActions;
+                }
+            } catch (e) {
+                console.log(e);
+                send({
+                    summary: 'Error',
+                    body: `Failed to process user permissions`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            }
+
+            this.updateComplete.then(async () => {
+                await this.processConditionalFields();
+            });
         }
 
         if (changedProperties.has('formProperties')) {
