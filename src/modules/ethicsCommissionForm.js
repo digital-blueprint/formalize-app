@@ -82,6 +82,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
         this.handleFormAcceptSubmission = this.handleFormAcceptSubmission.bind(this);
         this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
+        this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
 
         this.humanTestSubjectsQuestionsEnabled = false;
         this.humanStemCellsQuestionsEnabled = false;
@@ -471,6 +472,8 @@ class FormalizeFormElement extends BaseFormElement {
                 this.filesToSubmitCount = this.filesToSubmit.size;
             });
 
+            this.addEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
+
             // Event listener for saving draft
             this.addEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
 
@@ -503,7 +506,14 @@ class FormalizeFormElement extends BaseFormElement {
             'DbpFormalizeFormAcceptSubmission',
             this.handleFormAcceptSubmission,
         );
+        this.removeEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
         window.removeEventListener('scroll', this.handleScrollToTopBottom);
+    }
+
+    permissionModalClosedHandler(event) {
+        if (event.detail.id && event.detail.id === 'grant-permission-modal') {
+            this.getUsersGrants();
+        }
     }
 
     handleScrollToTopBottom() {
