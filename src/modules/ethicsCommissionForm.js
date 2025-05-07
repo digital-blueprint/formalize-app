@@ -1351,10 +1351,10 @@ class FormalizeFormElement extends BaseFormElement {
                                 'render-form.forms.ethics-commission-form.doctorat-label',
                             ),
                             'no-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.no-publikation-label',
+                                'render-form.forms.ethics-commission-form.no-publication-label',
                             ),
                             'one-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.one-publikation-label',
+                                'render-form.forms.ethics-commission-form.one-publication-label',
                             ),
                         }}
                         .value=${data.qualificationWork || ''}>
@@ -2633,10 +2633,10 @@ class FormalizeFormElement extends BaseFormElement {
                                 'render-form.forms.ethics-commission-form.doctorat-label',
                             ),
                             'no-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.no-publikation-label',
+                                'render-form.forms.ethics-commission-form.no-publication-label',
                             ),
                             'one-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.one-publikation-label',
+                                'render-form.forms.ethics-commission-form.one-publication-label',
                             ),
                         }}
                         .value=${data.qualificationWork || ''}>
@@ -4201,15 +4201,15 @@ class FormalizeFormElement extends BaseFormElement {
                                   type="is-danger"
                                   no-spinner-on-click
                                   title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                                      'render-form.forms.ethics-commission-form.delete-submission-button-text',
                                   )}"
                                   aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                                      'render-form.forms.ethics-commission-form.delete-submission-button-text',
                                   )}">
                                   <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
                                   <span class="button-label">
                                       ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.delete-submittion-button-text',
+                                          'render-form.forms.ethics-commission-form.delete-submission-button-text',
                                       )}
                                   </span>
                               </dbp-button>
