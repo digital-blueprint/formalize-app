@@ -1,5 +1,6 @@
 {
     "error-login-message": "You need to be logged in to use this function!",
+    "error-login-link": "Log in",
     "error-permission-message": "You do not have the permissions to use this function!",
     "errors": {
         "notfound-body": "Requested resource not found.",
