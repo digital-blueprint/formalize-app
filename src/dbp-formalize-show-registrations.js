@@ -870,7 +870,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     getSubmissionTableSettings() {
         if (this.storeSession && this.isLoggedIn()) {
             let optionsString = localStorage.getItem(
-                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + this.auth['person-id'],
+                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + this.auth['user-id'],
             );
             if (!optionsString) {
                 this.submissionsColumns = [];
@@ -898,7 +898,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     setSubmissionTableSettings() {
         if (this.storeSession && this.isLoggedIn()) {
-            const publicId = this.auth['person-id'];
+            const publicId = this.auth['user-id'];
             localStorage.setItem(
                 'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId,
                 JSON.stringify(this.submissionsColumns),
@@ -912,7 +912,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     deleteSubmissionTableSettings() {
         if (this.storeSession && this.isLoggedIn()) {
-            const publicId = this.auth['person-id'];
+            const publicId = this.auth['user-id'];
             localStorage.removeItem(
                 'dbp-formalize-tableoptions-' + this.activeCourse + '-' + publicId,
             );

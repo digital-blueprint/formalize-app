@@ -557,7 +557,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Access the data from the event detail
         const data = event.detail;
         // Include unique identifier for person who is submitting
-        data.formData.identifier = this.auth['person-id'];
+        data.formData.identifier = this.auth['user-id'];
 
         this.isSavingDraft = true;
         const formData = new FormData();
@@ -648,7 +648,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Access the data from the event detail
         const data = event.detail;
         // Include unique identifier for person who is submitting
-        data.formData.identifier = this.auth['person-id'];
+        data.formData.identifier = this.auth['user-id'];
 
         this.isPostingSubmission = true;
         const formData = new FormData();
