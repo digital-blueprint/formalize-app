@@ -215,6 +215,8 @@ class FormalizeFormElement extends BaseFormElement {
         if (this.readOnly) {
             this.isPrintButtonAllowed = true;
             this.isDownloadButtonAllowed = true;
+            this.isDraftButtonAllowed = false;
+            this.isSubmitButtonEnabled = false;
         }
 
         // Show delete button if the user has delete permission
@@ -2513,20 +2515,29 @@ class FormalizeFormElement extends BaseFormElement {
                     enabled-targets="local,clipboard,nextcloud"
                     filename="ethics-commission-form-${this.submissionId || ''}-attachments.zip"
                     subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
-
-                <dbp-modal
-                    id="pdf-view-modal"
-                    class="pdf-view-modal"
-                    modal-id="pdf-viewer-modal"
-                    subscribe="lang">
-                    <div slot="content">
-                        <dbp-pdf-viewer
-                            id="dbp-pdf-viewer"
-                            lang="${this.lang}"
-                            auto-resize="cover"></dbp-pdf-viewer>
-                    </div>
-                </dbp-modal>
             </form>
+
+            <dbp-modal
+                id="pdf-view-modal"
+                class="pdf-view-modal"
+                modal-id="pdf-viewer-modal"
+                subscribe="lang">
+                <div slot="content">
+                    <dbp-pdf-viewer
+                        id="dbp-pdf-viewer"
+                        lang="${this.lang}"
+                        auto-resize="cover"></dbp-pdf-viewer>
+                </div>
+            </dbp-modal>
+
+            <dbp-grant-permission-dialog
+                id="grant-permission-dialog"
+                lang="${this.lang}"
+                subscribe="auth"
+                entry-point-url="${this.entryPointUrl}"
+                resource-identifier="${this.submissionId}"
+                resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+
             ${this.renderResult(this.submitted)}
         `;
     }
@@ -4149,28 +4160,28 @@ class FormalizeFormElement extends BaseFormElement {
                         filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
                         subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
                 </article>
-
-                <dbp-modal
-                    id="pdf-view-modal"
-                    class="pdf-view-modal"
-                    modal-id="pdf-viewer-modal"
-                    subscribe="lang">
-                    <div slot="content">
-                        <dbp-pdf-viewer
-                            id="dbp-pdf-viewer"
-                            lang="${this.lang}"
-                            auto-resize="cover"></dbp-pdf-viewer>
-                    </div>
-                </dbp-modal>
-
-                <dbp-grant-permission-dialog
-                    id="grant-permission-dialog"
-                    lang="${this.lang}"
-                    subscribe="auth"
-                    entry-point-url="${this.entryPointUrl}"
-                    resource-identifier="${this.formIdentifier}"
-                    resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
             </form>
+
+            <dbp-modal
+                id="pdf-view-modal"
+                class="pdf-view-modal"
+                modal-id="pdf-viewer-modal"
+                subscribe="lang">
+                <div slot="content">
+                    <dbp-pdf-viewer
+                        id="dbp-pdf-viewer"
+                        lang="${this.lang}"
+                        auto-resize="cover"></dbp-pdf-viewer>
+                </div>
+            </dbp-modal>
+
+            <dbp-grant-permission-dialog
+                id="grant-permission-dialog"
+                lang="${this.lang}"
+                subscribe="auth"
+                entry-point-url="${this.entryPointUrl}"
+                resource-identifier="${this.submissionId}"
+                resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
 
             ${this.renderResult(this.submitted)}
         `;
