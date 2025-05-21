@@ -325,10 +325,12 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.usersSubmissionCount > 0) {
             if (maxNumberOfSubmissionsPerUser == 1) {
                 // Form already submitted, can't submit again
-                if (allowedActionsWhenSubmitted.includes('read')) {
-                    // User can read the submission
+                if (
+                    allowedActionsWhenSubmitted.includes('read') ||
+                    allowedActionsWhenSubmitted.includes('manage')
+                ) {
+                    // User can read the submission or manage the form show read-only form
                     const oldSubmissionId = this.userAllSubmittedSubmissions.pop().identifier;
-                    // @TODO: We need to access the form in readonly mode. Not yet implemented!
                     const submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
                     return html`
                         <div class="notification is-warning">
@@ -339,7 +341,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </div>
                     `;
                 } else {
-                    // User can't read the submission
+                    // User can't read the submission show a warning
                     return html`
                         <div class="notification is-warning">
                             ${this._i18n.t('render-form.form-already-submitted-warning')}
@@ -349,9 +351,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
 
-        // TODO: Add data
         let data = {};
-
         // Load submission data if available
         if (Object.keys(this.loadedSubmission).length > 0) {
             // Check if the submission is for the current form
@@ -388,7 +388,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
                         n: this.usersSubmissionCount,
                     })}
-                    <a href="${getFormShowSubmissionsUrl()}">
+                    <a href="${getFormShowSubmissionsUrl(this.formIdentifiers[this.formUrlSlug])}">
                         ${this._i18n.t('render-form.check-previous-submissions-warning')}
                     </a>
                 </div>
@@ -396,13 +396,17 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         let formAlreadySubmittedWarning = html``;
-        if (this.usersSubmissionCount > 0 && allowedActionsWhenSubmitted.includes('read')) {
+        if (
+            this.usersSubmissionCount > 0 &&
+            (allowedActionsWhenSubmitted.includes('read') ||
+                allowedActionsWhenSubmitted.includes('manage'))
+        ) {
             // An empty form is shown with the message that the user already submitted the form
             // and show a link to the submissions in the show-registrations page
             formAlreadySubmittedWarning = html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-warning')}
-                    <a href="${getFormShowSubmissionsUrl()}">
+                    <a href="${getFormShowSubmissionsUrl(this.formIdentifiers[this.formUrlSlug])}">
                         ${this._i18n.t('render-form.check-previous-submissions-warning')}
                     </a>
                 </div>

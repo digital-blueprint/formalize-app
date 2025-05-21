@@ -15,6 +15,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
 import MicroModal from './micromodal.es';
+import {getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
 import * as fileHandlingStyles from './styles';
 import metadata from './dbp-formalize-show-registrations.metadata.json';
 import xss from 'xss';
@@ -24,11 +25,17 @@ import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
-        this.allCourses = [];
+        this.allForms = [];
         this.activity = new Activity(metadata);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
+        this.options_submissions = {};
+        this.options_forms = {};
+        this.forms = new Map();
         this.submissions = [];
         this.showSubmissionsTable = false;
+        this.showFormsTable = false;
+        this.submissionSlug = '';
+        this.formSlugsMap = new Map();
         this.submissionsColumns = [];
         this.submissionsColumnsInitial = [];
         this.initateOpenAdditionalMenu = false;
@@ -47,13 +54,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.isPrevEnabled = false;
         this.isNextEnabled = false;
         this.storeSession = true;
-        this.loadingCourseTable = false;
+        this.loadingFormsTable = true;
         this.loadingSubmissionTable = false;
         this.modalContentHeight = 0;
         this.loadCourses = true;
         this.hasPermissions = true;
         this.hiddenColumns = false;
         this.currentDetailPosition = 0;
+
+        this.submissionTable = null;
+        this.formsTable = null;
     }
 
     static get scopedElements() {
@@ -71,7 +81,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     static get properties() {
         return {
             ...super.properties,
-            allCourses: {type: Array, attribute: false},
+            allForms: {type: Array, attribute: false},
             form: {type: String},
             name: {type: String},
             forms: {type: Array, attribute: false},
@@ -83,12 +93,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
             totalNumberOfItems: {type: Number, attribute: false},
-            loadingCourseTable: {type: Boolean, attribute: false},
+            loadingFormsTable: {type: Boolean, attribute: false},
             loadingSubmissionTable: {type: Boolean, attribute: false},
             modalContentHeight: {type: Number, attribute: false},
             loadCourses: {type: Boolean, attribute: true},
             hasPermissions: {type: Boolean, attribute: false},
             hiddenColumns: {type: Boolean, attribute: false},
+            options_submissions: {type: Object, attribute: false},
+            options_forms: {type: Object, attribute: false},
         };
     }
 
@@ -115,16 +127,189 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     connectedCallback() {
-        super.connectedCallback();
+        console.log('[connectedCallback] CALLED');
 
-        this.updateComplete.then(() => {
+        super.connectedCallback();
+        const i18n = this._i18n;
+
+        let langs_forms = {
+            en: {
+                columns: {
+                    id: i18n.t('show-registrations.id', {lng: 'en'}),
+                    name: i18n.t('show-registrations.name', {lng: 'en'}),
+                },
+            },
+            de: {
+                columns: {
+                    id: i18n.t('show-registrations.id', {lng: 'de'}),
+                    name: i18n.t('show-registrations.name', {lng: 'de'}),
+                },
+            },
+        };
+
+        this.options_forms = {
+            langs: langs_forms,
+            layout: 'fitColumns',
+            columns: [
+                {field: 'id', width: 64, sorter: 'number'},
+                {field: 'name', sorter: 'string'},
+                {
+                    field: 'actionButton',
+                    formatter: 'html',
+                    hozAlign: 'right',
+                    minWidth: 64,
+                    headerSort: false,
+                },
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
+
+        let auto_langs = {
+            en: {
+                columns: {},
+            },
+            de: {
+                columns: {},
+            },
+        };
+
+        this.options_submissions = {
+            langs: auto_langs,
+            autoColumns: 'full',
+            autoColumnsDefinitions: function (definitions) {
+                definitions.forEach((column) => {
+                    if (column.field.includes('date')) {
+                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                            //a, b - the two values being compared
+                            //aRow, bRow - the row components for the values being compared (useful if you need to access additional fields in the row data for the sort)
+                            //column - the column component for the column being sorted
+                            const timeStampA = this.dateToTimestamp(a);
+                            const timeStampB = this.dateToTimestamp(b);
+
+                            return timeStampA - timeStampB;
+                        };
+                    }
+                    column.sorter = 'string'; // add header sorter to every column
+                    if (column.field === 'htmlButtons') {
+                        column.formatter = 'html';
+                        column.hozAlign = 'center';
+                        column.headerSort = false;
+                        column.title = '';
+                        column.minWidth = 64;
+                        column.frozen = true;
+                    }
+                });
+                return definitions;
+            },
+            layout: 'fitData',
+            layoutColumnsOnNewData: true,
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
+
+        this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
-            this._a('.tabulator-table').forEach((table) => {
-                const tabulatorTable = /** @type {TabulatorTable} */ (table);
-                tabulatorTable.buildTable();
-            });
         });
+    }
+
+    async firstUpdated() {
+        this.formsTable = this._('#tabulator-table-forms');
+        this.submissionTable = this._('#tabulator-table-submissions');
+
+        // Load forms to get formSlugs
+        await this.loadModules();
+
+        if (this.auth.token === '') {
+            console.log('Not yet authenticated');
+            return;
+        }
+        try {
+            // If we arrive from another activity, auth is not updated
+            // we need to init form loading here.
+            await this.getListOfAllForms();
+        } catch (error) {
+            console.error('[firstUpdated] Error initializing tables:', error);
+        }
+    }
+
+    async updated(changedProperties) {
+        if (changedProperties.has('auth')) {
+            if (!this.authTokenExists && this.auth.token !== '') {
+                this.authTokenExists = true;
+
+                if (this.forms.size == 0) {
+                    await this.getListOfAllForms();
+                }
+            }
+        }
+        if (changedProperties.has('allForms')) {
+            // Build tables
+            if (this.allForms && this.allForms.length > 0) {
+                // We will use the first URL segment after the activity as identifier for the form's submissions
+                const formId = this.getRoutingData().pathSegments[0] || '';
+
+                if (formId) {
+                    // Check if the form-id is one of the forms identifiers.
+                    const form = this.forms.get(formId);
+                    if (form) {
+                        this.switchToSubmissionTable(form);
+                    }
+                } else {
+                    this.formsTable = this._('#tabulator-table-forms');
+                    if (this.formsTable && !this.formsTable.tableReady) {
+                        this._('#tabulator-table-forms').buildTable();
+                        this.loadingFormsTable = false;
+                        this.showFormsTable = true;
+                    }
+                }
+            }
+        }
+
+        if (changedProperties.has('routingUrl')) {
+            const newUrl = !this.routingUrl.match(/^\//) ? `/${this.routingUrl}` : this.routingUrl;
+            const prevUrl = changedProperties.get('routingUrl');
+            // Prepend a slash to the URL if it doesn't start with one
+            const oldUrl = prevUrl && !prevUrl.match(/^\//) ? '/' + prevUrl : prevUrl;
+
+            if (oldUrl === undefined) return;
+
+            if (oldUrl !== newUrl) {
+                console.log('[updated - routingUrl]', oldUrl, '=>', newUrl);
+
+                if (this.forms.size === 0 && this.authTokenExists) {
+                    await this.getListOfAllForms();
+                }
+
+                const formId = this.getRoutingData().pathSegments[0] || '';
+                if (formId) {
+                    const form = this.forms.get(formId);
+                    if (form) {
+                        this.switchToSubmissionTable(form);
+                    }
+                } else {
+                    // Show the forms table
+                    this.formsTable = this._('#tabulator-table-forms');
+                    if (this.formsTable) {
+                        if (!this.formsTable.tableReady) {
+                            this._('#tabulator-table-forms').buildTable();
+                        }
+                        this.loadingFormsTable = false;
+                        this.showFormsTable = true;
+                        this.showSubmissionsTable = false;
+                    }
+                }
+            }
+        }
+
+        super.updated(changedProperties);
     }
 
     throwSomethingWentWrongNotification() {
@@ -139,12 +324,77 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
+     * Load form modules and create ID -> slug mapping
+     */
+    async loadModules() {
+        try {
+            // Fetch the JSON file containing module paths
+            const response = await fetch(this.basePath + 'modules.json');
+            const data = await response.json();
+
+            // Iterate over the module paths and dynamically import each module
+            for (const path of Object.values(data['forms'])) {
+                const module = await import(path);
+                const object = new module.default();
+
+                // Store the mapping of form identifier to slug
+                if (object.getFormIdentifier && object.getUrlSlug) {
+                    this.formSlugsMap.set(object.getFormIdentifier(), object.getUrlSlug());
+                }
+            }
+        } catch (error) {
+            console.error('Error loading modules:', error);
+        }
+    }
+
+    /**
+     * Display the form submission table for the given form
+     * @param {object} form - form object
+     */
+    switchToSubmissionTable(form) {
+        if (this.activeCourse) {
+            this.deleteSettings();
+        }
+        this.activeCourse = form.formName;
+        this.activeForm = form.formId;
+        this.showFormsTable = false;
+        this.loadingSubmissionTable = true;
+        this.getAllFormSubmissions(this.activeForm).then(async () => {
+            this.sendSetPropertyEvent('routing-url', `/${form.formId}`, true);
+
+            // Init submission table
+            if (this.submissionTable) {
+                this.options_submissions.data = this.submissions;
+
+                console.log('tableReady', this.submissionTable.tableReady);
+
+                if (!this.submissionTable.tableReady) {
+                    this.submissionTable.buildTable();
+                }
+
+                this.loadingSubmissionTable = false;
+                this.showSubmissionsTable = true;
+                this.showFormsTable = false;
+            }
+
+            this.setInitialSubmissionTableOrder();
+
+            // Get table settings from localstorage
+            this.getSubmissionTableSettings();
+
+            if (this.submissions.length === 0) {
+                // this.submissionTable.setColumns([]);
+            }
+            this.defineSettings();
+        });
+    }
+
+    /**
      * Gets the list of courses
      *
-     * @returns {object} response
+     * @returns {Promise<object>} response
      */
-
-    async getListOfAllCourses() {
+    async getListOfAllForms() {
         const i18n = this._i18n;
         try {
             this.loadCourses = false;
@@ -166,11 +416,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 } catch (e) {
                     this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
                     this.throwSomethingWentWrongNotification();
+                    this.loadCourses = true;
                     return;
                 }
 
                 for (let x = 0; x < data['hydra:member'].length; x++) {
-                    let entry = data['hydra:member'][x];
+                    const entry = data['hydra:member'][x];
                     // Only show forms for which the currently logged-in user has 'read_submissions' or 'manage' rights
                     const grantedActions = entry['grantedActions'];
                     if (
@@ -180,9 +431,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     ) {
                         continue;
                     }
-                    let id = x + 1;
-                    let name = entry['name'];
-                    let form = entry['identifier'];
+                    const id = x + 1;
+                    const formName = entry['name'];
+                    const formId = entry['identifier'];
+                    const formSlug = this.formSlugsMap.get(formId) || null;
+
+                    this.forms.set(formId, {
+                        formName: formName,
+                        formId: formId,
+                        formSlug: formSlug,
+                    });
 
                     let btn = this.createScopedElement('dbp-icon-button');
                     btn.setAttribute('icon-name', 'keyword-research');
@@ -190,51 +448,45 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     btn.setAttribute('aria-label', i18n.t('show-registrations.open-forms'));
 
                     btn.addEventListener('click', async (event) => {
-                        if (this.activeCourse) {
-                            this.deleteSettings();
-                        }
-                        this.activeCourse = name;
-                        this.activeForm = form;
-                        this.showSubmissionsTable = true;
-                        this.getAllCourseSubmissions(this.activeForm).then(() => {
-                            let table = /** @type {TabulatorTable} */ (
-                                this._('#tabulator-table-submissions')
-                            );
-                            table.setData(this.submissions);
-
-                            this.setInitialSubmissionTableOrder();
-
-                            // Get table settings from localstorage
-                            this.getSubmissionTableSettings();
-
-                            if (this.submissions.length === 0) {
-                                table.setColumns([]);
-                            }
-                            this.defineSettings();
-                        });
+                        this.loadingSubmissionTable = true;
+                        // Switch to form submissions table
+                        this.routingUrl = `/${formId}`;
+                        const formSubmissionUrl = getFormShowSubmissionsUrl(formId);
+                        const url = new URL(formSubmissionUrl);
+                        window.history.pushState({}, '', url);
+                        console.log(`window.history`, window.history);
+                        this.sendSetPropertyEvent('routing-url', `/${formId}`, true);
                     });
 
                     let div = this.createScopedElement('div');
                     div.classList.add('button-wrapper');
                     div.appendChild(btn);
 
-                    let new_form = {id: id, name: name, actionButton: btn};
+                    let new_form = {id: id, name: formName, actionButton: btn};
                     forms.push(new_form);
                 }
-                this.allCourses = forms;
+
+                this.allForms = forms;
+                // Set tabulator table data
+                this.options_forms.data = this.allForms;
+                // this.loadingFormsTable = false;
+                // this.requestUpdate();
             }
-        } finally {
-            this.loadCourses = false;
+        } catch (e) {
+            console.log(e);
+            this.loadCourses = true;
         }
     }
 
     /**
-     * Gets the list of submissions for a specific course
+     * Gets the list of submissions for a specific form
      *
-     * @param {string} form
+     * @param {string} formId - form identifier
      */
-    async getAllCourseSubmissions(form) {
+    async getAllFormSubmissions(formId) {
         const i18n = this._i18n;
+        // Reset submissions
+        this.submissions = [];
         let response;
         let data = [];
         const options = {
@@ -245,21 +497,23 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        response = await this.httpGetAsync(
-            this.entryPointUrl + '/formalize/submissions?formIdentifier=' + form + '&perPage=9999',
-            options,
-        );
-
         try {
+            response = await this.httpGetAsync(
+                this.entryPointUrl +
+                    '/formalize/submissions?formIdentifier=' +
+                    formId +
+                    '&perPage=9999',
+                options,
+            );
             data = await response.json();
         } catch (e) {
             this.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
             this.throwSomethingWentWrongNotification();
-            return;
+            return Promise.reject(e);
         }
         if (data['hydra:member'].length === 0) {
             this.submissions = [];
-            return;
+            return response;
         }
 
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
@@ -273,17 +527,35 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             dateCreated = this.humanReadableDate(dateCreated);
             let dataFeedElement = data['hydra:member'][x]['dataFeedElement'];
             dataFeedElement = JSON.parse(dataFeedElement);
+            let submissionId = data['hydra:member'][x]['identifier'];
 
-            let cols = {dateCreated: dateCreated, ...dataFeedElement};
-            let id = x + 1;
-            let btn = this.createScopedElement('dbp-icon-button');
+            const id = x + 1;
+            const cols = {dateCreated: dateCreated, ...dataFeedElement};
+            const btn = this.createScopedElement('dbp-icon-button');
             btn.setAttribute('icon-name', 'keyword-research');
             btn.setAttribute('title', i18n.t('show-registrations.open-detailed-view-modal'));
             btn.setAttribute('aria-label', i18n.t('show-registrations.open-detailed-view-modal'));
             btn.setAttribute('id', id.toString());
             btn.classList.add('open-modal-icon');
             btn.addEventListener('click', (event) => {
-                this.requestDetailedSubmission(cols, id);
+                // Redirect to render-form activity to display the readonly form with submission values
+                const activeForm = this.forms.get(formId);
+                const activeFormSlug = activeForm ? activeForm.formSlug : null;
+
+                // @TODO: LunchLottery don't have a slug
+                // other forms don't have read-only view
+                // if (!activeFormSlug) {
+                if (activeForm.formName !== 'Ethikkommission') {
+                    console.error('No slug found for form ID:', formId);
+                    this.requestDetailedSubmission(cols, id);
+                    return;
+                }
+                const formSubmissionUrl =
+                    getFormRenderUrl(activeFormSlug) + `/${submissionId}/readonly`;
+                const url = new URL(formSubmissionUrl);
+                window.history.pushState({}, '', url);
+                console.log(`window.history`, window.history);
+                window.location.href = url.toString();
                 event.stopPropagation();
             });
 
@@ -297,29 +569,32 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.submissions = submissions_list;
+        // Set tabulator table data
+        this.options_submissions.data = this.submissions;
         this.totalNumberOfItems = submissions_list.length;
 
         return response;
     }
 
     setInitialSubmissionTableOrder() {
-        let submissionsTable = /** @type {TabulatorTable} */ (
-            this._('#tabulator-table-submissions')
-        );
+        const submissionsTable = this.submissionTable;
+
         if (!submissionsTable) return;
         let columns = submissionsTable.getColumns();
-        columns.forEach((col) => {
-            let name = col.getDefinition().title;
-            let field = col.getDefinition().field;
-            let visibility = col.isVisible();
-            if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
-                this.submissionsColumnsInitial.push({
-                    name: name,
-                    field: field,
-                    visibility: visibility,
-                });
-            }
-        });
+        if (columns) {
+            columns.forEach((col) => {
+                let name = col.getDefinition().title;
+                let field = col.getDefinition().field;
+                let visibility = col.isVisible();
+                if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
+                    this.submissionsColumnsInitial.push({
+                        name: name,
+                        field: field,
+                        visibility: visibility,
+                    });
+                }
+            });
+        }
     }
 
     /**
@@ -327,7 +602,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
      *
      */
     defineSettings() {
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        const table = this.submissionTable;
         let settings = this._('#submission-modal-content');
 
         let list = document.createElement('ul');
@@ -422,7 +697,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let settings = this._('#submission-modal-content');
 
         let list = settings.children[0];
-        settings.removeChild(list);
+        if (list) {
+            settings.removeChild(list);
+        }
     }
 
     /**
@@ -537,7 +814,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (e) e.stopPropagation();
 
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        const table = this.submissionTable;
         table.download(exportValue, this.activeCourse);
         exportInput.value = '-';
     }
@@ -550,7 +827,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let search = /** @type {HTMLSelectElement} */ (this._('#search-select'));
         let operator = /** @type {HTMLSelectElement} */ (this._('#search-operator'));
 
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        const table = this.submissionTable;
 
         if (!filter || !search || !operator || !table) return;
 
@@ -584,7 +861,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     clearFilter() {
         let filter = /** @type {HTMLInputElement} */ (this._('#searchbar'));
         let search = /** @type {HTMLSelectElement} */ (this._('#search-select'));
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        const table = this.submissionTable;
 
         if (!filter || !search || !table) return;
 
@@ -838,7 +1115,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     updateSubmissionTable() {
         let list = this._('.headers');
         list = list.childNodes;
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        const table = this.submissionTable;
 
         let newColumns = [];
         [...list].forEach((element, index) => {
@@ -991,7 +1268,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async showEntryOfPos(positionToShow, direction) {
         if (positionToShow > this.totalNumberOfItems || positionToShow < 1) return;
 
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-submissions'));
+        const table = this.submissionTable;
         if (!table) return;
 
         let rows = table.getRows();
@@ -1727,106 +2004,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
+    // Not in use...
     setTableData() {
-        let table = /** @type {TabulatorTable} */ (this._('#tabulator-table-forms'));
-        table.setData(this.allCourses);
+        if (this.formsTable) {
+            this.formsTable.setData(this.allForms);
+        }
     }
 
     render() {
         const i18n = this._i18n;
-
-        if (this.isLoggedIn() && !this.isLoading() && this.loadCourses) {
-            this.getListOfAllCourses().then(() => {
-                this.setTableData();
-            });
-        }
-
-        let langs_forms = {
-            en: {
-                columns: {
-                    id: i18n.t('show-registrations.id', {lng: 'en'}),
-                    name: i18n.t('show-registrations.name', {lng: 'en'}),
-                },
-            },
-            de: {
-                columns: {
-                    id: i18n.t('show-registrations.id', {lng: 'de'}),
-                    name: i18n.t('show-registrations.name', {lng: 'de'}),
-                },
-            },
-        };
-
-        let options_forms = {
-            langs: langs_forms,
-            layout: 'fitColumns',
-            columns: [
-                {field: 'id', width: 64, sorter: 'number'},
-                {field: 'name', sorter: 'string'},
-                {
-                    field: 'actionButton',
-                    formatter: 'html',
-                    hozAlign: 'right',
-                    minWidth: 64,
-                    headerSort: false,
-                },
-            ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
-
-        let auto_langs = {
-            en: {
-                columns: {},
-            },
-            de: {
-                columns: {},
-            },
-        };
-
-        let auto_columns = {
-            langs: auto_langs,
-            autoColumns: 'full',
-            autoColumnsDefinitions: function (definitions) {
-                definitions.forEach((column) => {
-                    if (column.field.includes('date')) {
-                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
-                            //a, b - the two values being compared
-                            //aRow, bRow - the row components for the values being compared (useful if you need to access additional fields in the row data for the sort)
-                            //column - the column component for the column being sorted
-                            const timeStampA = this.dateToTimestamp(a);
-                            const timeStampB = this.dateToTimestamp(b);
-
-                            return timeStampA - timeStampB;
-                        };
-                    }
-                    column.sorter = 'string'; // add header sorter to every column
-                    if (column.field === 'htmlButtons') {
-                        column.formatter = 'html';
-                        column.hozAlign = 'center';
-                        column.headerSort = false;
-                        column.title = '';
-                        column.minWidth = 64;
-                        column.frozen = true;
-                    }
-                });
-                return definitions;
-            },
-            layout: 'fitData',
-            layoutColumnsOnNewData: true,
-            // @TODO: table data are not initialized yet.
-            // this.setOption("initialSort", [{column:"dateCreated", dir:"desc"}]);
-            // initialSort: [
-            //     {column:"dateCreated", dir:"desc"}
-            // ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
 
         return html`
             <div
@@ -1862,14 +2048,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <slot name="additional-information"></slot>
                 </div>
 
+                <div
+                    class="control forms-spinner ${classMap({
+                        hidden: this.showSubmissionsTable || !this.loadingFormsTable,
                     })}">
                     <span class="loading">
                         <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                     </span>
                 </div>
-                <!--see about extra arrow column-->
 
-                <div class="container ${classMap({hidden: this.showSubmissionsTable})}">
+                <div class="container forms-table ${classMap({hidden: !this.showFormsTable})}">
                     <dbp-tabulator-table
                         lang="${this.lang}"
                         class="tabulator-table"
@@ -1877,8 +2065,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         identifier="forms-table"
                         pagination-enabled
                         pagination-size="10"
-                        options=${JSON.stringify(options_forms)}>
-                    </dbp-tabulator-table>
+                        .options=${this.options_forms}></dbp-tabulator-table>
                 </div>
 
                 <div
@@ -1891,12 +2078,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </div>
 
                 <div
+                    class="table-wrapper submissions${classMap({
+                        hideWithoutDisplay:
+                            !this.showSubmissionsTable || this.loadingSubmissionTable,
+                    })}">
                     <span class="back-navigation">
                         <a
                             @click="${() => {
                                 this.showSubmissionsTable = false;
                                 this.clearFilter();
                                 this.loadingCourseTable = false;
+                                this.loadingFormsTable = false;
+                                this.showFormsTable = true;
+                                this.sendSetPropertyEvent('routing-url', '/', true);
+                            }}"
                             title="${i18n.t('show-registrations.back-text')}">
                             <dbp-icon name="chevron-left"></dbp-icon>
                             ${i18n.t('show-registrations.back-text')}
@@ -2026,7 +2221,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     class="tabulator-table"
                     id="tabulator-table-submissions"
                     identifier="submissions-table"
-                    .options="${auto_columns}"
+                    .options=${this.options_submissions}
                     pagination-enabled
                     pagination-size="5"
                     sticky-header

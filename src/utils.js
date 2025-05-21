@@ -10,11 +10,11 @@ export const getFormRenderUrl = (formUrlSlug) => {
     return `${origin}${basePath}/render-form/${formUrlSlug}`;
 };
 
-export const getFormShowSubmissionsUrl = () => {
+export const getFormShowSubmissionsUrl = (formId) => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
     const basePath = currentUrl.pathname.replace(/^(.*\/[de][en]).*$/, '$1');
-    return `${origin}${basePath}/show-registrations`;
+    return `${origin}${basePath}/show-registrations/${formId}`;
 };
 
 // Submission states
