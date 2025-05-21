@@ -1831,12 +1831,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return html`
             <div
                 class="notification is-warning ${classMap({
-                    hidden: this.isLoggedIn() || this.isLoading(),
+                    hidden: this.isLoggedIn() || this.isAuthPending(),
                 })}">
                 ${i18n.t('error-login-message')}
             </div>
 
-            <div class="control ${classMap({hidden: this.isLoggedIn() || !this.isLoading()})}">
+            <div class="control ${classMap({hidden: this.isLoggedIn() || !this.isAuthPending()})}">
                 <span class="loading">
                     <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                 </span>
@@ -1844,14 +1844,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             <div
                 class="notification is-danger ${classMap({
-                    hidden: this.hasPermissions || !this.isLoggedIn() || this.isLoading(),
+                    hidden: this.hasPermissions || !this.isLoggedIn() || this.isAuthPending(),
                 })}">
                 ${i18n.t('error-permission-message')}
             </div>
 
             <div
                 class="${classMap({
-                    hidden: !this.isLoggedIn() || this.isLoading() || !this.hasPermissions,
+                    hidden: !this.isLoggedIn() || this.isAuthPending() || !this.hasPermissions,
                 })}">
                 <h2>${this.activity.getUrlSlug(this.lang)}</h2>
 

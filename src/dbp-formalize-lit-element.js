@@ -2,13 +2,14 @@ import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {getStackTrace} from '@dbp-toolkit/common/src/error.js';
+import {AuthMixin} from '@dbp-toolkit/common';
 
-export default class DBPFormalizeLitElement extends DBPLitElement {
+export default class DBPFormalizeLitElement extends AuthMixin(DBPLitElement) {
     constructor() {
         super();
-        this.auth = {};
+        this._initialized = false;
         this._i18n = createInstance();
-        this.lang = this._i18n.language;
+        // this.lang = this._i18n.language;
         this.entryPointUrl = '';
         this.basePath = '';
     }
@@ -16,7 +17,6 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
     static get properties() {
         return {
             ...super.properties,
-            auth: {type: Object},
             lang: {type: String},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             basePath: {type: String, attribute: 'base-path'},
@@ -25,32 +25,22 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
 
     connectedCallback() {
         super.connectedCallback();
-
-        this._loginStatus = '';
-        this._loginState = [];
     }
 
-    /**
-     *  Request a re-rendering every time isLoggedIn()/isLoading() changes
-     */
-    _updateAuth() {
-        this._loginStatus = this.auth['login-status'];
-
-        let newLoginState = [this.isLoggedIn(), this.isLoading()];
-        if (this._loginState.toString() !== newLoginState.toString()) {
-            this.requestUpdate();
+    loginCallback() {
+        if (!this._initialized) {
+            this.initialize();
+            this._initialized = true;
         }
-        this._loginState = newLoginState;
     }
+
+    initialize() {}
 
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
                     this._i18n.changeLanguage(this.lang);
-                    break;
-                case 'auth':
-                    this._updateAuth();
                     break;
             }
         });
@@ -59,20 +49,11 @@ export default class DBPFormalizeLitElement extends DBPLitElement {
     }
 
     /**
-     * Returns if a person is set in or not
-     * @returns {boolean} true or false
-     */
-    isLoggedIn() {
-        return this.auth.person !== undefined && this.auth.person !== null;
-    }
-
-    /**
      * Returns true if a person has successfully logged in
      * @returns {boolean} true or false
      */
     isLoading() {
-        if (this._loginStatus === 'logged-out') return false;
-        return !this.isLoggedIn() && this.auth.token !== undefined;
+        return this.isAuthPending();
     }
 
     /**

@@ -448,7 +448,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     render() {
         const i18n = this._i18n;
 
-        if (!this.isLoggedIn() && !this.isLoading()) {
+        if (!this.isLoggedIn() && !this.isAuthPending()) {
             return html`
                 <div class="notification is-warning">${i18n.t('error-login-message')}</div>
             `;
