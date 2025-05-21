@@ -365,12 +365,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Init submission table
             if (this.submissionTable) {
                 this.options_submissions.data = this.submissions;
-
-                console.log('tableReady', this.submissionTable.tableReady);
-
-                if (!this.submissionTable.tableReady) {
-                    this.submissionTable.buildTable();
-                }
+                this.submissionTable.buildTable();
 
                 this.loadingSubmissionTable = false;
                 this.showSubmissionsTable = true;
