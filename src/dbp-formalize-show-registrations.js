@@ -1829,38 +1829,42 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
 
         return html`
-            <div class='notification is-warning ${classMap({hidden: this.isLoggedIn() || this.isLoading()})}'>
+            <div
+                class="notification is-warning ${classMap({
+                    hidden: this.isLoggedIn() || this.isLoading(),
+                })}">
                 ${i18n.t('error-login-message')}
             </div>
 
-            <div class='control ${classMap({hidden: this.isLoggedIn() || !this.isLoading()})}'>
-                <span class='loading'>
-                    <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
+            <div class="control ${classMap({hidden: this.isLoggedIn() || !this.isLoading()})}">
+                <span class="loading">
+                    <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                 </span>
             </div>
 
             <div
-                class='notification is-danger ${classMap({hidden: this.hasPermissions || !this.isLoggedIn() || this.isLoading()})}'>
+                class="notification is-danger ${classMap({
+                    hidden: this.hasPermissions || !this.isLoggedIn() || this.isLoading(),
+                })}">
                 ${i18n.t('error-permission-message')}
             </div>
 
-            <div class='${classMap({hidden: !this.isLoggedIn() || this.isLoading() || !this.hasPermissions})}'>
-
+            <div
+                class="${classMap({
+                    hidden: !this.isLoggedIn() || this.isLoading() || !this.hasPermissions,
+                })}">
                 <h2>${this.activity.getUrlSlug(this.lang)}</h2>
 
                 <div>
-                    <p class='subheadline'>
-                        <slot name='description'>
-                            ${this.activity.getDescription(this.lang)}
-                        </slot>
+                    <p class="subheadline">
+                        <slot name="description">${this.activity.getDescription(this.lang)}</slot>
                     </p>
-                    <slot name='additional-information'></slot>
+                    <slot name="additional-information"></slot>
                 </div>
 
-
-                <div class='control ${classMap({hidden: this.showSubmissionsTable || !this.loadingCourseTable})}'>
-                    <span class='loading'>
-                        <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
+                    })}">
+                    <span class="loading">
+                        <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                     </span>
                 </div>
                 <!--see about extra arrow column-->
@@ -1877,75 +1881,102 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </dbp-tabulator-table>
                 </div>
 
-                    </div>
-
-                <div class='control ${classMap({hidden: !this.loadingSubmissionTable})}'>
-                    <span class='loading'>
-                        <dbp-mini-spinner text='${i18n.t('loading-message')}'></dbp-mini-spinner>
+                <div
+                    class="control submissions-spinner ${classMap({
+                        hidden: !this.loadingSubmissionTable,
+                    })}">
+                    <span class="loading">
+                        <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                     </span>
                 </div>
 
                 <div
-                    class='table-wrapper submissions${classMap({hideWithoutDisplay: !this.showSubmissionsTable || this.loadingSubmissionTable})}'>
-                    <span class='back-navigation ${classMap({hidden: !this.showSubmissionsTable})}'>
-                       <a @click='${() => {
-                           this.showSubmissionsTable = false;
-                           this.clearFilter();
-                           this.loadingCourseTable = false;
-                       }}'
-                        title='${i18n.t('show-registrations.back-text')}'>
-                        <dbp-icon name='chevron-left'></dbp-icon>${i18n.t('show-registrations.back-text')}
-                       </a>
+                    <span class="back-navigation">
+                        <a
+                            @click="${() => {
+                                this.showSubmissionsTable = false;
+                                this.clearFilter();
+                                this.loadingCourseTable = false;
+                            title="${i18n.t('show-registrations.back-text')}">
+                            <dbp-icon name="chevron-left"></dbp-icon>
+                            ${i18n.t('show-registrations.back-text')}
+                        </a>
                     </span>
-                    <div class='table-header submissions'>
+                    <div class="table-header submissions">
                         <h3>${this.activeCourse}</h3>
                     </div>
 
-                    <div class='table-buttons'>
-                        <div class='search-wrapper'>
-                            <div id='extendable-searchbar'>
-                                <input type='text' id='searchbar'
-                                    placeholder='${i18n.t('show-registrations.searchbar-placeholder')}'
-                                    @click='${() => {
+                    <div class="table-buttons">
+                        <div class="search-wrapper">
+                            <div id="extendable-searchbar">
+                                <input
+                                    type="text"
+                                    id="searchbar"
+                                    placeholder="${i18n.t(
+                                        'show-registrations.searchbar-placeholder',
+                                    )}"
+                                    @click="${() => {
                                         this.toggleSearchMenu();
-                                    }}' />
-                                <dbp-icon-button class='button is-icon' id='search-button'
-                                    title='${i18n.t('show-registrations.search-button')}'
-                                    aria-label='${i18n.t('show-registrations.search-button')}'
+                                    }}" />
+                                <dbp-icon-button
+                                    class="button is-icon"
+                                    id="search-button"
+                                    title="${i18n.t('show-registrations.search-button')}"
+                                    aria-label="${i18n.t('show-registrations.search-button')}"
                                     icon-name="search"
-                                    @click='${() => {
+                                    @click="${() => {
                                         this.filterTable();
-                                    }}'></dbp-icon-button>
-                                <ul class='extended-menu hidden' id='searchbar-menu'>
-                                    <label for='search-select'>${i18n.t('show-registrations.search-in')}:</label>
-                                    <select id='search-select' class='button dropdown-menu'
-                                            title='${i18n.t('show-registrations.search-in-column')}:'>
+                                    }}"></dbp-icon-button>
+                                <ul class="extended-menu hidden" id="searchbar-menu">
+                                    <label for="search-select">
+                                        ${i18n.t('show-registrations.search-in')}:
+                                    </label>
+                                    <select
+                                        id="search-select"
+                                        class="button dropdown-menu"
+                                        title="${i18n.t('show-registrations.search-in-column')}:">
                                         ${this.getTableHeaderOptions()}
                                     </select>
 
-                                    <label for='search-operator'>${i18n.t('show-registrations.search-operator')}:</label>
-                                    <select id='search-operator' class='button dropdown-menu'>
-                                        <option value='like'>${i18n.t('show-registrations.search-operator-like')}
+                                    <label for="search-operator">
+                                        ${i18n.t('show-registrations.search-operator')}:
+                                    </label>
+                                    <select id="search-operator" class="button dropdown-menu">
+                                        <option value="like">
+                                            ${i18n.t('show-registrations.search-operator-like')}
                                         </option>
-                                        <option value='='>${i18n.t('show-registrations.search-operator-equal')}</option>
-                                        <option value='!='>${i18n.t('show-registrations.search-operator-notequal')}
+                                        <option value="=">
+                                            ${i18n.t('show-registrations.search-operator-equal')}
                                         </option>
-                                        <option value='starts'>${i18n.t('show-registrations.search-operator-starts')}
+                                        <option value="!=">
+                                            ${i18n.t('show-registrations.search-operator-notequal')}
                                         </option>
-                                        <option value='ends'>${i18n.t('show-registrations.search-operator-ends')}
+                                        <option value="starts">
+                                            ${i18n.t('show-registrations.search-operator-starts')}
                                         </option>
-                                        <option value='<'>${i18n.t('show-registrations.search-operator-less')}</option>
-                                        <option value='<='>
-                                            ${i18n.t('show-registrations.search-operator-lessthanorequal')}
+                                        <option value="ends">
+                                            ${i18n.t('show-registrations.search-operator-ends')}
                                         </option>
-                                        <option value='>'>${i18n.t('show-registrations.search-operator-greater')}
+                                        <option value="<">
+                                            ${i18n.t('show-registrations.search-operator-less')}
                                         </option>
-                                        <option value='>='>
-                                            ${i18n.t('show-registrations.search-operator-greaterorequal')}
+                                        <option value="<=">
+                                            ${i18n.t(
+                                                'show-registrations.search-operator-lessthanorequal',
+                                            )}
                                         </option>
-                                        <option value='regex'>${i18n.t('show-registrations.search-operator-regex')}
+                                        <option value=">">
+                                            ${i18n.t('show-registrations.search-operator-greater')}
                                         </option>
-                                        <option value='keywords'>
+                                        <option value=">=">
+                                            ${i18n.t(
+                                                'show-registrations.search-operator-greaterorequal',
+                                            )}
+                                        </option>
+                                        <option value="regex">
+                                            ${i18n.t('show-registrations.search-operator-regex')}
+                                        </option>
+                                        <option value="keywords">
                                             ${i18n.t('show-registrations.search-operator-keywords')}
                                         </option>
                                     </select>
@@ -1953,29 +1984,43 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             </div>
                         </div>
 
-                        <div class='export-buttons'>
-                            <dbp-button no-spinner-on-click type="is-secondary" @click='${() => {
-                                this.openColumnOptionsModal();
-                            }}'>
-                                <dbp-icon  title='${i18n.t('show-registrations.filter-options-button-text')}'
-                                    aria-label='${i18n.t('show-registrations.filter-options-button-text')}'
-                                    name='iconoir_settings'></dbp-icon>
+                        <div class="export-buttons">
+                            <dbp-button
+                                no-spinner-on-click
+                                type="is-secondary"
+                                @click="${() => {
+                                    this.openColumnOptionsModal();
+                                }}">
+                                <dbp-icon
+                                    title="${i18n.t(
+                                        'show-registrations.filter-options-button-text',
+                                    )}"
+                                    aria-label="${i18n.t(
+                                        'show-registrations.filter-options-button-text',
+                                    )}"
+                                    name="iconoir_settings"></dbp-icon>
                                 ${i18n.t('show-registrations.table-config-button-text')}
                             </dbp-button>
-                            <select id='export-select' class='dropdown-menu' @change='${this.exportSubmissionTable}'>
-                                <option value='-' disabled selected>
+                            <select
+                                id="export-select"
+                                class="dropdown-menu"
+                                @change="${this.exportSubmissionTable}">
+                                <option value="-" disabled selected>
                                     ${i18n.t('show-registrations.default-export-select')}
                                 </option>
-                                <option value='csv'>CSV</option>
-                                <option value='xlsx'>Excel</option>
-                                <option value='pdf'>PDF</option>
+                                <option value="csv">CSV</option>
+                                <option value="xlsx">Excel</option>
+                                <option value="pdf">PDF</option>
                             </select>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="container ${classMap({hidden: !this.showSubmissionsTable})}">
+            <div
+                class="container submissions-table ${classMap({
+                    hidden: !this.showSubmissionsTable,
+                })}">
                 <dbp-tabulator-table
                     lang="${this.lang}"
                     class="tabulator-table"
@@ -1985,58 +2030,59 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     pagination-enabled
                     pagination-size="5"
                     sticky-header
-                    select-rows-enabled>
-                </dbp-tabulator-table>
+                    select-rows-enabled></dbp-tabulator-table>
             </div>
 
-            <div class='modal micromodal-slide' id='column-options-modal' aria-hidden='true'>
-                <div class='modal-overlay' tabindex='-2' data-micromodal-close>
+            <div class="modal micromodal-slide" id="column-options-modal" aria-hidden="true">
+                <div class="modal-overlay" tabindex="-2" data-micromodal-close>
                     <div
-                        class='modal-container'
-                        id='filter-modal-box'
-                        role='dialog'
-                        aria-modal='true'
-                        aria-labelledby='submission-modal-title'>
-                        <header class='modal-header'>
+                        class="modal-container"
+                        id="filter-modal-box"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="submission-modal-title">
+                        <header class="modal-header">
                             <dbp-icon-button
-                                title='${i18n.t('show-registrations.modal-close')}'
-                                aria-label='${i18n.t('show-registrations.modal-close')}'
-                                class='modal-close'
-                                icon-name='close'
-                                @click='${() => {
+                                title="${i18n.t('show-registrations.modal-close')}"
+                                aria-label="${i18n.t('show-registrations.modal-close')}"
+                                class="modal-close"
+                                icon-name="close"
+                                @click="${() => {
                                     this.closeColumnOptionsModal();
-                                }}'></dbp-icon-button>
-                            <p id='submission-modal-title'>
+                                }}"></dbp-icon-button>
+                            <p id="submission-modal-title">
                                 ${i18n.t('show-registrations.header-settings')}
                             </p>
                         </header>
-                        <main class='modal-content' id='submission-modal-content'>
-                        </main>
-                        <footer class='modal-footer'>
-                            <div class='modal-footer-btn'>
+                        <main class="modal-content" id="submission-modal-content"></main>
+                        <footer class="modal-footer">
+                            <div class="modal-footer-btn">
                                 <div>
                                     <button
-                                        title='${i18n.t('show-registrations.abort')}'
-                                        class='check-btn button is-secondary'
-                                        @click='${() => {
+                                        title="${i18n.t('show-registrations.abort')}"
+                                        class="check-btn button is-secondary"
+                                        @click="${() => {
                                             this.closeColumnOptionsModal();
-                                        }}'>
+                                        }}">
                                         ${i18n.t('show-registrations.abort')}
                                     </button>
                                     <button
-                                        title='${i18n.t('show-registrations.reset-filter')}'
-                                        class='check-btn button is-secondary'
-                                        @click='${() => {
+                                        title="${i18n.t('show-registrations.reset-filter')}"
+                                        class="check-btn button is-secondary"
+                                        @click="${() => {
                                             this.resetSettings();
-                                        }}'>
+                                        }}">
                                         ${i18n.t('show-registrations.reset-filter')}
                                     </button>
                                 </div>
-                                <button class='check-btn button is-primary' id='check' @click='${() => {
-                                    this.updateSubmissionTable();
-                                    this.closeColumnOptionsModal();
-                                    this.setSubmissionTableSettings();
-                                }}'>
+                                <button
+                                    class="check-btn button is-primary"
+                                    id="check"
+                                    @click="${() => {
+                                        this.updateSubmissionTable();
+                                        this.closeColumnOptionsModal();
+                                        this.setSubmissionTableSettings();
+                                    }}">
                                     ${i18n.t('show-registrations.save-columns')}
                                 </button>
                             </div>
@@ -2045,83 +2091,96 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </div>
             </div>
 
-            <div class='modal micromodal-slide' id='detailed-submission-modal' aria-hidden='true'>
-                <div class='modal-overlay' tabindex='-2' data-micromodal-close>
+            <div class="modal micromodal-slide" id="detailed-submission-modal" aria-hidden="true">
+                <div class="modal-overlay" tabindex="-2" data-micromodal-close>
                     <div
-                        class='modal-container'
-                        id='detailed-submission-modal-box'
-                        role='dialog'
-                        aria-modal='true'
-                        aria-labelledby='detailed-submission-modal-title'>
-                        <header class='modal-header'>
+                        class="modal-container"
+                        id="detailed-submission-modal-box"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="detailed-submission-modal-title">
+                        <header class="modal-header">
                             <button
-                                title='${i18n.t('show-registrations.modal-close')}'
-                                class='modal-close'
-                                aria-label='${i18n.t('show-registrations.modal-close')}'
-                                @click='${() => {
+                                title="${i18n.t('show-registrations.modal-close')}"
+                                class="modal-close"
+                                aria-label="${i18n.t('show-registrations.modal-close')}"
+                                @click="${() => {
                                     this.closeDetailModal();
-                                }}'>
+                                }}">
                                 <dbp-icon
-                                    title='${i18n.t('show-registrations.modal-close')}'
-                                    aria-hidden='true'
-                                    name='close'
-                                    class='close-icon'></dbp-icon>
+                                    title="${i18n.t('show-registrations.modal-close')}"
+                                    aria-hidden="true"
+                                    name="close"
+                                    class="close-icon"></dbp-icon>
                             </button>
-                            <h3 id='detailed-submission-modal-title'>
-                                ${i18n.t('show-registrations.detailed-submission-dialog-title')}</h3>
+                            <h3 id="detailed-submission-modal-title">
+                                ${i18n.t('show-registrations.detailed-submission-dialog-title')}
+                            </h3>
                         </header>
-                        <main class='modal-content' id='detailed-submission-modal-content'>
-                            <div class='detailed-submission-modal-content-wrapper'></div>
+                        <main class="modal-content" id="detailed-submission-modal-content">
+                            <div class="detailed-submission-modal-content-wrapper"></div>
                         </main>
-                        <footer class='modal-footer'>
-                            <div class='modal-footer-btn'>
-                                <label class='button-container ${classMap({hidden: !this.hiddenColumns})}'>
+                        <footer class="modal-footer">
+                            <div class="modal-footer-btn">
+                                <label
+                                    class="button-container ${classMap({
+                                        hidden: !this.hiddenColumns,
+                                    })}">
                                     ${i18n.t('show-registrations.apply-col-settings')}
                                     <input
-                                        type='checkbox'
-                                        id='apply-col-settings'
-                                        name='apply-col-settings'
-                                        @click='${() => {
+                                        type="checkbox"
+                                        id="apply-col-settings"
+                                        name="apply-col-settings"
+                                        @click="${() => {
                                             this.requestDetailedSubmission(
                                                 this.currentRow,
                                                 this.currentRow.getData(),
                                             );
-                                        }}'
+                                        }}"
                                         checked />
-                                    <span class='checkmark'></span>
+                                    <span class="checkmark"></span>
                                 </label>
-                                <div class='btn-row-left'>
-                                    <dbp-button class='back-btn' no-spinner-on-click
-                                        title='${i18n.t('show-registrations.previous-entry-btn-title')}'
-                                        @click='${() => {
+                                <div class="btn-row-left">
+                                    <dbp-button
+                                        class="back-btn"
+                                        no-spinner-on-click
+                                        title="${i18n.t(
+                                            'show-registrations.previous-entry-btn-title',
+                                        )}"
+                                        @click="${() => {
                                             this.showEntryOfPos(
                                                 this.currentDetailPosition - 1,
                                                 'previous',
                                             );
-                                        }}'
+                                        }}"
                                         ?disabled=${!this.isPrevEnabled}>
-                                        <dbp-icon name='chevron-left' aria-hidden='true'></dbp-icon>
+                                        <dbp-icon name="chevron-left" aria-hidden="true"></dbp-icon>
                                         ${i18n.t('show-registrations.previous-entry-btn-title')}
                                     </dbp-button>
-                                    <div class="page-numbering">${i18n.t(
-                                        'show-registrations.detailed-submission-dialog-id',
-                                        {
-                                            id: this.currentBeautyId,
-                                            nItems: this.totalNumberOfItems,
-                                        },
-                                    )}
+                                    <div class="page-numbering">
+                                        ${i18n.t(
+                                            'show-registrations.detailed-submission-dialog-id',
+                                            {
+                                                id: this.currentBeautyId,
+                                                nItems: this.totalNumberOfItems,
+                                            },
+                                        )}
                                     </div>
-                                    <dbp-button class='next-btn' no-spinner-on-click
-                                        title='${i18n.t('show-registrations.next-entry-btn-title')}'
-                                        @click='${() => {
+                                    <dbp-button
+                                        class="next-btn"
+                                        no-spinner-on-click
+                                        title="${i18n.t('show-registrations.next-entry-btn-title')}"
+                                        @click="${() => {
                                             this.showEntryOfPos(
                                                 this.currentDetailPosition + 1,
                                                 'next',
                                             );
-                                        }}'
+                                        }}"
                                         ?disabled=${!this.isNextEnabled}>
                                         ${i18n.t('show-registrations.next-entry-btn-title')}
-                                        <dbp-icon name='chevron-right' aria-hidden='true'></dbp-icon>
+                                        <dbp-icon
+                                            name="chevron-right"
+                                            aria-hidden="true"></dbp-icon>
                                     </dbp-button>
                                 </div>
                             </div>
