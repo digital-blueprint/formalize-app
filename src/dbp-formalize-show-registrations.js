@@ -2008,21 +2008,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return html`
             <div
                 class="notification is-warning ${classMap({
-                    hidden: this.isLoggedIn() || this.isAuthPending(),
+                    hidden: this.isLoggedIn() || !this.isAuthPending(),
                 })}">
                 ${i18n.t('error-login-message')}
             </div>
 
-            <div class="control ${classMap({hidden: this.isLoggedIn() || !this.isAuthPending()})}">
+            <div class="control ${classMap({hidden: this.isLoggedIn() || this.isAuthPending()})}">
                 <span class="loading">
                     <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                 </span>
             </div>
 
-
             <div
                 class="${classMap({
-                    hidden: !this.isLoggedIn() || this.isAuthPending()
+                    hidden: !this.isLoggedIn() || this.isAuthPending(),
                 })}">
                 <h2>${this.activity.getUrlSlug(this.lang)}</h2>
 
