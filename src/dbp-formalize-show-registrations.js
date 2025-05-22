@@ -58,7 +58,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.loadingSubmissionTable = false;
         this.modalContentHeight = 0;
         this.loadCourses = true;
-        this.hasPermissions = true;
         this.hiddenColumns = false;
         this.currentDetailPosition = 0;
 
@@ -449,7 +448,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         const formSubmissionUrl = getFormShowSubmissionsUrl(formId);
                         const url = new URL(formSubmissionUrl);
                         window.history.pushState({}, '', url);
-                        console.log(`window.history`, window.history);
                         this.sendSetPropertyEvent('routing-url', `/${formId}`, true);
                     });
 
@@ -464,8 +462,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.allForms = forms;
                 // Set tabulator table data
                 this.options_forms.data = this.allForms;
-                // this.loadingFormsTable = false;
-                // this.requestUpdate();
             }
         } catch (e) {
             console.log(e);
@@ -2023,16 +2019,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </span>
             </div>
 
-            <div
-                class="notification is-danger ${classMap({
-                    hidden: this.hasPermissions || !this.isLoggedIn() || this.isAuthPending(),
-                })}">
-                ${i18n.t('error-permission-message')}
-            </div>
 
             <div
                 class="${classMap({
-                    hidden: !this.isLoggedIn() || this.isAuthPending() || !this.hasPermissions,
+                    hidden: !this.isLoggedIn() || this.isAuthPending()
                 })}">
                 <h2>${this.activity.getUrlSlug(this.lang)}</h2>
 
