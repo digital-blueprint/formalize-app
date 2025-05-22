@@ -2,14 +2,15 @@ import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {getStackTrace} from '@dbp-toolkit/common/src/error.js';
-import {AuthMixin} from '@dbp-toolkit/common';
+import {AuthMixin, LangMixin} from '@dbp-toolkit/common';
 
-export default class DBPFormalizeLitElement extends AuthMixin(DBPLitElement) {
+export default class DBPFormalizeLitElement extends LangMixin(
+    AuthMixin(DBPLitElement),
+    createInstance,
+) {
     constructor() {
         super();
         this._initialized = false;
-        this._i18n = createInstance();
-        // this.lang = this._i18n.language;
         this.entryPointUrl = '';
         this.basePath = '';
     }
@@ -17,7 +18,6 @@ export default class DBPFormalizeLitElement extends AuthMixin(DBPLitElement) {
     static get properties() {
         return {
             ...super.properties,
-            lang: {type: String},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             basePath: {type: String, attribute: 'base-path'},
         };
@@ -37,13 +37,7 @@ export default class DBPFormalizeLitElement extends AuthMixin(DBPLitElement) {
     initialize() {}
 
     update(changedProperties) {
-        changedProperties.forEach((oldValue, propName) => {
-            switch (propName) {
-                case 'lang':
-                    this._i18n.changeLanguage(this.lang);
-                    break;
-            }
-        });
+        changedProperties.forEach((oldValue, propName) => {});
 
         super.update(changedProperties);
     }
