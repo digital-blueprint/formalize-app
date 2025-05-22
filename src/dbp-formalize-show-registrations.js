@@ -273,12 +273,16 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('routingUrl')) {
-            const newUrl = !this.routingUrl.match(/^\//) ? `/${this.routingUrl}` : this.routingUrl;
-            const prevUrl = changedProperties.get('routingUrl');
             // Prepend a slash to the URL if it doesn't start with one
-            const oldUrl = prevUrl && !prevUrl.match(/^\//) ? '/' + prevUrl : prevUrl;
+            let newUrl = !this.routingUrl.match(/^\//) ? `/${this.routingUrl}` : this.routingUrl;
+            const prevUrl = changedProperties.get('routingUrl');
+            let oldUrl = prevUrl && !prevUrl.match(/^\//) ? '/' + prevUrl : prevUrl;
 
             if (oldUrl === undefined) return;
+
+            // Remove hash from URLs
+            newUrl = newUrl.replace(/^(.*)#.*$/, '$1');
+            oldUrl = oldUrl.replace(/^(.*)#.*$/, '$1');
 
             if (oldUrl !== newUrl) {
                 console.log('[updated - routingUrl]', oldUrl, '=>', newUrl);
