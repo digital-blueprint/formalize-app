@@ -230,25 +230,20 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             console.log('Not yet authenticated');
             return;
         }
-        try {
-            // If we arrive from another activity, auth is not updated
-            // we need to init form loading here.
-            await this.getListOfAllForms();
-        } catch (error) {
-            console.error('[firstUpdated] Error initializing tables:', error);
+        if (this.allForms.length > 0) {
+            return;
         }
+
+        // If we arrive from another activity, auth is not updated
+        // we need to init form loading here.
+        await this.getListOfAllForms();
+    }
+
+    async loginCallback() {
+        await this.getListOfAllForms();
     }
 
     async updated(changedProperties) {
-        if (changedProperties.has('auth')) {
-            if (!this.authTokenExists && this.auth.token !== '') {
-                this.authTokenExists = true;
-
-                if (this.forms.size == 0) {
-                    await this.getListOfAllForms();
-                }
-            }
-        }
         if (changedProperties.has('allForms')) {
             // Build tables
             if (this.allForms && this.allForms.length > 0) {
@@ -473,8 +468,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.options_forms.data = this.allForms;
             }
         } catch (e) {
-            console.log(e);
             this.loadCourses = true;
+            console.error('[updated] Error getting list of forms:', e);
+            send({
+                summary: i18n.t('show-registrations.failed-to-get-forms-title'),
+                body: i18n.t('show-registrations.failed-to-get-forms-body'),
+                type: 'danger',
+                timeout: 5,
+            });
         }
     }
 

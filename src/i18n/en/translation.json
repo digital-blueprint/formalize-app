@@ -114,6 +114,8 @@
         "default-export-select": "Export",
         "detailed-submission-dialog-id": "{{id}} of {{nItems}}",
         "detailed-submission-dialog-title": "Detailed view",
+        "failed-to-get-forms-body": "Failed to get form list from the API",
+        "failed-to-get-forms-title": "API Error",
         "filter-options-button-text": "Filter Options",
         "header-settings": "Column setting",
         "id": "ID",
