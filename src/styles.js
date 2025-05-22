@@ -535,6 +535,7 @@ export function getEthicsCommissionFormCSS() {
             text-align: right;
             pointer-events: none;
             z-index: 9;
+            height: 0;
         }
 
         .scroller {
