@@ -13,6 +13,6 @@ pkgs.mkShell {
   shellHook =
     config.shellHook
     + ''
-      echo "💻 Project dev shell"
+      echo "💻 Starting Formalize dev shell"
     '';
 }
