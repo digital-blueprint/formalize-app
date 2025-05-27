@@ -141,8 +141,10 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                     delay: 500,
                     url: apiUrl,
                     contentType: 'application/ld+json',
-                    beforeSend: function (jqXHR) {
-                        jqXHR.setRequestHeader('Authorization', 'Bearer ' + that.auth.token);
+                    beforeSend: (jqXHR) => {
+                        jqXHR.setRequestHeader('Authorization', 'Bearer ' + this.auth.token);
+                        // Use page language instead of browser language for API requests
+                        jqXHR.setRequestHeader('Accept-Language', this.lang);
                         that.isSearching = true;
                     },
                     data: (params) => {
