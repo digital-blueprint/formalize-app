@@ -185,10 +185,10 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (changedProperties.has('userAllSubmissions')) {
             this.userAllSubmittedSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState == 4,
+                (submission) => submission.submissionState === 4,
             );
             this.userAllDraftSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState == 1,
+                (submission) => submission.submissionState === 1,
             );
             this.setButtonStates();
         }
@@ -201,10 +201,7 @@ class FormalizeFormElement extends BaseFormElement {
     setButtonStates() {
         // Show draft button if DRAFT state is allowed and not yet submitted
         if (this.allowedSubmissionStates === 5) {
-            this.isDraftButtonAllowed = true;
-            if (this.isSubmittedMode) {
-                this.isDraftButtonAllowed = false;
-            }
+            this.isDraftButtonAllowed = !this.isSubmittedMode;
         }
 
         // Don't show submit button if form already submitted
@@ -223,7 +220,7 @@ class FormalizeFormElement extends BaseFormElement {
         // @TODO: Do we need to check for 'manage' permission here?
         if (this.submissionId && Object.keys(this.formProperties).length > 0) {
             this.isDeleteSubmissionButtonAllowed =
-                this.formProperties.allowedActionsWhenSubmitted.includes('delete') ? true : false;
+                !!this.formProperties.allowedActionsWhenSubmitted.includes('delete');
         }
 
         // Show accept button if user has manage permission and the submission state is SUBMITTED
@@ -231,12 +228,11 @@ class FormalizeFormElement extends BaseFormElement {
             const isSubmission =
                 this.userAllSubmittedSubmissions.filter(
                     (submission) => submission.identifier === this.submissionId,
-                ).length == 1;
+                ).length === 1;
 
             if (this.submissionId && isSubmission && Object.keys(this.formProperties).length > 0) {
-                this.isAcceptButtonEnabled = this.formProperties.grantedActions.includes('manage')
-                    ? true
-                    : false;
+                this.isAcceptButtonEnabled =
+                    !!this.formProperties.grantedActions.includes('manage');
             }
         }
     }
@@ -250,8 +246,8 @@ class FormalizeFormElement extends BaseFormElement {
             this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
             this.submittedFilesCount = this.submittedFiles.size;
 
-            this.isDraftMode = this.submissionState == 1 ? true : false;
-            this.isSubmittedMode = this.submissionState == 4 ? true : false;
+            this.isDraftMode = this.submissionState === 1;
+            this.isSubmittedMode = this.submissionState === 4;
 
             if (this.formData) {
                 try {
@@ -1176,7 +1172,7 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
 
         const currentSubmission = this.userAllSubmissions.find(
-            (submission) => submission.identifier == this.submissionId,
+            (submission) => submission.identifier === this.submissionId,
         );
 
         const dateCreated = this.newSubmissionId
