@@ -225,7 +225,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
 
     /**
      * Gets passed a course object and should return a string representation that will
-     * will be shown to the user.
+     * be shown to the user.
      *
      * @param {object} select
      * @param {object} course
