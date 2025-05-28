@@ -76,23 +76,23 @@ class FormalizeFormElement extends BaseFormElement {
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 // Access the data from the event detail
                 const data = event.detail;
-                // Include unique identifier for person who is submitting
+                // Include unique identifier for the person who is submitting
                 data.formData.identifier = this.formData.identifier;
                 // Create UUID for each submission
                 this.createUUID();
                 data.formData.uuid = this.formData.uuid;
-                // Create human-readable exam id for each submission
+                // Create a human-readable exam id for each submission
                 this.createExamID();
                 data.formData.examid = this.formData.examid;
 
                 // Extract name and email from examiner data
-                let examinerdata = this.getExaminerMail(data.formData.examiner);
-                data.formData.examiner = examinerdata[0];
-                data.formData.email_examiner = examinerdata[1];
+                let examinerData = this.getExaminerMail(data.formData.examiner);
+                data.formData.examiner = examinerData[0];
+                data.formData.email_examiner = examinerData[1];
                 // Extract name and email from additional examiner data
-                let additionalExaminerdata = this.getExaminerMail(data.formData.additionalExaminer);
-                data.formData.additionalExaminer = additionalExaminerdata[0];
-                data.formData.email_additionalExaminer = additionalExaminerdata[1];
+                let additionalExaminerData = this.getExaminerMail(data.formData.additionalExaminer);
+                data.formData.additionalExaminer = additionalExaminerData[0];
+                data.formData.email_additionalExaminer = additionalExaminerData[1];
 
                 // Handle the event
                 console.log('Form submission data:', data);
