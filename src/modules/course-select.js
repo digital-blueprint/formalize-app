@@ -218,7 +218,9 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
      */
     buildUrlData(select, params) {
         return {
-            search: params.term.trim(),
+            // We want to remove all "." from the search term, because the course code doesn't contain them,
+            // but CAMPUSonline has them included in their web applications
+            search: params.term.replaceAll('.', '').trim(),
             includeLocal: 'teachingTerm,type',
         };
     }
