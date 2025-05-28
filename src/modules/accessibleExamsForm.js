@@ -74,28 +74,28 @@ class FormalizeFormElement extends BaseFormElement {
 
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
-                // Access the data from the event detail
-                const data = event.detail;
+                // Get the form data from the event detail
+                const formData = event.detail.formData;
                 // Include unique identifier for the person who is submitting
-                data.formData.identifier = this.formData.identifier;
+                formData.identifier = this.formData.identifier;
                 // Create UUID for each submission
                 this.createUUID();
-                data.formData.uuid = this.formData.uuid;
+                formData.uuid = this.formData.uuid;
                 // Create a human-readable exam id for each submission
                 this.createExamID();
-                data.formData.examid = this.formData.examid;
+                formData.examid = this.formData.examid;
 
                 // Extract name and email from examiner data
-                let examinerData = this.getExaminerMail(data.formData.examiner);
-                data.formData.examiner = examinerData[0];
-                data.formData.email_examiner = examinerData[1];
+                let examinerData = this.getExaminerMail(formData.examiner);
+                formData.examiner = examinerData[0];
+                formData.email_examiner = examinerData[1];
                 // Extract name and email from additional examiner data
-                let additionalExaminerData = this.getExaminerMail(data.formData.additionalExaminer);
-                data.formData.additionalExaminer = additionalExaminerData[0];
-                data.formData.email_additionalExaminer = additionalExaminerData[1];
+                let additionalExaminerData = this.getExaminerMail(formData.additionalExaminer);
+                formData.additionalExaminer = additionalExaminerData[0];
+                formData.email_additionalExaminer = additionalExaminerData[1];
 
                 // Handle the event
-                console.log('Form submission data:', data);
+                console.log('Form submission data:', formData);
 
                 try {
                     this.isPostingSubmission = true;
@@ -106,7 +106,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     let body = {
                         form: '/formalize/forms/' + '0193cfbd-9b68-703a-81f9-c10d0e2375b7',
-                        dataFeedElement: JSON.stringify(data.formData),
+                        dataFeedElement: JSON.stringify(formData),
                     };
 
                     const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
