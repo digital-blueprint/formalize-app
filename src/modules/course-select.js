@@ -112,7 +112,6 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
      */
     initSelect2(ignorePreset = false) {
         const i18n = this._i18n;
-        const that = this;
         const $this = $(this);
 
         if (this.$select === null || this.entryPointUrl === null) {
@@ -145,21 +144,21 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                         jqXHR.setRequestHeader('Authorization', 'Bearer ' + this.auth.token);
                         // Use page language instead of browser language for API requests
                         jqXHR.setRequestHeader('Accept-Language', this.lang);
-                        that.isSearching = true;
+                        this.isSearching = true;
                     },
                     data: (params) => {
                         return this.buildUrlData(this, params);
                     },
-                    processResults: function (data) {
-                        that.$('#course-select-dropdown').addClass('select2-bug');
+                    processResults: (data) => {
+                        this.$('#course-select-dropdown').addClass('select2-bug');
 
-                        that.lastResult = data;
+                        this.lastResult = data;
                         let members = data['hydra:member'];
                         const results = [];
                         members.forEach((course) => {
                             results.push({
                                 id: course['@id'],
-                                text: that.formatCourse(that, course),
+                                text: this.formatCourse(this, course),
                             });
                         });
 
@@ -171,26 +170,26 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                         this.handleXhrError(jqXHR, textStatus, errorThrown);
                     },
                     complete: (jqXHR, textStatus) => {
-                        that.isSearching = false;
+                        this.isSearching = false;
                     },
                 },
             })
-            .on('select2:select', function (e) {
-                that.$('#course-select-dropdown').removeClass('select2-bug');
+            .on('select2:select', (e) => {
+                this.$('#course-select-dropdown').removeClass('select2-bug');
 
                 // set custom element attributes
                 const identifier = e.params.data.id;
-                that.object = findObjectInApiResults(identifier, that.lastResult);
+                this.object = findObjectInApiResults(identifier, this.lastResult);
 
-                $this.attr('data-object', JSON.stringify(that.object));
-                $this.data('object', that.object);
+                $this.attr('data-object', JSON.stringify(this.object));
+                $this.data('object', this.object);
 
                 if ($this.attr('value') !== identifier) {
-                    that.ignoreValueUpdate = true;
+                    this.ignoreValueUpdate = true;
                     $this.attr('value', identifier);
 
                     // fire a change event
-                    that.dispatchEvent(
+                    this.dispatchEvent(
                         new CustomEvent('change', {
                             detail: {
                                 value: identifier,
@@ -201,7 +200,7 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                 }
             })
             .on('select2:closing', (e) => {
-                if (that.isSearching) {
+                if (this.isSearching) {
                     e.preventDefault();
                 }
             });
