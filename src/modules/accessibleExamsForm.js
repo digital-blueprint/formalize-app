@@ -85,10 +85,18 @@ class FormalizeFormElement extends BaseFormElement {
                 this.createExamID();
                 formData.examid = this.formData.examid;
 
-                // Extract name and email from examiner data
-                let examinerData = this.getExaminerMail(formData.examiner);
-                formData.examiner = examinerData[0] ?? '';
-                formData.email_examiner = examinerData[1] ?? '';
+                if (formData.examinerText) {
+                    // Set examinerText as examiner
+                    formData.examiner = formData.examinerText;
+                    formData.email_examiner = '';
+                    delete formData.examinerText;
+                } else {
+                    // Extract name and email from examiner data
+                    let examinerData = this.getExaminerMail(formData.examiner);
+                    formData.examiner = examinerData[0] ?? '';
+                    formData.email_examiner = examinerData[1] ?? '';
+                }
+
                 // Extract name and email from additional examiner data
                 let additionalExaminerData = this.getExaminerMail(formData.additionalExaminer);
                 formData.additionalExaminer = additionalExaminerData[0];
