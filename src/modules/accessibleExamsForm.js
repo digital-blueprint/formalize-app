@@ -87,8 +87,8 @@ class FormalizeFormElement extends BaseFormElement {
 
                 // Extract name and email from examiner data
                 let examinerData = this.getExaminerMail(formData.examiner);
-                formData.examiner = examinerData[0];
-                formData.email_examiner = examinerData[1];
+                formData.examiner = examinerData[0] ?? '';
+                formData.email_examiner = examinerData[1] ?? '';
                 // Extract name and email from additional examiner data
                 let additionalExaminerData = this.getExaminerMail(formData.additionalExaminer);
                 formData.additionalExaminer = additionalExaminerData[0];
@@ -295,7 +295,21 @@ class FormalizeFormElement extends BaseFormElement {
                         name="examiner"
                         label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
                         value=${data.examiner || ''}
-                        required></dbp-person-select-element>
+                        .customValidator=${(value, evaluationData) => {
+                            // We can't use this.examinerCustomValidation directly, or this._i18n will not find the message key
+                            return this.examinerCustomValidation(evaluationData);
+                        }}></dbp-person-select-element>
+
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        ref=""
+                        name="examinerText"
+                        label=${i18n.t('render-form.forms.accessible-exams-form.examiner-text')}
+                        value=${data.examinerText || ''}
+                        .customValidator=${(value, evaluationData) => {
+                            // We can't use this.examinerCustomValidation directly, or this._i18n will not find the message key
+                            return this.examinerCustomValidation(evaluationData);
+                        }}></dbp-form-string-element>
 
                     <dbp-person-select-element
                         id="additional-examiner-picker-element"
@@ -372,6 +386,12 @@ class FormalizeFormElement extends BaseFormElement {
             </form>
             ${this.renderResult(this.submitted)} ${this.renderErrorMessage(this.submissionError)}
         `;
+    }
+
+    examinerCustomValidation(evaluationData) {
+        return evaluationData.examinerText === '' && evaluationData.examiner === ''
+            ? [this._i18n.t('render-form.forms.accessible-exams-form.examiner-validation-error')]
+            : [];
     }
 
     renderResult(submitted) {
