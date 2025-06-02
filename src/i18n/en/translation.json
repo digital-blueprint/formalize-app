@@ -28,7 +28,7 @@
             "accessible-exams-form": {
                 "additional-examiner": "Additional examiner",
                 "begin-time": "Begin time of exam",
-                "comment": "Comment",
+                "comment": "Note (e.g. if a course cannot be found or for further information)",
                 "course-name": "Subject",
                 "date": "Date of exam",
                 "date-validation-error": "Please choose a date that is at least two weeks ahead.",

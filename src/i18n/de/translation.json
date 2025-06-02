@@ -28,7 +28,7 @@
             "accessible-exams-form": {
                 "additional-examiner": "Weiterer Prüfer*Weitere Prüferin",
                 "begin-time": "Beginnzeit der Prüfung",
-                "comment": "Anmerkung",
+                "comment": "Anmerkung (zB wenn eine Lehrveranstaltung nicht gefunden werden kann oder für weitere Infos)",
                 "course-name": "Lehrveranstaltung",
                 "date": "Datum der Prüfung",
                 "date-validation-error": "Bitte wählen Sie ein Datum, das zumindest zwei Wochen in der Zukunft liegt.",
