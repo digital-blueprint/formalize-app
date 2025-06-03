@@ -22,13 +22,26 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
     }
 
     handleInputValue(e) {
-        let personDataObject = JSON.parse(e.target.getAttribute('data-object'));
+        let dataObjectText = e.target.getAttribute('data-object');
+        let personDataObject = dataObjectText ? JSON.parse(dataObjectText) : null;
         // Specify the value to be included in the form submission
         if (personDataObject != null) {
             let name = `${personDataObject.givenName} ${personDataObject.familyName}`;
             let email = `${personDataObject.localData.email}`;
             this.value = name + ' ' + email;
+        } else {
+            this.value = '';
         }
+
+        // fire a change event
+        this.dispatchEvent(
+            new CustomEvent('change', {
+                detail: {
+                    value: personDataObject,
+                },
+                bubbles: true,
+            }),
+        );
     }
 
     renderInput() {

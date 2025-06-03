@@ -37,6 +37,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.submitted = false;
         this.submissionError = false;
         this.beginTimeRef = createRef();
+        this.examinerTextRef = createRef();
     }
 
     static get properties() {
@@ -303,6 +304,15 @@ class FormalizeFormElement extends BaseFormElement {
                         name="examiner"
                         label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
                         value=${data.examiner || ''}
+                        @change="${(e) => {
+                            const hasValue = !!e.detail.value;
+                            if (hasValue) {
+                                this.examinerTextRef.value.setAttribute('disabled', 'true');
+                                this.examinerTextRef.value.value = '';
+                            } else {
+                                this.examinerTextRef.value.removeAttribute('disabled');
+                            }
+                        }}"
                         .customValidator=${(value, evaluationData) => {
                             // We can't use this.examinerCustomValidation directly, or this._i18n will not find the message key
                             return this.examinerCustomValidation(evaluationData);
@@ -310,7 +320,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-element
                         subscribe="lang"
-                        ref=""
+                        ${ref(this.examinerTextRef)}
                         name="examinerText"
                         label=${i18n.t('render-form.forms.accessible-exams-form.examiner-text')}
                         value=${data.examinerText || ''}
