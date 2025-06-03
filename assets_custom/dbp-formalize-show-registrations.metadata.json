@@ -14,6 +14,5 @@
         "de": "Zeigt eine Liste aller verfügbaren Formulareinträge",
         "en": "Shows a list of available submissions"
     },
-    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url",
-    "required_roles": ["ROLE_FORMALIZE_FORM_SUBMISSION_READER"]
+    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url"
 }
