@@ -111,6 +111,8 @@
     "show-registrations": {
         "abort": "Cancel",
         "all-columns": "All columns",
+        "all-filters-hide": "Hide all",
+        "all-filters-show": "Show all",
         "apply-col-settings": "Apply filter options",
         "back-text": "Back to course list",
         "default-export-select": "Export",
@@ -147,6 +149,8 @@
         "searchbar-placeholder": "Search",
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!",
+        "submission-table-draft-title": "Drafts",
+        "submission-table-submitted-title": "Submitted",
         "table-config-button-text": ""
     }
 }

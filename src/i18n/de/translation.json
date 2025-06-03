@@ -111,6 +111,8 @@
     "show-registrations": {
         "abort": "Abbrechen",
         "all-columns": "Alle Spalten",
+        "all-filters-hide": "Alle verstecken",
+        "all-filters-show": "Alle anzeigen",
         "apply-col-settings": "Filteroptionen übernehmen",
         "back-text": "Zurück zur Kursübersicht",
         "default-export-select": "Exportieren",
@@ -147,6 +149,8 @@
         "searchbar-placeholder": "Suchen",
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
+        "submission-table-draft-title": "Drafts",
+        "submission-table-submitted-title": "Submitted",
         "table-config-button-text": "Tabellenkonfiguration"
     }
 }
