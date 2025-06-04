@@ -659,7 +659,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Upload attached files
         if (this.filesToSubmitCount > 0) {
             this.filesToSubmit.forEach((file) => {
-                formData.append('file[]', file, file.name);
+                formData.append('attachments[]', file, file.name);
             });
         }
 
@@ -3160,7 +3160,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       <h4 class="question-group-title">
                                           2.1. Art des Forschungsmaterials
                                       </h4>
-                                      <!-- ITT TARTOK-->
                                       <dbp-form-enum-element
                                           subscribe="lang"
                                           name="humanTissueUsed"
