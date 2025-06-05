@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.0
+
+- new release
+
 ## v1.2.2
 
 - Various improvements for the "accessible-exams-form" form
