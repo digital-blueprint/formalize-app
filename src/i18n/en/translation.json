@@ -114,7 +114,7 @@
         "all-filters-hide": "Hide all",
         "all-filters-show": "Show all",
         "apply-col-settings": "Apply filter options",
-        "back-text": "Back to course list",
+        "back-text": "Back to form list",
         "default-export-select": "Export",
         "detailed-submission-dialog-id": "{{id}} of {{nItems}}",
         "detailed-submission-dialog-title": "Detailed view",
@@ -126,6 +126,7 @@
         "modal-close": "Close dialog",
         "name": "Name",
         "next-entry-btn-title": "Next entry",
+        "no-submission-data-available": "No submission data available",
         "open-detailed-view-modal": "Open detailed view modal",
         "open-forms": "Show form submissions",
         "previous-entry-btn-title": "Previous entry",
@@ -151,6 +152,7 @@
         "something-went-wrong-title": "Error!",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted",
-        "table-config-button-text": ""
+        "table-config-button-text": "Table configuration",
+        "warning-title": "Warning"
     }
 }

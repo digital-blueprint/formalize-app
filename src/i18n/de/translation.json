@@ -114,7 +114,7 @@
         "all-filters-hide": "Alle verstecken",
         "all-filters-show": "Alle anzeigen",
         "apply-col-settings": "Filteroptionen übernehmen",
-        "back-text": "Zurück zur Kursübersicht",
+        "back-text": "Zurück zur Formularliste",
         "default-export-select": "Exportieren",
         "detailed-submission-dialog-id": "{{id}} von {{nItems}}",
         "detailed-submission-dialog-title": "Detailansicht",
@@ -126,6 +126,7 @@
         "modal-close": "Dialog schließen",
         "name": "Name",
         "next-entry-btn-title": "Nächster",
+        "no-submission-data-available": "Keine Daten zur Einreichung verfügbar",
         "open-detailed-view-modal": "Dialog für die Detailansicht öffnen",
         "open-forms": "Formulareinträge anzeigen",
         "previous-entry-btn-title": "Vorheriger",
@@ -151,6 +152,7 @@
         "something-went-wrong-title": "Fehler!",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted",
-        "table-config-button-text": "Tabellenkonfiguration"
+        "table-config-button-text": "Tabellenkonfiguration",
+        "warning-title": "Warnung"
     }
 }

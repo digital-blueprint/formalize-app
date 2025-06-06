@@ -202,7 +202,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const options_submissions = {
             langs: lang_submissions,
-            autoColumns: 'full',
+            autoColumns: true, //'full',
+            rowHeight: 64,
             autoColumnsDefinitions: function (definitions) {
                 definitions.forEach((column) => {
                     if (column.field.includes('date')) {
@@ -216,7 +217,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             return timeStampA - timeStampB;
                         };
                     }
-                    column.sorter = 'string'; // add header sorter to every column
                     if (column.field === 'htmlButtons') {
                         column.formatter = 'html';
                         column.hozAlign = 'center';
@@ -224,6 +224,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         column.title = '';
                         column.minWidth = 64;
                         column.frozen = true;
+                    } else {
+                        column.sorter = 'string'; // add header sorter to every column
                     }
                 });
                 return definitions;
@@ -420,23 +422,25 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 if (this.submissionTables[state]) {
                     this.options_submissions[state].data = this.submissions[state];
 
-                    if (this.submissionTables[state].tableReady) {
-                        // When changing between forms
-                        this.submissionTables[state].setData(this.submissions[state]);
-                    } else {
-                        // First time page load
+                    if (this.submissions[state].length === 0) {
+                        this.loadingSubmissionTables = false;
+                        this.showSubmissionTables = true; // show back button
+                        this.showFormsTable = false;
+
+                        this.submissionTables[state].clearData();
                         this.submissionTables[state].buildTable();
+                    } else {
+                        this.submissionTables[state].buildTable();
+                        // Get table settings from localstorage
+                        this.getSubmissionTableSettings(state);
+                        // this.setInitialSubmissionTableOrder(state);
+                        this.defineSettings(state);
+                        this.updateSubmissionTable(state);
+
+                        this.loadingSubmissionTables = false;
+                        this.showSubmissionTables = true;
+                        this.showFormsTable = false;
                     }
-
-                    // Get table settings from localstorage
-                    this.getSubmissionTableSettings(state);
-                    // this.setInitialSubmissionTableOrder(state);
-                    this.defineSettings(state);
-                    this.updateSubmissionTable(state);
-
-                    this.loadingSubmissionTables = false;
-                    this.showSubmissionTables = true;
-                    this.showFormsTable = false;
                 }
             }
         });
@@ -534,6 +538,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const i18n = this._i18n;
         let response;
         let data = [];
+        this.submissions = {
+            submitted: [],
+            draft: [],
+        };
         const options = {
             method: 'GET',
             headers: {
@@ -557,13 +565,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return Promise.reject(e);
         }
         if (data['hydra:member'].length === 0) {
-            this.submissions = {
-                submitted: [],
-                draft: [],
-            };
+            send({
+                summary: i18n.t('show-registrations.warning-title'),
+                body: i18n.t('show-registrations.no-submission-data-available'),
+                type: 'danger',
+                timeout: 5,
+            });
             return response;
         }
-
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
@@ -571,14 +580,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const submissions = {};
         submissions.submitted = data['hydra:member'].filter((submission) => {
-            return submission.submissionState == 4;
+            return submission.submissionState === 4;
         });
         submissions.draft = data['hydra:member'].filter((submission) => {
-            return submission.submissionState == 1;
+            return submission.submissionState === 1;
         });
 
-        let submissions_list = [];
         for (const state of Object.keys(this.submissions)) {
+            let submissions_list = [];
             for (let [x, submission] of submissions[state].entries()) {
                 let dateCreated = submission['dateCreated'];
                 dateCreated = this.humanReadableDate(dateCreated);
@@ -2514,7 +2523,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 <div
                     class="control forms-spinner ${classMap({
-                        hidden: this.showSubmissionTables || !this.loadingFormsTable,
+                        hidden: !this.loadingFormsTable || this.showSubmissionTables,
                     })}">
                     <span class="loading">
                         <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
@@ -2534,7 +2543,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 <div
                     class="control submissions-spinner ${classMap({
-                        hidden: !this.loadingSubmissionTables,
+                        hidden: !this.loadingSubmissionTables || this.showFormsTable,
                     })}">
                     <span class="loading">
                         <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
@@ -2570,7 +2579,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 class="container submissions-table ${classMap({
                     hidden: !this.showSubmissionTables,
                 })}">
-                ${Object.keys(this.submissions).map((state) => {
+                ${this.submissionStates.map((state) => {
                     const submissionTableTitle = {
                         draft: i18n.t('show-registrations.submission-table-draft-title'),
                         submitted: i18n.t('show-registrations.submission-table-submitted-title'),
