@@ -92,13 +92,15 @@ class FormalizeFormElement extends BaseFormElement {
                     // Set examinerText as examiner
                     formData.examiner = formData.examinerText;
                     formData.email_examiner = '';
-                    delete formData.examinerText;
                 } else {
                     // Extract name and email from examiner data
                     let examinerData = this.getExaminerMail(formData.examiner);
                     formData.examiner = examinerData[0] ?? '';
                     formData.email_examiner = examinerData[1] ?? '';
                 }
+
+                // We always need to delete the examinerText field, because it's not in the schema
+                delete formData.examinerText;
 
                 // Extract name and email from additional examiner data
                 let additionalExaminerData = this.getExaminerMail(formData.additionalExaminer);
