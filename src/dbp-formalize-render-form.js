@@ -209,7 +209,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         try {
             // @TODO: API does not return DRAFT state submissions!
             const response = await this.httpGetAsync(
-                this.entryPointUrl + `/formalize/submissions?formIdentifier=${formIdentifier}`,
+                this.entryPointUrl +
+                    `/formalize/submissions?formIdentifier=${formIdentifier}&perPage=100000`,
                 options,
             );
 
