@@ -19,7 +19,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionId = '';
         this.loadedSubmission = {};
         this.userAllSubmissions = [];
-        this.userAllDraftSubmissions = [];
         this.usersSubmissionCount = 0;
         this.formProperties = {};
         this.authTokenExists = false;
@@ -210,7 +209,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // @TODO: API does not return DRAFT state submissions!
             const response = await this.httpGetAsync(
                 this.entryPointUrl +
-                    `/formalize/submissions?formIdentifier=${formIdentifier}&perPage=100000`,
+                    `/formalize/submissions?formIdentifier=${formIdentifier}&perPage=100000&creatorIdEquals=` +
+                    this.auth['user-id'],
                 options,
             );
 
@@ -225,13 +225,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 responseBody['hydra:member'].length > 0
             ) {
                 this.userAllSubmissions = responseBody['hydra:member'];
-                this.userAllSubmittedSubmissions = responseBody['hydra:member'].filter(
-                    (submission) => submission.submissionState == 4,
-                );
-                this.userAllDraftSubmissions = responseBody['hydra:member'].filter(
-                    (submission) => submission.submissionState == 1,
-                );
-                this.usersSubmissionCount = this.userAllSubmittedSubmissions.length;
                 this.requestUpdate();
             }
         } catch (e) {
@@ -322,16 +315,17 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const allowedSubmissionStates = this.formProperties.allowedSubmissionStates;
         const maxNumberOfSubmissionsPerUser = this.formProperties.maxNumSubmissionsPerCreator;
         const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
+        this.usersSubmissionCount = this.formProperties.numSubmissionsByCurrentUser;
 
         if (this.usersSubmissionCount > 0) {
-            if (maxNumberOfSubmissionsPerUser == 1) {
+            if (maxNumberOfSubmissionsPerUser === 1) {
                 // Form already submitted, can't submit again
                 if (
                     allowedActionsWhenSubmitted.includes('read') ||
                     allowedActionsWhenSubmitted.includes('manage')
                 ) {
                     // User can read the submission or manage the form show read-only form
-                    const oldSubmissionId = this.userAllSubmittedSubmissions.pop().identifier;
+                    const oldSubmissionId = this.userAllSubmissions[0].identifier;
                     const submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
                     return html`
                         <div class="notification is-warning">
