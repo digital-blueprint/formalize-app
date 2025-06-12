@@ -88,7 +88,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.humanTestSubjectsQuestionsEnabled = false;
         this.humanStemCellsQuestionsEnabled = false;
         this.stemCellFromHumanEmbryosQuestionsEnabled = false;
-        this.cellsObtainedInResearchQuestionsEnabled = true;
+        this.cellsObtainedInResearchQuestionsEnabled = false;
         this.harmfulSubstancesOnSubjects = false;
         this.animalQuestionsEnabled = false;
         this.nonEuCountriesQuestionsEnabled = false;
@@ -1833,7 +1833,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-enum-view
                                           class="conditional-field"
                                           data-target-variable="cellsObtainedInResearchQuestionsEnabled"
-                                          data-condition="yes"
+                                          data-condition="no"
                                           subscribe="lang"
                                           label="2.2.2. Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
                                           .items=${{
