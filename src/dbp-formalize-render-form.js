@@ -19,7 +19,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionId = '';
         this.loadedSubmission = {};
         this.userAllSubmissions = [];
-        this.usersSubmissionCount = 0;
+        this.usersSubmissionCount = null;
         this.formProperties = {};
         this.authTokenExists = false;
         this.submissionAllowed = false;
@@ -187,6 +187,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             // Get users all submission for this form
             await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+
+            this.requestUpdate();
         } catch (error) {
             console.error('Error loading modules:', error);
         }
@@ -273,39 +275,42 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formUrlSlug = this.formUrlSlug;
         const formComponents = this.formComponents;
 
-        if (formUrlSlug === '') {
-            // console.log('formUrlSlug empty', formUrlSlug);
-            // TODO: Show better error message
-            return html`
-                No form identifier provided!
-            `;
-        }
-
-        if (!formComponents) {
+        if (Object.keys(formComponents).length === 0) {
             return html`
                 Loading...
             `;
         }
 
-        // console.log('getFormHtml formComponents', formComponents);
-        // console.log('getFormHtml formUrlSlug', formUrlSlug);
+        if (formUrlSlug === '') {
+            return html`
+                <div class="notification is-warning">
+                    ${this._i18n.t('render-form.form-not-found')}
+                </div>
+            `;
+        }
 
         if (!formComponents[formUrlSlug]) {
-            console.log('formUrlSlug not found', formUrlSlug);
             return html`
-                Form
-                <strong>${formUrlSlug}</strong>
-                not found!
+                <div class="notification is-warning">
+                    ${this._i18n.t('render-form.form-with-slug-not-found', {
+                        slug: formUrlSlug,
+                        interpolation: {escapeValue: false},
+                    })}
+                </div>
+            `;
+        }
+
+        if (!this.submissionAllowed) {
+            return html`
+                <div class="notification is-warning">
+                    ${this._i18n.t('render-form.form-not-accessible')}
+                </div>
             `;
         }
 
         const tagPart = pascalToKebab(formUrlSlug);
         const tagName = 'dbp-formalize-form-' + tagPart;
         const form = this.formComponents[formUrlSlug];
-
-        // console.log('getDocumentEditFormHtml formUrlSlug', formUrlSlug);
-        // console.log('getDocumentEditFormHtml tagName', tagName);
-        // console.log('getDocumentEditFormHtml form', form);
 
         if (!this.registry.get(tagName)) {
             this.registry.define(tagName, form);
@@ -317,32 +322,35 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
         this.usersSubmissionCount = this.formProperties.numSubmissionsByCurrentUser;
 
+        // Don't display the form before setting usersSubmissionCount.
+        if (this.usersSubmissionCount === null) return;
+
         if (this.usersSubmissionCount > 0) {
             if (maxNumberOfSubmissionsPerUser === 1) {
                 // Form already submitted, can't submit again
+                let submissionUrl = '';
                 if (
                     allowedActionsWhenSubmitted.includes('read') ||
                     allowedActionsWhenSubmitted.includes('manage')
                 ) {
                     // User can read the submission or manage the form show read-only form
                     const oldSubmissionId = this.userAllSubmissions[0].identifier;
-                    const submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
-                    return html`
-                        <div class="notification is-warning">
-                            ${this._i18n.t('render-form.form-already-submitted-warning')}
-                            <a href="${submissionUrl}">
-                                ${this._i18n.t('render-form.check-previous-submissions-warning')}
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    // User can't read the submission show a warning
-                    return html`
-                        <div class="notification is-warning">
-                            ${this._i18n.t('render-form.form-already-submitted-warning')}
-                        </div>
-                    `;
+                    submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
                 }
+                return html`
+                    <div class="notification is-warning">
+                        ${this._i18n.t('render-form.form-already-submitted-warning')}
+                        ${submissionUrl
+                            ? html`
+                                  <a href="${submissionUrl}">
+                                      ${this._i18n.t(
+                                          'render-form.check-previous-submissions-warning',
+                                      )}
+                                  </a>
+                              `
+                            : ''}
+                    </div>
+                `;
             }
         }
 
@@ -450,14 +458,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!this.isLoggedIn() && !this.isAuthPending()) {
             return html`
                 <div class="notification is-warning">${i18n.t('error-login-message')}</div>
-            `;
-        }
-
-        if (!this.submissionAllowed) {
-            return html`
-                <div class="notification is-warning">
-                    ${i18n.t('render-form.form-not-accessible')}
-                </div>
             `;
         }
 
