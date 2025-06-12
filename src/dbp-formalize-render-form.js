@@ -12,6 +12,7 @@ import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
+        this.formIsRendered = false;
         this.formComponents = {};
         this.formIdentifiers = {};
         this.formRef = createRef();
@@ -24,6 +25,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.authTokenExists = false;
         this.submissionAllowed = false;
         this.formDisplayDenied = false;
+
+        this._onReceiveBeforeUnload = this.onReceiveBeforeUnload.bind(this);
     }
 
     static get scopedElements() {
@@ -43,10 +46,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     connectedCallback() {
         super.connectedCallback();
+
+        window.addEventListener('beforeunload', this._onReceiveBeforeUnload);
+
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
             this.loadModules();
         });
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+
+        // Remove event listeners using bound methods
+        window.removeEventListener('beforeunload', this._onReceiveBeforeUnload);
     }
 
     updateFormUrlSlug() {
@@ -148,8 +161,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Fetch the JSON file containing module paths
             const response = await fetch(this.basePath + 'modules.json');
             const data = await response.json();
-
-            // console.log('loadModules data', data);
 
             let formComponents = {};
             let formIdentifiers = {};
@@ -269,6 +280,37 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.loadedSubmission = data;
         console.log('this.loadedSubmission', this.loadedSubmission);
+    }
+
+    /**
+     * Decides if the "beforeunload" event needs to be canceled
+     *
+     * @param event
+     */
+    onReceiveBeforeUnload(event) {
+        // we don't need to stop if there are no form rendered.
+        if (this.formIsRendered === false) {
+            return;
+        }
+
+        // we need to handle custom events ourselves
+        if (!event.isTrusted) {
+            // note that this only works with custom event since calls of "confirm" are ignored
+            // in the non-custom event, see https://developer.mozilla.org/en-US/docs/Web/API/Window/beforeunload_event
+            const result = confirm(this._i18n.t('render-form.form-exit-warning-message'));
+
+            // don't stop the page leave if the user wants to leave
+            if (result) {
+                return;
+            }
+        }
+
+        // Browser default message for user navigation
+        // This message cannot be customized for security reasons in modern browsers
+        // Cancel the event as stated by the standard
+        event.preventDefault();
+        // Chrome requires returnValue to be set
+        event.returnValue = '';
     }
 
     getFormHtml() {
@@ -415,6 +457,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </div>
             `;
         }
+
+        this.formIsRendered = true;
 
         console.log('RENDER-FORM-RENDER: formProperties', this.formProperties);
         console.log('RENDER-FORM-RENDER: usersSubmissions', this.userAllSubmissions);
