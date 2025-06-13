@@ -129,7 +129,7 @@
         "modal-close": "Dialog schließen",
         "name": "Name",
         "next-entry-btn-title": "Nächster",
-        "no-submission-data-available": "Keine Daten zur Einreichung verfügbar",
+        "no-submission-available-message": "Aktuell sind keine Einträge vorhanden.",
         "open-detailed-view-modal": "Dialog für die Detailansicht öffnen",
         "open-forms": "Formulareinträge anzeigen",
         "previous-entry-btn-title": "Vorheriger",

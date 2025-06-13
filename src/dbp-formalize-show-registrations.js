@@ -78,6 +78,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.storeSession = true;
         this.loadingFormsTable = false;
         this.loadingSubmissionTables = false;
+        this.noSubmissionAvailable = true;
         this.modalContentHeight = 0;
         this.loadCourses = true;
         this.hiddenColumns = false;
@@ -565,14 +566,10 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return Promise.reject(e);
         }
         if (data['hydra:member'].length === 0) {
-            send({
-                summary: i18n.t('show-registrations.warning-title'),
-                body: i18n.t('show-registrations.no-submission-data-available'),
-                type: 'danger',
-                timeout: 5,
-            });
+            this.noSubmissionAvailable = true;
             return response;
         }
+        this.noSubmissionAvailable = false;
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
@@ -2579,6 +2576,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 class="container submissions-table ${classMap({
                     hidden: !this.showSubmissionTables,
                 })}">
+
+                ${this.noSubmissionAvailable
+                    ? html`
+                        <div class="notification is-warning">${i18n.t('show-registrations.no-submission-available-message')}</div>
+                    `
+                    : ''
+                }
+
                 ${this.submissionStates.map((state) => {
                     const submissionTableTitle = {
                         draft: i18n.t('show-registrations.submission-table-draft-title'),

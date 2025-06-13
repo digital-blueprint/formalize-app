@@ -129,7 +129,7 @@
         "modal-close": "Close dialog",
         "name": "Name",
         "next-entry-btn-title": "Next entry",
-        "no-submission-data-available": "No submission data available",
+        "no-submission-available-message": "No submission data available",
         "open-detailed-view-modal": "Open detailed view modal",
         "open-forms": "Show form submissions",
         "previous-entry-btn-title": "Previous entry",
