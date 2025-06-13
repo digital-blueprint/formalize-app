@@ -18,8 +18,9 @@ export const getFormShowSubmissionsUrl = (formId) => {
 };
 
 // Submission states
-export const SUBMISSION_STATE_DRAFT = 0b0001;
-export const SUBMISSION_STATE_SUBMITTED = 0b0100;
+export const SUBMISSION_STATE_DRAFT = 0b0001; // 1
+export const SUBMISSION_STATE_SUBMITTED = 0b0100; // 4
+export const SUBMISSION_STATE_ACCEPTED = 0b00010000; // 16
 
 export function formatDate(value) {
     if (!value) return '';

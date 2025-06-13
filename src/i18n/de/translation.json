@@ -91,6 +91,7 @@
                 "print-pdf-button-text": "PDF drucken",
                 "publication": "Publikation",
                 "qualification-work-label": "Werden im Rahmen des Forschungsvorhabens auch Abschluss- oder Qualifizierungsarbeiten durchgeführt?\nWenn ja, welche Arbeiten?\nIst im Rahmen der Betreuung auch die Publikation von Ergebnissen geplant?",
+                "revert-accept-button-text": "Wiedereröffnen",
                 "save-draft-button-text": "Als Entwurf speichern",
                 "scroll-to-bottom-text": "Scrollen Sie zum Ende der Seite",
                 "scroll-to-top-text": "Scrollen Sie zum Anfang der Seite",
@@ -153,6 +154,7 @@
         "searchbar-placeholder": "Suchen",
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
+        "submission-table-accepted-title": "Akzeptiertes",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted",
         "table-config-button-text": "Tabellenkonfiguration"

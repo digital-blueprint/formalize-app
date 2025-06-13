@@ -101,7 +101,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * Sends a draft submission event with the given form data.
      * @param {object} event
      */
-    sendDraft(event) {
+    sendSaveDraft(event) {
         this.draftButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
         const data = {
@@ -125,8 +125,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             return;
         }
 
-        this.deleteButtonEnabled = false;
-
         const data = {
             submissionId: this.submissionId,
         };
@@ -143,17 +141,41 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * Sends an accept submission event with the submission ID to accept.
      * @param {object} event
      */
-    acceptSubmission(event) {
+    sendAcceptSubmission(event) {
         if (!this.submissionId) {
             return;
         }
 
-        this.acceptButtonEnabled = false;
+        this.isAcceptButtonEnabled = false;
+        this.isRevertAcceptButtonEnabled = true;
         const data = {
             submissionId: this.submissionId,
         };
 
         const customEvent = new CustomEvent('DbpFormalizeFormAcceptSubmission', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
+    /**
+     * Sends an revert-accept submission event with the submission ID to accept.
+     * @param {object} event
+     */
+    sendRevertAcceptSubmission(event) {
+        if (!this.submissionId) {
+            return;
+        }
+
+        this.isAcceptButtonEnabled = true;
+        this.isRevertAcceptButtonEnabled = false;
+        const data = {
+            submissionId: this.submissionId,
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormRevertAcceptedSubmission', {
             bubbles: true,
             composed: true,
             detail: data,

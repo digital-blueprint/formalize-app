@@ -31,16 +31,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.options_submissions = {
             draft: {},
             submitted: {},
+            accepted: {},
         };
         this.options_forms = {};
         this.forms = new Map();
 
         // Submission states (?)
-        this.submissionStates = ['draft', 'submitted'];
+        this.submissionStates = ['draft', 'submitted', 'accepted'];
 
         this.submissions = {
             draft: [],
             submitted: [],
+            accepted: [],
         };
         this.showSubmissionTables = false;
         this.showFormsTable = false;
@@ -48,14 +50,17 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionsColumns = {
             draft: [],
             submitted: [],
+            accepted: [],
         };
         this.submissionsColumnsInitial = {
             draft: [],
             submitted: [],
+            accepted: [],
         };
         this.tableSettingsInitialized = {
             draft: false,
             submitted: false,
+            accepted: false,
         };
         this.initateOpenAdditionalMenu = false;
         this.initateOpenAdditionalSearchMenu = false;
@@ -72,6 +77,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.totalNumberOfItems = {
             draft: 0,
             submitted: 0,
+            accepted: 0,
         };
         this.isPrevEnabled = false;
         this.isNextEnabled = false;
@@ -87,6 +93,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionTables = {
             submitted: null,
             draft: null,
+            accept: null,
         };
         this.formsTable = null;
     }
@@ -242,6 +249,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.options_submissions.submitted = options_submissions;
         this.options_submissions.draft = options_submissions;
+        this.options_submissions.accepted = options_submissions;
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
@@ -267,7 +275,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     getTableState(tableId) {
         for (const state of Object.keys(this.submissionTables)) {
-            if (tableId === this.submissionTables[state].id) {
+            if (this.submissionTables[state] && tableId === this.submissionTables[state].id) {
                 return state;
             }
         }
@@ -276,8 +284,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async firstUpdated() {
         this.formsTable = this._('#tabulator-table-forms');
-        this.submissionTables.submitted = this._('#tabulator-table-submissions-submitted');
-        this.submissionTables.draft = this._('#tabulator-table-submissions-draft');
+        this.submissionStates.forEach((state) => {
+            this.submissionTables[state] = this._(`#tabulator-table-submissions-${state}`);
+        });
 
         if (this.auth.token === '' || this.allForms.length > 0) {
             return;
@@ -542,6 +551,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissions = {
             submitted: [],
             draft: [],
+            accepted: [],
         };
         const options = {
             method: 'GET',
@@ -582,6 +592,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         submissions.draft = data['hydra:member'].filter((submission) => {
             return submission.submissionState === 1;
         });
+        submissions.accepted = data['hydra:member'].filter((submission) => {
+            return submission.submissionState === 16;
+        });
 
         for (const state of Object.keys(this.submissions)) {
             let submissions_list = [];
@@ -596,6 +609,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const cols = {dateCreated: dateCreated, ...dataFeedElement};
 
                 // Add show details button
+                // @TODO make it a link to be able to open it in a new tab with middle click.
                 const submissionDetailsButton = this.createScopedElement('dbp-icon-button');
                 submissionDetailsButton.setAttribute('icon-name', 'keyword-research');
                 submissionDetailsButton.setAttribute(
@@ -2491,6 +2505,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     render() {
         const i18n = this._i18n;
 
+        console.log(`this.submissions`, this.submissions);
+
         return html`
             <div
                 class="notification is-warning ${classMap({
@@ -2587,6 +2603,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const submissionTableTitle = {
                         draft: i18n.t('show-registrations.submission-table-draft-title'),
                         submitted: i18n.t('show-registrations.submission-table-submitted-title'),
+                        accepted: i18n.t('show-registrations.submission-table-accepted-title'),
                     };
                     return html`
                         <div
