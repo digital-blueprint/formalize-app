@@ -288,8 +288,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param event
      */
     onReceiveBeforeUnload(event) {
-        // we don't need to stop if there are no form rendered.
-        if (this.formIsRendered === false) {
+        // we don't need to stop if there are no form rendered
+        // or the form is read-only.
+        if (this.formIsRendered === false || this.readOnly) {
             return;
         }
 
