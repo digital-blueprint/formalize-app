@@ -155,7 +155,6 @@
         "something-went-wrong-title": "Error!",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted",
-        "table-config-button-text": "Table configuration",
-        "warning-title": "Warning"
+        "table-config-button-text": "Table configuration"
     }
 }

@@ -2576,14 +2576,13 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 class="container submissions-table ${classMap({
                     hidden: !this.showSubmissionTables,
                 })}">
-
                 ${this.noSubmissionAvailable
                     ? html`
-                        <div class="notification is-warning">${i18n.t('show-registrations.no-submission-available-message')}</div>
-                    `
-                    : ''
-                }
-
+                          <div class="notification is-warning">
+                              ${i18n.t('show-registrations.no-submission-available-message')}
+                          </div>
+                      `
+                    : ''}
                 ${this.submissionStates.map((state) => {
                     const submissionTableTitle = {
                         draft: i18n.t('show-registrations.submission-table-draft-title'),
