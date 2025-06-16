@@ -54,6 +54,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isDraftState = false;
         this.isSubmittedState = false;
         this.isAcceptedState = false;
+        this.submissionState = 0;
         this.submitted = false;
         this.submissionError = false;
         this.scrollTimeout = null;
@@ -66,11 +67,12 @@ class FormalizeFormElement extends BaseFormElement {
         this.draftSaveError = false;
 
         // Button
+        this.isViewModeButtonAllowed = false;
         this.isDraftButtonAllowed = false;
         this.isDeleteSubmissionButtonAllowed = false;
         this.isAcceptButtonEnabled = false;
         this.isRevertAcceptButtonEnabled = false;
-        this.isSubmitButtonEnabled = true;
+        this.isSubmitButtonEnabled = false;
         this.isPrintButtonAllowed = false;
         this.isDownloadButtonAllowed = false;
 
@@ -121,6 +123,7 @@ class FormalizeFormElement extends BaseFormElement {
             resourceActions: {type: Object},
 
             // Buttons
+            isViewModeButtonAllowed: {type: Boolean},
             isDeleteSubmissionButtonAllowed: {type: Boolean},
             isDraftButtonAllowed: {type: Boolean},
             isAcceptButtonEnabled: {type: Boolean},
@@ -210,52 +213,65 @@ class FormalizeFormElement extends BaseFormElement {
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
+        // No state
+        if (this.submissionState === 0) {
+            this.isDraftButtonAllowed = this.isDraftStateEnabled();
+            this.isSubmitButtonEnabled = this.isSubmittedStateEnabled();
+        } else {
+            // Buttons in all state
+            if (this.readOnly) {
+                this.isPrintButtonAllowed = true;
+                this.isDownloadButtonAllowed = true;
+            }
+            this.isViewModeButtonAllowed = true;
+            this.isDeleteSubmissionButtonAllowed =
+                this.grantedActions.includes('manage') ||
+                this.allowedActionsWhenSubmitted.includes('delete');
+        }
+
         // DRAFT
         if (this.isDraftState) {
-            this.isDraftButtonAllowed = !this.readOnly;
+            if (!this.readOnly) {
+                this.isDraftButtonAllowed = true;
+                this.isSubmitButtonEnabled = this.isSubmittedStateEnabled();
+            }
         }
 
         // SUBMITTED
         if (this.isSubmittedState) {
-            this.isSubmitButtonEnabled = false;
             this.isAcceptButtonEnabled =
-                !!this.grantedActions.includes('manage') ||
-                this.allowedActionsWhenSubmitted.includes('update');
+                this.isAcceptedStateEnabled() &&
+                (this.grantedActions.includes('manage') ||
+                    this.allowedActionsWhenSubmitted.includes('update'));
         }
 
         // ACCEPTED
         if (this.isAcceptedState) {
             this.isRevertAcceptButtonEnabled =
-                !!this.grantedActions.includes('manage') ||
-                this.allowedActionsWhenSubmitted.includes('update');
-        }
-
-        // READ-ONLY
-        if (this.readOnly) {
-            this.isPrintButtonAllowed = true;
-            this.isDownloadButtonAllowed = true;
-            this.isSubmitButtonEnabled = false;
-        }
-
-        // Show delete button if the user has delete permission
-        // @TODO: Do we need to check for 'manage' permission here?
-        if (this.submissionId) {
-            this.isDeleteSubmissionButtonAllowed =
-                !!this.allowedActionsWhenSubmitted.includes('delete') ||
-                !!this.grantedActions.includes('manage');
+                this.isSubmittedStateEnabled() &&
+                (this.grantedActions.includes('manage') ||
+                    this.allowedActionsWhenSubmitted.includes('update'));
         }
     }
 
-    isDraftStateEnabled(state) {
-        return (state & SUBMISSION_STATE_DRAFT) === SUBMISSION_STATE_DRAFT;
+    isDraftStateEnabled() {
+        if (!this.allowedSubmissionStates) throw new Error('allowedSubmissionStates not set');
+        return (this.allowedSubmissionStates & SUBMISSION_STATE_DRAFT) === SUBMISSION_STATE_DRAFT;
     }
 
-    isSubmittedStateEnabled(state) {
-        return (state & SUBMISSION_STATE_SUBMITTED) === SUBMISSION_STATE_SUBMITTED;
+    isSubmittedStateEnabled() {
+        if (!this.allowedSubmissionStates) throw new Error('allowedSubmissionStates not set');
+        return (
+            (this.allowedSubmissionStates & SUBMISSION_STATE_SUBMITTED) ===
+            SUBMISSION_STATE_SUBMITTED
+        );
     }
 
-    isAcceptedStateEnabled(state) {
-        return (state & SUBMISSION_STATE_ACCEPTED) === SUBMISSION_STATE_ACCEPTED;
+    isAcceptedStateEnabled() {
+        if (!this.allowedSubmissionStates) throw new Error('allowedSubmissionStates not set');
+        return (
+            (this.allowedSubmissionStates & SUBMISSION_STATE_ACCEPTED) === SUBMISSION_STATE_ACCEPTED
+        );
     }
 
     async processFormData() {
@@ -640,6 +656,7 @@ class FormalizeFormElement extends BaseFormElement {
                 let responseBody = await response.json();
                 this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
+                this.submissionState = responseBody.submissionState;
                 this.draftSaveSuccessful = true;
                 this.draftSaveError = false;
             }
@@ -666,6 +683,8 @@ class FormalizeFormElement extends BaseFormElement {
             const newSubmissionUrl =
                 getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
             window.history.pushState({}, '', newSubmissionUrl.toString());
+
+            this.setButtonStates();
         }
     }
 
@@ -4324,43 +4343,48 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
             <div class="button-row">
                 <div class="left-buttons">
-                    <button
-                        id="toggle-edit-mode"
-                        class="toggle-edit-mode button is-secondary"
-                        @click="${() => {
-                            this.readOnly = !this.readOnly;
-                            const form = this.shadowRoot.querySelector('form');
-                            const data = gatherFormDataFromElement(form);
+                    ${this.isViewModeButtonAllowed
+                        ? html`
+                              <button
+                                  id="toggle-edit-mode"
+                                  class="toggle-edit-mode button is-secondary"
+                                  @click="${() => {
+                                      console.log('this.readOnly', this.readOnly);
+                                      this.readOnly = !this.readOnly;
+                                      const form = this.shadowRoot.querySelector('form');
+                                      const data = gatherFormDataFromElement(form);
 
-                            if (Object.keys(data).length) {
-                                this.formData = data;
-                            }
+                                      if (Object.keys(data).length) {
+                                          this.formData = data;
+                                      }
 
-                            // Add/remove 'readonly' from the current url
-                            if (this.readOnly) {
-                                this.redirectToReadonlyForm();
-                            } else {
-                                this.redirectToEditForm();
-                            }
-                        }}">
-                        ${this.readOnly
-                            ? html`
-                                  <dbp-icon name="pencil"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.edit-mode',
-                                      )}
-                                  </span>
-                              `
-                            : html`
-                                  <dbp-icon name="eye"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.view-mode',
-                                      )}
-                                  </span>
-                              `}
-                    </button>
+                                      // Add/remove 'readonly' from the current url
+                                      if (this.readOnly) {
+                                          this.redirectToReadonlyForm();
+                                      } else {
+                                          this.redirectToEditForm();
+                                      }
+                                  }}">
+                                  ${this.readOnly
+                                      ? html`
+                                            <dbp-icon name="pencil"></dbp-icon>
+                                            <span class="button-label">
+                                                ${i18n.t(
+                                                    'render-form.forms.ethics-commission-form.edit-mode',
+                                                )}
+                                            </span>
+                                        `
+                                      : html`
+                                            <dbp-icon name="eye"></dbp-icon>
+                                            <span class="button-label">
+                                                ${i18n.t(
+                                                    'render-form.forms.ethics-commission-form.view-mode',
+                                                )}
+                                            </span>
+                                        `}
+                              </button>
+                          `
+                        : ''}
                     ${this.isDeleteSubmissionButtonAllowed
                         ? html`
                               <dbp-button
@@ -4528,7 +4552,8 @@ class FormalizeFormElement extends BaseFormElement {
     redirectToReadonlyForm() {
         const currentUrl = window.location.href;
         const url = new URL(currentUrl);
-        url.pathname = url.pathname + '/readonly';
+        const pathname = url.pathname.replace(/\/+$/, '');
+        url.pathname = !pathname.match(/\/readonly$/) ? pathname + '/readonly' : pathname;
         window.history.pushState({}, '', url);
         // Redirect to the new URL
         window.location.href = url.toString();
