@@ -21,6 +21,23 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         };
     }
 
+    firstUpdated() {
+        super.firstUpdated();
+
+        console.log(this.name);
+        let dbpPersonSelect = this.querySelector('#' + this.name + '-picker');
+        if (dbpPersonSelect) {
+            dbpPersonSelect.getFilterQueryParameters = this.getFilterQueryParameters;
+        }
+    }
+
+    getFilterQueryParameters(select, searchTerm) {
+        let queryParameters = PersonSelect.getFilterQueryParametersDefault(select, searchTerm);
+        queryParameters['preparedFilter'] = 'staffAccountsOnly';
+
+        return queryParameters;
+    }
+
     handleInputValue(e) {
         let dataObjectText = e.target.getAttribute('data-object');
         let personDataObject = dataObjectText ? JSON.parse(dataObjectText) : null;
@@ -51,6 +68,7 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                     id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang, auth, entry-point-url"
+                    local-data-attributes='["email"]'
                     @change="${this.handleInputValue}"></dbp-person-select>
             </div>
         `;

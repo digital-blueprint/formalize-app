@@ -54,27 +54,6 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
-            // Override buildUrlData method of person select to include email address of examiner
-            this._('#examiner-picker-element')._('#examiner-picker').buildUrlData = function (
-                select,
-                params,
-            ) {
-                return {
-                    search: params.term.trim(),
-                    includeLocal: 'email',
-                    preparedFilter: 'staffAccountsOnly',
-                };
-            };
-            this._('#additional-examiner-picker-element')._(
-                '#additionalExaminer-picker',
-            ).buildUrlData = function (select, params) {
-                return {
-                    search: params.term.trim(),
-                    includeLocal: 'email',
-                    preparedFilter: 'staffAccountsOnly',
-                };
-            };
-
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 // Get the form data from the event detail

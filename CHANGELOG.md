@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Update toolkit and adapt to the new version of PersonSelect
+
 ## v1.3.0
 
 - new release
