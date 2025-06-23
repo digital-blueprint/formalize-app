@@ -269,10 +269,11 @@ export function getEthicsCommissionFormCSS() {
             border: 1px solid var(--dbp-content);
             border-top: none;
             margin-top: 0;
-            padding: 1.5em;
+            padding: 1em;
             display: flex;
             flex-direction: column;
             gap: 2em;
+            min-width: 250px;
         }
 
         .submission-dates {
@@ -351,6 +352,7 @@ export function getEthicsCommissionFormCSS() {
                 gap: 1em;
                 justify-content: space-between;
                 align-items: center;
+                padding-left: 0.5em;
             }
 
             .user-entry {
@@ -434,10 +436,11 @@ export function getEthicsCommissionFormCSS() {
         .button-row {
             display: flex;
             justify-content: space-between;
+            flex-direction: column;
             gap: 1em;
 
             position: sticky;
-            top: -120px;
+            top: -100px;
             z-index: 9;
 
             right: 0;
@@ -445,6 +448,7 @@ export function getEthicsCommissionFormCSS() {
             background: var(--dbp-background);
             padding: 1em;
             border: 1px solid var(--dbp-content);
+            min-width: 250px;
 
             .button-label {
                 padding-left: 0.5em;
@@ -460,21 +464,12 @@ export function getEthicsCommissionFormCSS() {
 
         .buttons-wrapper {
             align-items: flex-end;
+            justify-content: flex-end;
         }
 
         .edit-permissions {
             .button-text {
                 padding-left: 5px;
-            }
-        }
-
-        @container form (width < 1000px) {
-            .button-row {
-                flex-direction: column;
-            }
-
-            .buttons-wrapper {
-                justify-content: flex-end;
             }
         }
 
@@ -629,6 +624,12 @@ export function getEthicsCommissionFormCSS() {
             }
             .scroller:hover {
                 opacity: 1;
+            }
+        }
+
+        @media only screen and (max-width: 768px) {
+            .button-row {
+                top: -60px;
             }
         }
 
