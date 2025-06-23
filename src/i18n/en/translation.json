@@ -152,7 +152,7 @@
         "search-operator-keywords": "keyword search",
         "search-operator-less": "less than",
         "search-operator-lessthanorequal": "less than or equal",
-        "search-operator-like": "like",
+        "search-operator-like": "contains",
         "search-operator-notequal": "not equal",
         "search-operator-regex": "regular expression",
         "search-operator-starts": "starts with",

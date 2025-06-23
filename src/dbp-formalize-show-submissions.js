@@ -62,12 +62,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
             accepted: false,
         };
-        this.initateOpenAdditionalMenu = false;
-        this.initateOpenAdditionalSearchMenu = false;
-        this.boundCloseAdditionalMenuHandler = this.hideAdditionalMenu.bind(this);
-        this.boundCloseAdditionalSearchMenuHandler = this.hideAdditionalSearchMenu.bind(this);
-        this.boundCloseAdditionalSearchMenuHandlerInner =
-            this.hideAdditionalSearchMenuInner.bind(this);
         this.navigateBetweenDetailedSubmissionsHandler =
             this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeCourse = '';
@@ -998,9 +992,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Filters the submissions table
      */
     filterTable(state) {
-        let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar-${state}`));
-        let search = /** @type {HTMLSelectElement} */ (this._(`#search-select-${state}`));
-        let operator = /** @type {HTMLSelectElement} */ (this._(`#search-operator-${state}`));
+        let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
+        let search = /** @type {HTMLSelectElement} */ (this._(`#search-select--${state}`));
+        let operator = /** @type {HTMLSelectElement} */ (this._(`#search-operator--${state}`));
 
         const table = this.submissionTables[state];
 
@@ -1033,8 +1027,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state - The state of the submission table ('draft', 'submitted' or 'accepted').
      */
     clearFilter(state) {
-        let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar-${state}`));
-        let search = /** @type {HTMLSelectElement} */ (this._(`#search-select-${state}`));
+        let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
+        let search = /** @type {HTMLSelectElement} */ (this._(`#search-select--${state}`));
         const table = this.submissionTables[state];
 
         if (!filter || !search || !table) return;
@@ -1149,29 +1143,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Toggle additional functionalities menu on mobile
-     *
-     */
-    toggleMoreMenu() {
-        const menu = this.shadowRoot.querySelector('.extended-menu');
-        const menuStart = this.shadowRoot.querySelector('a.extended-menu-link');
-
-        if (menu === null || menuStart === null) {
-            return;
-        }
-
-        menu.classList.toggle('hidden');
-
-        if (!menu.classList.contains('hidden')) {
-            // add event listener for clicking outside of menu
-            document.addEventListener('click', this.boundCloseAdditionalMenuHandler);
-            this.initateOpenAdditionalMenu = true;
-        } else {
-            document.removeEventListener('click', this.boundCloseAdditionalMenuHandler);
-        }
-    }
-
-    /**
      * Keydown Event function if enter pressed, then start filtering the table
      *
      * @param event
@@ -1219,76 +1190,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (nextBtn && !nextBtn.disabled) {
                 this.showEntryOfPos(state, this.currentDetailPosition + 1, 'next');
             }
-        }
-    }
-
-    /**
-     * Hide additional functionalities menu
-     * This function is used as bounded event function,
-     * if clicked outside then we can close the menu
-     *
-     */
-    hideAdditionalMenu() {
-        if (this.initateOpenAdditionalMenu) {
-            this.initateOpenAdditionalMenu = false;
-            return;
-        }
-        const state = this.currentSearchState;
-        const menu = this.shadowRoot.querySelector(`#searchbar-menu-${state}`);
-        if (menu && !menu.classList.contains('hidden')) this.toggleMoreMenu();
-    }
-
-    /**
-     * Toggle search menu
-     * @param {string} state - 'submitted', 'draft' or 'accepted'
-     */
-    toggleSearchMenu(state) {
-        const menu = this._(`#searchbar-menu-${state}`);
-        this.currentSearchState = state;
-
-        if (menu === null) {
-            return;
-        }
-
-        menu.classList.remove('hidden');
-
-        if (!menu.classList.contains('hidden')) {
-            // add event listener for clicking *outside* of menu
-            document.addEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
-            // add event listener for clicking *inside* of menu
-            menu.addEventListener('click', this.boundCloseAdditionalSearchMenuHandlerInner);
-            this.initateOpenAdditionalSearchMenu = true;
-        }
-    }
-
-    hideAdditionalSearchMenuInner(event) {
-        const state = this.currentSearchState;
-        const searchBarMenu = this._(`#searchbar-menu-${state}`);
-        // Don't close the search widget if clicking inside
-        if (searchBarMenu.contains(event.target)) {
-            event.stopPropagation();
-            this.initateOpenAdditionalSearchMenu = false;
-            return;
-        }
-    }
-
-    /**
-     * hide search menu
-     *
-     * @param event
-     */
-    hideAdditionalSearchMenu(event) {
-        if (this.initateOpenAdditionalSearchMenu) {
-            this.initateOpenAdditionalSearchMenu = false;
-            return;
-        }
-
-        const state = this.currentSearchState;
-        const menu = this._(`#searchbar-menu-${state}`);
-        if (menu && !menu.classList.contains('hidden')) {
-            menu.classList.add('hidden');
-            document.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandler);
-            menu.removeEventListener('click', this.boundCloseAdditionalSearchMenuHandlerInner);
         }
     }
 
@@ -1502,6 +1403,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ${getSelectorFixCSS()}
             ${getFileHandlingCss()}
 
+            .visually-hidden {
+                clip: rect(0 0 0 0);
+                clip-path: inset(50%);
+                height: 1px;
+                overflow: hidden;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+
             .table-wrapper.submissions {
                 padding-top: 0.5rem;
             }
@@ -1565,18 +1476,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 font-size: 1.3em;
             }
 
-            #export-select,
-            #search-select,
-            #search-operator,
-            .extendable-searchbar .dropdown-menu {
+            .dropdown-menu {
                 background-color: var(--dbp-secondary-surface);
                 color: var(--dbp-on-secondary-surface);
                 border-color: var(--dbp-secondary-surface-border-color);
                 background-size: auto 45%;
-                padding-bottom: calc(0.375em - 1px);
-                padding-left: 0.75em;
-                padding-right: 1.5rem;
-                padding-top: calc(0.375em - 1px);
                 cursor: pointer;
                 background-position-x: calc(100% - 0.4rem);
                 box-sizing: content-box;
@@ -1584,6 +1488,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .export-buttons .dropdown-menu {
                 margin-left: 6px;
+                padding: 0rem 2rem 0rem 0.5rem;
             }
 
             .content-wrapper {
@@ -1663,8 +1568,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .table-buttons {
                 display: flex;
                 flex-direction: row;
-                justify-content: space-between;
-                gap: 4px;
+                justify-content: flex-end;
                 margin-bottom: 1em;
             }
 
@@ -1711,53 +1615,317 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 cursor: not-allowed;
             }
 
-            .searchbar {
-                width: 100%;
-                box-sizing: border-box;
-                border: var(--dbp-border);
-                padding: calc(0.375em - 1px) 10px calc(0.375em - 1px) 10px;
-                border-radius: var(--dbp-border-radius);
-                min-height: 40px;
-                background-color: var(--dbp-background);
-                color: var(--dbp-content);
+            /* search bar */
+
+            .search-wrapper {
+                margin-inline: 0 1.5em;
+                flex-grow: 1;
+                /*overflow: hidden;*/
+                height: 40px;
+
+                container: search-bar / inline-size;
             }
 
             .extendable-searchbar {
+                display: flex;
+                border-bottom: 1px solid transparent;
+                transform: translateX(calc(100% - 2.5em));
+                transition:
+                    transform 500ms ease-in 0ms,
+                    border-color 250ms ease-in 250ms;
+
+                button.search-close-button,
+                .extended-menu {
+                    transition: opacity 500ms ease-in 250ms;
+                    opacity: 0;
+                }
+
+
+                &.open {
+                    transform: translateX(0);
+                    border-color: var(--dbp-content);
+
+                    button.search-close-button,
+                    .extended-menu {
+                        opacity: 1;
+                    }
+                }
+
+                &.closing {
+                    border-color: transparent;
+                    transform: translateX(calc(100% - 2em));
+                    transition:
+                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
+                        border-color 30ms ease-in 0ms;
+
+                    button.search-close-button,
+                    .extended-menu {
+                        opacity: 0;
+                        transition: opacity 30ms ease-in 0ms;
+                    }
+                }
+            }
+
+            .extended-menu label {
+                clip: rect(0 0 0 0);
+                clip-path: inset(50%);
+                height: 1px;
+                overflow: hidden;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+
+            button.search-button {
+                flex-shrink: 0;
+                width: 40px;
+                height: 40px;
+                border: 0 none;
+                padding: 0;
+                border-radius: 100%;
+                font-size: 20px;
+                background-color: transparent;
+
+                &:hover {
+                    background-color: #f7f7f7;
+                }
+            }
+
+            button.search-close-button {
+                width: 40px;
+                height: 40px;
+                border: 0 none;
+                padding: 0;
+                border-radius: 100%;
+                font-size: 12px;
+                background-color: transparent;
+                opacity: 0;
+                flex-shrink: 0;
+
+                &:hover {
+                    background-color: #f7f7f7;
+                }
+            }
+
+            .extended-menu {
+                display: flex;
                 flex-grow: 1;
-                position: relative;
-            }
-
-            .search-wrapper {
-                display: flex;
-                justify-content: center;
-                min-width: 320px;
-            }
-
-            .button.search-button {
-                position: absolute;
-                right: 0;
-                top: 0;
-                display: flex;
-                justify-content: center;
                 align-items: center;
-                font-size: 1.2rem;
+                justify-content: space-evenly;
+                width: 100%;
+                opacity: 0;
+                position: relative;
+
+                input,
+                select {
+                    flex-grow: 1;
+                    height: 100%;
+                    padding: 0 1em;
+                    margin: 0;
+                    border: none 0;
+                    text-align: left;
+                }
+
+                select {
+                    max-width: 25%;
+                    padding-left: 2.72em;
+                    position: relative;
+                    appearance: base-select;
+                    align-items: center;
+                    justify-content: flex-start;
+                }
+
+                input {
+                    max-width: 200px;
+                }
+
+                legend {
+                    text-decoration: underline;
+                    text-underline-offset: 6px;
+                    margin-bottom: 1em;
+                    color: var(--dbp-content);
+                }
+
+                /*::picker(select) {
+                    appearance: base-select;
+                    border: 1px solid var(--dbp-content);
+                    padding: 1em;
+                    position: absolute;
+                    top: -5.5em;
+                    /*transform: translateY(-5.5em);
+                    inset-block-start: anchor(block-end);*/
+                    max-height: 30vh;
+
+                    opacity: 0;
+                    transition: all 0.4s allow-discrete;
+                }
+
+                ::picker(select):popover-open {
+                    opacity: 1;
+                }
+
+                @starting-style {
+                    ::picker(select):popover-open {
+                        opacity: 0;
+                    }
+                }
+
+                ::picker-icon {
+                    display: none;
+                }*/
+
+                option {
+                    padding: .25em;
+                }
+
+                option:hover {
+                    background-color: #f7f7f7;
+                }
+
+                .searchbar {
+                    flex-grow: 1;
+                    margin-right: 0.5em;
+                }
+
+                & > :focus-visible {
+                    box-shadow: none !important;
+                    background-color: #f7f7f7;
+                }
             }
 
-            .extendable-searchbar .extended-menu {
-                list-style: none;
-                border: var(--dbp-border);
-                background-color: var(--dbp-background);
-                z-index: 1000;
-                border-radius: var(--dbp-border-radius);
-                width: 100%;
-                position: absolute;
-                right: 0;
-                padding: 10px;
-                box-sizing: border-box;
-                top: 33px;
-                margin: 0;
-                border-top: unset;
+            .spacer {
+                color: #999999;
+                font-size: 28px;
+            }
+
+            @container search-bar (width < 840px) {
+
+                .extendable-searchbar {
+                    position: relative;
+                    border: 1px solid transparent;
+                    /*border-bottom: none;*/
+                    transition:
+                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986),
+                        border-color 250ms ease-in 250ms,
+                        clip-path 250ms ease-in 250ms;
+                    clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+
+                    input,
+                    select {
+                        width: calc(100% - 2em);
+                        padding: 0 1em;
+                        max-width: calc(100% - 2em);
+                        border: var(--dbp-border);
+                        margin-bottom: 1em;
+                        opacity: 0;
+                        height: 40px;
+                        transition: opacity 250ms ease-in 250ms;
+                    }
+
+                    .searchbar {
+                        padding-left: 3em;
+                        padding-right: 1em;
+                        width: calc(100% - 4em);
+                    }
+
+                    &.open {
+                        /*border: var(--dbp-border);*/
+                        border-color: var(--dbp-content);
+                        z-index: 9;
+                        background: var(--dbp-background);
+                        box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.1);
+                        clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+
+                        .searchbar {
+                            border: 0 none;
+                            border-bottom: var(--dbp-border);
+                        }
+
+                        button.search-button {
+                            top: .8em;
+                            left: 1em;
+                        }
+
+                        input,
+                        select {
+                            opacity: 1;
+                        }
+                    }
+
+                    &.closing {
+                        transform: translateX(calc(100% - 2em));
+                        border-color: transparent;
+                        clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+                        transition:
+                            transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 250ms,
+                            border-color 250ms ease-in 0ms,
+                            clip-path 250ms ease-in 0ms;
+
+                        .searchbar {
+                            border: 0 none;
+                        }
+
+                        button.search-button {
+                            top: 0;
+                            left: 0;
+                        }
+
+                        input,
+                        select {
+                            opacity: 0;
+                        }
+
+                    }
+                }
+
+                button.search-button {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    z-index: 9;
+                }
+
+                .search-close-button {
+                    position: absolute;
+                    top: 1.25em;
+                    right: 1em;
+                    z-index: 9;
+                }
+
+                .extended-menu {
+                    display: block;
+                    padding: 1em;
+                }
+
+                .spacer {
+                    display: none;
+                }
+
+                .extended-menu label {
+                    clip: initial;
+                    clip-path: initial;
+                    height: auto;
+                    overflow: visible;
+                    position: static;
+                    white-space: initial;
+                    width: auto;
+                }
+            }
+
+            /* search bar end */
+
+            .export-buttons {
                 display: flex;
+                flex-wrap: nowrap;
+                z-index: 13;
+                background-color: var(--dbp-background);
+
+                select,
+                button {
+                    height: 100%;
+                    display: inline-block;
+                    padding-block: 0;
+                }
                 flex-direction: column;
                 gap: 10px;
             }
@@ -2042,60 +2210,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     float: right;
                 }
 
-                .extended-menu-link {
-                    display: flex;
-                    width: 40px;
-                    box-sizing: border-box;
-                    height: 40px;
-                    justify-content: center;
-                    align-items: center;
-                }
-
-                .extended-menu-link dbp-icon {
-                    top: -3px;
-                }
-
-                .extended-menu li {
-                    padding: 7px;
-                    padding-right: 46px;
-                }
-
-                .extended-menu a.inactive {
-                    color: var(--dbp-muted);
-                    pointer-events: none;
-                    cursor: default;
-                }
-
-                .extended-menu a {
-                    padding: 8px;
-                }
-
-                .extended-menu {
-                    list-style: none;
-                    border: var(--dbp-border);
-                    position: absolute;
-                    background-color: var(--dbp-background);
-                    z-index: 1000;
-                    border-radius: var(--dbp-border-radius);
-                    padding: 0;
-                    margin: -2px 0 0 0;
-                    min-width: 50vw;
-                    right: 0;
-                }
-
-                .extended-menu li.active {
-                    background-color: var(--dbp-content-surface);
-                }
-
-                .extended-menu li.active > a {
-                    color: var(--dbp-on-content-surface);
-                }
-
-                .extended-menu li.inactive > a {
-                    color: var(--dbp-muted);
-                    pointer-events: none;
-                    cursor: default;
-                }
 
                 .options-nav {
                     display: flex;
@@ -2105,27 +2219,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 .back-navigation {
                     padding-top: 0;
-                }
-
-                .searchbar {
-                    height: 40px;
-                }
-
-                .search-button {
-                    position: absolute;
-                    right: 0;
-                    top: 0;
-                    height: 40px;
-                    box-sizing: border-box;
-                }
-
-                #search-select,
-                #search-operator {
-                    height: 40px;
-                }
-
-                .extendable-searchbar .extended-menu {
-                    top: 40px;
                 }
 
                 .table-header {
@@ -2427,6 +2520,38 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return html`
             <div class="search-wrapper">
+                <div id="extendable-searchbar--${state}" class="extendable-searchbar">
+                    <button
+                        class="search-button"
+                        id="search-button--${state}"
+                        @click="${() => {
+                            const isOpen = this._(
+                                `#extendable-searchbar--${state}`,
+                            ).classList.contains('open');
+                            if (!isOpen) {
+                                this._(`#extendable-searchbar--${state}`).classList.add('open');
+                            } else {
+                                this.filterTable(state);
+                            }
+                        }}">
+                        <dbp-icon
+                            title="${i18n.t('show-registrations.search-button')}"
+                            aria-label="${i18n.t('show-registrations.search-button')}"
+                            name="search"></dbp-icon>
+                    </button>
+
+                    <div class="extended-menu" id="searchbar-menu--${state}">
+                        <input
+                            type="text"
+                            id="searchbar--${state}"
+                            data-state="${state}"
+                            class="searchbar"
+                            placeholder="${i18n.t('show-registrations.searchbar-placeholder')}" />
+
+                        <span class="spacer">/</span>
+
+                        <label for="search-select--${state}">
+                            ${i18n.t('show-registrations.search-in')}:
                 <div id="extendable-searchbar" class="extendable-searchbar">
                     <input
                         type="text"
@@ -2451,53 +2576,78 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             ${i18n.t('show-submissions.search-in')}:
                         </label>
                         <select
-                            id="search-select-${state}"
+                            id="search-select--${state}"
                             class="button dropdown-menu search-select"
                             title="${i18n.t('show-submissions.search-in-column')}:">
-                            ${this.getTableHeaderOptions()}
+                            <optgroup label="Search in column:">
+                                <legend>Search in column:</legend>
+                                ${this.getTableHeaderOptions()}
+                            </optgroup>
                         </select>
 
-                        <label for="search-operator-${state}">
+                        <span class="spacer">/</span>
+
+                        <label for="search-operator--${state}">
                             ${i18n.t('show-submissions.search-operator')}:
                         </label>
                         <select
-                            id="search-operator-${state}"
+                            id="search-operator--${state}"
                             class="button dropdown-menu search-operator">
-                            <option value="like">
-                                ${i18n.t('show-submissions.search-operator-like')}
-                            </option>
-                            <option value="=">
-                                ${i18n.t('show-submissions.search-operator-equal')}
-                            </option>
-                            <option value="!=">
-                                ${i18n.t('show-submissions.search-operator-notequal')}
-                            </option>
-                            <option value="starts">
-                                ${i18n.t('show-submissions.search-operator-starts')}
-                            </option>
-                            <option value="ends">
-                                ${i18n.t('show-submissions.search-operator-ends')}
-                            </option>
-                            <option value="<">
-                                ${i18n.t('show-submissions.search-operator-less')}
-                            </option>
-                            <option value="<=">
-                                ${i18n.t('show-submissions.search-operator-lessthanorequal')}
-                            </option>
-                            <option value=">">
-                                ${i18n.t('show-submissions.search-operator-greater')}
-                            </option>
-                            <option value=">=">
-                                ${i18n.t('show-submissions.search-operator-greaterorequal')}
-                            </option>
-                            <option value="regex">
-                                ${i18n.t('show-submissions.search-operator-regex')}
-                            </option>
-                            <option value="keywords">
-                                ${i18n.t('show-submissions.search-operator-keywords')}
-                            </option>
+                            <optgroup label="Operator">
+                                <legend>Operator:</legend>
+                                <option value="like">
+                                    ${i18n.t('show-submissions.search-operator-like')}
+                                </option>
+                                <option value="=">
+                                    ${i18n.t('show-submissions.search-operator-equal')}
+                                </option>
+                                <option value="!=">
+                                    ${i18n.t('show-submissions.search-operator-notequal')}
+                                </option>
+                                <option value="starts">
+                                    ${i18n.t('show-submissions.search-operator-starts')}
+                                </option>
+                                <option value="ends">
+                                    ${i18n.t('show-submissions.search-operator-ends')}
+                                </option>
+                                <option value="<">
+                                    ${i18n.t('show-submissions.search-operator-less')}
+                                </option>
+                                <option value="<=">
+                                    ${i18n.t('show-submissions.search-operator-lessthanorequal')}
+                                </option>
+                                <option value=">">
+                                    ${i18n.t('show-submissions.search-operator-greater')}
+                                </option>
+                                <option value=">=">
+                                    ${i18n.t('show-submissions.search-operator-greaterorequal')}
+                                </option>
+                                <option value="regex">
+                                    ${i18n.t('show-submissions.search-operator-regex')}
+                                </option>
+                                <option value="keywords">
+                                    ${i18n.t('show-submissions.search-operator-keywords')}
+                                </option>
+                            </optgroup>
                         </select>
+
+                        <span class="spacer">/</span>
                     </div>
+
+                    <button
+                        class="search-close-button"
+                        @click=${() => {
+                            this._(`#extendable-searchbar--${state}`).classList.add('closing');
+                            setTimeout(() => {
+                                this._(`#extendable-searchbar--${state}`).classList.remove('open');
+                                this._(`#extendable-searchbar--${state}`).classList.remove(
+                                    'closing',
+                                );
+                            }, 500);
+                        }}>
+                        <dbp-icon name="close"></dbp-icon>
+                        <span class="visually-hidden">Close search</span>
+                    </button>
                 </div>
             </div>
         `;
