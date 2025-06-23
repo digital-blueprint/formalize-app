@@ -299,9 +299,10 @@ class FormalizeFormElement extends BaseFormElement {
                             type: 'danger',
                             timeout: 5,
                         });
+                    } else {
+                        const submitterDetails = await submitterDetailsResponse.json();
+                        this.submitterName = `${submitterDetails?.givenName} ${submitterDetails?.familyName}`;
                     }
-                    const submitterDetails = await submitterDetailsResponse.json();
-                    this.submitterName = `${submitterDetails.givenName} ${submitterDetails.familyName}`;
                 } catch (e) {
                     console.log(e);
                     send({
@@ -1300,7 +1301,7 @@ class FormalizeFormElement extends BaseFormElement {
      * submission date, submitter, last changed.
      * @returns {import('lit').TemplateResult} The HTML template result
      */
-    renderSubmissionDetails() {
+    renderSubmissionDates() {
         const i18n = this._i18n;
 
         const currentSubmission = this.userAllSubmissions.find(
@@ -1320,48 +1321,87 @@ class FormalizeFormElement extends BaseFormElement {
             : formatDate(currentSubmission?.availabilityEnds);
 
         return html`
+            <div class="submission-dates">
+                ${deadLine
+                    ? html`
+                          <div class="submission-deadline">
+                              <span class="label">
+                                  ${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submission-deadline-label',
+                                  )}
+                              </span>
+                              <span class="value">${deadLine}</span>
+                          </div>
+                      `
+                    : ''}
+                ${dateCreated
+                    ? html`
+                          <div class="submission-date">
+                              <span class="label">
+                                  ${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submission-date-label',
+                                  )}
+                              </span>
+                              <span class="value">${dateCreated}</span>
+                          </div>
+                      `
+                    : ''}
+                ${dateLastModified
+                    ? html`
+                          <div class="last-modified">
+                              <span class="label">
+                                  ${i18n.t(
+                                      'render-form.forms.ethics-commission-form.last-modified-date-label',
+                                  )}
+                              </span>
+                              <span class="value">${dateLastModified}</span>
+                          </div>
+                      `
+                    : ''}
+                ${this.submitterName
+                    ? html`
+                          <div class="submitter">
+                              <span class="label">
+                                  ${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submitter-name-label',
+                                  )}
+                              </span>
+                              <span class="value">${this.submitterName}</span>
+                          </div>
+                      `
+                    : ''}
+            </div>
+        `;
+    }
+
+    /**
+     * Render submission details
+     * submission date, submitter, last changed.
+     * @returns {import('lit').TemplateResult} The HTML template result
+     */
+    renderSubmissionPermissions() {
+        const i18n = this._i18n;
+        return html`
             <div class="submission-details">
-                <div class="submission-dates">
-                    ${deadLine
-                        ? html`
-                              <div class="submission-deadline">
-                                  <span class="label">Submission deadline:</span>
-                                  <span class="value">${deadLine}</span>
-                              </div>
-                          `
-                        : ''}
-                    ${dateCreated
-                        ? html`
-                              <div class="submission-date">
-                                  <span class="label">Submission date:</span>
-                                  <span class="value">${dateCreated}</span>
-                              </div>
-                          `
-                        : ''}
-                    ${dateLastModified
-                        ? html`
-                              <div class="last-modified">
-                                  <span class="label">Last modified:</span>
-                                  <span class="value">${dateLastModified}</span>
-                              </div>
-                          `
-                        : ''}
-                    ${this.submitterName
-                        ? html`
-                              <div class="submitter">
-                                  <span class="label">Submitter:</span>
-                                  <span class="value">${this.submitterName}</span>
-                              </div>
-                          `
-                        : ''}
-                </div>
-                <div class="submission-permissions">
+                <div id="submission-permissions" class="submission-permissions">
                     <div class="permissions-header">
-                        <span class="user-permissions-title">Access management</span>
+                        <button
+                            class="user-permissions-title"
+                            @click="${(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                this._('#submission-permissions').classList.toggle('open');
+                            }}">
+                            <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
+                            ${i18n.t(
+                                'render-form.forms.ethics-commission-form.user-permissions-title',
+                            )}
+                            (${this.resourceActions.length ? this.resourceActions.length : ''})
+                        </button>
                         <dbp-button
                             class="edit-permissions"
                             no-spinner-on-click
-                            type="is-primary"
+                            type="is-secondary"
                             @click=${() => this._('#grant-permission-dialog').open()}>
                             <dbp-icon name="lock" aria-hidden="true"></dbp-icon>
                             <span class="button-text">
@@ -1371,7 +1411,7 @@ class FormalizeFormElement extends BaseFormElement {
                             </span>
                         </dbp-button>
                     </div>
-                    <span class="users-permissions">
+                    <div class="users-permissions">
                         ${this.resourceActions.map(
                             (userEntry) => html`
                                 <div class="user-entry">
@@ -1386,7 +1426,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 </div>
                             `,
                         )}
-                    </span>
+                    </div>
                 </div>
             </div>
         `;
@@ -1422,7 +1462,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${this.getButtonRowHtml()}
 
                 <div class="form-details">
-                    ${this.renderSubmissionDetails()}
+                    ${this.renderSubmissionPermissions()}
                 </div>
 
                 ${this.renderStatusBadge()}
@@ -2696,7 +2736,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${this.getButtonRowHtml()}
 
                 <div class="form-details">
-                    ${this.renderSubmissionDetails()}
+                    ${this.renderSubmissionPermissions()}
                 </div>
 
                 ${this.renderStatusBadge()}
@@ -4342,12 +4382,15 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         return html`
             <div class="button-row">
-                <div class="left-buttons">
+                <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
+                <div class="buttons-wrapper">
                     ${this.isViewModeButtonAllowed
                         ? html`
-                              <button
+                              <dbp-button
                                   id="toggle-edit-mode"
-                                  class="toggle-edit-mode button is-secondary"
+                                  class="toggle-edit-mode"
+                                  type="is-secondary"
+                                  no-spinner-on-click
                                   @click="${() => {
                                       console.log('this.readOnly', this.readOnly);
                                       this.readOnly = !this.readOnly;
@@ -4382,7 +4425,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 )}
                                             </span>
                                         `}
-                              </button>
+                              </dbp-button>
                           `
                         : ''}
                     ${this.isDeleteSubmissionButtonAllowed
@@ -4407,8 +4450,6 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
-                </div>
-                <div class="right-buttons">
                     ${this.isPrintButtonAllowed
                         ? html`
                               <dbp-button

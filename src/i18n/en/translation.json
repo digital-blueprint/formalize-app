@@ -83,6 +83,7 @@
                 "job-position-label": "Berufliche Position",
                 "job-position-placeholder": "Bitte geben Sie Ihre berufliche Position an",
                 "keinem": "Keinem",
+                "last-modified-date-label": "Last modified:",
                 "master-label": "ja, Master/Diplomingenieur*in",
                 "mobility-production": "Mobility & Production",
                 "no-label": "nein",
@@ -98,11 +99,15 @@
                 "specification-office-label": "Angabe durch Geschäftsstelle",
                 "study": "Studie",
                 "sub-title": "„Bezeichnung des Forschungsvorhabens bzw. der Studie und Kurztitel/Akronym“",
+                "submission-date-label": "Submission date:",
+                "submission-deadline-label": "Submission deadline:",
                 "submission-result-notification": "You have successfully submitted the Ethics Commission Form",
                 "submission-result-thanks": "Thank you for your submission!",
                 "submit-button-text": "Submit",
+                "submitter-name-label": "Submitter:",
                 "sustainable-systems": "Sustainable Systems",
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
+                "user-permissions-title": "Access Management",
                 "view-attachment": "View",
                 "view-mode": "View mode"
             }

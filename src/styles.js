@@ -246,6 +246,7 @@ export function getEthicsCommissionFormCSS() {
             height: 0;
             border-style: solid;
             border-width: 0 0 200px 200px;
+            /*border-width: 0 0 min(20vw, 200px) min(20vw, 200px);*/
             border-color: transparent transparent var(--dbp-warning-surface) transparent;
             transform: rotate(90deg);
         }
@@ -253,50 +254,109 @@ export function getEthicsCommissionFormCSS() {
         .draft-mode__text {
             position: absolute;
             top: 120px;
+            /*top: min(17vw, 120px);*/
             left: -131px;
+            /*left: min(-20vw, -131px);*/
             transform: rotate(-45deg);
             font-weight: bold;
             font-size: 24px;
+            /*font-size: min(4vw, 24px);*/
             color: white;
             white-space: nowrap;
         }
 
         .form-details {
+            border: 1px solid var(--dbp-content);
+            border-top: none;
             margin-top: 0;
             padding: 1.5em;
-            background: #e6e6e6;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 2em;
         }
 
-        .submission-details {
+        .submission-dates {
             display: flex;
-            justify-content: space-between;
-            gap: 1em;
-            width: 100%;
+            justify-content: flex-start;
+            flex-direction: column;
+            gap: 0;
 
             .label {
+                margin: 0.5em 0 0 0;
                 display: inline-block;
+            }
+        }
+
+        .submission-permissions {
+            width: 100%;
+            container: permissions / inline-size;
+
+            &.open {
+                .users-permissions {
+                    display: flex;
+                    opacity: 1;
+
+                    @starting-style {
+                        opacity: 0;
+                    }
+                }
+
+                .user-permissions-title dbp-icon {
+                    transform: rotate(-180deg);
+                }
+            }
+
+            .users-permissions {
+                flex-direction: column;
+                gap: 0.5em;
+                display: none;
+                opacity: 0;
+                margin-top: 1em;
+                transition:
+                    opacity 0.3s cubic-bezier(0.9, 0, 0.1, 1),
+                    display 0.3s cubic-bezier(0.9, 0, 0.1, 1) allow-discrete;
+            }
+
+            .user-permissions-title {
+                /* button style reset */
+                background: none;
+                color: inherit;
+                border: none;
+                font: inherit;
+                cursor: pointer;
+                outline: inherit;
+                appearance: none;
+
+                font-weight: bold;
+                border-radius: 4px;
+                display: block;
+                font-size: 16px;
+                padding: 1em;
+                margin-left: -1em;
+
+                &:hover {
+                    background-color: #f7f7f7;
+                }
+
+                dbp-icon {
+                    margin-right: 0.5em;
+                    transition: transform 0.15s ease;
+                    transition-delay: 250ms;
+                    color: var(--dbp-accent);
+                }
             }
 
             .permissions-header {
                 display: flex;
                 gap: 1em;
                 justify-content: space-between;
-                margin-bottom: 1em;
-            }
-
-            .users-permissions {
-                display: flex;
-                flex-direction: column;
-                gap: 0.5em;
+                align-items: center;
             }
 
             .user-entry {
                 display: flex;
                 align-items: center;
                 gap: 0.5em;
-                justify-content: space-between;
             }
 
             .person-name {
@@ -304,13 +364,6 @@ export function getEthicsCommissionFormCSS() {
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
-            }
-
-            .user-permissions-title {
-                font-weight: bold;
-                display: block;
-                font-size: 20px;
-                margin-bottom: 1em;
             }
 
             .person-permissions {
@@ -321,11 +374,15 @@ export function getEthicsCommissionFormCSS() {
 
             .person-permission {
                 display: inline-block;
-                border: 1px solid var(--dbp-content);
-                border-radius: 4px;
                 padding: 0 6px;
-                line-height: 26px;
-                background-color: var(--dbp-background);
+                line-height: 20px;
+                background-color: #f2f2f2;
+            }
+        }
+
+        @container permissions (width < 380px) {
+            .permissions-header {
+                flex-direction: column;
             }
         }
 
@@ -380,24 +437,29 @@ export function getEthicsCommissionFormCSS() {
             gap: 1em;
 
             position: sticky;
-            top: 0;
+            top: -120px;
             z-index: 9;
 
             right: 0;
             left: 0;
             background: var(--dbp-background);
             padding: 1em;
-            border: var(--dbp-border);
+            border: 1px solid var(--dbp-content);
 
             .button-label {
                 padding-left: 0.5em;
             }
         }
 
-        .right-buttons,
-        .left-buttons {
+        .buttons-wrapper,
+        .dates-wrapper {
             display: flex;
             gap: 1em;
+            flex-wrap: wrap;
+        }
+
+        .buttons-wrapper {
+            align-items: flex-end;
         }
 
         .edit-permissions {
@@ -406,7 +468,17 @@ export function getEthicsCommissionFormCSS() {
             }
         }
 
-        @container form (width < 820px) {
+        @container form (width < 1000px) {
+            .button-row {
+                flex-direction: column;
+            }
+
+            .buttons-wrapper {
+                justify-content: flex-end;
+            }
+        }
+
+        @container form (width < 750px) {
             /* Make icon buttons for small screens ? */
             .button-row {
                 button,
@@ -560,6 +632,17 @@ export function getEthicsCommissionFormCSS() {
             }
         }
 
+        @media only screen and (max-width: 450px) {
+            .draft-mode {
+                border-width: 0px 0px 100px 100px;
+            }
+            .draft-mode__text {
+                top: 53px;
+                left: -72px;
+                font-size: 15px;
+            }
+        }
+
         /* modal */
         .pdf-view-modal {
             --dbp-modal-width: 80vw;
@@ -692,10 +775,6 @@ export function getEthicsCommissionFormPrintCSS() {
             fieldset label {
                 font-weight: bold;
                 display: block;
-            }
-
-            .submission-date .abel {
-                margin-bottom: 0;
             }
 
             /* Line height debug background*/
