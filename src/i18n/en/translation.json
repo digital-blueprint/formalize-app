@@ -161,7 +161,6 @@
         "something-went-wrong-title": "Error!",
         "submission-table-accepted-title": "Accepted",
         "submission-table-draft-title": "Drafts",
-        "submission-table-submitted-title": "Submitted",
-        "table-config-button-text": "Table configuration"
+        "submission-table-submitted-title": "Submitted"
     }
 }

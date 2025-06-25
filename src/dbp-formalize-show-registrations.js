@@ -13,7 +13,7 @@ import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
-import {TabulatorTable} from '@dbp-toolkit/tabulator-table';
+import {CustomTabulatorTable} from './table-components.js';
 import MicroModal from './micromodal.es';
 import {getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss} from './styles';
@@ -106,7 +106,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-translated': Translated,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-loading-button': LoadingButton,
-            'dbp-tabulator-table': TabulatorTable,
+            'dbp-tabulator-table': CustomTabulatorTable,
         };
     }
 
@@ -212,32 +212,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             langs: lang_submissions,
             autoColumns: true, //'full',
             rowHeight: 64,
-            autoColumnsDefinitions: function (definitions) {
-                definitions.forEach((column) => {
-                    if (column.field.includes('date')) {
-                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
-                            //a, b - the two values being compared
-                            //aRow, bRow - the row components for the values being compared (useful if you need to access additional fields in the row data for the sort)
-                            //column - the column component for the column being sorted
-                            const timeStampA = this.dateToTimestamp(a);
-                            const timeStampB = this.dateToTimestamp(b);
-
-                            return timeStampA - timeStampB;
-                        };
-                    }
-                    if (column.field === 'htmlButtons') {
-                        column.formatter = 'html';
-                        column.hozAlign = 'center';
-                        column.headerSort = false;
-                        column.title = '';
-                        column.minWidth = 64;
-                        column.frozen = true;
-                    } else {
-                        column.sorter = 'string'; // add header sorter to every column
-                    }
-                });
-                return definitions;
-            },
             layout: 'fitData',
             layoutColumnsOnNewData: true,
             columnDefaults: {
@@ -247,9 +221,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        this.options_submissions.submitted = options_submissions;
-        this.options_submissions.draft = options_submissions;
-        this.options_submissions.accepted = options_submissions;
+        this.options_submissions.submitted = {...options_submissions};
+        this.options_submissions.draft = {...options_submissions};
+        this.options_submissions.accepted = {...options_submissions};
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
@@ -283,9 +257,11 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async firstUpdated() {
-        this.formsTable = this._('#tabulator-table-forms');
+        this.formsTable = /** @type {CustomTabulatorTable} */ (this._('#tabulator-table-forms'));
         this.submissionStates.forEach((state) => {
-            this.submissionTables[state] = this._(`#tabulator-table-submissions-${state}`);
+            this.submissionTables[state] = /** @type {CustomTabulatorTable} */ (
+                this._(`#tabulator-table-submissions-${state}`)
+            );
         });
 
         if (this.auth.token === '' || this.allForms.length > 0) {
@@ -321,7 +297,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.switchToSubmissionTable(form);
                     }
                 } else {
-                    this.formsTable = this._('#tabulator-table-forms');
+                    this.formsTable = /** @type {CustomTabulatorTable} */ (
+                        this._('#tabulator-table-forms')
+                    );
                     if (this.formsTable && !this.formsTable.tableReady) {
                         this._('#tabulator-table-forms').buildTable();
                         this.loadingFormsTable = false;
@@ -360,7 +338,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                 } else {
                     // Show the forms table
-                    this.formsTable = this._('#tabulator-table-forms');
+                    this.formsTable = /** @type {CustomTabulatorTable} */ (
+                        this._('#tabulator-table-forms')
+                    );
                     if (this.formsTable && !this.formsTable.tableReady) {
                         this._('#tabulator-table-forms').buildTable();
                         this.loadingFormsTable = false;
@@ -500,11 +480,12 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         formId,
                     });
 
-                    let btn = this.createScopedElement('dbp-icon-button');
-                    btn.setAttribute('icon-name', 'keyword-research');
-                    btn.setAttribute('title', i18n.t('show-registrations.open-forms'));
-                    btn.setAttribute('aria-label', i18n.t('show-registrations.open-forms'));
-
+                    let btn = this.formsTable.createScopedElement(
+                        'dbp-formalize-get-details-button',
+                    );
+                    btn.setAttribute('subscribe', 'lang');
+                    btn.setAttribute('title', 'show-registrations.open-forms');
+                    btn.setAttribute('aria-label', 'show-registrations.open-forms');
                     btn.addEventListener('click', async (event) => {
                         this.loadingSubmissionTables = true;
                         // Switch to form submissions table
@@ -514,10 +495,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         window.history.pushState({}, '', url);
                         this.sendSetPropertyEvent('routing-url', `/${formId}`, true);
                     });
-
-                    let div = this.createScopedElement('div');
-                    div.classList.add('button-wrapper');
-                    div.appendChild(btn);
 
                     let new_form = {id: id, name: formName, actionButton: btn};
                     forms.push(new_form);
@@ -545,7 +522,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} formId - form identifier
      */
     async getAllFormSubmissions(formId) {
-        const i18n = this._i18n;
+        // const i18n = this._i18n;
         let response;
         let data = [];
         this.submissions = {
@@ -609,20 +586,24 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const cols = {dateCreated: dateCreated, ...dataFeedElement};
 
                 // Add show details button
-                // @TODO make it a link to be able to open it in a new tab with middle click.
-                const submissionDetailsButton = this.createScopedElement('dbp-icon-button');
-                submissionDetailsButton.setAttribute('icon-name', 'keyword-research');
+                const submissionDetailsButton = this.submissionTables[state].createScopedElement(
+                    'dbp-formalize-get-details-button',
+                );
+                submissionDetailsButton.setAttribute('subscribe', 'lang');
                 submissionDetailsButton.setAttribute(
                     'title',
-                    i18n.t('show-registrations.open-detailed-view-modal'),
+                    'show-registrations.open-detailed-view-modal',
                 );
                 submissionDetailsButton.setAttribute(
                     'aria-label',
-                    i18n.t('show-registrations.open-detailed-view-modal'),
+                    'show-registrations.open-detailed-view-modal',
                 );
+                // this._i18n.t('show-registrations.open-detailed-view-modal');
+                // this._i18n.t('show-registrations.open-forms');
                 submissionDetailsButton.setAttribute('id', id.toString());
                 submissionDetailsButton.classList.add('open-modal-icon');
-                submissionDetailsButton.addEventListener('click', (event) => {
+                submissionDetailsButton.addEventListener('mousedown', (event) => {
+                    event.stopPropagation();
                     // Redirect to render-form activity to display the readonly form with submission values
                     const activeForm = this.forms.get(formId);
                     const activeFormSlug = activeForm ? activeForm.formSlug : null;
@@ -642,8 +623,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                     const url = new URL(formSubmissionUrl);
                     window.history.pushState({}, '', url);
-                    window.location.href = url.toString();
-                    event.stopPropagation();
+
+                    // Middle click opens in a new tab
+                    if (event.button === 1) {
+                        window.open(url.toString(), '_blank');
+                    } else {
+                        // Left click navigates to the URL
+                        window.location.href = url.toString();
+                    }
                 });
 
                 let actionButtonsDiv = this.createScopedElement('div');
@@ -660,6 +647,42 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             this.submissions[state] = submissions_list;
+
+            this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
+                definitions.forEach((column) => {
+                    if (column.field.includes('date')) {
+                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                            const timeStampA = this.dateToTimestamp(a);
+                            const timeStampB = this.dateToTimestamp(b);
+                            return timeStampA - timeStampB;
+                        };
+                    }
+                    if (column.field === 'htmlButtons') {
+                        column.formatter = 'html';
+                        column.hozAlign = 'center';
+                        column.vertAlign = 'middle';
+                        column.headerSort = false;
+                        column.minWidth = 64;
+                        column.frozen = true;
+                        column.headerHozAlign = 'center';
+                        // Add column settings button
+                        column.titleFormatter = (cell, formatterParams, onRendered) => {
+                            let columnSettingsButton = this.submissionTables[
+                                state
+                            ].createScopedElement('dbp-formalize-column-settings-button');
+                            columnSettingsButton.setAttribute('subscribe', 'lang');
+                            columnSettingsButton.addEventListener('click', () => {
+                                this.defineSettings(state);
+                                this.openColumnOptionsModal(state);
+                            });
+                            return columnSettingsButton;
+                        };
+                    } else {
+                        column.sorter = 'string';
+                    }
+                });
+                return definitions;
+            };
 
             // Set tabulator table data
             this.options_submissions[state].data = this.submissions[state];
@@ -2402,25 +2425,6 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
-    renderColumnSettingsButton(state) {
-        const i18n = this._i18n;
-        return html`
-            <dbp-button
-                no-spinner-on-click
-                type="is-secondary"
-                @click="${() => {
-                    this.defineSettings(state);
-                    this.openColumnOptionsModal(state);
-                }}">
-                <dbp-icon
-                    title="${i18n.t('show-registrations.filter-options-button-text')}"
-                    aria-label="${i18n.t('show-registrations.filter-options-button-text')}"
-                    name="iconoir_settings"></dbp-icon>
-                ${i18n.t('show-registrations.table-config-button-text')}
-            </dbp-button>
-        `;
-    }
-
     renderSearchWidget(state) {
         const i18n = this._i18n;
 
@@ -2614,10 +2618,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                             <div class="table-buttons">
                                 ${this.renderSearchWidget(state)}
-                                <div class="export-buttons">
-                                    ${this.renderColumnSettingsButton(state)}
-                                    ${this.renderExportWidget(state)}
-                                </div>
+                                <div class="export-buttons">${this.renderExportWidget(state)}</div>
                             </div>
 
                             <dbp-tabulator-table
