@@ -208,6 +208,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             rowHeight: 64,
             layout: 'fitData',
             layoutColumnsOnNewData: true,
+            selectableRows: true,
+            rowHeader: {
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                headerSort: false,
+                resizable: false,
+                frozen: true,
+                headerHozAlign: 'center',
+                hozAlign: 'center',
+            },
             columnDefaults: {
                 vertAlign: 'middle',
                 hozAlign: 'left',
@@ -644,13 +654,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
                 definitions.forEach((column) => {
-                    if (column.field.includes('date')) {
-                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
-                            const timeStampA = this.dateToTimestamp(a);
-                            const timeStampB = this.dateToTimestamp(b);
-                            return timeStampA - timeStampB;
-                        };
-                    }
                     if (column.field === 'htmlButtons') {
                         column.formatter = 'html';
                         column.hozAlign = 'center';
@@ -673,6 +676,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         };
                     } else {
                         column.sorter = 'string';
+                    }
+                    if (column.field.includes('date')) {
+                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                            const timeStampA = this.dateToTimestamp(a);
+                            const timeStampB = this.dateToTimestamp(b);
+                            return timeStampA - timeStampB;
+                        };
                     }
                 });
                 return definitions;
@@ -748,6 +758,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return;
         }
 
+        // Skip first column (selection checkboxes)
+        columns.splice(0, 1);
         // Skip the last column (show detail button)
         columns.splice(-1, 1);
 
@@ -2912,8 +2924,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 .options=${this.options_submissions[state]}
                                 pagination-enabled
                                 pagination-size="5"
-                                sticky-header
-                                select-rows-enabled></dbp-tabulator-table>
+                                sticky-header></dbp-tabulator-table>
                         </div>
                         ${this.renderColumnSettingsModal(state)}
                         ${this.renderSubmissionDetailsModal(state)}
