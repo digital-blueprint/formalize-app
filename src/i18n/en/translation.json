@@ -119,6 +119,7 @@
     },
     "show-submissions": {
         "abort": "Cancel",
+        "actions-button-text": "Actions",
         "all-columns": "All columns",
         "all-filters-hide": "Hide all",
         "all-filters-show": "Show all",
@@ -156,7 +157,7 @@
         "search-operator-notequal": "not equal",
         "search-operator-regex": "regular expression",
         "search-operator-starts": "starts with",
-        "searchbar-placeholder": "Search",
+        "searchbar-placeholder": "Search for ...",
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!",
         "submission-table-accepted-title": "Accepted",

@@ -119,6 +119,7 @@
     },
     "show-submissions": {
         "abort": "Abbrechen",
+        "actions-button-text": "Aktionen",
         "all-columns": "Alle Spalten",
         "all-filters-hide": "Alle verstecken",
         "all-filters-show": "Alle anzeigen",
@@ -156,7 +157,7 @@
         "search-operator-notequal": "nicht enthalten",
         "search-operator-regex": "Regular Expression",
         "search-operator-starts": "fängt an mit",
-        "searchbar-placeholder": "Suchen",
+        "searchbar-placeholder": "Suchen für ...",
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
         "submission-table-accepted-title": "Akzeptiertes",

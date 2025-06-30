@@ -1448,13 +1448,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 margin-right: 0.2em;
             }
 
-            .actions-buttons {
-                width: 40px;
-                position: absolute;
-                margin: auto;
-                left: 0;
-            }
-
             .detailed-submission-modal-title {
                 margin-bottom: 10px;
             }
@@ -1474,21 +1467,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .open-modal-icon {
                 font-size: 1.3em;
-            }
-
-            .dropdown-menu {
-                background-color: var(--dbp-secondary-surface);
-                color: var(--dbp-on-secondary-surface);
-                border-color: var(--dbp-secondary-surface-border-color);
-                background-size: auto 45%;
-                cursor: pointer;
-                background-position-x: calc(100% - 0.4rem);
-                box-sizing: content-box;
-            }
-
-            .export-buttons .dropdown-menu {
-                margin-left: 6px;
-                padding: 0rem 2rem 0rem 0.5rem;
             }
 
             .content-wrapper {
@@ -1565,26 +1543,384 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 background-color: var(--dbp-hover-color, var(--dbp-content));
             }
 
+            .dropdown-menu {
+                background-color: var(--dbp-secondary-surface);
+                color: var(--dbp-on-secondary-surface);
+                border-color: var(--dbp-secondary-surface-border-color);
+                background-size: auto 45%;
+                cursor: pointer;
+                background-position-x: calc(100% - 0.4rem);
+                box-sizing: content-box;
+            }
+
+            .table-title {
+                border-left: 3px solid var(--dbp-primary);
+                padding-left: 0.5em;
+            }
+
+            /* TABLE BUTTON HEADER */
+
             .table-buttons {
+                display: grid;
+                grid-template-columns: auto 1fr auto;
+                gap: 1em;
+                position: relative;
+
+                container: table-buttons / inline-size;
+
+                select,
+                input[type='text'],
+                button {
+                    box-sizing: border-box;
+                    height: 34px;
+                    padding-block: 0;
+                    color: var(--dbp-content);
+                }
+            }
+
+            /* actions */
+
+            .actions-container {
+                position: relative;
+
+                &.open {
+                    .actions-dropdown {
+                        opacity: 1;
+                    }
+                    .icon-chevron {
+                        transform: rotate(180deg);
+                    }
+                }
+            }
+
+            .icon-chevron {
+                transition: transform 250ms ease-in;
+                margin-left: 0.5em;
+            }
+
+            .actions-dropdown {
+                opacity: 0;
+                position: absolute;
+                top: 37px;
+                left: 0;
+                transition: opacity 250ms ease-in;
+                z-index: 15;
+                width: 250px;
+                padding: 1em 4em 1em 1em;
+                background-color: var(--dbp-background);
+                border: 1px solid var(--dbp-content);
+            }
+
+            .actions-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
                 display: flex;
-                flex-direction: row;
-                justify-content: flex-end;
-                margin-bottom: 1em;
+                flex-direction: column;
+                gap: 0.5em;
             }
 
-            @container table-wrapper (width < 620px) {
-                .table-buttons {
+            .action {
+                dbp-icon {
+                    margin-right: 5px;
+                }
+            }
+
+            @starting-style {
+                .actions-wrapper.open .actions-dropdown {
+                    opacity: 0;
+                }
+            }
+
+            /* search bar */
+
+            .search-container {
+                overflow: hidden;
+                height: 36px;
+            }
+
+            .extendable-searchbar {
+                box-sizing: border-box;
+                display: grid;
+                grid-template-columns: 40px 1fr 40px;
+                border-bottom: 1px solid transparent;
+                transform: translateX(calc(100% - 2em));
+                transition:
+                    transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
+                    border-color 250ms ease-in 50ms;
+
+                &.open {
+                    transform: translateX(0);
+                    border-color: var(--dbp-content);
+                }
+
+                &.closing {
+                    border-color: transparent;
+                    transform: translateX(calc(100% - 2.5em));
+                    transition:
+                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
+                        border-color 30ms ease-in 0ms;
+                }
+            }
+
+            .extended-menu {
+                display: grid;
+                grid-template-columns: 1fr 40px 1fr 40px 1fr 40px;
+                justify-items: center;
+                height: 34px;
+
+                input[type='text'],
+                select {
+                    border: 0 none;
+                    text-align: left;
+                    padding-left: 10px;
+                    width: 100%;
+                }
+
+                label {
+                    clip: rect(0 0 0 0);
+                    clip-path: inset(50%);
+                    height: 1px;
+                    overflow: hidden;
+                    position: absolute;
+                    white-space: nowrap;
+                    width: 1px;
+                }
+
+                & > :focus-visible {
+                    box-shadow: none !important;
+                    background-color: light-dark(#f7f7f7, #333333);
+                }
+            }
+
+            @container table-buttons (width < 1040px) {
+                .search-container {
+                    overflow: visible;
+                }
+
+                .export-container {
+                    .dropdown-menu {
+                        position: relative;
+                        z-index: 10;
+                    }
+                }
+
+                .extendable-searchbar {
+                    display: block;
+                    position: relative;
+                    border: 1px solid transparent;
+                    clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+                    transition:
+                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986),
+                        border-color 250ms ease-in 250ms,
+                        clip-path 250ms ease-in 500ms;
+
+                    input,
+                    select,
+                    .search-close-button,
+                    label {
+                        opacity: 0;
+                        transition: opacity 250ms ease-in 250ms;
+                    }
+
+                    input,
+                    select {
+                        width: 100%;
+                        padding: 0 1em;
+                        max-width: 100%;
+                        border: var(--dbp-border);
+                        margin-bottom: 1em;
+                        height: 40px;
+                    }
+
+                    .searchbar {
+                        padding-left: 3em !important;
+                        padding-right: 1em;
+                        width: 100%;
+                        background-color: var(--dbp-background);
+                    }
+
+                    &.open {
+                        border-color: var(--dbp-content);
+                        z-index: 15;
+                        background: var(--dbp-background);
+                        box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.1);
+                        clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+
+                        .searchbar {
+                            border: 0 none;
+                            border-bottom: var(--dbp-border);
+                        }
+
+                        button.search-button {
+                            top: 0.6em;
+                            left: 1em;
+                        }
+
+                        .search-close-button,
+                        label,
+                        input,
+                        select {
+                            opacity: 1;
+                        }
+                    }
+
+                    &.closing {
+                        transform: translateX(calc(100% - 2em));
+                        border-color: transparent;
+                        clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+                        transition:
+                            transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 250ms,
+                            border-color 250ms ease-in 0ms,
+                            clip-path 250ms ease-in 0ms;
+
+                        .searchbar {
+                            border: 0 none;
+                        }
+
+                        button.search-button {
+                            top: 0;
+                            left: 0;
+                        }
+
+                        input,
+                        select,
+                        .search-close-button {
+                            opacity: 0;
+                            transition: opacity 100ms ease-in 0ms;
+                        }
+                    }
+                }
+
+                button.search-button {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    z-index: 5;
+                }
+
+                .search-close-button {
+                    position: absolute;
+                    top: 0.8em;
+                    right: 1em;
+                    z-index: 5;
+                }
+
+                .extended-menu {
+                    display: flex;
                     flex-direction: column;
-                    gap: 10px;
+                    align-items: center;
+                    padding: 1em;
+                    /*min-width: 300px;*/
+                    height: auto;
+                }
+
+                .spacer {
+                    display: none;
+                }
+
+                .extended-menu label {
+                    clip: initial;
+                    clip-path: initial;
+                    height: auto;
+                    overflow: visible;
+                    position: static;
+                    white-space: initial;
+                    width: auto;
                 }
             }
 
-            @container table-wrapper (width < 290px) {
-                .export-buttons .dropdown-menu {
-                    margin-left: 0;
-                    margin-top: 10px;
+            @container table-buttons (width < 565px) {
+                .actions-container,
+                .export-container {
+                    transition: opacity 250ms ease-in;
+                    opacity: 1;
+                }
+
+                .table-buttons:has(.extendable-searchbar.open) .actions-container,
+                .table-buttons:has(.extendable-searchbar.open) .export-container {
+                    opacity: 0;
+                    transition: opacity 250ms ease-in;
+                }
+
+                /* @TODO add some animation for the lupe icon to find it's way back */
+
+                .extendable-searchbar {
+                    width: 40px;
+                    transform: none;
+                    transition: opacity 250ms ease-in;
+
+                    &.closing {
+                        button.search-button {
+                            opacity: 0;
+                        }
+                    }
+                }
+
+                .extendable-searchbar.open {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    width: auto;
+                    transform: none;
+                    transition: opacity 250ms ease-in;
+                }
+
+                .extendable-searchbar.closing {
+                    transform: none;
+                    transition: opacity 250ms ease-in;
                 }
             }
+
+            button.search-button {
+                width: 34px;
+                border: 0 none;
+                padding: 0;
+                border-radius: 100%;
+                font-size: 20px;
+                background-color: transparent;
+
+                &:hover {
+                    background-color: light-dark(#f7f7f7, #333333);
+                }
+
+                &:focus-visible {
+                    box-shadow: none !important;
+                    background-color: light-dark(#f7f7f7, #333333);
+                }
+            }
+
+            button.search-close-button {
+                width: 34px;
+                border: 0 none;
+                padding: 0;
+                border-radius: 100%;
+                font-size: 16px;
+                background-color: transparent;
+
+                &:hover {
+                    background-color: light-dark(#f7f7f7, #333333);
+                }
+
+                &:focus-visible {
+                    box-shadow: none !important;
+                    background-color: light-dark(#f7f7f7, #333333);
+                }
+            }
+
+            .spacer {
+                color: #999999;
+                font-size: 28px;
+            }
+
+            /* export button */
+
+            .export-container .dropdown-menu {
+                padding: 0rem 2rem 0rem 0.5rem;
+            }
+
+            /* TABLE BUTTON HEADER END */
 
             .modal-container {
                 display: flex;
@@ -1613,328 +1949,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             select[disabled] {
                 opacity: 0.4;
                 cursor: not-allowed;
-            }
-
-            /* search bar */
-
-            .search-wrapper {
-                margin-inline: 0 1.5em;
-                flex-grow: 1;
-                /*overflow: hidden;*/
-                height: 40px;
-
-                container: search-bar / inline-size;
-            }
-
-            .extendable-searchbar {
-                display: flex;
-                border-bottom: 1px solid transparent;
-                transform: translateX(calc(100% - 2.5em));
-                transition:
-                    transform 500ms ease-in 0ms,
-                    border-color 250ms ease-in 250ms;
-
-                button.search-close-button,
-                .extended-menu {
-                    transition: opacity 500ms ease-in 250ms;
-                    opacity: 0;
-                }
-
-
-                &.open {
-                    transform: translateX(0);
-                    border-color: var(--dbp-content);
-
-                    button.search-close-button,
-                    .extended-menu {
-                        opacity: 1;
-                    }
-                }
-
-                &.closing {
-                    border-color: transparent;
-                    transform: translateX(calc(100% - 2em));
-                    transition:
-                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
-                        border-color 30ms ease-in 0ms;
-
-                    button.search-close-button,
-                    .extended-menu {
-                        opacity: 0;
-                        transition: opacity 30ms ease-in 0ms;
-                    }
-                }
-            }
-
-            .extended-menu label {
-                clip: rect(0 0 0 0);
-                clip-path: inset(50%);
-                height: 1px;
-                overflow: hidden;
-                position: absolute;
-                white-space: nowrap;
-                width: 1px;
-            }
-
-            button.search-button {
-                flex-shrink: 0;
-                width: 40px;
-                height: 40px;
-                border: 0 none;
-                padding: 0;
-                border-radius: 100%;
-                font-size: 20px;
-                background-color: transparent;
-
-                &:hover {
-                    background-color: #f7f7f7;
-                }
-            }
-
-            button.search-close-button {
-                width: 40px;
-                height: 40px;
-                border: 0 none;
-                padding: 0;
-                border-radius: 100%;
-                font-size: 12px;
-                background-color: transparent;
-                opacity: 0;
-                flex-shrink: 0;
-
-                &:hover {
-                    background-color: #f7f7f7;
-                }
-            }
-
-            .extended-menu {
-                display: flex;
-                flex-grow: 1;
-                align-items: center;
-                justify-content: space-evenly;
-                width: 100%;
-                opacity: 0;
-                position: relative;
-
-                input,
-                select {
-                    flex-grow: 1;
-                    height: 100%;
-                    padding: 0 1em;
-                    margin: 0;
-                    border: none 0;
-                    text-align: left;
-                }
-
-                select {
-                    max-width: 25%;
-                    padding-left: 2.72em;
-                    position: relative;
-                    appearance: base-select;
-                    align-items: center;
-                    justify-content: flex-start;
-                }
-
-                input {
-                    max-width: 200px;
-                }
-
-                legend {
-                    text-decoration: underline;
-                    text-underline-offset: 6px;
-                    margin-bottom: 1em;
-                    color: var(--dbp-content);
-                }
-
-                /*::picker(select) {
-                    appearance: base-select;
-                    border: 1px solid var(--dbp-content);
-                    padding: 1em;
-                    position: absolute;
-                    top: -5.5em;
-                    /*transform: translateY(-5.5em);
-                    inset-block-start: anchor(block-end);*/
-                    max-height: 30vh;
-
-                    opacity: 0;
-                    transition: all 0.4s allow-discrete;
-                }
-
-                ::picker(select):popover-open {
-                    opacity: 1;
-                }
-
-                @starting-style {
-                    ::picker(select):popover-open {
-                        opacity: 0;
-                    }
-                }
-
-                ::picker-icon {
-                    display: none;
-                }*/
-
-                option {
-                    padding: .25em;
-                }
-
-                option:hover {
-                    background-color: #f7f7f7;
-                }
-
-                .searchbar {
-                    flex-grow: 1;
-                    margin-right: 0.5em;
-                }
-
-                & > :focus-visible {
-                    box-shadow: none !important;
-                    background-color: #f7f7f7;
-                }
-            }
-
-            .spacer {
-                color: #999999;
-                font-size: 28px;
-            }
-
-            @container search-bar (width < 840px) {
-
-                .extendable-searchbar {
-                    position: relative;
-                    border: 1px solid transparent;
-                    /*border-bottom: none;*/
-                    transition:
-                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986),
-                        border-color 250ms ease-in 250ms,
-                        clip-path 250ms ease-in 250ms;
-                    clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-
-                    input,
-                    select {
-                        width: calc(100% - 2em);
-                        padding: 0 1em;
-                        max-width: calc(100% - 2em);
-                        border: var(--dbp-border);
-                        margin-bottom: 1em;
-                        opacity: 0;
-                        height: 40px;
-                        transition: opacity 250ms ease-in 250ms;
-                    }
-
-                    .searchbar {
-                        padding-left: 3em;
-                        padding-right: 1em;
-                        width: calc(100% - 4em);
-                    }
-
-                    &.open {
-                        /*border: var(--dbp-border);*/
-                        border-color: var(--dbp-content);
-                        z-index: 9;
-                        background: var(--dbp-background);
-                        box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.1);
-                        clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-
-                        .searchbar {
-                            border: 0 none;
-                            border-bottom: var(--dbp-border);
-                        }
-
-                        button.search-button {
-                            top: .8em;
-                            left: 1em;
-                        }
-
-                        input,
-                        select {
-                            opacity: 1;
-                        }
-                    }
-
-                    &.closing {
-                        transform: translateX(calc(100% - 2em));
-                        border-color: transparent;
-                        clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-                        transition:
-                            transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 250ms,
-                            border-color 250ms ease-in 0ms,
-                            clip-path 250ms ease-in 0ms;
-
-                        .searchbar {
-                            border: 0 none;
-                        }
-
-                        button.search-button {
-                            top: 0;
-                            left: 0;
-                        }
-
-                        input,
-                        select {
-                            opacity: 0;
-                        }
-
-                    }
-                }
-
-                button.search-button {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    z-index: 9;
-                }
-
-                .search-close-button {
-                    position: absolute;
-                    top: 1.25em;
-                    right: 1em;
-                    z-index: 9;
-                }
-
-                .extended-menu {
-                    display: block;
-                    padding: 1em;
-                }
-
-                .spacer {
-                    display: none;
-                }
-
-                .extended-menu label {
-                    clip: initial;
-                    clip-path: initial;
-                    height: auto;
-                    overflow: visible;
-                    position: static;
-                    white-space: initial;
-                    width: auto;
-                }
-            }
-
-            /* search bar end */
-
-            .export-buttons {
-                display: flex;
-                flex-wrap: nowrap;
-                z-index: 13;
-                background-color: var(--dbp-background);
-
-                select,
-                button {
-                    height: 100%;
-                    display: inline-block;
-                    padding-block: 0;
-                }
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .search-select,
-            .search-operator {
-                margin-bottom: 10px;
-                box-sizing: border-box;
-                text-align: left;
             }
 
             .scrollable-table-wrapper {
@@ -2209,7 +2223,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 .additional-menu button {
                     float: right;
                 }
-
 
                 .options-nav {
                     display: flex;
@@ -2499,27 +2512,139 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     renderExportWidget(state) {
         const i18n = this._i18n;
         return html`
-            <select
-                id="export-select"
-                class="dropdown-menu"
-                @change="${(e) => {
-                    this.exportSubmissionTable(e, state);
-                }}">
-                <option value="-" disabled selected>
-                    ${i18n.t('show-submissions.default-export-select')}
-                </option>
-                <option value="csv">CSV</option>
-                <option value="xlsx">Excel</option>
-                <option value="pdf">PDF</option>
-            </select>
+            <div class="export-container">
+                <select
+                    id="export-select"
+                    class="dropdown-menu"
+                    @change="${(e) => {
+                        this.exportSubmissionTable(e, state);
+                    }}">
+                    <option value="-" disabled selected>
+                        ${i18n.t('show-submissions.default-export-select')}
+                    </option>
+                    <option value="csv">CSV</option>
+                    <option value="xlsx">Excel</option>
+                    <option value="pdf">PDF</option>
+                </select>
+            </div>
         `;
+    }
+
+    renderActionsWidget(state) {
+        const i18n = this._i18n;
+        return html`
+            <div class="actions-container" id="actions-container--${state}">
+                <button
+                    class="button action-button is-secondary"
+                    id="action-button-${state}"
+                    @click="${() => {
+                        this.openActionsDropdown(state);
+                    }}">
+                    ${i18n.t('show-registrations.actions-button-text')}
+                    <dbp-icon
+                        class="icon-chevron"
+                        name="chevron-down"
+                        aria-hidden="true"></dbp-icon>
+                </button>
+                <div class="actions-dropdown" inert>
+                    <ul class="actions-list">
+                        <li class="action">
+                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                            Accept
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                            Reopen
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
+                            Edit draft/submission
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
+                            Edit permission
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                            Delete all
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                            Delete selection
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    openActionsDropdown(state) {
+        const actionsContainer = this._(`#actions-container--${state}`);
+        const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
+        actionsDropdown.toggleAttribute('inert');
+        actionsContainer.classList.toggle('open');
+    }
+
+    renderActionsWidget(state) {
+        const i18n = this._i18n;
+        return html`
+            <div class="actions-container" id="actions-container--${state}">
+                <button
+                    class="button action-button is-secondary"
+                    id="action-button-${state}"
+                    @click="${() => {
+                        this.openActionsDropdown(state);
+                    }}">
+                    ${i18n.t('show-registrations.actions-button-text')}
+                    <dbp-icon
+                        class="icon-chevron"
+                        name="chevron-down"
+                        aria-hidden="true"></dbp-icon>
+                </button>
+                <div class="actions-dropdown" inert>
+                    <ul class="actions-list">
+                        <li class="action">
+                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                            Accept
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                            Reopen
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
+                            Edit draft/submission
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
+                            Edit permission
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                            Delete all
+                        </li>
+                        <li class="action">
+                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                            Delete selection
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    openActionsDropdown(state) {
+        const actionsContainer = this._(`#actions-container--${state}`);
+        const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
+        actionsDropdown.toggleAttribute('inert');
+        actionsContainer.classList.toggle('open');
     }
 
     renderSearchWidget(state) {
         const i18n = this._i18n;
 
         return html`
-            <div class="search-wrapper">
+            <div class="search-container">
                 <div id="extendable-searchbar--${state}" class="extendable-searchbar">
                     <button
                         class="search-button"
@@ -2530,6 +2655,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             ).classList.contains('open');
                             if (!isOpen) {
                                 this._(`#extendable-searchbar--${state}`).classList.add('open');
+                                this._(
+                                    `#extendable-searchbar--${state} .search-close-button`,
+                                ).removeAttribute('inert');
+                                this._(`#searchbar-menu--${state}`).removeAttribute('inert');
                             } else {
                                 this.filterTable(state);
                             }
@@ -2540,7 +2669,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             name="search"></dbp-icon>
                     </button>
 
-                    <div class="extended-menu" id="searchbar-menu--${state}">
+                    <div class="extended-menu" id="searchbar-menu--${state}" inert>
                         <input
                             type="text"
                             id="searchbar--${state}"
@@ -2635,9 +2764,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </div>
 
                     <button
+                        inert
                         class="search-close-button"
                         @click=${() => {
                             this._(`#extendable-searchbar--${state}`).classList.add('closing');
+                            this._(
+                                `#extendable-searchbar--${state} .search-close-button`,
+                            ).setAttribute('inert', true);
+                            this._(`#searchbar-menu--${state}`).setAttribute('inert', true);
                             setTimeout(() => {
                                 this._(`#extendable-searchbar--${state}`).classList.remove('open');
                                 this._(`#extendable-searchbar--${state}`).classList.remove(
@@ -2763,9 +2897,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             })}">
                             <h3 class="table-title">${submissionTableTitle[state]}</h3>
 
-                            <div class="table-buttons">
-                                ${this.renderSearchWidget(state)}
-                                <div class="export-buttons">${this.renderExportWidget(state)}</div>
+                            <div class="table-buttons table-buttons--${state}">
+                                ${this.renderActionsWidget(state)} ${this.renderSearchWidget(state)}
+                                ${this.renderExportWidget(state)}
                             </div>
 
                             <dbp-tabulator-table
