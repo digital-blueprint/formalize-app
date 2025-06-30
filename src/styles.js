@@ -336,7 +336,7 @@ export function getEthicsCommissionFormCSS() {
                 margin-left: -1em;
 
                 &:hover {
-                    background-color: #f7f7f7;
+                    background-color: light-dark(#f7f7f7, #333333);
                 }
 
                 dbp-icon {
@@ -378,7 +378,7 @@ export function getEthicsCommissionFormCSS() {
                 display: inline-block;
                 padding: 0 6px;
                 line-height: 20px;
-                background-color: #f2f2f2;
+                background-color: light-dark(#f2f2f2, #333333);
             }
         }
 
@@ -535,6 +535,7 @@ export function getEthicsCommissionFormCSS() {
 
         .file-block:nth-child(2n + 1) {
             background-color: #dadada;
+            color: light-dark(var(--dbp-content), var(--dbp-background));
         }
 
         .file-info {

@@ -1575,6 +1575,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     height: 34px;
                     padding-block: 0;
                     color: var(--dbp-content);
+                    background-color: var(--dbp-background);
                 }
             }
 
@@ -1983,6 +1984,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 border: 1px solid var(--dbp-muted);
                 display: flex;
                 margin-bottom: 5px;
+                color: var(--dbp-content);
             }
 
             .header-button {
@@ -2175,7 +2177,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     background-color: inherit;
                     color: inherit;
                     font-weight: 400;
-                    border-top: 1px solid #3333;
+                    border-top: 1px solid var(--dbp-muted);
                 }
 
                 .element-left.first {
