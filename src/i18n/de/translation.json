@@ -1,6 +1,7 @@
 {
     "error-login-message": "Sie müssen eingeloggt sein, um diese Funktion nutzen zu können!",
     "errors": {
+        "no-submission-selected": "Keine Formulareinträge ausgewählt",
         "notfound-body": "Die angeforderte Ressource wurde nicht gefunden.",
         "notfound-title": "Ressource nicht gefunden",
         "other-body": "Beim Zugriff auf die angeforderte Ressource ist ein Fehler aufgetreten.",
@@ -8,7 +9,8 @@
         "unauthorized-body": "Keine Berechtigung um auf die angeforderte Ressource zuzugreifen.",
         "unauthorized-title": "Keine Berechtigung",
         "unprocessable_entity-body": "Die Anmeldedaten sind ungültig oder unvollständig.",
-        "unprocessable_entity-title": "Anmeldedaten ungültig"
+        "unprocessable_entity-title": "Anmeldedaten ungültig",
+        "warning-title": "Achtung"
     },
     "loading-message": "Lädt...",
     "render-form": {

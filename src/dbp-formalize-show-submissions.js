@@ -212,6 +212,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             rowHeader: {
                 formatter: 'rowSelection',
                 titleFormatter: 'rowSelection',
+                titleFormatterParams: {
+                    rowRange: 'visible', // only toggle the visible rows
+                },
                 headerSort: false,
                 resizable: false,
                 frozen: true,
@@ -642,6 +645,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 actionButtonsDiv.classList.add('actions-buttons');
 
                 let entry = {
+                    submissionId: submissionId,
                     dateCreated: dateCreated,
                     ...dataFeedElement,
                     htmlButtons: actionButtonsDiv,
@@ -654,6 +658,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
                 definitions.forEach((column) => {
+                    if (column.field === 'submissionId') {
+                        column.visible = false;
+                    }
                     if (column.field === 'htmlButtons') {
                         column.formatter = 'html';
                         column.hozAlign = 'center';
@@ -685,7 +692,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         };
                     }
                 });
-                return definitions;
+                return [
+                    {
+                        title: 'ID',
+                        formatter: 'rownum',
+                        hozAlign: 'center',
+                        headerHozAlign: 'center',
+                        headerSort: false,
+                        width: 50,
+                    },
+                    ...definitions, // rest of the auto-generated columns
+                ];
             };
 
             // Set tabulator table data
@@ -744,10 +761,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     defineSettings(state) {
         const table = this.submissionTables[state];
 
-        let settings = this._(`#submission-modal-content-${state}`);
+        let settingsModal = this._(`#submission-modal-content-${state}`);
         // Reset modal content
-        while (settings.childElementCount > 0) {
-            settings.removeChild(settings.firstChild);
+        while (settingsModal.childElementCount > 0) {
+            settingsModal.removeChild(settingsModal.firstChild);
         }
 
         let list = document.createElement('ul');
@@ -758,32 +775,39 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return;
         }
 
-        // Skip first column (selection checkboxes)
-        columns.splice(0, 1);
-        // Skip the last column (show detail button)
-        columns.splice(-1, 1);
+        // Remove field that user should not change the position
+        // Selection checkboxes (rowSelection), rowID (rownum), submissionID and actionButtons (frozen).
+        columns = columns.filter((column) => {
+            const fieldDefinition = column.getDefinition();
+
+            if (fieldDefinition.titleFormatter === 'rowSelection') return false;
+            if (fieldDefinition.formatter === 'rownum') return false;
+            if (fieldDefinition.field === 'submissionId') return false;
+            if (fieldDefinition.frozen) return false;
+
+            return true;
+        });
 
         columns.map((column, index) => {
             const fieldName = column.getField();
+            let li = document.createElement('li');
+            li.classList.add('header-fields');
+            li.classList.add(fieldName);
+            li.setAttribute('data-index', index.toString());
 
-            let element = document.createElement('li');
-            element.classList.add('header-fields');
-            element.classList.add(fieldName);
-            element.setAttribute('data-index', index.toString());
-
-            let div = document.createElement('div');
-            div.classList.add('header-field');
+            let headerField = document.createElement('div');
+            headerField.classList.add('header-field');
 
             let header_order = document.createElement('span');
             header_order.textContent = index + 1;
             header_order.classList.add('header-button');
             header_order.classList.add('header-order');
-            div.appendChild(header_order);
+            headerField.appendChild(header_order);
 
             let header_title = document.createElement('span');
             header_title.innerHTML = `<strong>${fieldName}</strong>`;
             header_title.classList.add('header-title');
-            div.appendChild(header_title);
+            headerField.appendChild(header_title);
 
             let visibility = /** @type {IconButton} */ (
                 this.createScopedElement('dbp-icon-button')
@@ -808,7 +832,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     visibility.iconName = 'source_icons_eye-empty';
                 }
             });
-            div.appendChild(visibility);
+            headerField.appendChild(visibility);
 
             let header_move = document.createElement('span');
             header_move.classList.add('header-move');
@@ -840,12 +864,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
             });
             header_move.appendChild(arrow_down);
-            div.appendChild(header_move);
+            headerField.appendChild(header_move);
 
-            element.appendChild(div);
-            list.appendChild(element);
+            li.appendChild(headerField);
+            list.appendChild(li);
         });
-        settings.appendChild(list);
+
+        settingsModal.appendChild(list);
     }
 
     /**
@@ -1232,11 +1257,21 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             let new_column = {title: current_title, field: current_title, visible: visibility};
             newColumns.push(new_column);
         });
+
         let columns = table.getColumns();
+        // Put the Row-index column at the first place
+        const columnRowIndex = columns.find((column) => {
+            const definition = column.getDefinition();
+            return definition.formatter === 'rownum';
+        });
+        newColumns.unshift(columnRowIndex.getDefinition());
+
         // Put the htmlButtons at the end of the columns
-        let last_column = columns.pop();
-        last_column = last_column.getDefinition();
-        newColumns.push(last_column);
+        const columnActionButton = columns.find((column) => {
+            const definition = column.getDefinition();
+            return definition.field === 'htmlButtons';
+        });
+        newColumns.push(columnActionButton.getDefinition());
 
         table.setColumns(newColumns);
         this.submissionsColumns[state] = newColumns;
@@ -2552,7 +2587,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     class="button action-button is-secondary"
                     id="action-button-${state}"
                     @click="${() => {
-                        this.openActionsDropdown(state);
+                        this.toggleActionsDropdown(state);
                     }}">
                     ${i18n.t('show-registrations.actions-button-text')}
                     <dbp-icon
@@ -2583,8 +2618,30 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             Delete all
                         </li>
                         <li class="action">
-                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                            Delete selection
+                            <button
+                                class="button action-button"
+                                @click="${async (event) => {
+                                    const selectedData =
+                                        this.submissionTables[
+                                            state
+                                        ].tabulatorTable.getSelectedData();
+                                    if (selectedData.length > 0) {
+                                        for (const submission of selectedData) {
+                                            console.log('sub ID', submission.submissionId);
+                                        }
+                                        this.toggleActionsDropdown(state);
+                                    } else {
+                                        send({
+                                            summary: this._i18n.t('errors.warning-title'),
+                                            body: this._i18n.t('errors.no-submission-selected'),
+                                            type: 'warning',
+                                            timeout: 5,
+                                        });
+                                    }
+                                }}">
+                                <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                                Delete selection
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -2592,7 +2649,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
-    openActionsDropdown(state) {
+    toggleActionsDropdown(state) {
         const actionsContainer = this._(`#actions-container--${state}`);
         const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
         actionsDropdown.toggleAttribute('inert');
@@ -2924,6 +2981,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 .options=${this.options_submissions[state]}
                                 pagination-enabled
                                 pagination-size="5"
+                                select-rows-enabled
                                 sticky-header></dbp-tabulator-table>
                         </div>
                         ${this.renderColumnSettingsModal(state)}

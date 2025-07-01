@@ -1,6 +1,7 @@
 {
     "error-login-message": "You need to be logged in to use this function!",
     "errors": {
+        "no-submission-selected": "No submission selected",
         "notfound-body": "Requested resource not found.",
         "notfound-title": "Ressource not found",
         "other-body": "There was an error accessing requested resource.",
@@ -8,7 +9,8 @@
         "unauthorized-body": "No authorization to access requested resource.",
         "unauthorized-title": "Unauthorized",
         "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
-        "unprocessable_entity-title": "Registration data invalid"
+        "unprocessable_entity-title": "Registration data invalid",
+        "warning-title": "Warning"
     },
     "loading-message": "Loading...",
     "render-form": {
