@@ -1264,14 +1264,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const definition = column.getDefinition();
             return definition.formatter === 'rownum';
         });
-        newColumns.unshift(columnRowIndex.getDefinition());
+        if (columnRowIndex) {
+            newColumns.unshift(columnRowIndex.getDefinition());
+        }
 
         // Put the htmlButtons at the end of the columns
         const columnActionButton = columns.find((column) => {
             const definition = column.getDefinition();
             return definition.field === 'htmlButtons';
         });
-        newColumns.push(columnActionButton.getDefinition());
+        if (columnActionButton) {
+            newColumns.push(columnActionButton.getDefinition());
+        }
 
         table.setColumns(newColumns);
         this.submissionsColumns[state] = newColumns;
