@@ -28,6 +28,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.allForms = [];
         this.activity = new Activity(metadata);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
+        this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.options_submissions = {
             draft: {},
             submitted: {},
@@ -39,6 +40,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Submission states (?)
         this.submissionStates = ['draft', 'submitted', 'accepted'];
 
+        this.rawSubmissions = [];
         this.submissions = {
             draft: [],
             submitted: [],
@@ -90,6 +92,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             accept: null,
         };
         this.formsTable = null;
+
+        this.isDeleteSelectedSubmissionEnabled = false;
+        this.isDeleteAllSubmissionEnabled = false;
     }
 
     static get scopedElements() {
@@ -128,12 +133,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             hiddenColumns: {type: Boolean, attribute: false},
             options_submissions: {type: Object, attribute: false},
             options_forms: {type: Object, attribute: false},
+
+            isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
+            isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
         };
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+        document.removeEventListener('click', this.boundCloseActionsDropdownHandler);
     }
 
     /**
@@ -235,6 +244,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+            document.addEventListener('click', this.boundCloseActionsDropdownHandler);
 
             // Table built event listener
             document.addEventListener(
@@ -564,6 +574,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return response;
         }
         this.noSubmissionAvailable = false;
+
+        this.rawSubmissions = data['hydra:member'];
+
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
@@ -1193,6 +1206,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.filterTable(state);
                 this.hideAdditionalSearchMenu(event);
             }
+        }
+    }
+
+    /**
+     * Close action-dropdowns if clicked outside of the dropdown
+     * @param {Event} event
+     */
+    closeActionsDropdown(event) {
+        const path = event.composedPath();
+        const actionsContainers = this._a('.actions-container');
+        const clickedInsideAny = Array.from(actionsContainers).some((dropdown) =>
+            path.includes(dropdown),
+        );
+
+        if (!clickedInsideAny) {
+            this.closeAllActionsDropdown();
         }
     }
 
@@ -2588,7 +2617,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return html`
             <div class="actions-container" id="actions-container--${state}">
                 <button
-                    class="button action-button is-secondary"
+                    class="button open-actions-button is-secondary"
                     id="action-button-${state}"
                     @click="${() => {
                         this.toggleActionsDropdown(state);
@@ -2617,36 +2646,36 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
                             Edit permission
                         </li>
-                        <li class="action">
-                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                            Delete all
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button"
-                                @click="${async (event) => {
-                                    const selectedData =
-                                        this.submissionTables[
-                                            state
-                                        ].tabulatorTable.getSelectedData();
-                                    if (selectedData.length > 0) {
-                                        for (const submission of selectedData) {
-                                            console.log('sub ID', submission.submissionId);
-                                        }
-                                        this.toggleActionsDropdown(state);
-                                    } else {
-                                        send({
-                                            summary: this._i18n.t('errors.warning-title'),
-                                            body: this._i18n.t('errors.no-submission-selected'),
-                                            type: 'warning',
-                                            timeout: 5,
-                                        });
-                                    }
-                                }}">
-                                <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                Delete selection
-                            </button>
-                        </li>
+                        ${this.isDeleteAllSubmissionEnabled
+                            ? html`
+                                  <li class="action">
+                                      <button
+                                          class="button action-button button--delete-all"
+                                          @click="${async () => {
+                                              await this.handleDeleteSubmissions(state);
+                                              this.toggleActionsDropdown(state);
+                                          }}">
+                                          <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                                          Delete all
+                                      </button>
+                                  </li>
+                              `
+                            : ''}
+                        ${this.isDeleteSelectedSubmissionEnabled
+                            ? html`
+                                  <li class="action">
+                                      <button
+                                          class="button action-button button--delete-selected"
+                                          @click="${async () => {
+                                              await this.handleDeleteSubmissions(state, true);
+                                              this.toggleActionsDropdown(state);
+                                          }}">
+                                          <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                                          Delete selection
+                                      </button>
+                                  </li>
+                              `
+                            : ''}
                     </ul>
                 </div>
             </div>
@@ -2654,58 +2683,43 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     toggleActionsDropdown(state) {
+        this.setActionButtonsStates();
+
         const actionsContainer = this._(`#actions-container--${state}`);
         const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
         actionsDropdown.toggleAttribute('inert');
         actionsContainer.classList.toggle('open');
     }
 
-    renderActionsWidget(state) {
-        const i18n = this._i18n;
-        return html`
-            <div class="actions-container" id="actions-container--${state}">
-                <button
-                    class="button action-button is-secondary"
-                    id="action-button-${state}"
-                    @click="${() => {
-                        this.openActionsDropdown(state);
-                    }}">
-                    ${i18n.t('show-registrations.actions-button-text')}
-                    <dbp-icon
-                        class="icon-chevron"
-                        name="chevron-down"
-                        aria-hidden="true"></dbp-icon>
-                </button>
-                <div class="actions-dropdown" inert>
-                    <ul class="actions-list">
-                        <li class="action">
-                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                            Accept
-                        </li>
-                        <li class="action">
-                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                            Reopen
-                        </li>
-                        <li class="action">
-                            <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                            Edit draft/submission
-                        </li>
-                        <li class="action">
-                            <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                            Edit permission
-                        </li>
-                        <li class="action">
-                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                            Delete all
-                        </li>
-                        <li class="action">
-                            <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                            Delete selection
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        `;
+    closeAllActionsDropdown() {
+        const actionsContainers = this._a(`.actions-container`);
+        const actionsDropdowns = this._a(`.actions-container .actions-dropdown`);
+
+        actionsDropdowns.forEach((dropdown) => {
+            dropdown.setAttribute('inert', 'inert');
+        });
+        actionsContainers.forEach((container) => {
+            container.classList.remove('open');
+        });
+    }
+
+    setActionButtonsStates() {
+        // console.log(`this.activeForm`, this.activeForm);
+        // console.log(`this.forms.get(this.activeForm)`, this.forms.get(this.activeForm));
+        // const formProperties = this.forms.get(this.activeForm);
+        // const formGrantedActions = formProperties.grantedActions;
+        const submissionGrantedActions = [
+            ...new Set(this.rawSubmissions.flatMap((item) => item.grantedActions)),
+        ];
+        console.log(`submissionGrantedActions`, submissionGrantedActions);
+
+        this.isDeleteSelectedSubmissionEnabled =
+            submissionGrantedActions.includes('manage') ||
+            submissionGrantedActions.includes('delete');
+
+        this.isDeleteAllSubmissionEnabled =
+            submissionGrantedActions.includes('manage') ||
+            submissionGrantedActions.includes('delete');
     }
 
     openActionsDropdown(state) {
