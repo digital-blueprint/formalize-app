@@ -1,11 +1,13 @@
 {
     "error-login-message": "Sie müssen eingeloggt sein, um diese Funktion nutzen zu können!",
     "errors": {
+        "error-title": "",
         "no-submission-selected": "Keine Formulareinträge ausgewählt",
         "notfound-body": "Die angeforderte Ressource wurde nicht gefunden.",
         "notfound-title": "Ressource nicht gefunden",
         "other-body": "Beim Zugriff auf die angeforderte Ressource ist ein Fehler aufgetreten.",
         "other-title": "Fehler",
+        "success-title": "",
         "unauthorized-body": "Keine Berechtigung um auf die angeforderte Ressource zuzugreifen.",
         "unauthorized-title": "Keine Berechtigung",
         "unprocessable_entity-body": "Die Anmeldedaten sind ungültig oder unvollständig.",
@@ -139,8 +141,6 @@
         "name": "Name",
         "next-entry-btn-title": "Nächster",
         "no-submission-available-message": "Aktuell sind keine Einträge vorhanden.",
-        "open-detailed-view-modal": "Dialog für die Detailansicht öffnen",
-        "open-forms": "Formulareinträge anzeigen",
         "previous-entry-btn-title": "Vorheriger",
         "reset-filter": "Alle zurücksetzen",
         "save-columns": "Speichern",

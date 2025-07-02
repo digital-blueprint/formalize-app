@@ -2631,20 +2631,48 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <div class="actions-dropdown" inert>
                     <ul class="actions-list">
                         <li class="action">
-                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                            Accept
+                            <button
+                                class="button action-button button--delete-all"
+                                disabled
+                                @click="${async () => {
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                                Accept
+                            </button>
                         </li>
                         <li class="action">
-                            <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                            Reopen
+                            <button
+                                class="button action-button button--delete-all"
+                                disabled
+                                @click="${async () => {
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                                Reopen
+                            </button>
                         </li>
                         <li class="action">
-                            <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                            Edit draft/submission
+                            <button
+                                class="button action-button button--delete-all"
+                                disabled
+                                @click="${async () => {
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
+                                Edit draft/submission
+                            </button>
                         </li>
                         <li class="action">
-                            <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                            Edit permission
+                            <button
+                                class="button action-button button--delete-all"
+                                disabled
+                                @click="${async () => {
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
+                                Edit permission
+                            </button>
                         </li>
                         ${this.isDeleteAllSubmissionEnabled
                             ? html`
@@ -2708,6 +2736,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // console.log(`this.forms.get(this.activeForm)`, this.forms.get(this.activeForm));
         // const formProperties = this.forms.get(this.activeForm);
         // const formGrantedActions = formProperties.grantedActions;
+
+        //  Get unique values of grantedActions
         const submissionGrantedActions = [
             ...new Set(this.rawSubmissions.flatMap((item) => item.grantedActions)),
         ];
@@ -2720,6 +2750,115 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.isDeleteAllSubmissionEnabled =
             submissionGrantedActions.includes('manage') ||
             submissionGrantedActions.includes('delete');
+    }
+
+    successFailureNotification(deletedStatus) {
+        const successCount = deletedStatus.filter((status) => status === true).length;
+        if (successCount > 0) {
+            send({
+                summary: this._i18n.t('errors.success-title'),
+                body: `${successCount} submission deleted successfully`,
+                type: 'success',
+                timeout: 5,
+            });
+        }
+
+        const errorCount = deletedStatus.filter((status) => status === false).length;
+        if (errorCount > 0) {
+            send({
+                summary: this._i18n.t('errors.error-title'),
+                body: `${errorCount} submissions failed to delete`,
+                type: 'danger',
+                timeout: 5,
+            });
+        }
+    }
+
+    /**
+     * Delete submissions visible in the table or all submissions
+     * @param {string} state - form state. draft, submitted or accepted
+     * @param {boolean} selectedOnly - if true only the selected submissions are deleted
+     */
+    async handleDeleteSubmissions(state, selectedOnly = false) {
+        const data = selectedOnly
+            ? this.submissionTables[state].tabulatorTable.getSelectedData()
+            : this.submissionTables[state].tabulatorTable.getData('visible');
+
+        const rows = selectedOnly
+            ? this.submissionTables[state].tabulatorTable.getSelectedRows()
+            : this.submissionTables[state].tabulatorTable.getRows('visible');
+
+        if (data.length > 0) {
+            let deletedStatus = [];
+            let index = 0;
+            for (const submission of data) {
+                const response = await this.apiDeleteSubmissions(submission.submissionId);
+                deletedStatus.push(response);
+                // Delete row from the table
+                if (response === true) {
+                    rows[index].delete();
+                }
+                index++;
+            }
+            // Report
+            this.successFailureNotification(deletedStatus);
+        } else {
+            send({
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('errors.no-submission-selected'),
+                type: 'warning',
+                timeout: 5,
+            });
+        }
+    }
+
+    async apiDeleteSubmissions(submissionId) {
+        if (!submissionId) {
+            send({
+                summary: 'Error',
+                body: `No submission id provided`,
+                type: 'danger',
+                timeout: 5,
+            });
+            return false;
+        }
+
+        try {
+            const response = await fetch(
+                this.entryPointUrl + `/formalize/submissions/${submissionId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                this.deleteSubmissionError = true;
+                send({
+                    summary: 'Error',
+                    body: `Failed to delete submission. Response status: ${response.status}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+                return false;
+            } else {
+                this.deleteSubmissionError = false;
+                return true;
+            }
+        } catch (error) {
+            console.error(error.message);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
+            });
+            return false;
+        } finally {
+            console.log('delete submissions finally.');
+        }
     }
 
     openActionsDropdown(state) {
