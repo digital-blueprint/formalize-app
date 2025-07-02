@@ -708,7 +708,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 return [
                     {
                         title: 'ID',
-                        formatter: 'rownum',
+                        formatter: function (cell) {
+                            const row = cell.getRow();
+                            const table = row.getTable();
+                            const page = table.getPage();
+                            const pageSize = table.getPageSize();
+                            const position = row.getPosition(true); // position in current data view
+                            return (page - 1) * pageSize + position;
+                        },
                         hozAlign: 'center',
                         headerHozAlign: 'center',
                         headerSort: false,
@@ -789,12 +796,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         // Remove field that user should not change the position
-        // Selection checkboxes (rowSelection), rowID (rownum), submissionID and actionButtons (frozen).
+        // Selection checkboxes (rowSelection), rowID (title=ID), submissionID and actionButtons (frozen).
         columns = columns.filter((column) => {
             const fieldDefinition = column.getDefinition();
 
             if (fieldDefinition.titleFormatter === 'rowSelection') return false;
-            if (fieldDefinition.formatter === 'rownum') return false;
+            if (fieldDefinition.title === 'ID') return false;
             if (fieldDefinition.field === 'submissionId') return false;
             if (fieldDefinition.frozen) return false;
 
@@ -1291,7 +1298,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Put the Row-index column at the first place
         const columnRowIndex = columns.find((column) => {
             const definition = column.getDefinition();
-            return definition.formatter === 'rownum';
+            return definition.title === 'ID';
         });
         if (columnRowIndex) {
             newColumns.unshift(columnRowIndex.getDefinition());
@@ -2732,8 +2739,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     setActionButtonsStates() {
-        // console.log(`this.activeForm`, this.activeForm);
-        // console.log(`this.forms.get(this.activeForm)`, this.forms.get(this.activeForm));
         // const formProperties = this.forms.get(this.activeForm);
         // const formGrantedActions = formProperties.grantedActions;
 
@@ -2800,6 +2805,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 index++;
             }
+            // Update row-indexes
+            this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
             this.successFailureNotification(deletedStatus);
         } else {
