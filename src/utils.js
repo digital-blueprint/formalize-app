@@ -22,6 +22,24 @@ export const SUBMISSION_STATE_DRAFT = 0b0001; // 1
 export const SUBMISSION_STATE_SUBMITTED = 0b0100; // 4
 export const SUBMISSION_STATE_ACCEPTED = 0b00010000; // 16
 
+export const FORM_PERMISSIONS = Object.freeze({
+    READ: 'read',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    CREATE_SUBMISSIONS: 'create_submissions',
+    READ_SUBMISSIONS: 'read_submissions',
+    UPDATE_SUBMISSIONS: 'update_submissions',
+    DELETE_SUBMISSIONS: 'delete_submissions',
+    MANAGE: 'manage',
+});
+
+export const SUBMISSION_PERMISSIONS = Object.freeze({
+    READ: 'read',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    MANAGE: 'manage',
+});
+
 export function formatDate(value) {
     if (!value) return '';
 

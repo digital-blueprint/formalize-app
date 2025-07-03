@@ -4,7 +4,12 @@ import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
-import {pascalToKebab, getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
+import {
+    pascalToKebab,
+    getFormRenderUrl,
+    getFormShowSubmissionsUrl,
+    FORM_PERMISSIONS,
+} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {send} from '@dbp-toolkit/common/notification.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
@@ -151,8 +156,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Check if the user has the permission to manage the form or create submissions
         return (
             Array.isArray(data.grantedActions) &&
-            (data.grantedActions.includes('manage') ||
-                data.grantedActions.includes('create_submissions'))
+            (data.grantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                data.grantedActions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS))
         );
     }
 

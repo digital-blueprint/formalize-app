@@ -23,6 +23,8 @@ import {
     SUBMISSION_STATE_DRAFT,
     SUBMISSION_STATE_SUBMITTED,
     SUBMISSION_STATE_ACCEPTED,
+    FORM_PERMISSIONS,
+    SUBMISSION_PERMISSIONS,
 } from '../utils.js';
 import {
     gatherFormDataFromElement /*, validateRequiredFields*/,
@@ -183,7 +185,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (changedProperties.has('formProperties')) {
             if (Object.keys(this.formProperties).length > 0) {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
-                this.grantedActions = this.formProperties.grantedActions;
+                this.formGrantedActions = this.formProperties.grantedActions;
                 this.setButtonStates();
             }
         }
@@ -225,8 +227,9 @@ class FormalizeFormElement extends BaseFormElement {
             }
             this.isViewModeButtonAllowed = true;
             this.isDeleteSubmissionButtonAllowed =
-                this.grantedActions.includes('manage') ||
-                this.allowedActionsWhenSubmitted.includes('delete');
+                this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
         }
 
         // DRAFT
@@ -241,16 +244,18 @@ class FormalizeFormElement extends BaseFormElement {
         if (this.isSubmittedState) {
             this.isAcceptButtonEnabled =
                 this.isAcceptedStateEnabled() &&
-                (this.grantedActions.includes('manage') ||
-                    this.allowedActionsWhenSubmitted.includes('update'));
+                (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
 
         // ACCEPTED
         if (this.isAcceptedState) {
             this.isRevertAcceptButtonEnabled =
                 this.isSubmittedStateEnabled() &&
-                (this.grantedActions.includes('manage') ||
-                    this.allowedActionsWhenSubmitted.includes('update'));
+                (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
     }
 
@@ -279,7 +284,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.submissionId = this.data.identifier;
             this.formData = JSON.parse(this.data.dataFeedElement);
             this.submissionState = this.data.submissionState;
-            this.grantedActions = this.data.grantedActions;
+            this.submissionGrantedActions = this.data.grantedActions;
             this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
             this.submittedFilesCount = this.submittedFiles.size;
 

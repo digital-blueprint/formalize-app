@@ -15,7 +15,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {CustomTabulatorTable} from './table-components.js';
 import MicroModal from './micromodal.es.js';
-import {getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
+import {getFormRenderUrl, getFormShowSubmissionsUrl, SUBMISSION_PERMISSIONS} from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss} from './styles.js';
 import metadata from './dbp-formalize-show-submissions.metadata.json';
 import xss from 'xss';
@@ -490,11 +490,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const id = x + 1;
                     const formName = entry['name'];
                     const formId = entry['identifier'];
+                    // const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
+                    const formGrantedActions = entry['grantedActions'];
 
                     this.forms.set(formId, {
                         ...this.forms.get(formId),
                         formName,
                         formId,
+                        // allowedActionsWhenSubmitted,
+                        formGrantedActions,
                     });
 
                     let btn = this.formsTable.createScopedElement(
@@ -2718,7 +2722,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     toggleActionsDropdown(state) {
-        this.setActionButtonsStates();
+        this.setActionButtonsStates(state);
 
         const actionsContainer = this._(`#actions-container--${state}`);
         const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
@@ -2738,9 +2742,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
     }
 
-    setActionButtonsStates() {
-        // const formProperties = this.forms.get(this.activeForm);
-        // const formGrantedActions = formProperties.grantedActions;
+    setActionButtonsStates(state) {
+        const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
+        const selectedRowCount = selectedRows.length;
 
         //  Get unique values of grantedActions
         const submissionGrantedActions = [
@@ -2749,12 +2753,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         console.log(`submissionGrantedActions`, submissionGrantedActions);
 
         this.isDeleteSelectedSubmissionEnabled =
-            submissionGrantedActions.includes('manage') ||
-            submissionGrantedActions.includes('delete');
+            selectedRowCount > 0 &&
+            (submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isDeleteAllSubmissionEnabled =
-            submissionGrantedActions.includes('manage') ||
-            submissionGrantedActions.includes('delete');
+            submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+            submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
+
+        this.isEditSubmissionEnabled =
+            selectedRowCount === 1 &&
+            (submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
     }
 
     successFailureNotification(deletedStatus) {
