@@ -1568,7 +1568,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             #export-select,
             #search-select,
             #search-operator,
-            .dropdown-menu {
+            .extendable-searchbar .dropdown-menu {
                 background-color: var(--dbp-secondary-surface);
                 color: var(--dbp-on-secondary-surface);
                 border-color: var(--dbp-secondary-surface-border-color);
@@ -1762,8 +1762,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 gap: 10px;
             }
 
-            #search-select,
-            #search-operator {
+            .search-select,
+            .search-operator {
                 margin-bottom: 10px;
                 box-sizing: border-box;
                 text-align: left;
