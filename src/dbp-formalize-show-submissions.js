@@ -1897,7 +1897,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 .extended-menu {
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
+                    align-items: flex-start;
                     padding: 1em;
                     /*min-width: 300px;*/
                     height: auto;
