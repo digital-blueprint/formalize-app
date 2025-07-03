@@ -1296,7 +1296,7 @@ class FormalizeFormElement extends BaseFormElement {
         };
         return await httpGetAsync(
             this.entryPointUrl +
-                `/authorization/resource-action-grants?resourceClass=DbpRelayFormalizeForm&resourceIdentifier=${this.formIdentifier}&page=1&perPage=9999`,
+                `/authorization/resource-action-grants?resourceClass=DbpRelayFormalizeSubmission&resourceIdentifier=${this.submissionId}&page=1&perPage=9999`,
             options,
         );
     }
