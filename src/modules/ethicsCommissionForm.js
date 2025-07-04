@@ -633,15 +633,10 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
 
-        console.log('this.userAllDraftSubmissions', this.userAllDraftSubmissions);
-
         // POST or PATCH
         const isExistingDraft = this.userAllDraftSubmissions?.find(
             (item) => item.identifier === this.submissionId,
         );
-
-        console.log('formData', [...formData]);
-        console.log('data', data);
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
@@ -1115,9 +1110,6 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {HTMLElement} element
      */
     extractShadowContent(element) {
-        console.log('extractShadowContent', element);
-        console.log('element instanceof HTMLElement', element instanceof HTMLElement);
-
         // Store original elements and their clones
         const shadowElements = [];
         element.querySelectorAll('*').forEach((el) => {
@@ -1443,9 +1435,6 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderFormViews() {
         const i18n = this._i18n;
-        console.log('-- Render FormalizeFormView --');
-
-        console.log('this.formData', this.formData);
         const data = this.formData || {};
 
         return html`
@@ -2723,8 +2712,6 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderFormElements() {
         const i18n = this._i18n;
-        console.log('-- Render ethics-commission-form --');
-
         const data = this.formData || {};
 
         return html`
@@ -4397,7 +4384,6 @@ class FormalizeFormElement extends BaseFormElement {
                                   type="is-secondary"
                                   no-spinner-on-click
                                   @click="${() => {
-                                      console.log('this.readOnly', this.readOnly);
                                       this.readOnly = !this.readOnly;
                                       const form = this.shadowRoot.querySelector('form');
                                       const data = gatherFormDataFromElement(form);

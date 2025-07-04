@@ -68,9 +68,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     updateFormUrlSlug() {
-        console.log('updateFormUrlSlug this.routingUrl', this.routingUrl);
-        console.log('updateFormUrlSlug this.getRoutingData()', this.getRoutingData());
-
         // We will use the first URL segment after the activity as identifier for the form
         const formUrlSlug = this.getRoutingData().pathSegments[0] || '';
 
@@ -138,8 +135,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             console.error(e);
             return false;
         }
-
-        console.log('checkPermissionsToForm data', data);
 
         if (data.error) {
             console.error('checkPermissionsToForm data.error', data.error);
@@ -248,7 +243,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         } catch (e) {
             console.error(e);
         }
-        console.log('Users submissions data:', this.userAllSubmissions);
     }
 
     async getSubmissionData() {
@@ -284,7 +278,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.loadedSubmission = data;
-        console.log('this.loadedSubmission', this.loadedSubmission);
     }
 
     /**
@@ -465,10 +458,6 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.formIsRendered = true;
-
-        console.log('RENDER-FORM-RENDER: formProperties', this.formProperties);
-        console.log('RENDER-FORM-RENDER: usersSubmissions', this.userAllSubmissions);
-        console.log('RENDER-FORM-RENDER: data', data);
 
         // We need to use staticHtml and unsafeStatic here, because we want to set the tag name from
         // a variable and need to set the "data" property from a variable too!
