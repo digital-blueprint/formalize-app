@@ -25,6 +25,9 @@ import {
     SUBMISSION_STATE_ACCEPTED,
     FORM_PERMISSIONS,
     SUBMISSION_PERMISSIONS,
+    isDraftStateEnabled,
+    isSubmittedStateEnabled,
+    isAcceptedStateEnabled,
 } from '../utils.js';
 import {
     gatherFormDataFromElement /*, validateRequiredFields*/,
@@ -217,8 +220,8 @@ class FormalizeFormElement extends BaseFormElement {
     setButtonStates() {
         // No state
         if (this.submissionState === 0) {
-            this.isDraftButtonAllowed = this.isDraftStateEnabled();
-            this.isSubmitButtonEnabled = this.isSubmittedStateEnabled();
+            this.isDraftButtonAllowed = isDraftStateEnabled(this.allowedSubmissionStates);
+            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
         } else {
             // Buttons in all state
             if (this.readOnly) {
@@ -236,14 +239,14 @@ class FormalizeFormElement extends BaseFormElement {
         if (this.isDraftState) {
             if (!this.readOnly) {
                 this.isDraftButtonAllowed = true;
-                this.isSubmitButtonEnabled = this.isSubmittedStateEnabled();
+                this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             }
         }
 
         // SUBMITTED
         if (this.isSubmittedState) {
             this.isAcceptButtonEnabled =
-                this.isAcceptedStateEnabled() &&
+                isAcceptedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
@@ -252,31 +255,11 @@ class FormalizeFormElement extends BaseFormElement {
         // ACCEPTED
         if (this.isAcceptedState) {
             this.isRevertAcceptButtonEnabled =
-                this.isSubmittedStateEnabled() &&
+                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
-    }
-
-    isDraftStateEnabled() {
-        if (!this.allowedSubmissionStates) throw new Error('allowedSubmissionStates not set');
-        return (this.allowedSubmissionStates & SUBMISSION_STATE_DRAFT) === SUBMISSION_STATE_DRAFT;
-    }
-
-    isSubmittedStateEnabled() {
-        if (!this.allowedSubmissionStates) throw new Error('allowedSubmissionStates not set');
-        return (
-            (this.allowedSubmissionStates & SUBMISSION_STATE_SUBMITTED) ===
-            SUBMISSION_STATE_SUBMITTED
-        );
-    }
-
-    isAcceptedStateEnabled() {
-        if (!this.allowedSubmissionStates) throw new Error('allowedSubmissionStates not set');
-        return (
-            (this.allowedSubmissionStates & SUBMISSION_STATE_ACCEPTED) === SUBMISSION_STATE_ACCEPTED
-        );
     }
 
     async processFormData() {

@@ -40,6 +40,18 @@ export const SUBMISSION_PERMISSIONS = Object.freeze({
     MANAGE: 'manage',
 });
 
+export function isDraftStateEnabled(allowedSubmissionStates) {
+    return (allowedSubmissionStates & SUBMISSION_STATE_DRAFT) === SUBMISSION_STATE_DRAFT;
+}
+
+export function isSubmittedStateEnabled(allowedSubmissionStates) {
+    return (allowedSubmissionStates & SUBMISSION_STATE_SUBMITTED) === SUBMISSION_STATE_SUBMITTED;
+}
+
+export function isAcceptedStateEnabled(allowedSubmissionStates) {
+    return (allowedSubmissionStates & SUBMISSION_STATE_ACCEPTED) === SUBMISSION_STATE_ACCEPTED;
+}
+
 export function formatDate(value) {
     if (!value) return '';
 
