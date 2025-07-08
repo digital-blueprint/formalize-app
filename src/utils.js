@@ -22,6 +22,12 @@ export const SUBMISSION_STATE_DRAFT = 0b0001; // 1
 export const SUBMISSION_STATE_SUBMITTED = 0b0100; // 4
 export const SUBMISSION_STATE_ACCEPTED = 0b00010000; // 16
 
+export const SUBMISSION_STATES = Object.freeze({
+    DRAFT: 'draft',
+    SUBMITTED: 'submitted',
+    ACCEPTED: 'accepted',
+});
+
 export const FORM_PERMISSIONS = Object.freeze({
     READ: 'read',
     UPDATE: 'update',

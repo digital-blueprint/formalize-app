@@ -15,12 +15,25 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {CustomTabulatorTable} from './table-components.js';
 import MicroModal from './micromodal.es.js';
-import {getFormRenderUrl, getFormShowSubmissionsUrl, SUBMISSION_PERMISSIONS} from './utils.js';
+import {
+    SUBMISSION_STATES,
+    FORM_PERMISSIONS,
+    getFormRenderUrl,
+    getFormShowSubmissionsUrl,
+    SUBMISSION_PERMISSIONS,
+    // isDraftStateEnabled,
+    // isSubmittedStateEnabled,
+    isAcceptedStateEnabled,
+    SUBMISSION_STATE_ACCEPTED,
+    SUBMISSION_STATE_SUBMITTED,
+    SUBMISSION_STATE_DRAFT,
+} from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss} from './styles.js';
 import metadata from './dbp-formalize-show-submissions.metadata.json';
 import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
+import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 
 class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
@@ -29,6 +42,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.activity = new Activity(metadata);
         this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
+        this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
+        this.selectedRowCount = {
+            draft: 0,
+            submitted: 0,
+            accepted: 0,
+        };
+        this.visibleRowCount = {
+            draft: 0,
+            submitted: 0,
+            accepted: 0,
+        };
         this.options_submissions = {
             draft: {},
             submitted: {},
@@ -37,10 +61,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.options_forms = {};
         this.forms = new Map();
 
-        // Submission states (?)
-        this.submissionStates = ['draft', 'submitted', 'accepted'];
-
         this.rawSubmissions = [];
+        this.submissionGrantedActions = [];
         this.submissions = {
             draft: [],
             submitted: [],
@@ -67,7 +89,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.navigateBetweenDetailedSubmissionsHandler =
             this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeCourse = '';
-        this.activeForm = '';
+        this.activeFormId = '';
         this.currentRow = null;
         this.currentBeautyId = 0;
         this.totalNumberOfItems = {
@@ -93,8 +115,42 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.formsTable = null;
 
-        this.isDeleteSelectedSubmissionEnabled = false;
-        this.isDeleteAllSubmissionEnabled = false;
+        this.selectedRowCount = {
+            draft: 0,
+            submitted: 0,
+            accepted: 0,
+        };
+
+        this.isDeleteSelectedSubmissionEnabled = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+        this.isDeleteAllSubmissionEnabled = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+        this.isEditSubmissionEnabled = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+        this.isAcceptSubmissionEnabled = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+        this.isReopenSubmissionEnabled = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+        this.isEditSubmissionPermissionEnabled = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
     }
 
     static get scopedElements() {
@@ -106,6 +162,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-mini-spinner': MiniSpinner,
             'dbp-loading-button': LoadingButton,
             'dbp-tabulator-table': CustomTabulatorTable,
+            'dbp-grant-permission-dialog': GrantPermissionDialog,
         };
     }
 
@@ -136,6 +193,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
+            isEditSubmissionEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -143,6 +201,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super.disconnectedCallback();
         document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
         document.removeEventListener('click', this.boundCloseActionsDropdownHandler);
+        document.removeEventListener(
+            'dbp-tabulator-table-row-selection-changed-event',
+            this.boundTableSelectionChanges,
+        );
     }
 
     /**
@@ -245,6 +307,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // see: http://tabulator.info/docs/5.1
             document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
             document.addEventListener('click', this.boundCloseActionsDropdownHandler);
+            document.addEventListener(
+                'dbp-tabulator-table-row-selection-changed-event',
+                this.boundTableSelectionChanges,
+            );
 
             // Table built event listener
             document.addEventListener(
@@ -275,11 +341,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async firstUpdated() {
         this.formsTable = /** @type {CustomTabulatorTable} */ (this._('#tabulator-table-forms'));
-        this.submissionStates.forEach((state) => {
+        for (const state of Object.values(SUBMISSION_STATES)) {
             this.submissionTables[state] = /** @type {CustomTabulatorTable} */ (
                 this._(`#tabulator-table-submissions-${state}`)
             );
-        });
+        }
 
         if (this.auth.token === '' || this.allForms.length > 0) {
             return;
@@ -419,10 +485,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.deleteSettings();
         }
         this.activeCourse = form.formName;
-        this.activeForm = form.formId;
+        this.activeFormId = form.formId;
         this.showFormsTable = false;
         this.loadingSubmissionTables = true;
-        this.getAllFormSubmissions(this.activeForm).then(async () => {
+        this.getAllFormSubmissions(this.activeFormId).then(async () => {
             this.sendSetPropertyEvent('routing-url', `/${form.formId}`, true);
 
             for (const state of Object.keys(this.submissionTables)) {
@@ -492,12 +558,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const formId = entry['identifier'];
                     // const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
                     const formGrantedActions = entry['grantedActions'];
+                    const allowedSubmissionStates = entry['allowedSubmissionStates'];
 
                     this.forms.set(formId, {
                         ...this.forms.get(formId),
                         formName,
                         formId,
                         // allowedActionsWhenSubmitted,
+                        allowedSubmissionStates,
                         formGrantedActions,
                     });
 
@@ -580,6 +648,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.noSubmissionAvailable = false;
 
         this.rawSubmissions = data['hydra:member'];
+        this.submissionGrantedActions = [
+            ...new Set(this.rawSubmissions.flatMap((item) => item.grantedActions)),
+        ];
 
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
@@ -622,8 +693,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     'aria-label',
                     'show-submissions.open-detailed-view-modal',
                 );
-                // this._i18n.t('show-submissions.open-detailed-view-modal');
-                // this._i18n.t('show-submissions.open-forms');
                 submissionDetailsButton.setAttribute('id', id.toString());
                 submissionDetailsButton.classList.add('open-modal-icon');
                 submissionDetailsButton.addEventListener('mousedown', (event) => {
@@ -1484,292 +1553,21 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     static get styles() {
         // language=css
         return css`
-            ${commonStyles.getThemeCSS()}
-            ${commonStyles.getModalDialogCSS()}
-            ${commonStyles.getRadioAndCheckboxCss()}
-            ${commonStyles.getGeneralCSS(false)}
-            ${commonStyles.getNotificationCSS()}
-            ${commonStyles.getActivityCSS()}
-            ${commonStyles.getButtonCSS()}
-            ${getSelectorFixCSS()}
-            ${getFileHandlingCss()}
-
-            .visually-hidden {
-                clip: rect(0 0 0 0);
-                clip-path: inset(50%);
-                height: 1px;
-                overflow: hidden;
-                position: absolute;
-                white-space: nowrap;
-                width: 1px;
+            @layer theme, utility, formalize;
+            @layer theme {
+                ${commonStyles.getThemeCSS()}
+                ${commonStyles.getModalDialogCSS()}
+                ${commonStyles.getRadioAndCheckboxCss()}
+                ${commonStyles.getGeneralCSS(false)}
+                ${commonStyles.getNotificationCSS()}
+                ${commonStyles.getActivityCSS()}
+                ${commonStyles.getButtonCSS()}
+                ${getSelectorFixCSS()}
+                ${getFileHandlingCss()}
             }
 
-            .table-wrapper.submissions {
-                padding-top: 0.5rem;
-            }
-
-            .table-header.submissions {
-                margin-top: 0.5rem;
-            }
-
-            .btn-row-left {
-                display: flex;
-                justify-content: space-between;
-                gap: 4px;
-            }
-
-            .btn-row-left > * {
-                display: flex;
-                align-items: center;
-            }
-
-            .next-btn dbp-icon,
-            .back-btn dbp-icon {
-                height: 15px;
-                top: 3px;
-            }
-
-            .next-btn dbp-icon {
-                margin-left: 0.2em;
-                margin-right: -0.4em;
-            }
-
-            .back-btn dbp-icon {
-                margin-left: -0.4em;
-                margin-right: 0.2em;
-            }
-
-            .detailed-submission-modal-title {
-                margin-bottom: 10px;
-            }
-
-            .detailed-submission-modal-content {
-                padding: 0 20px 0 20px;
-            }
-
-            .detailed-submission-modal-box {
-                height: auto;
-                width: auto;
-                overflow-y: hidden;
-                min-height: 0;
-                max-width: 768px;
-                min-width: 768px;
-            }
-
-            .open-modal-icon {
-                font-size: 1.3em;
-            }
-
-            .content-wrapper {
-                display: grid;
-                grid-template-columns: min-content auto;
-                grid-template-rows: auto;
-                max-height: calc(100vh - 149px);
-                overflow-y: auto;
-                width: 100%;
-            }
-
-            .element-left {
-                background-color: var(--dbp-primary-surface);
-                color: var(--dbp-on-primary-surface);
-                padding: 0 20px 12px 40px;
-                text-align: right;
-            }
-
-            .element-right {
-                text-align: left;
-                margin-left: 12px;
-                padding: 0 0 12px 0;
-            }
-
-            .element-left.first,
-            .element-right.first {
-                padding-top: 12px;
-            }
-
-            .hideWithoutDisplay {
-                opacity: 0;
-                height: 0;
-                overflow: hidden;
-            }
-
-            .scrollable-table-wrapper {
-                width: 100%;
-            }
-
-            .tabulator-table {
-                white-space: nowrap;
-            }
-
-            .tabulator-footer {
-                text-align: center;
-            }
-
-            .back-navigation {
-                padding-top: 1rem;
-            }
-
-            .table-wrapper {
-                container-type: inline-size;
-                container-name: table-wrapper;
-            }
-
-            .table-wrapper h3 {
-                margin-top: 0.5em;
-                margin-bottom: 1em;
-            }
-
-            .back-navigation dbp-icon {
-                font-size: 0.8em;
-                padding-right: 7px;
-                padding-bottom: 2px;
-            }
-
-            .back-navigation:hover {
-                color: var(--dbp-hover-color, var(--dbp-content));
-                background-color: var(--dbp-hover-background-color);
-            }
-
-            .back-navigation:hover::before {
-                background-color: var(--dbp-hover-color, var(--dbp-content));
-            }
-
-            .dropdown-menu {
-                background-color: var(--dbp-secondary-surface);
-                color: var(--dbp-on-secondary-surface);
-                border-color: var(--dbp-secondary-surface-border-color);
-                background-size: auto 45%;
-                cursor: pointer;
-                background-position-x: calc(100% - 0.4rem);
-                box-sizing: content-box;
-            }
-
-            .table-title {
-                border-left: 3px solid var(--dbp-primary);
-                padding-left: 0.5em;
-            }
-
-            /* TABLE BUTTON HEADER */
-
-            .table-buttons {
-                display: grid;
-                grid-template-columns: auto 1fr auto;
-                gap: 1em;
-                position: relative;
-
-                container: table-buttons / inline-size;
-
-                select,
-                input[type='text'],
-                button {
-                    box-sizing: border-box;
-                    height: 34px;
-                    padding-block: 0;
-                    color: var(--dbp-content);
-                    background-color: var(--dbp-background);
-                }
-            }
-
-            /* actions */
-
-            .actions-container {
-                position: relative;
-
-                &.open {
-                    .actions-dropdown {
-                        opacity: 1;
-                    }
-                    .icon-chevron {
-                        transform: rotate(180deg);
-                    }
-                }
-            }
-
-            .icon-chevron {
-                transition: transform 250ms ease-in;
-                margin-left: 0.5em;
-            }
-
-            .actions-dropdown {
-                opacity: 0;
-                position: absolute;
-                top: 37px;
-                left: 0;
-                transition: opacity 250ms ease-in;
-                z-index: 15;
-                width: 250px;
-                padding: 1em 4em 1em 1em;
-                background-color: var(--dbp-background);
-                border: 1px solid var(--dbp-content);
-            }
-
-            .actions-list {
-                list-style: none;
-                padding: 0;
-                margin: 0;
-                display: flex;
-                flex-direction: column;
-                gap: 0.5em;
-            }
-
-            .action {
-                dbp-icon {
-                    margin-right: 5px;
-                }
-            }
-
-            @starting-style {
-                .actions-wrapper.open .actions-dropdown {
-                    opacity: 0;
-                }
-            }
-
-            /* search bar */
-
-            .search-container {
-                overflow: hidden;
-                height: 36px;
-            }
-
-            .extendable-searchbar {
-                box-sizing: border-box;
-                display: grid;
-                grid-template-columns: 40px 1fr 40px;
-                border-bottom: 1px solid transparent;
-                transform: translateX(calc(100% - 2em));
-                transition:
-                    transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
-                    border-color 250ms ease-in 50ms;
-
-                &.open {
-                    transform: translateX(0);
-                    border-color: var(--dbp-content);
-                }
-
-                &.closing {
-                    border-color: transparent;
-                    transform: translateX(calc(100% - 2.5em));
-                    transition:
-                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
-                        border-color 30ms ease-in 0ms;
-                }
-            }
-
-            .extended-menu {
-                display: grid;
-                grid-template-columns: 1fr 40px 1fr 40px 1fr 40px;
-                justify-items: center;
-                height: 34px;
-
-                input[type='text'],
-                select {
-                    border: 0 none;
-                    text-align: left;
-                    padding-left: 10px;
-                    width: 100%;
-                }
-
-                label {
+            @layer formalize {
+                .visually-hidden {
                     clip: rect(0 0 0 0);
                     clip-path: inset(50%);
                     height: 1px;
@@ -1779,619 +1577,901 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     width: 1px;
                 }
 
-                & > :focus-visible {
-                    box-shadow: none !important;
-                    background-color: light-dark(#f7f7f7, #333333);
-                }
-            }
-
-            @container table-buttons (width < 1040px) {
-                .search-container {
-                    overflow: visible;
+                .table-wrapper.submissions {
+                    padding-top: 0.5rem;
                 }
 
-                .export-container {
-                    .dropdown-menu {
-                        position: relative;
-                        z-index: 10;
-                    }
-                }
-
-                .extendable-searchbar {
-                    display: block;
-                    position: relative;
-                    border: 1px solid transparent;
-                    clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-                    transition:
-                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986),
-                        border-color 250ms ease-in 250ms,
-                        clip-path 250ms ease-in 500ms;
-
-                    input,
-                    select,
-                    .search-close-button,
-                    label {
-                        opacity: 0;
-                        transition: opacity 250ms ease-in 250ms;
-                    }
-
-                    input,
-                    select {
-                        width: 100%;
-                        padding: 0 1em;
-                        max-width: 100%;
-                        border: var(--dbp-border);
-                        margin-bottom: 1em;
-                        height: 40px;
-                    }
-
-                    .searchbar {
-                        padding-left: 3em !important;
-                        padding-right: 1em;
-                        width: 100%;
-                        background-color: var(--dbp-background);
-                    }
-
-                    &.open {
-                        border-color: var(--dbp-content);
-                        z-index: 15;
-                        background: var(--dbp-background);
-                        box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.1);
-                        clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-
-                        .searchbar {
-                            border: 0 none;
-                            border-bottom: var(--dbp-border);
-                        }
-
-                        button.search-button {
-                            top: 0.6em;
-                            left: 1em;
-                        }
-
-                        .search-close-button,
-                        label,
-                        input,
-                        select {
-                            opacity: 1;
-                        }
-                    }
-
-                    &.closing {
-                        transform: translateX(calc(100% - 2em));
-                        border-color: transparent;
-                        clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-                        transition:
-                            transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 250ms,
-                            border-color 250ms ease-in 0ms,
-                            clip-path 250ms ease-in 0ms;
-
-                        .searchbar {
-                            border: 0 none;
-                        }
-
-                        button.search-button {
-                            top: 0;
-                            left: 0;
-                        }
-
-                        input,
-                        select,
-                        .search-close-button {
-                            opacity: 0;
-                            transition: opacity 100ms ease-in 0ms;
-                        }
-                    }
-                }
-
-                button.search-button {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    z-index: 5;
-                }
-
-                .search-close-button {
-                    position: absolute;
-                    top: 0.8em;
-                    right: 1em;
-                    z-index: 5;
-                }
-
-                .extended-menu {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    padding: 1em;
-                    /*min-width: 300px;*/
-                    height: auto;
-                }
-
-                .spacer {
-                    display: none;
-                }
-
-                .extended-menu label {
-                    clip: initial;
-                    clip-path: initial;
-                    height: auto;
-                    overflow: visible;
-                    position: static;
-                    white-space: initial;
-                    width: auto;
-                }
-            }
-
-            @container table-buttons (width < 565px) {
-                .actions-container,
-                .export-container {
-                    transition: opacity 250ms ease-in;
-                    opacity: 1;
-                }
-
-                .table-buttons:has(.extendable-searchbar.open) .actions-container,
-                .table-buttons:has(.extendable-searchbar.open) .export-container {
-                    opacity: 0;
-                    transition: opacity 250ms ease-in;
-                }
-
-                /* @TODO add some animation for the lupe icon to find it's way back */
-
-                .extendable-searchbar {
-                    width: 40px;
-                    transform: none;
-                    transition: opacity 250ms ease-in;
-
-                    &.closing {
-                        button.search-button {
-                            opacity: 0;
-                        }
-                    }
-                }
-
-                .extendable-searchbar.open {
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    width: auto;
-                    transform: none;
-                    transition: opacity 250ms ease-in;
-                }
-
-                .extendable-searchbar.closing {
-                    transform: none;
-                    transition: opacity 250ms ease-in;
-                }
-            }
-
-            button.search-button {
-                width: 34px;
-                border: 0 none;
-                padding: 0;
-                border-radius: 100%;
-                font-size: 20px;
-                background-color: transparent;
-
-                &:hover {
-                    background-color: light-dark(#f7f7f7, #333333);
-                }
-
-                &:focus-visible {
-                    box-shadow: none !important;
-                    background-color: light-dark(#f7f7f7, #333333);
-                }
-            }
-
-            button.search-close-button {
-                width: 34px;
-                border: 0 none;
-                padding: 0;
-                border-radius: 100%;
-                font-size: 16px;
-                background-color: transparent;
-
-                &:hover {
-                    background-color: light-dark(#f7f7f7, #333333);
-                }
-
-                &:focus-visible {
-                    box-shadow: none !important;
-                    background-color: light-dark(#f7f7f7, #333333);
-                }
-            }
-
-            .spacer {
-                color: #999999;
-                font-size: 28px;
-            }
-
-            /* export button */
-
-            .export-container .dropdown-menu {
-                padding: 0rem 2rem 0rem 0.5rem;
-            }
-
-            /* TABLE BUTTON HEADER END */
-
-            .modal-container {
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
-                text-align: center;
-            }
-
-            .submission-modal-content {
-                overflow: auto;
-                align-items: baseline;
-                height: 100%;
-            }
-
-            .modal-footer-btn {
-                padding-right: 20px;
-                padding-left: 20px;
-                padding-bottom: 20px;
-                padding-top: 10px;
-            }
-
-            span.first {
-                margin-left: -6px;
-            }
-
-            select[disabled] {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
-
-            .scrollable-table-wrapper {
-                position: relative;
-            }
-
-            .frozen-table-divider {
-                position: absolute;
-                height: calc(
-                    100% - 118px
-                ); /* table-header + pagination heights + scrollbar: 60px + 51px */
-                top: 60px; /* table-header height */
-                right: 36px;
-
-                -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
-                box-shadow: -2px 0 2px 0 var(--dbp-muted);
-                background-color: #fff0; /* transparent */
-            }
-
-            .headers {
-                max-width: 100%;
-                margin: 0;
-                list-style-type: none;
-                padding: 0;
-                display: grid;
-                width: 100%;
-            }
-
-            .header-field {
-                align-items: center;
-                height: 50px;
-                border: 1px solid var(--dbp-muted);
-                display: flex;
-                margin-bottom: 5px;
-                color: var(--dbp-content);
-            }
-
-            .header-button {
-                justify-content: center;
-                display: flex;
-                align-items: center;
-                height: 50px;
-                width: 50px;
-                min-width: 50px;
-                flex-grow: 0;
-                cursor: pointer;
-            }
-
-            .header-button dbp-icon {
-                font-size: 1.3em;
-                top: 0;
-            }
-
-            .header-button.hidden,
-            .extended-menu.hidden {
-                display: none !important;
-            }
-
-            .header-title {
-                flex-grow: 2;
-                text-overflow: ellipsis;
-                overflow: hidden;
-                padding-left: 5px;
-                text-align: left;
-            }
-
-            .header-order {
-                background-color: var(--dbp-muted-surface);
-                color: var(--dbp-on-muted-surface);
-                font-weight: bold;
-            }
-
-            .move-up .header-field {
-                animation: added 0.4s ease;
-            }
-
-            .header-move {
-                display: flex;
-            }
-
-            .first-header .header-move .header-button:first-child,
-            .last-header .header-move .header-button:last-child {
-                opacity: 0.4;
-                cursor: default;
-            }
-
-            .first-arrow-up,
-            .last-arrow-down {
-                opacity: 0.4;
-                cursor: default;
-            }
-
-            @keyframes added {
-                0% {
-                    background-color: var(--dbp-background);
-                    color: var(--dbp-content);
-                }
-                50% {
-                    background-color: var(--dbp-success-surface);
-                    color: var(--dbp-on-success-surface);
-                }
-                100% {
-                    background-color: var(--dbp-background);
-                    color: var(--dbp-content);
-                }
-            }
-
-            .button-wrapper {
-                display: flex;
-                height: 100%;
-                justify-content: end;
-                align-items: center;
-                padding-right: 2px;
-            }
-
-            .open-menu {
-                height: 45px;
-                box-sizing: border-box;
-                display: flex;
-                align-items: center;
-            }
-
-            .additional-menu {
-                display: none;
-            }
-
-            #filter-modal-box {
-                min-width: 300px;
-                min-height: unset;
-            }
-
-            #filter-modal-box .modal-footer-btn {
-                display: flex;
-                justify-content: space-between;
-            }
-
-            .button-container {
-                text-align: left;
-                margin-bottom: 10px;
-                padding-left: 30px;
-            }
-
-            .checkmark {
-                left: 0;
-                height: 20px;
-                width: 20px;
-            }
-
-            .button-container .checkmark::after {
-                left: 8px;
-                top: 2px;
-            }
-
-            .button.courses-btn {
-                font-size: 1.2rem;
-                display: flex;
-                align-items: center;
-                top: 0;
-            }
-
-            @media only screen and (orientation: portrait) and (max-width: 768px) {
-                .mobile-hidden {
-                    display: none;
-                }
-
-                button[data-page='prev'],
-                button[data-page='next'],
-                button[data-page='first'],
-                button[data-page='last'] {
-                    display: block;
-                    white-space: nowrap !important;
-                    overflow: hidden;
-                    line-height: 0;
-                }
-
-                button[data-page='prev']:after,
-                button[data-page='next']:after,
-                button[data-page='first']:after,
-                button[data-page='last']:after {
-                    content: '\\00a0\\00a0\\00a0\\00a0';
-                    background-color: var(--dbp-content);
-                    -webkit-mask-repeat: no-repeat;
-                    mask-repeat: no-repeat;
-                    -webkit-mask-position: center center;
-                    mask-position: center center;
-                    padding: 0 0 0.25% 0;
-                    -webkit-mask-size: 1.5rem !important;
-                    mask-size: 1.4rem !important;
-                }
-
-                button[data-page='prev']:after {
-                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('chevron-left'))}');
-                    mask-image: url('${unsafeCSS(getIconSVGURL('chevron-left'))}');
-                }
-
-                button[data-page='next']:after {
-                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('chevron-right'))}');
-                    mask-image: url('${unsafeCSS(getIconSVGURL('chevron-right'))}');
-                }
-
-                button[data-page='first']:after {
-                    content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-left'))}');
-                    mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-left'))}');
-                }
-
-                button[data-page='last']:after {
-                    content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
-                    -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-right'))}');
-                    mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-right'))}');
-                }
-
-                .element-right {
-                    margin-left: 12px;
-                    padding: 0 0 12px 0;
-                }
-
-                .element-right.first {
-                    padding-top: 0;
-                }
-
-                .element-left {
-                    text-align: left;
-                    padding: 10px 5px 10px 5px;
-                    background-color: inherit;
-                    color: inherit;
-                    font-weight: 400;
-                    border-top: 1px solid var(--dbp-muted);
-                }
-
-                .element-left.first {
-                    margin-top: 10px;
-                    border-top: 0;
+                .table-header.submissions {
+                    margin-top: 0.5rem;
                 }
 
                 .btn-row-left {
                     display: flex;
                     justify-content: space-between;
-                    flex-direction: row;
                     gap: 4px;
-                    height: 40px;
                 }
 
-                .detailed-submission-modal-box {
-                    min-width: 320px;
-                }
-
-                .detailed-submission-modal-box .modal-footer .modal-footer-btn {
-                    padding: 6px 12px 6px 12px;
-                    flex-direction: column;
-                    gap: 6px;
-                }
-
-                .detailed-submission-modal-box .modal-content {
-                    align-items: flex-start;
-                }
-
-                .export-buttons {
-                    gap: 0;
-                }
-
-                .select-all-icon {
-                    height: 32px;
-                }
-
-                .additional-menu {
-                    display: block;
-                    white-space: nowrap;
-                    height: 33px;
-                    position: relative;
-                }
-
-                .additional-menu button {
-                    float: right;
-                }
-
-                .options-nav {
+                .btn-row-left > * {
                     display: flex;
-                    flex-direction: row;
-                    justify-content: space-between;
-                }
-
-                .back-navigation {
-                    padding-top: 0;
-                }
-
-                .table-header {
-                    display: flex;
-                    justify-content: space-between;
                     align-items: center;
                 }
 
-                .table-wrapper h3,
-                .table-buttons {
-                    margin-bottom: 0.5em;
+                .next-btn dbp-icon,
+                .back-btn dbp-icon {
+                    height: 15px;
+                    top: 3px;
                 }
 
-                .courses-btn {
-                    min-height: 40px;
-                    padding-top: 8px;
-                    min-width: 40px;
+                .next-btn dbp-icon {
+                    margin-left: 0.2em;
+                    margin-right: -0.4em;
                 }
 
-                .search-wrapper {
-                    min-width: unset;
+                .back-btn dbp-icon {
+                    margin-left: -0.4em;
+                    margin-right: 0.2em;
                 }
 
-                .headers {
-                    display: initial;
-                    width: 100%;
+                .detailed-submission-modal-title {
+                    margin-bottom: 10px;
                 }
 
-                #filter-modal-box,
-                .detailed-submission-modal-box {
-                    width: 100%;
-                    height: 100%;
-                    max-width: 100%;
-                }
-
-                .submission-modal-content,
                 .detailed-submission-modal-content {
-                    height: 100%;
+                    padding: 0 20px 0 20px;
+                }
+
+                .detailed-submission-modal-box {
+                    height: auto;
+                    width: auto;
+                    overflow-y: hidden;
+                    min-height: 0;
+                    max-width: 768px;
+                    min-width: 768px;
+                }
+
+                .open-modal-icon {
+                    font-size: 1.3em;
                 }
 
                 .content-wrapper {
-                    grid-template-columns: auto;
+                    display: grid;
+                    grid-template-columns: min-content auto;
+                    grid-template-rows: auto;
+                    max-height: calc(100vh - 149px);
+                    overflow-y: auto;
+                    width: 100%;
+                }
+
+                .element-left {
+                    background-color: var(--dbp-primary-surface);
+                    color: var(--dbp-on-primary-surface);
+                    padding: 0 20px 12px 40px;
+                    text-align: right;
+                }
+
+                .element-right {
+                    text-align: left;
+                    margin-left: 12px;
+                    padding: 0 0 12px 0;
+                }
+
+                .element-left.first,
+                .element-right.first {
+                    padding-top: 12px;
+                }
+
+                .hideWithoutDisplay {
+                    opacity: 0;
+                    height: 0;
+                    overflow: hidden;
+                }
+
+                .scrollable-table-wrapper {
+                    width: 100%;
+                }
+
+                .tabulator-table {
+                    white-space: nowrap;
+                }
+
+                .tabulator-footer {
+                    text-align: center;
+                }
+
+                .back-navigation {
+                    padding-top: 1rem;
+                }
+
+                .table-wrapper {
+                    container-type: inline-size;
+                    container-name: table-wrapper;
+                }
+
+                .table-wrapper h3 {
+                    margin-top: 0.5em;
+                    margin-bottom: 1em;
+                }
+
+                .back-navigation dbp-icon {
+                    font-size: 0.8em;
+                    padding-right: 7px;
+                    padding-bottom: 2px;
+                }
+
+                .back-navigation:hover {
+                    color: var(--dbp-hover-color, var(--dbp-content));
+                    background-color: var(--dbp-hover-background-color);
+                }
+
+                .back-navigation:hover::before {
+                    background-color: var(--dbp-hover-color, var(--dbp-content));
+                }
+
+                .dropdown-menu {
+                    background-color: var(--dbp-secondary-surface);
+                    color: var(--dbp-on-secondary-surface);
+                    border-color: var(--dbp-secondary-surface-border-color);
+                    background-size: auto 45%;
+                    cursor: pointer;
+                    background-position-x: calc(100% - 0.4rem);
+                    box-sizing: content-box;
+                }
+
+                .table-title {
+                    border-left: 3px solid var(--dbp-primary);
+                    padding-left: 0.5em;
+                }
+
+                /* TABLE BUTTON HEADER */
+
+                .table-buttons {
+                    display: grid;
+                    grid-template-columns: auto 1fr auto;
+                    gap: 1em;
+                    position: relative;
+
+                    container: table-buttons / inline-size;
+
+                    select,
+                    input[type='text'],
+                    button {
+                        box-sizing: border-box;
+                        height: 34px;
+                        padding-block: 0;
+                        color: var(--dbp-content);
+                        background-color: var(--dbp-background);
+                    }
+                }
+
+                /* actions */
+
+                .actions-container {
+                    position: relative;
+
+                    &.open {
+                        .actions-dropdown {
+                            opacity: 1;
+                        }
+                        .icon-chevron {
+                            transform: rotate(180deg);
+                        }
+                    }
+                }
+
+                .icon-chevron {
+                    transition: transform 250ms ease-in;
+                    margin-left: 0.5em;
+                }
+
+                .actions-dropdown {
+                    opacity: 0;
+                    position: absolute;
+                    top: 37px;
+                    left: 0;
+                    transition: opacity 250ms ease-in;
+                    z-index: 15;
+                    width: 250px;
+                    padding: 1em 4em 1em 1em;
+                    background-color: var(--dbp-background);
+                    border: 1px solid var(--dbp-content);
+                }
+
+                .actions-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5em;
+                }
+
+                .action {
+                    dbp-icon {
+                        margin-right: 5px;
+                    }
+                }
+
+                .action-button {
+                    border: 0 none;
+                }
+
+                @starting-style {
+                    .actions-wrapper.open .actions-dropdown {
+                        opacity: 0;
+                    }
+                }
+
+                /* search bar */
+
+                .search-container {
+                    overflow: hidden;
+                    height: 36px;
+                }
+
+                .extendable-searchbar {
+                    box-sizing: border-box;
+                    display: grid;
+                    grid-template-columns: 40px 1fr 40px;
+                    border-bottom: 1px solid transparent;
+                    transform: translateX(calc(100% - 2em));
+                    transition:
+                        transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
+                        border-color 250ms ease-in 50ms;
+
+                    &.open {
+                        transform: translateX(0);
+                        border-color: var(--dbp-content);
+                    }
+
+                    &.closing {
+                        border-color: transparent;
+                        transform: translateX(calc(100% - 2.5em));
+                        transition:
+                            transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
+                            border-color 30ms ease-in 0ms;
+                    }
+                }
+
+                .extended-menu {
+                    display: grid;
+                    grid-template-columns: 1fr 40px 1fr 40px 1fr 40px;
+                    justify-items: center;
+                    height: 34px;
+
+                    input[type='text'],
+                    select {
+                        border: 0 none;
+                        text-align: left;
+                        padding-left: 10px;
+                        width: 100%;
+                    }
+
+                    label {
+                        clip: rect(0 0 0 0);
+                        clip-path: inset(50%);
+                        height: 1px;
+                        overflow: hidden;
+                        position: absolute;
+                        white-space: nowrap;
+                        width: 1px;
+                    }
+
+                    & > :focus-visible {
+                        box-shadow: none !important;
+                        background-color: light-dark(#f7f7f7, #333333);
+                    }
+                }
+
+                @container table-buttons (width < 1040px) {
+                    .search-container {
+                        overflow: visible;
+                    }
+
+                    .export-container {
+                        .dropdown-menu {
+                            position: relative;
+                            z-index: 10;
+                        }
+                    }
+
+                    .extendable-searchbar {
+                        display: block;
+                        position: relative;
+                        border: 1px solid transparent;
+                        clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+                        transition:
+                            transform 500ms cubic-bezier(0, 0.014, 0, 0.986),
+                            border-color 250ms ease-in 250ms,
+                            clip-path 250ms ease-in 500ms;
+
+                        input,
+                        select,
+                        .search-close-button,
+                        label {
+                            opacity: 0;
+                            transition: opacity 250ms ease-in 250ms;
+                        }
+
+                        input,
+                        select {
+                            width: 100%;
+                            padding: 0 1em;
+                            max-width: 100%;
+                            border: var(--dbp-border);
+                            margin-bottom: 1em;
+                            height: 40px;
+                        }
+
+                        .searchbar {
+                            padding-left: 3em !important;
+                            padding-right: 1em;
+                            width: 100%;
+                            background-color: var(--dbp-background);
+                        }
+
+                        &.open {
+                            border-color: var(--dbp-content);
+                            z-index: 15;
+                            background: var(--dbp-background);
+                            box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.1);
+                            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+
+                            .searchbar {
+                                border: 0 none;
+                                border-bottom: var(--dbp-border);
+                            }
+
+                            button.search-button {
+                                top: 0.6em;
+                                left: 1em;
+                            }
+
+                            .search-close-button,
+                            label,
+                            input,
+                            select {
+                                opacity: 1;
+                            }
+                        }
+
+                        &.closing {
+                            transform: translateX(calc(100% - 2em));
+                            border-color: transparent;
+                            clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
+                            transition:
+                                transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 250ms,
+                                border-color 250ms ease-in 0ms,
+                                clip-path 250ms ease-in 0ms;
+
+                            .searchbar {
+                                border: 0 none;
+                            }
+
+                            button.search-button {
+                                top: 0;
+                                left: 0;
+                            }
+
+                            input,
+                            select,
+                            .search-close-button {
+                                opacity: 0;
+                                transition: opacity 100ms ease-in 0ms;
+                            }
+                        }
+                    }
+
+                    button.search-button {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        z-index: 5;
+                    }
+
+                    .search-close-button {
+                        position: absolute;
+                        top: 0.8em;
+                        right: 1em;
+                        z-index: 5;
+                    }
+
+                    .extended-menu {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        padding: 1em;
+                        /*min-width: 300px;*/
+                        height: auto;
+                    }
+
+                    .spacer {
+                        display: none;
+                    }
+
+                    .extended-menu label {
+                        clip: initial;
+                        clip-path: initial;
+                        height: auto;
+                        overflow: visible;
+                        position: static;
+                        white-space: initial;
+                        width: auto;
+                    }
+                }
+
+                @container table-buttons (width < 565px) {
+                    .actions-container,
+                    .export-container {
+                        transition: opacity 250ms ease-in;
+                        opacity: 1;
+                    }
+
+                    .table-buttons:has(.extendable-searchbar.open) .actions-container,
+                    .table-buttons:has(.extendable-searchbar.open) .export-container {
+                        opacity: 0;
+                        transition: opacity 250ms ease-in;
+                    }
+
+                    /* @TODO add some animation for the lupe icon to find it's way back */
+
+                    .extendable-searchbar {
+                        width: 40px;
+                        transform: none;
+                        transition: opacity 250ms ease-in;
+
+                        &.closing {
+                            button.search-button {
+                                opacity: 0;
+                            }
+                        }
+                    }
+
+                    .extendable-searchbar.open {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        width: auto;
+                        transform: none;
+                        transition: opacity 250ms ease-in;
+                    }
+
+                    .extendable-searchbar.closing {
+                        transform: none;
+                        transition: opacity 250ms ease-in;
+                    }
+                }
+
+                button.search-button {
+                    width: 34px;
+                    border: 0 none;
+                    padding: 0;
+                    border-radius: 100%;
+                    font-size: 20px;
+                    background-color: transparent;
+
+                    &:hover {
+                        background-color: light-dark(#f7f7f7, #333333);
+                    }
+
+                    &:focus-visible {
+                        box-shadow: none !important;
+                        background-color: light-dark(#f7f7f7, #333333);
+                    }
+                }
+
+                button.search-close-button {
+                    width: 34px;
+                    border: 0 none;
+                    padding: 0;
+                    border-radius: 100%;
+                    font-size: 16px;
+                    background-color: transparent;
+
+                    &:hover {
+                        background-color: light-dark(#f7f7f7, #333333);
+                    }
+
+                    &:focus-visible {
+                        box-shadow: none !important;
+                        background-color: light-dark(#f7f7f7, #333333);
+                    }
+                }
+
+                .spacer {
+                    color: #999999;
+                    font-size: 28px;
+                }
+
+                /* export button */
+
+                .export-container .dropdown-menu {
+                    padding: 0rem 2rem 0rem 0.5rem;
+                }
+
+                /* TABLE BUTTON HEADER END */
+
+                .modal-container {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    text-align: center;
+                }
+
+                .submission-modal-content {
+                    overflow: auto;
+                    align-items: baseline;
+                    height: 100%;
+                }
+
+                .modal-footer-btn {
+                    padding-right: 20px;
+                    padding-left: 20px;
+                    padding-bottom: 20px;
+                    padding-top: 10px;
+                }
+
+                span.first {
+                    margin-left: -6px;
+                }
+
+                select[disabled] {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                }
+
+                .scrollable-table-wrapper {
+                    position: relative;
+                }
+
+                .frozen-table-divider {
+                    position: absolute;
+                    height: calc(
+                        100% - 118px
+                    ); /* table-header + pagination heights + scrollbar: 60px + 51px */
+                    top: 60px; /* table-header height */
+                    right: 36px;
+
+                    -webkit-box-shadow: -4px 3px 16px -6px var(--dbp-muted);
+                    box-shadow: -2px 0 2px 0 var(--dbp-muted);
+                    background-color: #fff0; /* transparent */
+                }
+
+                .headers {
+                    max-width: 100%;
+                    margin: 0;
+                    list-style-type: none;
+                    padding: 0;
+                    display: grid;
+                    width: 100%;
+                }
+
+                .header-field {
+                    align-items: center;
+                    height: 50px;
+                    border: 1px solid var(--dbp-muted);
+                    display: flex;
+                    margin-bottom: 5px;
+                    color: var(--dbp-content);
+                }
+
+                .header-button {
+                    justify-content: center;
+                    display: flex;
+                    align-items: center;
+                    height: 50px;
+                    width: 50px;
+                    min-width: 50px;
+                    flex-grow: 0;
+                    cursor: pointer;
+                }
+
+                .header-button dbp-icon {
+                    font-size: 1.3em;
+                    top: 0;
+                }
+
+                .header-button.hidden,
+                .extended-menu.hidden {
+                    display: none !important;
+                }
+
+                .header-title {
+                    flex-grow: 2;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    padding-left: 5px;
+                    text-align: left;
+                }
+
+                .header-order {
+                    background-color: var(--dbp-muted-surface);
+                    color: var(--dbp-on-muted-surface);
+                    font-weight: bold;
+                }
+
+                .move-up .header-field {
+                    animation: added 0.4s ease;
+                }
+
+                .header-move {
+                    display: flex;
+                }
+
+                .first-header .header-move .header-button:first-child,
+                .last-header .header-move .header-button:last-child {
+                    opacity: 0.4;
+                    cursor: default;
+                }
+
+                .first-arrow-up,
+                .last-arrow-down {
+                    opacity: 0.4;
+                    cursor: default;
+                }
+
+                @keyframes added {
+                    0% {
+                        background-color: var(--dbp-background);
+                        color: var(--dbp-content);
+                    }
+                    50% {
+                        background-color: var(--dbp-success-surface);
+                        color: var(--dbp-on-success-surface);
+                    }
+                    100% {
+                        background-color: var(--dbp-background);
+                        color: var(--dbp-content);
+                    }
+                }
+
+                .button-wrapper {
+                    display: flex;
+                    height: 100%;
+                    justify-content: end;
+                    align-items: center;
+                    padding-right: 2px;
+                }
+
+                .open-menu {
+                    height: 45px;
+                    box-sizing: border-box;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .additional-menu {
+                    display: none;
+                }
+
+                #filter-modal-box {
+                    min-width: 300px;
+                    min-height: unset;
+                }
+
+                #filter-modal-box .modal-footer-btn {
+                    display: flex;
+                    justify-content: space-between;
+                }
+
+                .button-container {
+                    text-align: left;
+                    margin-bottom: 10px;
+                    padding-left: 30px;
+                }
+
+                .checkmark {
+                    left: 0;
+                    height: 20px;
+                    width: 20px;
                 }
 
                 .button-container .checkmark::after {
                     left: 8px;
                     top: 2px;
-                    width: 5px;
-                    height: 11px;
                 }
 
-                .button-container .checkmark {
+                .button.courses-btn {
+                    font-size: 1.2rem;
+                    display: flex;
+                    align-items: center;
                     top: 0;
                 }
 
-                .button-container {
-                    padding-left: 30px;
-                }
+                @media only screen and (orientation: portrait) and (max-width: 768px) {
+                    .mobile-hidden {
+                        display: none;
+                    }
 
-                #filter-modal-box .modal-footer-btn {
-                    flex-direction: column;
-                    gap: 5px;
-                }
+                    button[data-page='prev'],
+                    button[data-page='next'],
+                    button[data-page='first'],
+                    button[data-page='last'] {
+                        display: block;
+                        white-space: nowrap !important;
+                        overflow: hidden;
+                        line-height: 0;
+                    }
 
-                #filter-modal-box .modal-footer-btn div {
-                    display: flex;
-                    justify-content: space-between;
+                    button[data-page='prev']:after,
+                    button[data-page='next']:after,
+                    button[data-page='first']:after,
+                    button[data-page='last']:after {
+                        content: '\\00a0\\00a0\\00a0\\00a0';
+                        background-color: var(--dbp-content);
+                        -webkit-mask-repeat: no-repeat;
+                        mask-repeat: no-repeat;
+                        -webkit-mask-position: center center;
+                        mask-position: center center;
+                        padding: 0 0 0.25% 0;
+                        -webkit-mask-size: 1.5rem !important;
+                        mask-size: 1.4rem !important;
+                    }
+
+                    button[data-page='prev']:after {
+                        -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('chevron-left'))}');
+                        mask-image: url('${unsafeCSS(getIconSVGURL('chevron-left'))}');
+                    }
+
+                    button[data-page='next']:after {
+                        -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('chevron-right'))}');
+                        mask-image: url('${unsafeCSS(getIconSVGURL('chevron-right'))}');
+                    }
+
+                    button[data-page='first']:after {
+                        content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
+                        -webkit-mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-left'))}');
+                        mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-left'))}');
+                    }
+
+                    button[data-page='last']:after {
+                        content: '\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0\\00a0';
+                        -webkit-mask-image: url('${unsafeCSS(
+                            getIconSVGURL('angle-double-right'),
+                        )}');
+                        mask-image: url('${unsafeCSS(getIconSVGURL('angle-double-right'))}');
+                    }
+
+                    .element-right {
+                        margin-left: 12px;
+                        padding: 0 0 12px 0;
+                    }
+
+                    .element-right.first {
+                        padding-top: 0;
+                    }
+
+                    .element-left {
+                        text-align: left;
+                        padding: 10px 5px 10px 5px;
+                        background-color: inherit;
+                        color: inherit;
+                        font-weight: 400;
+                        border-top: 1px solid var(--dbp-muted);
+                    }
+
+                    .element-left.first {
+                        margin-top: 10px;
+                        border-top: 0;
+                    }
+
+                    .btn-row-left {
+                        display: flex;
+                        justify-content: space-between;
+                        flex-direction: row;
+                        gap: 4px;
+                        height: 40px;
+                    }
+
+                    .detailed-submission-modal-box {
+                        min-width: 320px;
+                    }
+
+                    .detailed-submission-modal-box .modal-footer .modal-footer-btn {
+                        padding: 6px 12px 6px 12px;
+                        flex-direction: column;
+                        gap: 6px;
+                    }
+
+                    .detailed-submission-modal-box .modal-content {
+                        align-items: flex-start;
+                    }
+
+                    .export-buttons {
+                        gap: 0;
+                    }
+
+                    .select-all-icon {
+                        height: 32px;
+                    }
+
+                    .additional-menu {
+                        display: block;
+                        white-space: nowrap;
+                        height: 33px;
+                        position: relative;
+                    }
+
+                    .additional-menu button {
+                        float: right;
+                    }
+
+                    .options-nav {
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: space-between;
+                    }
+
+                    .back-navigation {
+                        padding-top: 0;
+                    }
+
+                    .table-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+
+                    .table-wrapper h3,
+                    .table-buttons {
+                        margin-bottom: 0.5em;
+                    }
+
+                    .courses-btn {
+                        min-height: 40px;
+                        padding-top: 8px;
+                        min-width: 40px;
+                    }
+
+                    .search-wrapper {
+                        min-width: unset;
+                    }
+
+                    .headers {
+                        display: initial;
+                        width: 100%;
+                    }
+
+                    #filter-modal-box,
+                    .detailed-submission-modal-box {
+                        width: 100%;
+                        height: 100%;
+                        max-width: 100%;
+                    }
+
+                    .submission-modal-content,
+                    .detailed-submission-modal-content {
+                        height: 100%;
+                    }
+
+                    .content-wrapper {
+                        grid-template-columns: auto;
+                    }
+
+                    .button-container .checkmark::after {
+                        left: 8px;
+                        top: 2px;
+                        width: 5px;
+                        height: 11px;
+                    }
+
+                    .button-container .checkmark {
+                        top: 0;
+                    }
+
+                    .button-container {
+                        padding-left: 30px;
+                    }
+
+                    #filter-modal-box .modal-footer-btn {
+                        flex-direction: column;
+                        gap: 5px;
+                    }
+
+                    #filter-modal-box .modal-footer-btn div {
+                        display: flex;
+                        justify-content: space-between;
+                    }
                 }
             }
         `;
@@ -2641,51 +2721,69 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </button>
                 <div class="actions-dropdown" inert>
                     <ul class="actions-list">
-                        <li class="action">
-                            <button
-                                class="button action-button button--delete-all"
-                                disabled
-                                @click="${async () => {
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                                Accept
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--delete-all"
-                                disabled
-                                @click="${async () => {
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                                Reopen
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--delete-all"
-                                disabled
-                                @click="${async () => {
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                                Edit draft/submission
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--delete-all"
-                                disabled
-                                @click="${async () => {
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                                Edit permission
-                            </button>
-                        </li>
-                        ${this.isDeleteAllSubmissionEnabled
+                        ${this.isAcceptSubmissionEnabled[state]
+                            ? html`
+                                  <li class="action">
+                                      <button
+                                          class="button action-button button--accept"
+                                          @click="${async () => {
+                                              this.toggleActionsDropdown(state);
+                                              this.handleAcceptSubmission(state);
+                                          }}">
+                                          <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                                          Accept
+                                      </button>
+                                  </li>
+                              `
+                            : ''}
+                        ${this.isReopenSubmissionEnabled[state]
+                            ? html`
+                                  <li class="action">
+                                      <button
+                                          class="button action-button button--reopen"
+                                          @click="${async () => {
+                                              this.toggleActionsDropdown(state);
+                                              this.handleReopenSubmission(state);
+                                          }}">
+                                          <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                                          Reopen
+                                      </button>
+                                  </li>
+                              `
+                            : ''}
+                        ${this.isEditSubmissionEnabled[state]
+                            ? html`
+                                  <li class="action">
+                                      <button
+                                          class="button action-button button--edit-submission"
+                                          @mousedown="${async (event) => {
+                                              this.toggleActionsDropdown(state);
+                                              await this.handleEditSubmissions(event, state);
+                                          }}">
+                                          <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
+                                          Edit draft/submission
+                                      </button>
+                                  </li>
+                              `
+                            : ''}
+                        ${this.isEditSubmissionPermissionEnabled[state]
+                            ? html`
+                                  <li class="action">
+                                      <button
+                                          class="button action-button button--edit-permission"
+                                          @click="${async () => {
+                                              this.toggleActionsDropdown(state);
+                                              await this.handleEditSubmissionsPermission(state);
+                                          }}">
+                                          <dbp-icon
+                                              name="edit-permission"
+                                              aria-hidden="true"></dbp-icon>
+                                          Edit permission
+                                      </button>
+                                  </li>
+                              `
+                            : ''}
+                        ${this.isDeleteAllSubmissionEnabled[state]
                             ? html`
                                   <li class="action">
                                       <button
@@ -2695,12 +2793,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                          Delete all
+                                          Delete all (${this.visibleRowCount[state]})
                                       </button>
                                   </li>
                               `
                             : ''}
-                        ${this.isDeleteSelectedSubmissionEnabled
+                        ${this.isDeleteSelectedSubmissionEnabled[state]
                             ? html`
                                   <li class="action">
                                       <button
@@ -2709,8 +2807,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               await this.handleDeleteSubmissions(state, true);
                                               this.toggleActionsDropdown(state);
                                           }}">
-                                          <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                          Delete selection
+                                          <dbp-icon
+                                              name="delete-selection"
+                                              aria-hidden="true"></dbp-icon>
+                                          Delete selection (${this.selectedRowCount[state]})
                                       </button>
                                   </li>
                               `
@@ -2744,46 +2844,233 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     setActionButtonsStates(state) {
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
-        const selectedRowCount = selectedRows.length;
+        const visibleRows = this.submissionTables[state].tabulatorTable.getRows('visible');
+        const activeForm = this.forms.get(this.activeFormId);
+        const formGrantedActions = activeForm.formGrantedActions;
+        const allowedSubmissionStates = activeForm.allowedSubmissionStates;
 
-        //  Get unique values of grantedActions
-        const submissionGrantedActions = [
-            ...new Set(this.rawSubmissions.flatMap((item) => item.grantedActions)),
-        ];
-        console.log(`submissionGrantedActions`, submissionGrantedActions);
+        // Set row counts
+        this.selectedRowCount[state] = selectedRows.length;
+        this.visibleRowCount[state] = visibleRows.length;
 
-        this.isDeleteSelectedSubmissionEnabled =
-            selectedRowCount > 0 &&
-            (submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
+        this.isAcceptSubmissionEnabled[state] =
+            isAcceptedStateEnabled(allowedSubmissionStates) &&
+            state === 'submitted' &&
+            this.selectedRowCount[state] > 0 &&
+            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
-        this.isDeleteAllSubmissionEnabled =
-            submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-            submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
+        this.isReopenSubmissionEnabled[state] =
+            state === 'accepted' &&
+            this.selectedRowCount[state] > 0 &&
+            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
-        this.isEditSubmissionEnabled =
-            selectedRowCount === 1 &&
-            (submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+        this.isDeleteSelectedSubmissionEnabled[state] =
+            this.selectedRowCount[state] > 0 &&
+            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
+
+        this.isDeleteAllSubmissionEnabled[state] =
+            this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+            this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
+
+        this.isEditSubmissionEnabled[state] =
+            this.selectedRowCount[state] === 1 &&
+            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+
+        this.isEditSubmissionPermissionEnabled[state] =
+            this.selectedRowCount[state] === 1 &&
+            formGrantedActions.includes(FORM_PERMISSIONS.MANAGE);
+
+        this.requestUpdate();
     }
 
-    successFailureNotification(deletedStatus) {
-        const successCount = deletedStatus.filter((status) => status === true).length;
+    successFailureNotification(responseStatus) {
+        const successCount = responseStatus.filter((status) => status === true).length;
         if (successCount > 0) {
             send({
                 summary: this._i18n.t('errors.success-title'),
-                body: `${successCount} submission deleted successfully`,
+                body: `${successCount} submission processed successfully`,
                 type: 'success',
                 timeout: 5,
             });
         }
 
-        const errorCount = deletedStatus.filter((status) => status === false).length;
+        const errorCount = responseStatus.filter((status) => status === false).length;
         if (errorCount > 0) {
             send({
                 summary: this._i18n.t('errors.error-title'),
-                body: `${errorCount} submissions failed to delete`,
+                body: `${errorCount} submissions failed to process`,
                 type: 'danger',
+                timeout: 5,
+            });
+        }
+    }
+
+    /**
+     * Reset action buttons state if table selection changes
+     * @param {CustomEvent} tableEvent
+     */
+    handleTableSelectionChanges(tableEvent) {
+        const selectedRows = tableEvent.detail.selected;
+        const deSelectedRows = tableEvent.detail.deselected;
+
+        const activeTable =
+            selectedRows.length > 0 ? selectedRows[0].getTable() : deSelectedRows[0].getTable();
+
+        const root = activeTable.element.getRootNode();
+        if (root instanceof ShadowRoot) {
+            const tabulatorTableComponent = root.host;
+            const state = this.getTableState(tabulatorTableComponent.id);
+            this.selectedRowCount[state] = selectedRows.length;
+            this.setActionButtonsStates(state);
+        }
+    }
+
+    async handleAcceptSubmission() {
+        const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
+        const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
+
+        const dataSubmitted = submittedTable.getSelectedData();
+        const rowsSubmitted = submittedTable.getSelectedRows();
+
+        if (dataSubmitted.length > 0) {
+            let responseStatus = [];
+            let index = 0;
+            for (const submission of dataSubmitted) {
+                const response = await this.apiSetSubmissionState(
+                    submission.submissionId,
+                    SUBMISSION_STATES.ACCEPTED,
+                );
+                responseStatus.push(response);
+                // Delete row from the table and add row to the other table
+                if (response === true) {
+                    rowsSubmitted[index].delete();
+
+                    this.submissions[SUBMISSION_STATES.ACCEPTED].push(submission);
+                    this.submissionTables[SUBMISSION_STATES.ACCEPTED].buildTable();
+
+                    // Get table settings from localstorage
+                    this.getSubmissionTableSettings(SUBMISSION_STATES.ACCEPTED);
+                    // this.setInitialSubmissionTableOrder(state);
+                    this.defineSettings(SUBMISSION_STATES.ACCEPTED);
+                    this.updateSubmissionTable(SUBMISSION_STATES.ACCEPTED);
+
+                    acceptedTable.addRow(dataSubmitted[index]);
+
+                    this.requestUpdate();
+                }
+                index++;
+            }
+            // Update tables
+            acceptedTable.redraw(true);
+            submittedTable.redraw(true);
+            // Report
+            this.successFailureNotification(responseStatus);
+        } else {
+            send({
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('errors.no-submission-selected'),
+                type: 'warning',
+                timeout: 5,
+            });
+        }
+    }
+
+    async handleReopenSubmission() {
+        const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
+        const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
+        const dataAccepted = acceptedTable.getSelectedData();
+        const rowsAccepted = acceptedTable.getSelectedRows();
+
+        if (dataAccepted.length > 0) {
+            let responseStatus = [];
+            let index = 0;
+            for (const submission of dataAccepted) {
+                const response = await this.apiSetSubmissionState(
+                    submission.submissionId,
+                    SUBMISSION_STATES.SUBMITTED,
+                );
+                responseStatus.push(response);
+                // Delete row from the table and add row to the other table
+                if (response === true) {
+                    rowsAccepted[index].delete();
+
+                    this.submissions[SUBMISSION_STATES.SUBMITTED].push(submission);
+                    this.submissionTables[SUBMISSION_STATES.SUBMITTED].buildTable();
+
+                    // Get table settings from localstorage
+                    this.getSubmissionTableSettings(SUBMISSION_STATES.SUBMITTED);
+                    // this.setInitialSubmissionTableOrder(state);
+                    this.defineSettings(SUBMISSION_STATES.SUBMITTED);
+                    this.updateSubmissionTable(SUBMISSION_STATES.SUBMITTED);
+
+                    submittedTable.addRow(dataAccepted[index]);
+                }
+                index++;
+            }
+            // Update tables
+            acceptedTable.redraw(true);
+            submittedTable.redraw(true);
+            // Report
+            this.successFailureNotification(responseStatus);
+        } else {
+            send({
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('errors.no-submission-selected'),
+                type: 'warning',
+                timeout: 5,
+            });
+        }
+    }
+
+    handleEditSubmissionsPermission(state) {
+        const permissionDialog = this._('#grant-permission-dialog');
+        const data = this.submissionTables[state].tabulatorTable.getSelectedData();
+        const submissionId = data[0].submissionId;
+
+        if (submissionId) {
+            permissionDialog.resourceIdentifier = submissionId;
+            permissionDialog.open();
+        }
+    }
+
+    handleEditSubmissions(event, state) {
+        const data = this.submissionTables[state].tabulatorTable.getSelectedData();
+        const submissionId = data[0].submissionId;
+
+        // Redirect to render-form activity to display the readonly form with submission values
+        const activeForm = this.forms.get(this.activeFormId);
+        const activeFormSlug = activeForm ? activeForm.formSlug : null;
+
+        // @TODO: LunchLottery don't have a slug
+        // other forms don't have read-only view
+        if (activeForm.formName === 'Ethikkommission') {
+            // Go to the readonly view of the form submission
+            let formSubmissionUrl = getFormRenderUrl(activeFormSlug) + `/${submissionId}`;
+            // Open drafts in editable mode
+            if (state === 'accepted') {
+                formSubmissionUrl += '/readonly';
+            }
+            const url = new URL(formSubmissionUrl);
+            window.history.pushState({}, '', url);
+
+            // Middle click opens in a new tab
+            if (event.button === 1) {
+                window.open(url.toString(), '_blank');
+            } else {
+                // Left click navigates to the URL
+                window.location.href = url.toString();
+            }
+        } else {
+            send({
+                summary: 'Warning',
+                body: 'This feature is not yet implemented for this form.',
+                type: 'warning',
                 timeout: 5,
             });
         }
@@ -2804,11 +3091,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             : this.submissionTables[state].tabulatorTable.getRows('visible');
 
         if (data.length > 0) {
-            let deletedStatus = [];
+            let responseStatus = [];
             let index = 0;
             for (const submission of data) {
                 const response = await this.apiDeleteSubmissions(submission.submissionId);
-                deletedStatus.push(response);
+                responseStatus.push(response);
                 // Delete row from the table
                 if (response === true) {
                     rows[index].delete();
@@ -2818,7 +3105,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Update row-indexes
             this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
-            this.successFailureNotification(deletedStatus);
+            this.successFailureNotification(responseStatus);
         } else {
             send({
                 summary: this._i18n.t('errors.warning-title'),
@@ -2852,7 +3139,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
 
             if (!response.ok) {
-                this.deleteSubmissionError = true;
                 send({
                     summary: 'Error',
                     body: `Failed to delete submission. Response status: ${response.status}`,
@@ -2861,7 +3147,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 });
                 return false;
             } else {
-                this.deleteSubmissionError = false;
                 return true;
             }
         } catch (error) {
@@ -2875,6 +3160,71 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return false;
         } finally {
             console.log('delete submissions finally.');
+        }
+    }
+
+    async apiSetSubmissionState(submissionId, state) {
+        if (!submissionId) {
+            send({
+                summary: 'Error',
+                body: `No submission id provided`,
+                type: 'danger',
+                timeout: 5,
+            });
+            return false;
+        }
+
+        let newState = null;
+        switch (state) {
+            case SUBMISSION_STATES.ACCEPTED:
+                newState = String(SUBMISSION_STATE_ACCEPTED);
+                break;
+            case SUBMISSION_STATES.SUBMITTED:
+                newState = String(SUBMISSION_STATE_SUBMITTED);
+                break;
+            case SUBMISSION_STATES.DRAFT:
+                newState = String(SUBMISSION_STATE_DRAFT);
+                break;
+        }
+        if (!newState) false;
+
+        const formData = new FormData();
+        formData.append('submissionState', newState);
+
+        try {
+            const response = await fetch(
+                this.entryPointUrl + `/formalize/submissions/${submissionId}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
+                    body: formData,
+                },
+            );
+            let responseBody = await response.json();
+            if (!response.ok) {
+                send({
+                    summary: 'Error',
+                    body: `Failed to set submission state. Response status: ${responseBody.status}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+                return false;
+            } else {
+                return true;
+            }
+        } catch (error) {
+            console.error(error.message);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
+            });
+            return false;
+        } finally {
+            console.log('accept submissions finally.');
         }
     }
 
@@ -3129,7 +3479,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                           </div>
                       `
                     : ''}
-                ${this.submissionStates.map((state) => {
+                ${Object.values(SUBMISSION_STATES).map((state) => {
                     const submissionTableTitle = {
                         draft: i18n.t('show-submissions.submission-table-draft-title'),
                         submitted: i18n.t('show-submissions.submission-table-submitted-title'),
@@ -3163,6 +3513,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     `;
                 })}
             </div>
+
+            <dbp-grant-permission-dialog
+                id="grant-permission-dialog"
+                lang="${this.lang}"
+                subscribe="auth"
+                entry-point-url="${this.entryPointUrl}"
+                resource-identifier="${this.submissionId}"
+                resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
         `;
     }
 }
