@@ -62,7 +62,7 @@ class FormalizeFormElement extends BaseFormElement {
                         },
                         body: postFormData,
                     };
-                    const url = `${this.entryPointUrl}/formalize/submissions/multipart`;
+                    const url = `${this.entryPointUrl}/formalize/submissions`;
                     const response = await fetch(url, options);
                     let responseBody = await response.json();
                     if (!response.ok) {

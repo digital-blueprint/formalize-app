@@ -607,7 +607,9 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Set file to be removed
         if (this.filesToRemove.length > 0) {
-            formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
+            this.filesToRemove.forEach((file) => {
+                formData.append(`submittedFiles[${file.fileIdentifier}]`, 'null');
+            });
             // Remove files added to the request
             this.filesToRemove = [];
         }
@@ -687,7 +689,9 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Set file to be removed
         if (this.filesToRemove.length > 0) {
-            formData.append('submittedFilesToDelete', this.filesToRemove.join(','));
+            this.filesToRemove.forEach((file) => {
+                formData.append(`submittedFiles[${file.fileIdentifier}]`, 'null');
+            });
         }
 
         // Upload attached files
@@ -939,7 +943,7 @@ class FormalizeFormElement extends BaseFormElement {
      */
     _buildSubmissionUrl(submissionId = null) {
         const baseUrl = `${this.entryPointUrl}/formalize/submissions`;
-        return submissionId ? `${baseUrl}/${submissionId}/multipart` : `${baseUrl}/multipart`;
+        return submissionId ? `${baseUrl}/${submissionId}` : `${baseUrl}`;
     }
 
     /**
