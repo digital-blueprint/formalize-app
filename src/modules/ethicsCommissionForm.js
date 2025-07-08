@@ -68,9 +68,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.newSubmissionId = null;
         this.resourceActions = [];
 
-        this.isSavingDraft = false;
-        this.draftSaveError = false;
-
         // Button
         this.isViewModeButtonAllowed = false;
         this.isDraftButtonAllowed = false;
@@ -245,6 +242,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // SUBMITTED
         if (this.isSubmittedState) {
+            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             this.isAcceptButtonEnabled =
                 isAcceptedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
@@ -254,6 +252,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // ACCEPTED
         if (this.isAcceptedState) {
+            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             this.isRevertAcceptButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
@@ -466,6 +465,7 @@ class FormalizeFormElement extends BaseFormElement {
                         </button>
                         <button
                             class="delete-file-button button is-secondary"
+                            .disabled=${this.isAcceptedState}
                             @click=${(e) => {
                                 e.preventDefault();
                                 this.deleteAttachment(identifier);
@@ -592,8 +592,6 @@ class FormalizeFormElement extends BaseFormElement {
         const data = event.detail;
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.auth['user-id'];
-
-        this.isSavingDraft = true;
         const formData = new FormData();
 
         // Upload attached files
@@ -631,7 +629,6 @@ class FormalizeFormElement extends BaseFormElement {
             const response = await fetch(url, options);
 
             if (!response.ok) {
-                this.draftSaveError = true;
                 send({
                     summary: 'Error',
                     body: `Failed to save form DRAFT. Response status: ${response.status}`,
@@ -643,8 +640,22 @@ class FormalizeFormElement extends BaseFormElement {
                 this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
                 this.submissionState = responseBody.submissionState;
-                this.draftSaveSuccessful = true;
-                this.draftSaveError = false;
+                // this.draftSaveSuccessful = true;
+
+                // Add new submission to the list
+                this.userAllDraftSubmissions.push(responseBody);
+                this.userAllSubmissions.push(responseBody);
+
+                // Update URL with the submission ID
+                const newSubmissionUrl =
+                    getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
+                window.history.pushState({}, '', newSubmissionUrl.toString());
+                send({
+                    summary: 'Success',
+                    body: 'Draft saved successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
             }
         } catch (error) {
             console.error(error);
@@ -655,21 +666,6 @@ class FormalizeFormElement extends BaseFormElement {
                 timeout: 5,
             });
         } finally {
-            if (this.draftSaveSuccessful) {
-                send({
-                    summary: 'Success',
-                    body: 'Draft saved successfully',
-                    type: 'success',
-                    timeout: 5,
-                });
-            }
-            this.isSavingDraft = false;
-
-            // Update URL with the submission ID
-            const newSubmissionUrl =
-                getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
-            window.history.pushState({}, '', newSubmissionUrl.toString());
-
             this.setButtonStates();
         }
     }
@@ -684,7 +680,6 @@ class FormalizeFormElement extends BaseFormElement {
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.auth['user-id'];
 
-        this.isPostingSubmission = true;
         const formData = new FormData();
 
         // Set file to be removed
@@ -726,11 +721,22 @@ class FormalizeFormElement extends BaseFormElement {
                     timeout: 5,
                 });
             } else {
-                this.wasSubmissionSuccessful = true;
                 this.submissionError = false;
                 this.isSubmittedState = true;
+                this.submitted = true;
+
+                // Add new submission to the list
+                this.userAllDraftSubmissions.push(responseBody);
+                this.userAllSubmissions.push(responseBody);
+
                 // Hide form after successful submission
                 this._('#ethics-commission-form').style.display = 'none';
+                send({
+                    summary: 'Success',
+                    body: 'Form submitted successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
             }
         } catch (error) {
             console.error(error.message);
@@ -740,17 +746,6 @@ class FormalizeFormElement extends BaseFormElement {
                 type: 'danger',
                 timeout: 5,
             });
-        } finally {
-            if (this.wasSubmissionSuccessful) {
-                send({
-                    summary: 'Success',
-                    body: 'Form submitted successfully',
-                    type: 'success',
-                    timeout: 5,
-                });
-            }
-            this.submitted = true;
-            this.isPostingSubmission = false;
         }
     }
 
@@ -948,15 +943,15 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle removing files from the list of attachments.
-     * @param {string} identifier
+     * @param {string} fileIdentifier uuid
      */
-    deleteAttachment(identifier) {
-        this.filesToRemove.push(identifier);
+    deleteAttachment(fileIdentifier) {
+        this.filesToRemove.push(fileIdentifier);
 
-        this.filesToSubmit.delete(identifier);
+        this.filesToSubmit.delete(fileIdentifier);
         this.filesToSubmitCount = this.filesToSubmit.size;
 
-        this.submittedFiles.delete(identifier);
+        this.submittedFiles.delete(fileIdentifier);
         this.submittedFilesCount = this.submittedFiles.size;
         this.requestUpdate();
     }
