@@ -987,17 +987,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     resetSettings(state) {
         let list = this._(`#column-options-modal-${state} .headers`);
-        const listChilds = list.childNodes;
+        const listChildren = list.childNodes;
         const columns = this.submissionsColumns[state];
         // Skip show detail button column
         columns.splice(-1, 1);
 
         // Restore initial column order
-        [...listChilds].forEach((element, index) => {
+        [...listChildren].forEach((element, index) => {
             let header_field = element.children[0];
             // Reset title
             header_field.children[1].innerHTML = '<strong>' + columns[index].title + '</strong>';
-            // Reset visibilty
+            // Reset visibility
             let visibility = header_field.children[2];
             if (columns[index].visible) {
                 visibility.iconName = 'source_icons_eye-empty';
@@ -1027,7 +1027,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Gets the detaildata of a specific row
+     * Gets the detailed data of a specific row
      * @param {string} state - The state of the submission ('draft', 'submitted' or 'accepted').
      * @param entry
      * @param pos
@@ -1741,6 +1741,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         color: var(--dbp-content);
                         background-color: var(--dbp-background);
                     }
+
+                    /*select,
+                    input[type='text'] {
+                        background-color: var(--dbp-background);
+                    }*/
+
+                    .action-button {
+                        border: 0 none;
+                        height: 2.625em;
+                        background-color: transparent;
+                    }
                 }
 
                 /* actions */
@@ -1771,7 +1782,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     transition: opacity 250ms ease-in;
                     z-index: 15;
                     width: 250px;
-                    padding: 1em 4em 1em 1em;
+                    padding: 0.5em;
                     background-color: var(--dbp-background);
                     border: 1px solid var(--dbp-content);
                 }
@@ -1782,17 +1793,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     margin: 0;
                     display: flex;
                     flex-direction: column;
-                    gap: 0.5em;
+                    gap: 0;
                 }
 
                 .action {
+                    &:hover {
+                        background-color: #f7f7f7;
+
+                        dbp-icon {
+                            transform: scale(1.25);
+                        }
+                    }
+
                     dbp-icon {
                         margin-right: 5px;
+                        transition: transform 150ms ease-in;
                     }
-                }
-
-                .action-button {
-                    border: 0 none;
                 }
 
                 @starting-style {
@@ -2000,45 +2016,46 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 @container table-buttons (width < 565px) {
-                    .actions-container,
-                    .export-container {
-                        transition: opacity 250ms ease-in;
-                        opacity: 1;
-                    }
-
-                    .table-buttons:has(.extendable-searchbar.open) .actions-container,
-                    .table-buttons:has(.extendable-searchbar.open) .export-container {
-                        opacity: 0;
-                        transition: opacity 250ms ease-in;
-                    }
-
-                    /* @TODO add some animation for the lupe icon to find it's way back */
-
                     .extendable-searchbar {
                         width: 40px;
                         transform: none;
-                        transition: opacity 250ms ease-in;
+                        transition:
+                            /*opacity 2500ms ease-in,*/ clip-path
+                            250ms ease-in 500ms;
+                        clip-path: polygon(0% 0, 100% 0, 100% 18%, 0% 18%);
+
+                        &.open {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            width: 100%;
+                            transform: none;
+                            clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+                        }
 
                         &.closing {
-                            button.search-button {
+                            transform: none;
+                            transition:
+                                width 250ms ease-in,
+                                opacity 250ms ease-in 500ms,
+                                clip-path 250ms ease-in;
+                            border-color: var(--dbp-content);
+                            opacity: 1;
+                            clip-path: polygon(0% 0, 100% 0, 100% 18%, 0% 18%);
+
+                            button.search-close-button {
                                 opacity: 0;
                             }
+
+                            input,
+                            select,
+                            .search-close-button,
+                            label {
+                                opacity: 1;
+                                transition: none;
+                            }
                         }
-                    }
-
-                    .extendable-searchbar.open {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        width: auto;
-                        transform: none;
-                        transition: opacity 250ms ease-in;
-                    }
-
-                    .extendable-searchbar.closing {
-                        transform: none;
-                        transition: opacity 250ms ease-in;
                     }
                 }
 
@@ -2689,6 +2706,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <select
                     id="export-select"
                     class="dropdown-menu"
+                    aria-label="${i18n.t('show-registrations.export-select-aria-label')}"
                     @change="${(e) => {
                         this.exportSubmissionTable(e, state);
                     }}">
@@ -2745,7 +2763,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               this.toggleActionsDropdown(state);
                                               this.handleReopenSubmission(state);
                                           }}">
-                                          <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
+                                          <dbp-icon
+                                              name="spinner-arrow"
+                                              aria-hidden="true"></dbp-icon>
                                           Reopen
                                       </button>
                                   </li>
@@ -3372,7 +3392,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 this._(`#extendable-searchbar--${state}`).classList.remove(
                                     'closing',
                                 );
-                            }, 500);
+                            }, 250);
                         }}>
                         <dbp-icon name="close"></dbp-icon>
                         <span class="visually-hidden">Close search</span>

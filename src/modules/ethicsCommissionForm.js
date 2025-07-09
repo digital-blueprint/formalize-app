@@ -2,7 +2,7 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import {Button, Icon} from '@dbp-toolkit/common';
+import {Button, Icon, IconButton} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
@@ -165,6 +165,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-modal': Modal,
             'dbp-button': Button,
             'dbp-icon': Icon,
+            'dbp-icon-button': IconButton,
         };
     }
 
@@ -242,7 +243,8 @@ class FormalizeFormElement extends BaseFormElement {
 
         // SUBMITTED
         if (this.isSubmittedState) {
-            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
+            this.isSubmitButtonEnabled =
+                isSubmittedStateEnabled(this.allowedSubmissionStates) && !this.readOnly;
             this.isAcceptButtonEnabled =
                 isAcceptedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
@@ -252,7 +254,8 @@ class FormalizeFormElement extends BaseFormElement {
 
         // ACCEPTED
         if (this.isAcceptedState) {
-            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
+            this.isSubmitButtonEnabled =
+                isSubmittedStateEnabled(this.allowedSubmissionStates) && !this.readOnly;
             this.isRevertAcceptButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
@@ -397,10 +400,15 @@ class FormalizeFormElement extends BaseFormElement {
     static get styles() {
         // language=css
         return css`
-            ${commonStyles.getGeneralCSS(false)}
-            ${commonStyles.getButtonCSS()}
-            ${commonStyles.getModalDialogCSS()}
-            ${getEthicsCommissionFormCSS()}
+            @layer theme, utility, formalize;
+            @layer theme {
+                ${commonStyles.getGeneralCSS(false)}
+                ${commonStyles.getButtonCSS()}
+                ${commonStyles.getModalDialogCSS()}
+            }
+            @layer formalize {
+                ${getEthicsCommissionFormCSS()}
+            }
         `;
     }
 
@@ -4358,6 +4366,28 @@ class FormalizeFormElement extends BaseFormElement {
             <div class="button-row">
                 <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
                 <div class="buttons-wrapper">
+                    ${this.isDeleteSubmissionButtonAllowed
+                        ? html`
+                              <button
+                                  class="form-delete-submission-button button is-secondary"
+                                  @click=${this.sendDeleteSubmission}
+                                  type="is-secondary"
+                                  no-spinner-on-click
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.delete-submission-button-text-aria',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.delete-submission-button-text-aria',
+                                  )}">
+                                  <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
+                                      )}
+                                  </span>
+                              </button>
+                          `
+                        : ''}
                     ${this.isViewModeButtonAllowed
                         ? html`
                               <dbp-button
@@ -4365,6 +4395,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   class="toggle-edit-mode"
                                   type="is-secondary"
                                   no-spinner-on-click
+                                  icon-name="pencil"
                                   @click="${() => {
                                       this.readOnly = !this.readOnly;
                                       const form = this.shadowRoot.querySelector('form');
@@ -4391,35 +4422,13 @@ class FormalizeFormElement extends BaseFormElement {
                                             </span>
                                         `
                                       : html`
-                                            <dbp-icon name="eye"></dbp-icon>
+                                            <dbp-icon name="source_icons_eye-empty"></dbp-icon>
                                             <span class="button-label">
                                                 ${i18n.t(
                                                     'render-form.forms.ethics-commission-form.view-mode',
                                                 )}
                                             </span>
                                         `}
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isDeleteSubmissionButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-delete-submission-button"
-                                  @click=${this.sendDeleteSubmission}
-                                  type="is-danger"
-                                  no-spinner-on-click
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.delete-submission-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.delete-submission-button-text',
-                                  )}">
-                                  <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.delete-submission-button-text',
-                                      )}
-                                  </span>
                               </dbp-button>
                           `
                         : ''}
@@ -4471,7 +4480,7 @@ class FormalizeFormElement extends BaseFormElement {
                         ? html`
                               <dbp-button
                                   class="form-save-draft-button"
-                                  type="is-success"
+                                  type="is-secondary"
                                   no-spinner-on-click
                                   @click=${this.sendSaveDraft}
                                   title="${i18n.t(
@@ -4546,7 +4555,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   aria-label="${i18n.t(
                                       'render-form.forms.ethics-commission-form.revert-accept-button-text',
                                   )}">
-                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
+                                  <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
                                   <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.revert-accept-button-text',

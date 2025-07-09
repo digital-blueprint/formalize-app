@@ -449,6 +449,7 @@ export function getEthicsCommissionFormCSS() {
             padding: 1em;
             border: 1px solid var(--dbp-content);
             min-width: 250px;
+            min-height: 130px;
 
             .button-label {
                 padding-left: 0.5em;
@@ -465,6 +466,16 @@ export function getEthicsCommissionFormCSS() {
         .buttons-wrapper {
             align-items: flex-end;
             justify-content: flex-end;
+        }
+
+        .form-delete-submission-button {
+            color: var(--dbp-danger);
+            border-color: var(--dbp-danger);
+
+            .button-label,
+            dbp-icon {
+                color: var(--dbp-danger);
+            }
         }
 
         .edit-permissions {
