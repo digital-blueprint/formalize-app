@@ -740,25 +740,25 @@ export function getEthicsCommissionFormPrintCSS() {
                 line-height: var(--dbp-form-line-height) !important;
                 font-size: var(--dbp-form-line-height);
                 margin: 0;
-                padding: 0 0 24px 0;
+                padding: 0 0 var(--dbp-form-line-height) 0;
                 text-align: center;
             }
 
             .section-sub-title {
-                font-size: 20px;
-                padding: 0 0 24px 0;
+                font-size: 20px; /* custom size. Need to be less than line-height */
+                padding: 0 0 var(--dbp-form-line-height) 0;
                 margin: 0;
                 text-align: center;
             }
 
             .question-group-title {
-                font-size: 18px;
-                padding: 0 0 24px 0;
+                font-size: 18px; /* custom size. Need to be less than line-height */
+                padding: 0 0 var(--dbp-form-line-height) 0;
                 margin: 0;
                 text-align: center;
             }
 
-            .button-row,
+            .button-row .buttons-wrapper,
             button,
             dbp-button,
             .submission-permissions,
@@ -766,6 +766,10 @@ export function getEthicsCommissionFormPrintCSS() {
                 display: none !important;
                 height: 0;
                 overflow: hidden;
+            }
+
+            .submission-dates-wrapper {
+                margin-bottom: var(--dbp-form-line-height);
             }
 
             sup {
@@ -790,7 +794,11 @@ export function getEthicsCommissionFormPrintCSS() {
                 display: block;
             }
 
-            /* Line height debug background*/
+            .draft-mode {
+                display: none;
+            }
+
+            /* Line height debug background */
             background-image: linear-gradient(
                 to bottom,
                 rgba(0, 120, 255, 0.1) 0,
