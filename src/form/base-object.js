@@ -160,6 +160,23 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
+    sendRetractSubmission(event) {
+        if (!this.submissionId) {
+            return;
+        }
+
+        const data = {
+            submissionId: this.submissionId,
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormRetractSubmission', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
     /**
      * Sends an revert-accept submission event with the submission ID to accept.
      * @param {object} event

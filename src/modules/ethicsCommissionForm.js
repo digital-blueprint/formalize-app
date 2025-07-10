@@ -74,6 +74,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isSubmitButtonEnabled = false;
         this.isPrintButtonAllowed = false;
         this.isDownloadButtonAllowed = false;
+        this.isRetractButtonEnabled = false;
 
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
@@ -127,6 +128,10 @@ class FormalizeFormElement extends BaseFormElement {
             isDraftButtonAllowed: {type: Boolean},
             isAcceptButtonEnabled: {type: Boolean},
             isSubmitButtonEnabled: {type: Boolean},
+            isRetractButtonEnabled: {type: Boolean},
+            isRevertAcceptButtonEnabled: {type: Boolean},
+            isPrintButtonAllowed: {type: Boolean},
+            isDownloadButtonAllowed: {type: Boolean},
 
             humanTestSubjectsQuestionsEnabled: {type: Boolean},
             humanStemCellsQuestionsEnabled: {type: Boolean},
@@ -240,6 +245,12 @@ class FormalizeFormElement extends BaseFormElement {
 
         // SUBMITTED
         if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
+            this.isRetractButtonEnabled =
+                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
+                (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+
             this.isAcceptButtonEnabled =
                 isAcceptedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
@@ -254,6 +265,7 @@ class FormalizeFormElement extends BaseFormElement {
                 (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+            this.isViewModeButtonAllowed = false;
         }
     }
 
@@ -520,6 +532,11 @@ class FormalizeFormElement extends BaseFormElement {
             this.addEventListener(
                 'DbpFormalizeFormDeleteSubmission',
                 this.handleFormDeleteSubmission,
+            );
+            // Event listener for accepting submission
+            this.addEventListener(
+                'DbpFormalizeFormRetractSubmission',
+                this.handleFormRetractSubmission,
             );
 
             // Event listener for accepting submission
@@ -832,6 +849,46 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    async handleFormRetractSubmission(event) {
+        if (!event.detail.submissionId) return;
+
+        const formData = new FormData();
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
+
+        const options = this._buildRequestOptions(formData, 'PATCH');
+        const url = this._buildSubmissionUrl(event.detail.submissionId);
+
+        try {
+            const response = await fetch(url, options);
+            let responseBody = await response.json();
+            if (!response.ok) {
+                send({
+                    summary: 'Error',
+                    body: `Failed to retract form submission. Response status: ${response.status}<br>${responseBody.description}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            } else {
+                this.currentState = SUBMISSION_STATES.DRAFT;
+                this.requestUpdate();
+                send({
+                    summary: 'Success',
+                    body: 'Form submission retracted successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
+            }
+        } catch (error) {
+            console.error(error.message);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
+            });
+        }
+    }
+
     /**
      * Handle accepting submission.
      * @param {object} event - The event object containing the form data.
@@ -840,7 +897,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (!event.detail.submissionId) return;
 
         const formData = new FormData();
-        formData.append('submissionState', String(SUBMISSION_STATE_ACCEPTED));
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.ACCEPTED));
 
         const options = this._buildRequestOptions(formData, 'PATCH');
         const url = this._buildSubmissionUrl(event.detail.submissionId);
@@ -856,10 +913,14 @@ class FormalizeFormElement extends BaseFormElement {
                     timeout: 5,
                 });
             } else {
-                this.wasAcceptSubmissionSuccessful = true;
-                this.isSubmittedState = false;
-                this.isAcceptedState = true;
+                this.currentState = SUBMISSION_STATES.ACCEPTED;
                 this.requestUpdate();
+                send({
+                    summary: 'Success',
+                    body: 'Form submission accepted successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
             }
         } catch (error) {
             console.error(error.message);
@@ -869,15 +930,6 @@ class FormalizeFormElement extends BaseFormElement {
                 type: 'danger',
                 timeout: 5,
             });
-        } finally {
-            if (this.wasAcceptSubmissionSuccessful) {
-                send({
-                    summary: 'Success',
-                    body: 'Form submission accepted successfully',
-                    type: 'success',
-                    timeout: 5,
-                });
-            }
         }
     }
 
@@ -903,6 +955,12 @@ class FormalizeFormElement extends BaseFormElement {
             } else {
                 this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.requestUpdate();
+                send({
+                    summary: 'Success',
+                    body: 'Form submission reopened successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
             }
         } catch (error) {
             console.error(error.message);
@@ -912,15 +970,6 @@ class FormalizeFormElement extends BaseFormElement {
                 type: 'danger',
                 timeout: 5,
             });
-        } finally {
-            if (this.wasReopenSubmissionSuccessful) {
-                send({
-                    summary: 'Success',
-                    body: 'Form submission reopened successfully',
-                    type: 'success',
-                    timeout: 5,
-                });
-            }
         }
     }
 
@@ -1147,8 +1196,27 @@ class FormalizeFormElement extends BaseFormElement {
     async downloadAllFiles(event) {
         // Get PDF as File object
         const pdfFile = await this.generatePDF(false);
-        const attachmentFiles = Array.from(this.submittedFiles.values());
 
+        /*
+        // Streamed version
+        const downloadFiles = [];
+        downloadFiles.push({
+            name: `printedFormPDF/${pdfFile.name}`,
+            url: URL.createObjectURL(pdfFile),
+        });
+
+        Array.from(this.submittedFiles.values()).forEach((attachment) => {
+            downloadFiles.push({
+                name: `attachments/${attachment.name}`,
+                url: URL.createObjectURL(attachment),
+            });
+        });
+
+        this._('#file-sink').files = downloadFiles;
+        */
+
+        // Not streamed version
+        const attachmentFiles = Array.from(this.submittedFiles.values());
         this._('#file-sink').files = [pdfFile, ...attachmentFiles];
     }
 
@@ -2665,6 +2733,8 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-file-sink
                     id="file-sink"
                     class="file-sink"
+                    lang="${this.lang}"
+
                     allowed-mime-types="application/pdf,.pdf"
                     decompress-zip
                     enabled-targets="local,clipboard,nextcloud"
@@ -4516,6 +4586,29 @@ class FormalizeFormElement extends BaseFormElement {
                                   <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.submit-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
+                    ${this.isRetractButtonEnabled
+                        ? html`
+                              <dbp-button
+                                  class="form-retract-button"
+                                  type="is-secondary"
+                                  disabled
+                                  no-spinner-on-click
+                                  @click=${this.sendRetractSubmission}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.retract-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.retract-button-text',
+                                  )}">
+                                  <dbp-icon name="reply" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.retract-button-text',
                                       )}
                                   </span>
                               </dbp-button>
