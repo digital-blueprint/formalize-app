@@ -24,9 +24,7 @@ import {
     // isDraftStateEnabled,
     // isSubmittedStateEnabled,
     isAcceptedStateEnabled,
-    SUBMISSION_STATE_ACCEPTED,
-    SUBMISSION_STATE_SUBMITTED,
-    SUBMISSION_STATE_DRAFT,
+    SUBMISSION_STATES_BINARY,
 } from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss} from './styles.js';
 import metadata from './dbp-formalize-show-submissions.metadata.json';
@@ -3197,13 +3195,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let newState = null;
         switch (state) {
             case SUBMISSION_STATES.ACCEPTED:
-                newState = String(SUBMISSION_STATE_ACCEPTED);
+                newState = String(SUBMISSION_STATES_BINARY.ACCEPTED);
                 break;
             case SUBMISSION_STATES.SUBMITTED:
-                newState = String(SUBMISSION_STATE_SUBMITTED);
+                newState = String(SUBMISSION_STATES_BINARY.SUBMITTED);
                 break;
             case SUBMISSION_STATES.DRAFT:
-                newState = String(SUBMISSION_STATE_DRAFT);
+                newState = String(SUBMISSION_STATES_BINARY.DRAFT);
                 break;
         }
         if (!newState) false;

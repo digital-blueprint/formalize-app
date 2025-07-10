@@ -7,7 +7,7 @@ import {
     DbpEnumElement,
     DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
-import {SUBMISSION_STATE_SUBMITTED} from '../utils.js';
+import {SUBMISSION_STATES_BINARY} from '../utils.js';
 import {send} from '@dbp-toolkit/common/notification.js';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
@@ -52,7 +52,7 @@ class FormalizeFormElement extends BaseFormElement {
                 const postFormData = new FormData();
                 postFormData.append('form', '/formalize/forms/' + this.formIdentifier);
                 postFormData.append('dataFeedElement', JSON.stringify(data.formData));
-                postFormData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+                postFormData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
 
                 try {
                     const options = {

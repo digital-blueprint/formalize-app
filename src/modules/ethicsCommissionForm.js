@@ -20,9 +20,8 @@ import {
     DbpEnumView,
 } from '@dbp-toolkit/form-elements';
 import {
-    SUBMISSION_STATE_DRAFT,
-    SUBMISSION_STATE_SUBMITTED,
-    SUBMISSION_STATE_ACCEPTED,
+    SUBMISSION_STATES,
+    SUBMISSION_STATES_BINARY,
     FORM_PERMISSIONS,
     SUBMISSION_PERMISSIONS,
     isDraftStateEnabled,
@@ -56,10 +55,8 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.isDraftState = false;
-        this.isSubmittedState = false;
-        this.isAcceptedState = false;
-        this.submissionState = 0;
+        this.currentState = null;
+        this.submissionBinaryState = SUBMISSION_STATES_BINARY.NONE;
         this.submitted = false;
         this.submissionError = false;
         this.scrollTimeout = null;
@@ -199,13 +196,13 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (changedProperties.has('userAllSubmissions')) {
             this.userAllSubmittedSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState === 4,
+                (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED,
             );
             this.userAllDraftSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState === 1,
+                (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.DRAFT,
             );
             this.userAllAcceptedSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState === 16,
+                (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.ACCEPTED,
             );
             this.setButtonStates();
         }
@@ -217,7 +214,7 @@ class FormalizeFormElement extends BaseFormElement {
      */
     setButtonStates() {
         // No state
-        if (this.submissionState === 0) {
+        if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed = isDraftStateEnabled(this.allowedSubmissionStates);
             this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
         } else {
@@ -234,7 +231,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         // DRAFT
-        if (this.isDraftState) {
+        if (this.currentState === SUBMISSION_STATES.DRAFT) {
             if (!this.readOnly) {
                 this.isDraftButtonAllowed = true;
                 this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
@@ -242,9 +239,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         // SUBMITTED
-        if (this.isSubmittedState) {
-            this.isSubmitButtonEnabled =
-                isSubmittedStateEnabled(this.allowedSubmissionStates) && !this.readOnly;
+        if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
             this.isAcceptButtonEnabled =
                 isAcceptedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
@@ -253,9 +248,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         // ACCEPTED
-        if (this.isAcceptedState) {
-            this.isSubmitButtonEnabled =
-                isSubmittedStateEnabled(this.allowedSubmissionStates) && !this.readOnly;
+        if (this.currentState === SUBMISSION_STATES.ACCEPTED) {
             this.isRevertAcceptButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
@@ -268,14 +261,25 @@ class FormalizeFormElement extends BaseFormElement {
         try {
             this.submissionId = this.data.identifier;
             this.formData = JSON.parse(this.data.dataFeedElement);
-            this.submissionState = this.data.submissionState;
+            this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
             this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
             this.submittedFilesCount = this.submittedFiles.size;
 
-            this.isDraftState = this.submissionState === 1;
-            this.isSubmittedState = this.submissionState === 4;
-            this.isAcceptedState = this.submissionState === 16;
+            switch (Number(this.submissionBinaryState)) {
+                case 1:
+                    this.currentState = SUBMISSION_STATES.DRAFT;
+                    break;
+                case 4:
+                    this.currentState = SUBMISSION_STATES.SUBMITTED;
+                    break;
+                case 16:
+                    this.currentState = SUBMISSION_STATES.ACCEPTED;
+                    break;
+                default:
+                    this.currentState = null;
+                    break;
+            }
 
             if (this.formData) {
                 try {
@@ -473,7 +477,7 @@ class FormalizeFormElement extends BaseFormElement {
                         </button>
                         <button
                             class="delete-file-button button is-secondary"
-                            .disabled=${this.isAcceptedState}
+                            .disabled=${this.currentState === SUBMISSION_STATES.ACCEPTED}
                             @click=${(e) => {
                                 e.preventDefault();
                                 this.deleteAttachment(identifier);
@@ -622,7 +626,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
-        formData.append('submissionState', String(SUBMISSION_STATE_DRAFT));
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
 
         // POST or PATCH
         const isExistingDraft = this.userAllDraftSubmissions?.find(
@@ -647,8 +651,7 @@ class FormalizeFormElement extends BaseFormElement {
                 let responseBody = await response.json();
                 this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
-                this.submissionState = responseBody.submissionState;
-                // this.draftSaveSuccessful = true;
+                this.submissionBinaryState = responseBody.submissionState;
 
                 // Add new submission to the list
                 this.userAllDraftSubmissions.push(responseBody);
@@ -706,7 +709,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
-        formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
 
         // If we have a draft submission, we need to update it
         const isExistingDraft = this.userAllDraftSubmissions?.find(
@@ -730,7 +733,7 @@ class FormalizeFormElement extends BaseFormElement {
                 });
             } else {
                 this.submissionError = false;
-                this.isSubmittedState = true;
+                this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.submitted = true;
 
                 // Add new submission to the list
@@ -882,7 +885,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (!event.detail.submissionId) return;
 
         const formData = new FormData();
-        formData.append('submissionState', String(SUBMISSION_STATE_SUBMITTED));
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
 
         const options = this._buildRequestOptions(formData, 'PATCH');
         const url = this._buildSubmissionUrl(event.detail.submissionId);
@@ -898,9 +901,7 @@ class FormalizeFormElement extends BaseFormElement {
                     timeout: 5,
                 });
             } else {
-                this.wasReopenSubmissionSuccessful = true;
-                this.isSubmittedState = true;
-                this.isAcceptedState = false;
+                this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.requestUpdate();
             }
         } catch (error) {
@@ -4332,21 +4333,21 @@ class FormalizeFormElement extends BaseFormElement {
 
     renderStatusBadge() {
         return html`
-            ${this.isDraftState
+            ${this.currentState === SUBMISSION_STATES.DRAFT
                 ? html`
                       <div class="draft-mode">
                           <span class="draft-mode__text">Draft</span>
                       </div>
                   `
                 : ''}
-            ${this.isSubmittedState
+            ${this.currentState === SUBMISSION_STATES.SUBMITTED
                 ? html`
                       <div class="draft-mode">
                           <span class="draft-mode__text">Submitted</span>
                       </div>
                   `
                 : ''}
-            ${this.isAcceptedState
+            ${this.currentState === SUBMISSION_STATES.ACCEPTED
                 ? html`
                       <div class="draft-mode">
                           <span class="draft-mode__text">Accepted</span>
