@@ -339,6 +339,10 @@ export function getEthicsCommissionFormCSS() {
                     background-color: light-dark(#f7f7f7, #333333);
                 }
 
+                &[disabled] {
+                    cursor: not-allowed;
+                }
+
                 dbp-icon {
                     margin-right: 0.5em;
                     transition: transform 0.15s ease;

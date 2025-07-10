@@ -1443,6 +1443,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="permissions-header">
                         <button
                             class="user-permissions-title"
+                            .disabled=${this.resourceActions.length === 0}
                             @click="${(event) => {
                                 event.preventDefault();
                                 event.stopPropagation();
@@ -1452,7 +1453,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ${i18n.t(
                                 'render-form.forms.ethics-commission-form.user-permissions-title',
                             )}
-                            (${this.resourceActions.length ? this.resourceActions.length : ''})
+                            (${this.resourceActions.length ? this.resourceActions.length : 0})
                         </button>
                         <dbp-button
                             class="edit-permissions"
