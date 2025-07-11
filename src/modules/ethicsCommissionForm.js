@@ -91,6 +91,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
         this.handleFormAcceptSubmission = this.handleFormAcceptSubmission.bind(this);
+        this.handleFormRetractSubmission = this.handleFormRetractSubmission.bind(this);
         this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
 
@@ -533,7 +534,7 @@ class FormalizeFormElement extends BaseFormElement {
                 'DbpFormalizeFormDeleteSubmission',
                 this.handleFormDeleteSubmission,
             );
-            // Event listener for accepting submission
+            // Event listener for reopen submission
             this.addEventListener(
                 'DbpFormalizeFormRetractSubmission',
                 this.handleFormRetractSubmission,
@@ -559,6 +560,10 @@ class FormalizeFormElement extends BaseFormElement {
         this.removeEventListener(
             'DbpFormalizeFormDeleteSubmission',
             this.handleFormDeleteSubmission,
+        );
+        this.removeEventListener(
+            'DbpFormalizeFormRetractSubmission',
+            this.handleFormRetractSubmission,
         );
         this.removeEventListener(
             'DbpFormalizeFormAcceptSubmission',
