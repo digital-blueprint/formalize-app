@@ -228,7 +228,8 @@ class FormalizeFormElement extends BaseFormElement {
         } else {
             // Buttons in all state
             if (this.readOnly) {
-                this.isPrintButtonAllowed = true;
+                // this.isPrintButtonAllowed = true;
+                this.isPrintButtonAllowed = false; // Disable print button for now
                 this.isDownloadButtonAllowed = true;
             }
             this.isViewModeButtonAllowed = true;
@@ -241,6 +242,7 @@ class FormalizeFormElement extends BaseFormElement {
         // DRAFT
         if (this.currentState === SUBMISSION_STATES.DRAFT) {
             if (!this.readOnly) {
+                this.isDeleteSubmissionButtonAllowed = false;
                 this.isDraftButtonAllowed = true;
                 this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             }
@@ -248,23 +250,24 @@ class FormalizeFormElement extends BaseFormElement {
 
         // SUBMITTED
         if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
-            this.isRetractButtonEnabled =
-                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+            if (this.readOnly) {
+                this.isAcceptButtonEnabled =
+                    isAcceptedStateEnabled(this.allowedSubmissionStates) &&
+                    (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+                this.isRetractButtonEnabled =
+                    isSubmittedStateEnabled(this.allowedSubmissionStates) &&
+                    (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+            } else {
+                this.isDeleteSubmissionButtonAllowed = false;
+                this.isSaveButtonEnabled =
+                    this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
-
-            this.isAcceptButtonEnabled =
-                isAcceptedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
-
-            this.isSaveButtonEnabled =
-                !this.readOnly &&
-                (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
+            }
         }
 
         // ACCEPTED
@@ -4560,7 +4563,6 @@ class FormalizeFormElement extends BaseFormElement {
                                   class="toggle-edit-mode"
                                   type="is-secondary"
                                   no-spinner-on-click
-                                  icon-name="pencil"
                                   @click="${() => {
                                       this.readOnly = !this.readOnly;
                                       const form = this.shadowRoot.querySelector('form');
@@ -4587,7 +4589,7 @@ class FormalizeFormElement extends BaseFormElement {
                                             </span>
                                         `
                                       : html`
-                                            <dbp-icon name="source_icons_eye-empty"></dbp-icon>
+                                            <dbp-icon name="close"></dbp-icon>
                                             <span class="button-label">
                                                 ${i18n.t(
                                                     'render-form.forms.ethics-commission-form.view-mode',

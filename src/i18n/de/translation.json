@@ -80,7 +80,7 @@
                 "doctorat-label": "ja, Doktorat",
                 "download-attachment": "Herunterladen",
                 "download-button-text": "Herunterladen",
-                "edit-mode": "Edit mode",
+                "edit-mode": "Edit",
                 "edit-permission-button-text": "Berechtigungen bearbeiten",
                 "fields-of-expertise-label": "Welchem/n Field/s of Expertise ist das Forschungsvorhaben zuzuordnen? ",
                 "human-and-biotechnology": "Human & Biotechnology",
@@ -100,7 +100,7 @@
                 "retract-button-text": "Zurückziehen",
                 "revert-accept-button-text": "Wiedereröffnen",
                 "save-button-text": "Speichern",
-                "save-draft-button-text": "Als Entwurf speichern",
+                "save-draft-button-text": "Entwurf speichern",
                 "scroll-to-bottom-text": "Scrollen Sie zum Ende der Seite",
                 "scroll-to-top-text": "Scrollen Sie zum Anfang der Seite",
                 "specification-office-label": "Angabe durch Geschäftsstelle",
@@ -116,7 +116,7 @@
                 "title": "Antrag auf Prüfung der ethischen Vertretbarkeit des eingereichten Forschungsvorhabens",
                 "user-permissions-title": "Zugangsverwaltung",
                 "view-attachment": "Ansehen",
-                "view-mode": "View mode"
+                "view-mode": "Cancel"
             }
         },
         "room-select": {
