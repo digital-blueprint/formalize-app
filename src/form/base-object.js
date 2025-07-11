@@ -200,6 +200,14 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
+    disableLeavePageWarning() {
+        const disableEvent = new CustomEvent('disableBeforeunloadWarning', {
+            bubbles: true,
+            composed: true,
+        });
+        this.dispatchEvent(disableEvent);
+    }
+
     static get properties() {
         return {
             ...super.properties,

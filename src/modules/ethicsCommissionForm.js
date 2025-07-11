@@ -922,10 +922,19 @@ class FormalizeFormElement extends BaseFormElement {
                 this.requestUpdate();
                 send({
                     summary: 'Success',
-                    body: 'Form submission accepted successfully',
+                    body: 'Form submission accepted successfully<br>You will be redirected.',
                     type: 'success',
                     timeout: 5,
                 });
+                setTimeout(() => {
+                    // Redirect to the read-only form
+                    this.disableLeavePageWarning();
+                    const emptyFormUrl =
+                        getFormRenderUrl(this.formUrlSlug) +
+                        `/${event.detail.submissionId}/readonly`;
+                    window.history.pushState({}, '', emptyFormUrl.toString());
+                    window.location.reload();
+                }, 5000);
             }
         } catch (error) {
             console.error(error.message);
@@ -962,10 +971,19 @@ class FormalizeFormElement extends BaseFormElement {
                 this.requestUpdate();
                 send({
                     summary: 'Success',
-                    body: 'Form submission reopened successfully',
+                    body: 'Form submission reopened successfully<br>You will be redirected.',
                     type: 'success',
                     timeout: 5,
                 });
+                // Redirect to the editable form
+                // Wait 5 sec before redirecting to allow user to read the success message?
+                setTimeout(() => {
+                    this.disableLeavePageWarning();
+                    const editableFormUrl =
+                        getFormRenderUrl(this.formUrlSlug) + `/${event.detail.submissionId}`;
+                    window.history.pushState({}, '', editableFormUrl.toString());
+                    window.location.reload();
+                }, 5000);
             }
         } catch (error) {
             console.error(error.message);

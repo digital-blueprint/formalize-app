@@ -30,8 +30,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.authTokenExists = false;
         this.submissionAllowed = false;
         this.formDisplayDenied = false;
+        this.disableBeforeUnloadWarning = false;
 
         this._onReceiveBeforeUnload = this.onReceiveBeforeUnload.bind(this);
+        this._onDisableBeforeunloadWarning = this.onDisableBeforeunloadWarning.bind(this);
     }
 
     static get scopedElements() {
@@ -53,6 +55,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super.connectedCallback();
 
         window.addEventListener('beforeunload', this._onReceiveBeforeUnload);
+        window.addEventListener('disableBeforeunloadWarning', this._onDisableBeforeunloadWarning);
 
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
@@ -65,6 +68,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // Remove event listeners using bound methods
         window.removeEventListener('beforeunload', this._onReceiveBeforeUnload);
+        window.removeEventListener(
+            'disableBeforeunloadWarning',
+            this._onDisableBeforeunloadWarning,
+        );
     }
 
     updateFormUrlSlug() {
@@ -280,6 +287,10 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.loadedSubmission = data;
     }
 
+    onDisableBeforeunloadWarning(event) {
+        this.disableBeforeUnloadWarning = true;
+    }
+
     /**
      * Decides if the "beforeunload" event needs to be canceled
      *
@@ -288,7 +299,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     onReceiveBeforeUnload(event) {
         // we don't need to stop if there are no form rendered
         // or the form is read-only.
-        if (this.formIsRendered === false || this.readOnly) {
+        if (this.formIsRendered === false || this.readOnly || this.disableBeforeUnloadWarning) {
+            this.disableBeforeUnloadWarning = false;
             return;
         }
 
