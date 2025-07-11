@@ -87,7 +87,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const data = {
             formData: gatherFormDataFromElement(formElement),
         };
-        console.log('sendSubmission data', data);
 
         const customEvent = new CustomEvent('DbpFormalizeFormSubmission', {
             detail: data,
@@ -130,6 +129,29 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         };
 
         const customEvent = new CustomEvent('DbpFormalizeFormDeleteSubmission', {
+            bubbles: true,
+            composed: true,
+            detail: data,
+        });
+        this.dispatchEvent(customEvent);
+    }
+
+    /**
+     * Sends an save submission event with the submission ID to PATCH.
+     * @param {object} event
+     */
+    sendSaveSubmission(event) {
+        if (!this.submissionId) {
+            return;
+        }
+
+        const formElement = this.shadowRoot.querySelector('form');
+        const data = {
+            submissionId: this.submissionId,
+            formData: gatherFormDataFromElement(formElement),
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormSaveSubmission', {
             bubbles: true,
             composed: true,
             detail: data,

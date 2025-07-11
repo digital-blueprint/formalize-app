@@ -75,6 +75,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isPrintButtonAllowed = false;
         this.isDownloadButtonAllowed = false;
         this.isRetractButtonEnabled = false;
+        this.isSaveButtonEnabled = false;
 
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
@@ -91,6 +92,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
         this.handleFormAcceptSubmission = this.handleFormAcceptSubmission.bind(this);
+        this.handleFormSaveSubmission = this.handleFormSaveSubmission.bind(this);
         this.handleFormRetractSubmission = this.handleFormRetractSubmission.bind(this);
         this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
@@ -257,16 +259,22 @@ class FormalizeFormElement extends BaseFormElement {
                 (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+
+            this.isSaveButtonEnabled =
+                !this.readOnly &&
+                (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
 
         // ACCEPTED
         if (this.currentState === SUBMISSION_STATES.ACCEPTED) {
+            this.isViewModeButtonAllowed = false;
             this.isRevertAcceptButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
                 (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
-            this.isViewModeButtonAllowed = false;
         }
     }
 
@@ -539,7 +547,8 @@ class FormalizeFormElement extends BaseFormElement {
                 'DbpFormalizeFormRetractSubmission',
                 this.handleFormRetractSubmission,
             );
-
+            // Event listener for save/PATCH submission
+            this.addEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
             // Event listener for accepting submission
             this.addEventListener(
                 'DbpFormalizeFormAcceptSubmission',
@@ -879,6 +888,65 @@ class FormalizeFormElement extends BaseFormElement {
                 send({
                     summary: 'Success',
                     body: 'Form submission retracted successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
+            }
+        } catch (error) {
+            console.error(error.message);
+            send({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 5,
+            });
+        }
+    }
+
+    /**
+     * Handle save (PATCH) submission.
+     * @param {object} event - The event object containing the form data.
+     */
+    async handleFormSaveSubmission(event) {
+        if (!event.detail.submissionId) return;
+
+        const data = event.detail;
+        // Include unique identifier for person who is submitting
+        data.formData.identifier = this.auth['user-id'];
+        const formData = new FormData();
+
+        // Set file to be removed
+        if (this.filesToRemove.length > 0) {
+            this.filesToRemove.forEach((file) => {
+                formData.append(`submittedFiles[${file.fileIdentifier}]`, 'null');
+            });
+        }
+
+        // Upload attached files
+        if (this.filesToSubmitCount > 0) {
+            this.filesToSubmit.forEach((file) => {
+                formData.append('attachments[]', file, file.name);
+            });
+        }
+
+        formData.append('dataFeedElement', JSON.stringify(data.formData));
+        const options = this._buildRequestOptions(formData, 'PATCH');
+        const url = this._buildSubmissionUrl(event.detail.submissionId);
+
+        try {
+            const response = await fetch(url, options);
+            let responseBody = await response.json();
+            if (!response.ok) {
+                send({
+                    summary: 'Error',
+                    body: `Failed to save form. Response status: ${response.status}<br>${responseBody.description}`,
+                    type: 'danger',
+                    timeout: 5,
+                });
+            } else {
+                send({
+                    summary: 'Success',
+                    body: 'Form saved successfully',
                     type: 'success',
                     timeout: 5,
                 });
@@ -4633,6 +4701,28 @@ class FormalizeFormElement extends BaseFormElement {
                                   <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.retract-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
+                    ${this.isSaveButtonEnabled
+                        ? html`
+                              <dbp-button
+                                  class="form-save-button"
+                                  type="is-primary"
+                                  no-spinner-on-click
+                                  @click=${this.sendSaveSubmission}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-button-text',
+                                  )}">
+                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.save-button-text',
                                       )}
                                   </span>
                               </dbp-button>
