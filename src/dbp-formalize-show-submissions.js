@@ -487,13 +487,31 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.showFormsTable = false;
         this.loadingSubmissionTables = true;
         this.getAllFormSubmissions(this.activeFormId).then(async () => {
-            this.sendSetPropertyEvent('routing-url', `/${form.formId}`, true);
+            const submissionId =
+                this.getRoutingData().pathSegments[2] &&
+                this.getRoutingData().pathSegments[2].match(/[0-9a-f-]+/)
+                    ? this.getRoutingData().pathSegments[2]
+                    : null;
+
+            const isRequestDetailedView =
+                this.getRoutingData().pathSegments[1] === 'details' && submissionId;
+
+            if (isRequestDetailedView) {
+                this.sendSetPropertyEvent(
+                    'routing-url',
+                    `/${form.formId}/details/${submissionId}`,
+                    true,
+                );
+            } else {
+                this.sendSetPropertyEvent('routing-url', `/${form.formId}`, true);
+            }
 
             for (const state of Object.keys(this.submissionTables)) {
                 if (this.submissionTables[state]) {
                     this.options_submissions[state].data = this.submissions[state];
 
                     if (this.submissions[state].length === 0) {
+                        // There is no submission data
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true; // show back button
                         this.showFormsTable = false;
@@ -511,6 +529,25 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true;
                         this.showFormsTable = false;
+
+                        // Open submission details modal if /details/[uuid] is in the URL
+                        if (isRequestDetailedView && this.activeCourse !== 'Ethikkommission') {
+                            const selectedIndex = this.submissions[state].findIndex(
+                                (submission) => submission.submissionId === submissionId,
+                            );
+                            const selectedSubmission =
+                                selectedIndex !== -1
+                                    ? this.submissions[state][selectedIndex]
+                                    : null;
+
+                            // Remove htmlButtons
+                            delete selectedSubmission.htmlButtons;
+
+                            const cols = selectedSubmission;
+                            const id = selectedIndex;
+                            // Open details modal
+                            this.requestDetailedSubmission(state, cols, id);
+                        }
                     }
                 }
             }
