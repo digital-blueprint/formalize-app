@@ -4452,6 +4452,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-file-source
                         id="file-source"
                         class="file-source"
+                        lang="${this.lang}"
                         allowed-mime-types='application/pdf'
                         max-file-size="50000"
                         enabled-targets="local,clipboard,nextcloud"
@@ -4460,6 +4461,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-file-sink
                         id="file-sink"
                         class="file-sink"
+                        lang="${this.lang}"
                         allowed-mime-types="application/pdf,.pdf"
                         decompress-zip
                         enabled-targets="local,clipboard,nextcloud"
