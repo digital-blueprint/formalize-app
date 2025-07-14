@@ -501,7 +501,8 @@ class FormalizeFormElement extends BaseFormElement {
                         </button>
                         <button
                             class="delete-file-button button is-secondary"
-                            .disabled=${this.currentState === SUBMISSION_STATES.ACCEPTED}
+                            .disabled=${this.currentState === SUBMISSION_STATES.ACCEPTED ||
+                            this.readOnly}
                             @click=${(e) => {
                                 e.preventDefault();
                                 this.deleteAttachment(identifier);
