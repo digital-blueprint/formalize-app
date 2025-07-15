@@ -75,9 +75,10 @@ To do this you can for example open a shell with `runuser -u www-data -- bash`.
 
 ## Activities
 
-This app has the following activity:
+This app has the following activities:
 
-- `dbp-show-registrations`
+- `dbp-formalize-show-submissions`
+- `dbp-formalize-render-from`
 
 You can find the documentation of the activity in the [formalize activities documentation](https://github.com/digital-blueprint/formalize-app/tree/main/src).
 
