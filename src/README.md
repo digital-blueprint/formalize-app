@@ -8,7 +8,7 @@ You can use every activity alone. Take a look at our examples [here](https://git
 
 ## Activities
 
-### dbp-formalize-show-registrations
+### dbp-formalize-show-submissions
 
 Note that you will need a Keycloak server along with a client id for the domain you are running this html on.
 

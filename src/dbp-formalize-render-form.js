@@ -428,7 +428,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.usersSubmissionCount >= maxNumberOfSubmissionsPerUser) {
             // User can't submit the form again
             // A message is shown that the user already submitted the form
-            // and show a link to the submissions in the show-registrations page
+            // and show a link to the submissions in the show-submissions page
             return html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
@@ -448,7 +448,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 allowedActionsWhenSubmitted.includes('manage'))
         ) {
             // An empty form is shown with the message that the user already submitted the form
-            // and show a link to the submissions in the show-registrations page
+            // and show a link to the submissions in the show-submissions page
             formAlreadySubmittedWarning = html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-warning')}

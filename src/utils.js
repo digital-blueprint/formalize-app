@@ -14,7 +14,7 @@ export const getFormShowSubmissionsUrl = (formId) => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
     const basePath = currentUrl.pathname.replace(/^(.*\/[de][en])\/.*$/, '$1');
-    return `${origin}${basePath}/show-registrations/${formId}`;
+    return `${origin}${basePath}/show-submissions/${formId}`;
 };
 
 // Submission states

@@ -7,7 +7,7 @@
     <!-- Package bundles-->
     <script type="module" src="https://unpkg.com/@dbp-toolkit/provider@latest/dist/dbp-provider.js"></script>
     <script type="module" src="https://unpkg.com/@dbp-toolkit/auth@latest/dist/dbp-auth.js"></script>
-    <script type="module" src="https://unpkg.com/@digital-blueprint/formalize-app@latest/dist/dbp-formalize-show-registrations.js"></script>
+    <script type="module" src="https://unpkg.com/@digital-blueprint/formalize-app@latest/dist/dbp-formalize-show-submissions.js"></script>
 
     <!-- Prevent Chrome/Edge from suggesting to translate the page -->
     <meta name="google" content="notranslate">
@@ -45,8 +45,8 @@
                            url="https://auth-dev.tugraz.at/auth"
         ></dbp-auth-keycloak>
         <dbp-login-button subscribe="auth,lang"></dbp-login-button>
-        <dbp-formalize-show-registrations subscribe="lang,entry-point-url,auth"
-        ></dbp-formalize-show-registrations>
+        <dbp-formalize-show-submissions subscribe="lang,entry-point-url,auth"
+        ></dbp-formalize-show-submissions>
     </dbp-provider>
 
 </body>

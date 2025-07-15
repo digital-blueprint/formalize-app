@@ -117,7 +117,7 @@
             "placeholder": "Please select a room"
         }
     },
-    "show-registrations": {
+    "show-submissions": {
         "abort": "Cancel",
         "all-columns": "All columns",
         "all-filters-hide": "Hide all",

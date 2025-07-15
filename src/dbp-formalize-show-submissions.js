@@ -14,15 +14,15 @@ import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {CustomTabulatorTable} from './table-components.js';
-import MicroModal from './micromodal.es';
+import MicroModal from './micromodal.es.js';
 import {getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
-import {getSelectorFixCSS, getFileHandlingCss} from './styles';
-import metadata from './dbp-formalize-show-registrations.metadata.json';
+import {getSelectorFixCSS, getFileHandlingCss} from './styles.js';
+import metadata from './dbp-formalize-show-submissions.metadata.json';
 import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 
-class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
+class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.allForms = [];
@@ -166,14 +166,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let langs_forms = {
             en: {
                 columns: {
-                    id: i18n.t('show-registrations.id', {lng: 'en'}),
-                    name: i18n.t('show-registrations.name', {lng: 'en'}),
+                    id: i18n.t('show-submissions.id', {lng: 'en'}),
+                    name: i18n.t('show-submissions.name', {lng: 'en'}),
                 },
             },
             de: {
                 columns: {
-                    id: i18n.t('show-registrations.id', {lng: 'de'}),
-                    name: i18n.t('show-registrations.name', {lng: 'de'}),
+                    id: i18n.t('show-submissions.id', {lng: 'de'}),
+                    name: i18n.t('show-submissions.name', {lng: 'de'}),
                 },
             },
         };
@@ -358,8 +358,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const i18n = this._i18n;
 
         send({
-            summary: i18n.t('show-registrations.something-went-wrong-title'),
-            body: i18n.t('show-registrations.something-went-wrong-body'),
+            summary: i18n.t('show-submissions.something-went-wrong-title'),
+            body: i18n.t('show-submissions.something-went-wrong-body'),
             type: 'danger',
             timeout: 5,
         });
@@ -484,8 +484,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         'dbp-formalize-get-details-button',
                     );
                     btn.setAttribute('subscribe', 'lang');
-                    btn.setAttribute('title', 'show-registrations.open-forms');
-                    btn.setAttribute('aria-label', 'show-registrations.open-forms');
+                    btn.setAttribute('title', 'show-submissions.open-forms');
+                    btn.setAttribute('aria-label', 'show-submissions.open-forms');
                     btn.addEventListener('click', async (event) => {
                         this.loadingSubmissionTables = true;
                         // Switch to form submissions table
@@ -508,8 +508,8 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.loadCourses = true;
             console.error('[updated] Error getting list of forms:', e);
             send({
-                summary: i18n.t('show-registrations.failed-to-get-forms-title'),
-                body: i18n.t('show-registrations.failed-to-get-forms-body'),
+                summary: i18n.t('show-submissions.failed-to-get-forms-title'),
+                body: i18n.t('show-submissions.failed-to-get-forms-body'),
                 type: 'danger',
                 timeout: 5,
             });
@@ -592,14 +592,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 submissionDetailsButton.setAttribute('subscribe', 'lang');
                 submissionDetailsButton.setAttribute(
                     'title',
-                    'show-registrations.open-detailed-view-modal',
+                    'show-submissions.open-detailed-view-modal',
                 );
                 submissionDetailsButton.setAttribute(
                     'aria-label',
-                    'show-registrations.open-detailed-view-modal',
+                    'show-submissions.open-detailed-view-modal',
                 );
-                // this._i18n.t('show-registrations.open-detailed-view-modal');
-                // this._i18n.t('show-registrations.open-forms');
+                // this._i18n.t('show-submissions.open-detailed-view-modal');
+                // this._i18n.t('show-submissions.open-forms');
                 submissionDetailsButton.setAttribute('id', id.toString());
                 submissionDetailsButton.classList.add('open-modal-icon');
                 submissionDetailsButton.addEventListener('mousedown', (event) => {
@@ -1058,7 +1058,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
         } else {
             let options = [];
             options.push(html`
-                <option value="all">${i18n.t('show-registrations.all-columns')}</option>
+                <option value="all">${i18n.t('show-submissions.all-columns')}</option>
             `);
 
             let submissions = [];
@@ -2222,14 +2222,14 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         aria-labelledby="detailed-submission-modal-title">
                         <header class="modal-header">
                             <button
-                                title="${i18n.t('show-registrations.modal-close')}"
+                                title="${i18n.t('show-submissions.modal-close')}"
                                 class="modal-close"
-                                aria-label="${i18n.t('show-registrations.modal-close')}"
+                                aria-label="${i18n.t('show-submissions.modal-close')}"
                                 @click="${() => {
                                     this.closeDetailModal(state);
                                 }}">
                                 <dbp-icon
-                                    title="${i18n.t('show-registrations.modal-close')}"
+                                    title="${i18n.t('show-submissions.modal-close')}"
                                     aria-hidden="true"
                                     name="close"
                                     class="close-icon"></dbp-icon>
@@ -2237,7 +2237,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <h3
                                 id="detailed-submission-modal-title-${state}"
                                 class="detailed-submission-modal-title">
-                                ${i18n.t('show-registrations.detailed-submission-dialog-title')}
+                                ${i18n.t('show-submissions.detailed-submission-dialog-title')}
                             </h3>
                         </header>
                         <main
@@ -2251,7 +2251,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     class="button-container ${classMap({
                                         hidden: !this.hiddenColumns,
                                     })}">
-                                    ${i18n.t('show-registrations.apply-col-settings')}
+                                    ${i18n.t('show-submissions.apply-col-settings')}
                                     <input
                                         type="checkbox"
                                         id="apply-col-settings-${state}"
@@ -2272,7 +2272,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         class="back-btn"
                                         no-spinner-on-click
                                         title="${i18n.t(
-                                            'show-registrations.previous-entry-btn-title',
+                                            'show-submissions.previous-entry-btn-title',
                                         )}"
                                         @click="${() => {
                                             this.showEntryOfPos(
@@ -2283,21 +2283,18 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         }}"
                                         ?disabled=${!this.isPrevEnabled}>
                                         <dbp-icon name="chevron-left" aria-hidden="true"></dbp-icon>
-                                        ${i18n.t('show-registrations.previous-entry-btn-title')}
+                                        ${i18n.t('show-submissions.previous-entry-btn-title')}
                                     </dbp-button>
                                     <div class="page-numbering">
-                                        ${i18n.t(
-                                            'show-registrations.detailed-submission-dialog-id',
-                                            {
-                                                id: this.currentBeautyId,
-                                                nItems: this.totalNumberOfItems[state],
-                                            },
-                                        )}
+                                        ${i18n.t('show-submissions.detailed-submission-dialog-id', {
+                                            id: this.currentBeautyId,
+                                            nItems: this.totalNumberOfItems[state],
+                                        })}
                                     </div>
                                     <dbp-button
                                         class="next-btn"
                                         no-spinner-on-click
-                                        title="${i18n.t('show-registrations.next-entry-btn-title')}"
+                                        title="${i18n.t('show-submissions.next-entry-btn-title')}"
                                         @click="${() => {
                                             this.showEntryOfPos(
                                                 state,
@@ -2306,7 +2303,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                             );
                                         }}"
                                         ?disabled=${!this.isNextEnabled}>
-                                        ${i18n.t('show-registrations.next-entry-btn-title')}
+                                        ${i18n.t('show-submissions.next-entry-btn-title')}
                                         <dbp-icon
                                             name="chevron-right"
                                             aria-hidden="true"></dbp-icon>
@@ -2336,15 +2333,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         aria-labelledby="submission-modal-title">
                         <header class="modal-header">
                             <dbp-icon-button
-                                title="${i18n.t('show-registrations.modal-close')}"
-                                aria-label="${i18n.t('show-registrations.modal-close')}"
+                                title="${i18n.t('show-submissions.modal-close')}"
+                                aria-label="${i18n.t('show-submissions.modal-close')}"
                                 class="modal-close"
                                 icon-name="close"
                                 @click="${() => {
                                     this.closeColumnOptionsModal(state);
                                 }}"></dbp-icon-button>
                             <p id="submission-modal-title">
-                                ${i18n.t('show-registrations.header-settings')} ${state}
+                                ${i18n.t('show-submissions.header-settings')} ${state}
                             </p>
                         </header>
                         <main
@@ -2354,38 +2351,38 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <div class="modal-footer-btn">
                                 <div>
                                     <button
-                                        title="${i18n.t('show-registrations.abort')}"
+                                        title="${i18n.t('show-submissions.abort')}"
                                         class="check-btn button is-secondary"
                                         @click="${() => {
                                             this.closeColumnOptionsModal(state);
                                         }}">
-                                        ${i18n.t('show-registrations.abort')}
+                                        ${i18n.t('show-submissions.abort')}
                                     </button>
                                 </div>
                                 <div>
                                     <button
-                                        title="${i18n.t('show-registrations.reset-filter')}"
+                                        title="${i18n.t('show-submissions.reset-filter')}"
                                         class="check-btn button is-secondary"
                                         @click="${() => {
                                             this.resetSettings(state);
                                         }}">
-                                        ${i18n.t('show-registrations.reset-filter')}
+                                        ${i18n.t('show-submissions.reset-filter')}
                                     </button>
                                     <button
-                                        title="${i18n.t('show-registrations.all-filters-hide')}"
+                                        title="${i18n.t('show-submissions.all-filters-hide')}"
                                         class="check-btn button is-secondary"
                                         @click="${() => {
                                             this.toggleAllColumns(state, 'hide');
                                         }}">
-                                        ${i18n.t('show-registrations.all-filters-hide')}
+                                        ${i18n.t('show-submissions.all-filters-hide')}
                                     </button>
                                     <button
-                                        title="${i18n.t('show-registrations.all-filters-show')}"
+                                        title="${i18n.t('show-submissions.all-filters-show')}"
                                         class="check-btn button is-secondary"
                                         @click="${() => {
                                             this.toggleAllColumns(state, 'show');
                                         }}">
-                                        ${i18n.t('show-registrations.all-filters-show')}
+                                        ${i18n.t('show-submissions.all-filters-show')}
                                     </button>
                                 </div>
                                 <button
@@ -2396,7 +2393,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         this.closeColumnOptionsModal(state);
                                         this.setSubmissionTableSettings(state);
                                     }}">
-                                    ${i18n.t('show-registrations.save-columns')}
+                                    ${i18n.t('show-submissions.save-columns')}
                                 </button>
                             </div>
                         </footer>
@@ -2416,7 +2413,7 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.exportSubmissionTable(e, state);
                 }}">
                 <option value="-" disabled selected>
-                    ${i18n.t('show-registrations.default-export-select')}
+                    ${i18n.t('show-submissions.default-export-select')}
                 </option>
                 <option value="csv">CSV</option>
                 <option value="xlsx">Excel</option>
@@ -2436,68 +2433,68 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         id="searchbar-${state}"
                         data-state="${state}"
                         class="searchbar"
-                        placeholder="${i18n.t('show-registrations.searchbar-placeholder')}"
+                        placeholder="${i18n.t('show-submissions.searchbar-placeholder')}"
                         @click="${(e) => {
                             this.toggleSearchMenu(state);
                         }}" />
                     <dbp-icon-button
                         class="button is-icon search-button"
                         id="search-button-${state}"
-                        title="${i18n.t('show-registrations.search-button')}"
-                        aria-label="${i18n.t('show-registrations.search-button')}"
+                        title="${i18n.t('show-submissions.search-button')}"
+                        aria-label="${i18n.t('show-submissions.search-button')}"
                         icon-name="search"
                         @click="${() => {
                             this.filterTable(state);
                         }}"></dbp-icon-button>
                     <div class="extended-menu hidden" id="searchbar-menu-${state}">
                         <label for="search-select-${state}">
-                            ${i18n.t('show-registrations.search-in')}:
+                            ${i18n.t('show-submissions.search-in')}:
                         </label>
                         <select
                             id="search-select-${state}"
                             class="button dropdown-menu search-select"
-                            title="${i18n.t('show-registrations.search-in-column')}:">
+                            title="${i18n.t('show-submissions.search-in-column')}:">
                             ${this.getTableHeaderOptions()}
                         </select>
 
                         <label for="search-operator-${state}">
-                            ${i18n.t('show-registrations.search-operator')}:
+                            ${i18n.t('show-submissions.search-operator')}:
                         </label>
                         <select
                             id="search-operator-${state}"
                             class="button dropdown-menu search-operator">
                             <option value="like">
-                                ${i18n.t('show-registrations.search-operator-like')}
+                                ${i18n.t('show-submissions.search-operator-like')}
                             </option>
                             <option value="=">
-                                ${i18n.t('show-registrations.search-operator-equal')}
+                                ${i18n.t('show-submissions.search-operator-equal')}
                             </option>
                             <option value="!=">
-                                ${i18n.t('show-registrations.search-operator-notequal')}
+                                ${i18n.t('show-submissions.search-operator-notequal')}
                             </option>
                             <option value="starts">
-                                ${i18n.t('show-registrations.search-operator-starts')}
+                                ${i18n.t('show-submissions.search-operator-starts')}
                             </option>
                             <option value="ends">
-                                ${i18n.t('show-registrations.search-operator-ends')}
+                                ${i18n.t('show-submissions.search-operator-ends')}
                             </option>
                             <option value="<">
-                                ${i18n.t('show-registrations.search-operator-less')}
+                                ${i18n.t('show-submissions.search-operator-less')}
                             </option>
                             <option value="<=">
-                                ${i18n.t('show-registrations.search-operator-lessthanorequal')}
+                                ${i18n.t('show-submissions.search-operator-lessthanorequal')}
                             </option>
                             <option value=">">
-                                ${i18n.t('show-registrations.search-operator-greater')}
+                                ${i18n.t('show-submissions.search-operator-greater')}
                             </option>
                             <option value=">=">
-                                ${i18n.t('show-registrations.search-operator-greaterorequal')}
+                                ${i18n.t('show-submissions.search-operator-greaterorequal')}
                             </option>
                             <option value="regex">
-                                ${i18n.t('show-registrations.search-operator-regex')}
+                                ${i18n.t('show-submissions.search-operator-regex')}
                             </option>
                             <option value="keywords">
-                                ${i18n.t('show-registrations.search-operator-keywords')}
+                                ${i18n.t('show-submissions.search-operator-keywords')}
                             </option>
                         </select>
                     </div>
@@ -2581,9 +2578,9 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 this.showFormsTable = true;
                                 this.sendSetPropertyEvent('routing-url', '/', true);
                             }}"
-                            title="${i18n.t('show-registrations.back-text')}">
+                            title="${i18n.t('show-submissions.back-text')}">
                             <dbp-icon name="chevron-left"></dbp-icon>
-                            ${i18n.t('show-registrations.back-text')}
+                            ${i18n.t('show-submissions.back-text')}
                         </a>
                     </span>
                     <div class="table-header submissions">
@@ -2599,15 +2596,15 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 ${this.noSubmissionAvailable
                     ? html`
                           <div class="notification is-warning">
-                              ${i18n.t('show-registrations.no-submission-available-message')}
+                              ${i18n.t('show-submissions.no-submission-available-message')}
                           </div>
                       `
                     : ''}
                 ${this.submissionStates.map((state) => {
                     const submissionTableTitle = {
-                        draft: i18n.t('show-registrations.submission-table-draft-title'),
-                        submitted: i18n.t('show-registrations.submission-table-submitted-title'),
-                        accepted: i18n.t('show-registrations.submission-table-accepted-title'),
+                        draft: i18n.t('show-submissions.submission-table-draft-title'),
+                        submitted: i18n.t('show-submissions.submission-table-submitted-title'),
+                        accepted: i18n.t('show-submissions.submission-table-accepted-title'),
                     };
                     return html`
                         <div
@@ -2641,4 +2638,4 @@ class ShowRegistrations extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 }
 
-commonUtils.defineCustomElement('dbp-formalize-show-registrations', ShowRegistrations);
+commonUtils.defineCustomElement('dbp-formalize-show-submissions', ShowSubmissions);

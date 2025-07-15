@@ -1,7 +1,7 @@
 {
-    "element": "dbp-formalize-show-registrations",
-    "module_src": "dbp-formalize-show-registrations.js",
-    "routing_name": "show-registrations",
+    "element": "dbp-formalize-show-submissions",
+    "module_src": "dbp-formalize-show-submissions.js",
+    "routing_name": "show-submissions",
     "name": {
         "de": "Formulareinträge anzeigen",
         "en": "Show form submissions"

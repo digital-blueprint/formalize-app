@@ -117,7 +117,7 @@
             "placeholder": "Bitte wählen Sie einen Raum aus"
         }
     },
-    "show-registrations": {
+    "show-submissions": {
         "abort": "Abbrechen",
         "all-columns": "Alle Spalten",
         "all-filters-hide": "Alle verstecken",
