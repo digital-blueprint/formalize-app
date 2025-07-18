@@ -241,10 +241,10 @@ class FormalizeFormElement extends BaseFormElement {
 
         // DRAFT
         if (this.currentState === SUBMISSION_STATES.DRAFT) {
+            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             if (!this.readOnly) {
                 this.isDeleteSubmissionButtonAllowed = false;
                 this.isDraftButtonAllowed = true;
-                this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             }
         }
 
