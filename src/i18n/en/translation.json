@@ -145,6 +145,7 @@
         "name": "Name",
         "next-entry-btn-title": "Next entry",
         "no-submission-available-message": "No submission data available",
+        "open-detailed-view-modal": "Open submission",
         "previous-entry-btn-title": "Previous entry",
         "reset-filter": "Reset all",
         "save-columns": "Save",

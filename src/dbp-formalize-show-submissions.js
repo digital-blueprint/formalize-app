@@ -744,11 +744,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         return;
                     }
                     // Go to the readonly view of the form submission
-                    let formSubmissionUrl = getFormRenderUrl(activeFormSlug) + `/${submissionId}`;
-                    // Open drafts in editable mode
-                    if (state !== 'draft') {
-                        formSubmissionUrl += '/readonly';
-                    }
+                    let formSubmissionUrl =
+                        getFormRenderUrl(activeFormSlug) + `/${submissionId}/readonly`;
                     const url = new URL(formSubmissionUrl);
                     window.history.pushState({}, '', url);
 
