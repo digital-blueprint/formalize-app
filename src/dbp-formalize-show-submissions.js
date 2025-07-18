@@ -724,6 +724,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     'title',
                     'show-submissions.open-detailed-view-modal',
                 );
+                let transGuard = this._i18n.t('show-submissions.open-detailed-view-modal');
+                console.log(transGuard);
                 submissionDetailsButton.setAttribute(
                     'aria-label',
                     'show-submissions.open-detailed-view-modal',
