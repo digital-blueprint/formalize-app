@@ -64,6 +64,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.submitterName = null;
         this.newSubmissionId = null;
         this.resourceActions = [];
+        this.isAdmin = false;
 
         // Button
         this.isViewModeButtonAllowed = false;
@@ -192,6 +193,11 @@ class FormalizeFormElement extends BaseFormElement {
             if (Object.keys(this.formProperties).length > 0) {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
                 this.formGrantedActions = this.formProperties.grantedActions;
+                this.isAdmin = this.formGrantedActions.some(
+                    (grant) =>
+                        grant === FORM_PERMISSIONS.MANAGE ||
+                        grant === FORM_PERMISSIONS.UPDATE_SUBMISSIONS,
+                );
                 this.setButtonStates();
             }
         }
@@ -3040,25 +3046,27 @@ class FormalizeFormElement extends BaseFormElement {
                         required>
                     </dbp-form-string-element>
 
-                    <dbp-form-string-element
-                        subscribe="lang"
-                        name="shortDescription"
-                        label="Kurzbeschreibung/Zusammenfassung"
-                        placeholder="Bitte beschreiben Sie Ziel und Ablauf Ihrer Studie/Publikation kurz und in ganzen Sätzen (max. 300 Wörter)."
-                        value=${data.shortDescription || ''}
-                        rows="5"
-                        required>
-                    </dbp-form-string-element>
+                    ${
+                        this.isAdmin
+                            ? html`
+                                  <dbp-form-string-element
+                                      subscribe="lang"
+                                      name="shortDescription"
+                                      label="Kurzbeschreibung/Zusammenfassung"
+                                      placeholder="Bitte beschreiben Sie Ziel und Ablauf Ihrer Studie/Publikation kurz und in ganzen Sätzen (max. 300 Wörter)."
+                                      value=${data.shortDescription || ''}
+                                      rows="5"></dbp-form-string-element>
 
-                    <dbp-form-string-element
-                        subscribe="lang"
-                        name="dataSource"
-                        label="Datenquelle"
-                        placeholder="Bitte beschreiben Sie kurz, woher die Daten stammen (z.B.: werden selbst erhoben, Open Data Sources, von Forschungspartner*innen, …):"
-                        value=${data.dataSource || ''}
-                        rows="5"
-                        required>
-                    </dbp-form-string-element>
+                                  <dbp-form-string-element
+                                      subscribe="lang"
+                                      name="dataSource"
+                                      label="Datenquelle"
+                                      placeholder="Bitte beschreiben Sie kurz, woher die Daten stammen (z.B.: werden selbst erhoben, Open Data Sources, von Forschungspartner*innen, …):"
+                                      value=${data.dataSource || ''}
+                                      rows="5"></dbp-form-string-element>
+                              `
+                            : ''
+                    }
 
                     <dbp-form-string-element
                         subscribe="lang"
