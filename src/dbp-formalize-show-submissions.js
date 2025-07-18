@@ -726,6 +726,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 );
                 let transGuard = this._i18n.t('show-submissions.open-detailed-view-modal');
                 console.log(transGuard);
+
                 submissionDetailsButton.setAttribute(
                     'aria-label',
                     'show-submissions.open-detailed-view-modal',
@@ -2740,7 +2741,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <select
                     id="export-select"
                     class="dropdown-menu"
-                    aria-label="${i18n.t('show-registrations.export-select-aria-label')}"
+                    aria-label="${i18n.t('show-submissions.export-select-aria-label')}"
                     @change="${(e) => {
                         this.exportSubmissionTable(e, state);
                     }}">
@@ -2765,7 +2766,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     @click="${() => {
                         this.toggleActionsDropdown(state);
                     }}">
-                    ${i18n.t('show-registrations.actions-button-text')}
+                    ${i18n.t('show-submissions.actions-button-text')}
                     <dbp-icon
                         class="icon-chevron"
                         name="chevron-down"
@@ -3313,8 +3314,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             }
                         }}">
                         <dbp-icon
-                            title="${i18n.t('show-registrations.search-button')}"
-                            aria-label="${i18n.t('show-registrations.search-button')}"
+                            title="${i18n.t('show-submissions.search-button')}"
+                            aria-label="${i18n.t('show-submissions.search-button')}"
                             name="search"></dbp-icon>
                     </button>
 
