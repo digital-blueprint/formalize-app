@@ -2131,7 +2131,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 .spacer {
                     color: #999999;
-                    font-size: 28px;
+                    font-size: 24px;
                 }
 
                 /* export button */
@@ -3321,35 +3321,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <div class="extended-menu" id="searchbar-menu--${state}" inert>
                         <input
                             type="text"
-                            id="searchbar--${state}"
+                            id="searchbar-${state}"
                             data-state="${state}"
                             class="searchbar"
-                            placeholder="${i18n.t('show-registrations.searchbar-placeholder')}" />
+                            placeholder="${i18n.t('show-submissions.searchbar-placeholder')}"
+                            @click="${(e) => {
+                                this.toggleSearchMenu(state);
+                            }}" />
 
                         <span class="spacer">/</span>
 
-                        <label for="search-select--${state}">
-                            ${i18n.t('show-registrations.search-in')}:
-                <div id="extendable-searchbar" class="extendable-searchbar">
-                    <input
-                        type="text"
-                        id="searchbar-${state}"
-                        data-state="${state}"
-                        class="searchbar"
-                        placeholder="${i18n.t('show-submissions.searchbar-placeholder')}"
-                        @click="${(e) => {
-                            this.toggleSearchMenu(state);
-                        }}" />
-                    <dbp-icon-button
-                        class="button is-icon search-button"
-                        id="search-button-${state}"
-                        title="${i18n.t('show-submissions.search-button')}"
-                        aria-label="${i18n.t('show-submissions.search-button')}"
-                        icon-name="search"
-                        @click="${() => {
-                            this.filterTable(state);
-                        }}"></dbp-icon-button>
-                    <div class="extended-menu hidden" id="searchbar-menu-${state}">
                         <label for="search-select-${state}">
                             ${i18n.t('show-submissions.search-in')}:
                         </label>
