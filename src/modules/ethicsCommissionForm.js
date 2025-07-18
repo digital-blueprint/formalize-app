@@ -643,6 +643,16 @@ class FormalizeFormElement extends BaseFormElement {
     async handleSaveDraft(event) {
         // Access the data from the event detail
         const data = event.detail;
+        const validationResult = data.validationResult;
+        if (validationResult === false) {
+            send({
+                summary: 'Warning',
+                body: `The form has validation error. Fix them before submitting the form`,
+                type: 'warning',
+                timeout: 5,
+            });
+        }
+
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.auth['user-id'];
         const formData = new FormData();

@@ -100,11 +100,15 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * Sends a draft submission event with the given form data.
      * @param {object} event
      */
-    sendSaveDraft(event) {
+    async sendSaveDraft(event) {
         this.draftButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
+
+        // Validate
+        const validationResult = await validateRequiredFields(formElement);
         const data = {
             formData: gatherFormDataFromElement(formElement),
+            validationResult: validationResult,
         };
 
         const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
