@@ -436,6 +436,17 @@ export function getEthicsCommissionFormCSS() {
             text-underline-offset: 2px;
         }
 
+        .info-box {
+            background-color: #c9e4c6;
+            padding: 1em;
+            p:first-child {
+                margin-top: 0;
+            }
+            p:last-child {
+                margin-bottom: 0;
+            }
+        }
+
         /* buttons */
         .button-row {
             display: flex;
@@ -633,6 +644,10 @@ export function getEthicsCommissionFormCSS() {
             cursor: pointer;
         }
 
+        .lettered-list {
+            list-style-type: lower-alpha;
+        }
+
         @media only screen and (max-width: 1600px) {
             .scroller {
                 opacity: 0.7;
@@ -657,6 +672,14 @@ export function getEthicsCommissionFormCSS() {
                 top: 53px;
                 left: -72px;
                 font-size: 15px;
+            }
+
+            .lettered-list {
+                padding-left: 1em;
+
+                ol {
+                    padding-left: 1em;
+                }
             }
         }
 
