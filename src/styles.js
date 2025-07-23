@@ -237,34 +237,6 @@ export function getEthicsCommissionFormCSS() {
             margin-bottom: 2em;
         }
 
-        .draft-mode {
-            z-index: 5;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 0 0 200px 200px;
-            /*border-width: 0 0 min(20vw, 200px) min(20vw, 200px);*/
-            border-color: transparent transparent var(--dbp-warning-surface) transparent;
-            transform: rotate(90deg);
-        }
-
-        .draft-mode__text {
-            position: absolute;
-            top: 120px;
-            /*top: min(17vw, 120px);*/
-            left: -131px;
-            /*left: min(-20vw, -131px);*/
-            transform: rotate(-45deg);
-            font-weight: bold;
-            font-size: 24px;
-            /*font-size: min(4vw, 24px);*/
-            color: white;
-            white-space: nowrap;
-        }
-
         .form-details {
             border: 1px solid var(--dbp-content);
             border-top: none;
@@ -448,14 +420,16 @@ export function getEthicsCommissionFormCSS() {
         }
 
         /* buttons */
-        .button-row {
+        .form-header {
             display: flex;
             justify-content: space-between;
             flex-direction: column;
             gap: 1em;
 
             position: sticky;
-            top: -100px;
+            /* formHeaderHeight - buttonWrapper - 2 * padding - 2 * border */
+            /* 170px - 33px - 2 * 16px - 2 * 1px = 103px */
+            top: -103px;
             z-index: 9;
 
             right: 0;
@@ -469,6 +443,12 @@ export function getEthicsCommissionFormCSS() {
             .button-label {
                 padding-left: 0.5em;
             }
+
+            &.is-pinned {
+                .buttons-wrapper {
+                    align-items: center;
+                }
+            }
         }
 
         .buttons-wrapper,
@@ -480,7 +460,27 @@ export function getEthicsCommissionFormCSS() {
 
         .buttons-wrapper {
             align-items: flex-end;
-            justify-content: flex-end;
+            justify-content: space-between;
+        }
+
+        .tag-container {
+            display: flex;
+            gap: 0.3em;
+        }
+
+        .tag {
+            padding: 1px 4px;
+            border-radius: 2px;
+            text-transform: uppercase;
+
+            &.tag--mode {
+                background-color: #f2f2f2;
+                color: var(--dbp-content);
+            }
+            &.tag--state {
+                background-color: var(--dbp-warning-surface);
+                color: var(--dbp-content);
+            }
         }
 
         .form-delete-submission-button {
@@ -501,7 +501,7 @@ export function getEthicsCommissionFormCSS() {
 
         @container form (width < 750px) {
             /* Make icon buttons for small screens ? */
-            .button-row {
+            .form-header {
                 button,
                 dbp-button {
                     .button-label {
@@ -659,21 +659,12 @@ export function getEthicsCommissionFormCSS() {
         }
 
         @media only screen and (max-width: 768px) {
-            .button-row {
+            .form-header {
                 top: -60px;
             }
         }
 
         @media only screen and (max-width: 450px) {
-            .draft-mode {
-                border-width: 0px 0px 100px 100px;
-            }
-            .draft-mode__text {
-                top: 53px;
-                left: -72px;
-                font-size: 15px;
-            }
-
             .lettered-list {
                 padding-left: 1em;
 
@@ -785,7 +776,7 @@ export function getEthicsCommissionFormPrintCSS() {
                 text-align: center;
             }
 
-            .button-row .buttons-wrapper,
+            .form-header .buttons-wrapper,
             button,
             dbp-button,
             .submission-permissions,
@@ -819,10 +810,6 @@ export function getEthicsCommissionFormPrintCSS() {
             fieldset label {
                 font-weight: bold;
                 display: block;
-            }
-
-            .draft-mode {
-                display: none;
             }
 
             /* Line height debug background */

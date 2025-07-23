@@ -180,9 +180,9 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
-    async firstUpdated() {}
-
     async update(changedProperties) {
+        super.update(changedProperties);
+
         // console.log('changedProperties', changedProperties);
         if (changedProperties.has('data')) {
             if (Object.keys(this.data).length > 0) {
@@ -225,7 +225,20 @@ class FormalizeFormElement extends BaseFormElement {
             );
             this.setButtonStates();
         }
-        super.update(changedProperties);
+    }
+
+    async updated(changedProperties) {
+        super.updated(changedProperties);
+
+        if (
+            changedProperties.has('data') ||
+            changedProperties.has('readOnly') ||
+            changedProperties.has('userAllSubmissions')
+        ) {
+            // Reset observer so it can re-attach if needed
+            this._formHeaderObserved = false;
+            this.stickyHeaderObserver();
+        }
     }
 
     /**
@@ -245,7 +258,7 @@ class FormalizeFormElement extends BaseFormElement {
             }
             this.isViewModeButtonAllowed = true;
             this.isDeleteSubmissionButtonAllowed =
-                this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                 this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                 this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
         }
@@ -264,18 +277,18 @@ class FormalizeFormElement extends BaseFormElement {
             if (this.readOnly) {
                 this.isAcceptButtonEnabled =
                     isAcceptedStateEnabled(this.allowedSubmissionStates) &&
-                    (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                    (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                         this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                         this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
                 this.isRetractButtonEnabled =
                     isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                    (this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                    (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                         this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                         this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
             } else {
                 this.isDeleteSubmissionButtonAllowed = false;
                 this.isSaveButtonEnabled =
-                    this.formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
             }
@@ -286,7 +299,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.isViewModeButtonAllowed = false;
             this.isRevertAcceptButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                (this.formGrantedActions?.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
@@ -579,6 +592,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+
         this.removeEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
         this.removeEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
         this.removeEventListener(
@@ -598,7 +612,14 @@ class FormalizeFormElement extends BaseFormElement {
             this.handleFormRevertAcceptSubmission,
         );
         this.removeEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
+
         window.removeEventListener('scroll', this.handleScrollToTopBottom);
+
+        if (this._formHeaderObserver) {
+            this._formHeaderObserver.disconnect();
+            this._formHeaderObserver = null;
+        }
+        this._formHeaderObserved = false;
     }
 
     permissionModalClosedHandler(event) {
@@ -1421,6 +1442,36 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Add a 'is-pinned' class to the form header when it's sticky.
+     */
+    stickyHeaderObserver() {
+        // Only attach observer if .form-header exists and not already observed
+        if (!this._formHeaderObserved) {
+            const formHeader = this._('.form-header');
+            if (formHeader) {
+                const options = {
+                    rootMargin: '0px',
+                    scrollMargin: '0px',
+                    threshold: 0.45,
+                };
+
+                const callback = (entries, observer) => {
+                    entries.forEach((entry) => {
+                        // console.log(`___ entry.intersectionRatio`, entry.intersectionRatio);
+                        // console.log(`entry.isIntersecting`, entry.isIntersecting);
+                        entry.target.classList.toggle('is-pinned', entry.intersectionRatio < 0.45);
+                    });
+                };
+
+                const observer = new IntersectionObserver(callback, options);
+                observer.observe(formHeader);
+                this._formHeaderObserved = true;
+                this._formHeaderObserver = observer;
+            }
+        }
+    }
+
     render() {
         return html`
             ${this.readOnly
@@ -1629,13 +1680,12 @@ class FormalizeFormElement extends BaseFormElement {
                     </button>
                 </div>
 
-                ${this.getButtonRowHtml()}
-
+                <div class="form-header">
+                    ${this.getButtonRowHtml()}
+                </div>
                 <div class="form-details">
                     ${this.renderSubmissionPermissions()}
                 </div>
-
-                ${this.renderStatusBadge()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -2955,20 +3005,19 @@ class FormalizeFormElement extends BaseFormElement {
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
 
-            <div class="scroller-container">
-                <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
-                    <dbp-icon name="chevron-down" title=${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}></dbp-icon>
-                    <span class="visually-hidden">${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}</span>
-                </button>
-            </div>
+                <div class="scroller-container">
+                    <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
+                        <dbp-icon name="chevron-down" title=${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}></dbp-icon>
+                        <span class="visually-hidden">${i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text')}</span>
+                    </button>
+                </div>
 
-                ${this.getButtonRowHtml()}
-
+                <div class="form-header">
+                    ${this.getButtonRowHtml()}
+                </div>
                 <div class="form-details">
                     ${this.renderSubmissionPermissions()}
                 </div>
-
-                ${this.renderStatusBadge()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -4824,29 +4873,23 @@ c
         `;
     }
 
-    renderStatusBadge() {
+    renderStatusTags() {
+        const stateTag = this.currentState;
+        const modeTag = !this.readOnly ? 'edit mode' : '';
+
         return html`
-            ${this.currentState === SUBMISSION_STATES.DRAFT
-                ? html`
-                      <div class="draft-mode">
-                          <span class="draft-mode__text">Draft</span>
-                      </div>
-                  `
-                : ''}
-            ${this.currentState === SUBMISSION_STATES.SUBMITTED
-                ? html`
-                      <div class="draft-mode">
-                          <span class="draft-mode__text">Submitted</span>
-                      </div>
-                  `
-                : ''}
-            ${this.currentState === SUBMISSION_STATES.ACCEPTED
-                ? html`
-                      <div class="draft-mode">
-                          <span class="draft-mode__text">Accepted</span>
-                      </div>
-                  `
-                : ''}
+            <div class="tag-container">
+                ${stateTag
+                    ? html`
+                          <span class="tag tag--state">${stateTag}</span>
+                      `
+                    : ''}
+                ${modeTag
+                    ? html`
+                          <span class="tag tag--mode">${modeTag}</span>
+                      `
+                    : ''}
+            </div>
         `;
     }
 
@@ -4856,16 +4899,18 @@ c
      */
     getButtonRowHtml() {
         const i18n = this._i18n;
+
         return html`
-            <div class="button-row">
-                <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
-                <div class="buttons-wrapper">
+            <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
+            <div class="buttons-wrapper">
+                ${this.renderStatusTags()}
+
+                <div class="action-buttons">
                     ${this.isDeleteSubmissionButtonAllowed
                         ? html`
                               <button
                                   class="form-delete-submission-button button is-secondary"
                                   @click=${this.sendDeleteSubmission}
-                                  type="is-secondary"
                                   no-spinner-on-click
                                   title="${i18n.t(
                                       'render-form.forms.ethics-commission-form.delete-submission-button-text-aria',
