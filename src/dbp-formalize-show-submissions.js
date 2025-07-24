@@ -21,8 +21,8 @@ import {
     getFormRenderUrl,
     getFormShowSubmissionsUrl,
     SUBMISSION_PERMISSIONS,
-    // isDraftStateEnabled,
-    // isSubmittedStateEnabled,
+    isDraftStateEnabled,
+    isSubmittedStateEnabled,
     isAcceptedStateEnabled,
     SUBMISSION_STATES_BINARY,
 } from './utils.js';
@@ -3521,10 +3521,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         submitted: i18n.t('show-submissions.submission-table-submitted-title'),
                         accepted: i18n.t('show-submissions.submission-table-accepted-title'),
                     };
+                    if (this.activeFormId) {
+                        const activeForm = this.forms.get(this.activeFormId);
+                        const allowedSubmissionStates = activeForm.allowedSubmissionStates;
+                        this.enabledStates = {
+                            draft: isDraftStateEnabled(allowedSubmissionStates),
+                            submitted: isSubmittedStateEnabled(allowedSubmissionStates),
+                            accepted: isAcceptedStateEnabled(allowedSubmissionStates),
+                        };
+                    }
                     return html`
                         <div
                             class="${classMap({
-                                hidden: this.submissions[state].length === 0,
+                                hidden: this.enabledStates[state] ? false : true,
                             })}">
                             <h3 class="table-title">${submissionTableTitle[state]}</h3>
 
