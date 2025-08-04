@@ -1627,7 +1627,7 @@ class FormalizeFormElement extends BaseFormElement {
                             no-spinner-on-click
                             type="is-secondary"
                             @click=${() => this._('#grant-permission-dialog').open()}>
-                            <dbp-icon name="lock" aria-hidden="true"></dbp-icon>
+                            <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
                             <span class="button-text">
                                 ${i18n.t(
                                     'render-form.forms.ethics-commission-form.edit-permission-button-text',
