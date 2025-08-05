@@ -61,13 +61,12 @@ export class ColumnSettingsButton extends ScopedElementsMixin(DBPLitElement) {
         return css`
             :host {
                 display: flex;
+                justify-content: flex-end;
                 /* Needed for the table header otherwise the icon gets cut off */
                 min-height: 30px;
             }
             dbp-icon-button {
                 font-size: 20px;
-                position: absolute;
-                top: -5px;
             }
         `;
     }

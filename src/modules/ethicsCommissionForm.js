@@ -9,7 +9,11 @@ import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {getFormRenderUrl, formatDate, httpGetAsync} from '../utils.js';
-import {getEthicsCommissionFormCSS, getEthicsCommissionFormPrintCSS} from '../styles.js';
+import {
+    getTagsCSS,
+    getEthicsCommissionFormCSS,
+    getEthicsCommissionFormPrintCSS,
+} from '../styles.js';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -459,6 +463,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ${commonStyles.getModalDialogCSS()}
             }
             @layer formalize {
+                ${getTagsCSS()}
                 ${getEthicsCommissionFormCSS()}
             }
         `;
@@ -4920,9 +4925,13 @@ c
                                   )}">
                                   <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
                                   <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
-                                      )}
+                                      ${this.currentState === SUBMISSION_STATES.DRAFT
+                                          ? i18n.t(
+                                                'render-form.forms.ethics-commission-form.discard-draft-button-text-label',
+                                            )
+                                          : i18n.t(
+                                                'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
+                                            )}
                                   </span>
                               </button>
                           `

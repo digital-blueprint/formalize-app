@@ -223,6 +223,26 @@ export function getSelectorFixCSS() {
     `;
 }
 
+export function getTagsCSS() {
+    // language=css
+    return css`
+        .tag {
+            padding: 1px 4px;
+            border-radius: 2px;
+            text-transform: uppercase;
+
+            &.tag--mode {
+                background-color: #f2f2f2;
+                color: var(--dbp-content);
+            }
+            &.tag--state {
+                background-color: var(--dbp-warning-surface);
+                color: var(--dbp-content);
+            }
+        }
+    `;
+}
+
 export function getEthicsCommissionFormCSS() {
     // language=css
     return css`
@@ -466,21 +486,6 @@ export function getEthicsCommissionFormCSS() {
         .tag-container {
             display: flex;
             gap: 0.3em;
-        }
-
-        .tag {
-            padding: 1px 4px;
-            border-radius: 2px;
-            text-transform: uppercase;
-
-            &.tag--mode {
-                background-color: #f2f2f2;
-                color: var(--dbp-content);
-            }
-            &.tag--state {
-                background-color: var(--dbp-warning-surface);
-                color: var(--dbp-content);
-            }
         }
 
         .form-delete-submission-button {

@@ -26,7 +26,7 @@ import {
     isAcceptedStateEnabled,
     SUBMISSION_STATES_BINARY,
 } from './utils.js';
-import {getSelectorFixCSS, getFileHandlingCss} from './styles.js';
+import {getSelectorFixCSS, getFileHandlingCss, getTagsCSS} from './styles.js';
 import metadata from './dbp-formalize-show-submissions.metadata.json';
 import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
@@ -792,7 +792,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         column.headerSort = false;
                         column.minWidth = 64;
                         column.frozen = true;
-                        column.headerHozAlign = 'center';
+                        column.headerHozAlign = 'right';
                         // Add column settings button
                         column.titleFormatter = (cell, formatterParams, onRendered) => {
                             let columnSettingsButton = this.submissionTables[
@@ -1602,6 +1602,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 ${commonStyles.getButtonCSS()}
                 ${getSelectorFixCSS()}
                 ${getFileHandlingCss()}
+                ${getTagsCSS()}
             }
 
             @layer formalize {
@@ -2675,7 +2676,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.closeColumnOptionsModal(state);
                                 }}"></dbp-icon-button>
                             <p id="submission-modal-title">
-                                ${i18n.t('show-submissions.header-settings')} ${state}
+                                ${i18n.t('show-submissions.header-settings')}
+                                <span class="tag tag--state">${state}</span>
                             </p>
                         </header>
                         <main
