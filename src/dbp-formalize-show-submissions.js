@@ -149,6 +149,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
             accepted: false,
         };
+        this.enabledStates = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
     }
 
     static get scopedElements() {
@@ -715,53 +720,51 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const id = x + 1;
                 const cols = {dateCreated: dateCreated, ...dataFeedElement};
 
-                // Add show details button
+                let actionButtonsDiv = this.createScopedElement('div');
+                const activeForm = this.forms.get(formId);
+
+                // Add show submission as form link
+                if (activeForm.formName === 'Ethikkommission') {
+                    const submissionDetailsFormButton = this.submissionTables[
+                        state
+                    ].createScopedElement('dbp-formalize-get-submission-link');
+                    // Set submission URL
+                    const activeFormSlug = activeForm ? activeForm.formSlug : null;
+                    let formSubmissionUrl =
+                        getFormRenderUrl(activeFormSlug) + `/${submissionId}/readonly`;
+                    /*
+                        t('show-submissions.open-detailed-view-form')
+                    */
+                    submissionDetailsFormButton.ariaLabel =
+                        'show-submissions.open-detailed-view-form';
+                    submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
+                    submissionDetailsFormButton.iconName = 'agenda';
+                    submissionDetailsFormButton.title = 'show-submissions.open-detailed-view-form';
+                    submissionDetailsFormButton.id = id.toString();
+                    submissionDetailsFormButton.setAttribute('subscribe', 'lang');
+                    submissionDetailsFormButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                    });
+                    actionButtonsDiv.appendChild(submissionDetailsFormButton);
+                }
+
+                // Add show submission in modal button
                 const submissionDetailsButton = this.submissionTables[state].createScopedElement(
                     'dbp-formalize-get-details-button',
                 );
+                /*
+                    t('show-submissions.open-detailed-view-modal')
+                */
+                submissionDetailsButton.ariaLabel = 'show-submissions.open-detailed-view-modal';
+                submissionDetailsButton.title = 'show-submissions.open-detailed-view-modal';
+                submissionDetailsButton.id = id.toString();
                 submissionDetailsButton.setAttribute('subscribe', 'lang');
-                submissionDetailsButton.setAttribute(
-                    'title',
-                    'show-submissions.open-detailed-view-modal',
-                );
-                let transGuard = this._i18n.t('show-submissions.open-detailed-view-modal');
-                console.log(transGuard);
-
-                submissionDetailsButton.setAttribute(
-                    'aria-label',
-                    'show-submissions.open-detailed-view-modal',
-                );
-                submissionDetailsButton.setAttribute('id', id.toString());
-                submissionDetailsButton.classList.add('open-modal-icon');
-                submissionDetailsButton.addEventListener('mousedown', (event) => {
+                submissionDetailsButton.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    // Redirect to render-form activity to display the readonly form with submission values
-                    const activeForm = this.forms.get(formId);
-                    const activeFormSlug = activeForm ? activeForm.formSlug : null;
-
-                    // @TODO: LunchLottery don't have a slug
-                    // other forms don't have read-only view
-                    // if (!activeFormSlug) {
-                    if (activeForm.formName !== 'Ethikkommission') {
-                        this.requestDetailedSubmission(state, cols, id);
-                        return;
-                    }
-                    // Go to the readonly view of the form submission
-                    let formSubmissionUrl =
-                        getFormRenderUrl(activeFormSlug) + `/${submissionId}/readonly`;
-                    const url = new URL(formSubmissionUrl);
-                    window.history.pushState({}, '', url);
-
-                    // Middle click opens in a new tab
-                    if (event.button === 1) {
-                        window.open(url.toString(), '_blank');
-                    } else {
-                        // Left click navigates to the URL
-                        window.location.href = url.toString();
-                    }
+                    this.requestDetailedSubmission(state, cols, id);
+                    return;
                 });
 
-                let actionButtonsDiv = this.createScopedElement('div');
                 actionButtonsDiv.appendChild(submissionDetailsButton);
                 actionButtonsDiv.classList.add('actions-buttons');
 
