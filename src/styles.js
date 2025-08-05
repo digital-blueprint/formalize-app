@@ -280,6 +280,12 @@ export function getEthicsCommissionFormCSS() {
             }
         }
 
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5em;
+        }
+
         .submission-permissions {
             width: 100%;
             container: permissions / inline-size;
