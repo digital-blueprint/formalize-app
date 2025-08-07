@@ -472,7 +472,7 @@ export function getEthicsCommissionFormCSS() {
             padding-left: 0.5em;
         }
 
-        .form-header.is-pinned .buttons-wrapper{
+        .form-header.is-pinned .buttons-wrapper {
             align-items: center;
         }
 
@@ -509,7 +509,7 @@ export function getEthicsCommissionFormCSS() {
 
         @container form (width < 750px) {
             /* Make icon buttons for small screens ? */
-            .form-header :is(button, dbp-button) .button-label
+            .form-header :is(button, dbp-button) .button-label {
                 display: none;
             }
 
