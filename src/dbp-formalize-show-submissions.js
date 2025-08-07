@@ -1183,8 +1183,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const columns = table.getColumnsFields();
             let listOfFilters = [];
             for (let col of columns) {
-                let filter_object = {field: col, type: operatorValue, value: filterValue};
-                listOfFilters.push(filter_object);
+                if (col && col !== 'htmlButtons') {
+                    let filter_object = {field: col, type: operatorValue, value: filterValue};
+                    listOfFilters.push(filter_object);
+                }
             }
             table.setFilter([listOfFilters]);
         }
@@ -1212,10 +1214,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      *
      * @returns {Array<html>} options
      */
-    getTableHeaderOptions() {
+    getTableHeaderOptions(state) {
         const i18n = this._i18n;
 
-        if (this.submissions.submitted.length === 0 && this.submissions.draft.length === 0) {
+        if (this.submissions[state].length === 0) {
             return [];
         } else {
             let options = [];
@@ -1224,16 +1226,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `);
 
             let submissions = [];
-            if (this.submissions.submitted.length > 0) {
-                submissions = this.submissions.submitted;
-            } else if (this.submissions.draft.length > 0) {
-                submissions = this.submissions.draft;
+            if (this.submissions[state].length > 0) {
+                submissions = this.submissions[state];
             }
 
             let cols = Object.keys(submissions[0]);
 
             for (let col of cols) {
-                if (col !== 'no_display_1') {
+                if (col && col !== 'htmlButtons') {
                     options.push(html`
                         <option value="${col}">${col}</option>
                     `);
@@ -1322,7 +1322,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 event.preventDefault();
                 const state = activeElement.getAttribute('data-state');
                 this.filterTable(state);
-                this.hideAdditionalSearchMenu(event);
             }
         }
     }
@@ -3302,13 +3301,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <div class="extended-menu" id="searchbar-menu--${state}" inert>
                         <input
                             type="text"
-                            id="searchbar-${state}"
+                            id="searchbar--${state}"
                             data-state="${state}"
                             class="searchbar"
-                            placeholder="${i18n.t('show-submissions.searchbar-placeholder')}"
-                            @click="${(e) => {
-                                this.toggleSearchMenu(state);
-                            }}" />
+                            placeholder="${i18n.t('show-submissions.searchbar-placeholder')}" />
 
                         <span class="spacer">/</span>
 
@@ -3321,7 +3317,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             title="${i18n.t('show-submissions.search-in-column')}:">
                             <optgroup label="Search in column:">
                                 <legend>Search in column:</legend>
-                                ${this.getTableHeaderOptions()}
+                                ${this.getTableHeaderOptions(state)}
                             </optgroup>
                         </select>
 
