@@ -3526,7 +3526,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 .options=${this.options_submissions[state]}
                                 pagination-enabled
                                 pagination-size="5"
-                                select-rows-enabled
                                 sticky-header></dbp-tabulator-table>
                         </div>
                         ${this.renderColumnSettingsModal(state)}
