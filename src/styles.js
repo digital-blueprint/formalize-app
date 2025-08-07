@@ -230,15 +230,16 @@ export function getTagsCSS() {
             padding: 1px 4px;
             border-radius: 2px;
             text-transform: uppercase;
+        }
 
-            &.tag--mode {
-                background-color: #f2f2f2;
-                color: var(--dbp-content);
-            }
-            &.tag--state {
-                background-color: var(--dbp-warning-surface);
-                color: var(--dbp-content);
-            }
+        .tag.tag--mode {
+            background-color: #f2f2f2;
+            color: var(--dbp-content);
+        }
+
+        .tag.tag--state {
+            background-color: var(--dbp-warning-surface);
+            color: var(--dbp-content);
         }
     `;
 }
@@ -273,11 +274,11 @@ export function getEthicsCommissionFormCSS() {
             justify-content: flex-start;
             flex-direction: column;
             gap: 0;
+        }
 
-            .label {
-                margin: 0.5em 0 0 0;
-                display: inline-block;
-            }
+        .submission-dates .label {
+            margin: 0.5em 0 0 0;
+            display: inline-block;
         }
 
         .action-buttons {
@@ -289,104 +290,102 @@ export function getEthicsCommissionFormCSS() {
         .submission-permissions {
             width: 100%;
             container: permissions / inline-size;
+        }
 
-            &.open {
-                .users-permissions {
-                    display: flex;
-                    opacity: 1;
+        .submission-permissions.open .users-permissions {
+            display: flex;
+            opacity: 1;
 
-                    @starting-style {
-                        opacity: 0;
-                    }
-                }
-
-                .user-permissions-title dbp-icon {
-                    transform: rotate(-180deg);
-                }
-            }
-
-            .users-permissions {
-                flex-direction: column;
-                gap: 0.5em;
-                display: none;
+            @starting-style {
                 opacity: 0;
-                margin-top: 1em;
-                transition:
-                    opacity 0.3s cubic-bezier(0.9, 0, 0.1, 1),
-                    display 0.3s cubic-bezier(0.9, 0, 0.1, 1) allow-discrete;
             }
+        }
 
-            .user-permissions-title {
-                /* button style reset */
-                background: none;
-                color: inherit;
-                border: none;
-                font: inherit;
-                cursor: pointer;
-                outline: inherit;
-                appearance: none;
+        .submission-permissions.open .user-permissions-title dbp-icon {
+            transform: rotate(-180deg);
+        }
 
-                font-weight: bold;
-                border-radius: 4px;
-                display: block;
-                font-size: 16px;
-                padding: 1em;
-                margin-left: -1em;
+        .users-permissions {
+            flex-direction: column;
+            gap: 0.5em;
+            display: none;
+            opacity: 0;
+            margin-top: 1em;
+            transition:
+                opacity 0.3s cubic-bezier(0.9, 0, 0.1, 1),
+                display 0.3s cubic-bezier(0.9, 0, 0.1, 1) allow-discrete;
+        }
 
-                &:hover {
-                    background-color: light-dark(#f7f7f7, #333333);
-                }
+        .user-permissions-title {
+            /* button style reset */
+            background: none;
+            color: inherit;
+            border: none;
+            font: inherit;
+            cursor: pointer;
+            outline: inherit;
+            appearance: none;
 
-                &[disabled] {
-                    cursor: not-allowed;
-                }
+            font-weight: bold;
+            border-radius: 4px;
+            display: block;
+            font-size: 16px;
+            padding: 1em;
+            margin-left: -1em;
+        }
 
-                dbp-icon {
-                    margin-right: 0.5em;
-                    transition: transform 0.15s ease;
-                    transition-delay: 250ms;
-                    color: var(--dbp-accent);
-                }
-            }
+        .user-permissions-title:hover {
+            background-color: light-dark(#f7f7f7, #333333);
+        }
 
-            .permissions-header {
-                display: flex;
-                gap: 1em;
-                justify-content: space-between;
-                align-items: center;
-                padding-left: 0.5em;
-            }
+        .user-permissions-title[disabled] {
+            cursor: not-allowed;
+        }
 
-            .user-entry {
-                display: flex;
-                align-items: center;
-                gap: 0.5em;
-            }
+        .user-permissions-title dbp-icon {
+            margin-right: 0.5em;
+            transition: transform 0.15s ease;
+            transition-delay: 250ms;
+            color: var(--dbp-accent);
+        }
 
-            .person-name {
-                width: 200px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
+        .permissions-header {
+            display: flex;
+            gap: 1em;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 0.5em;
+        }
 
-            .person-permissions {
-                display: flex;
-                gap: 0.5em;
-                flex-wrap: nowrap;
-            }
+        .user-entry {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
 
-            .person-permission {
-                display: inline-block;
-                padding: 0 6px;
-                line-height: 20px;
-                background-color: light-dark(#f2f2f2, #333333);
-            }
+        .person-name {
+            width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .person-permissions {
+            display: flex;
+            gap: 0.5em;
+            flex-wrap: nowrap;
+        }
+
+        .person-permission {
+            display: inline-block;
+            padding: 0 6px;
+            line-height: 20px;
+            background-color: light-dark(#f2f2f2, #333333);
         }
 
         @container permissions (width < 380px) {
             .permissions-header {
-                flex-direction: column;
+                flex-direction: column-reverse;
             }
         }
 
@@ -437,12 +436,14 @@ export function getEthicsCommissionFormCSS() {
         .info-box {
             background-color: #c9e4c6;
             padding: 1em;
-            p:first-child {
-                margin-top: 0;
-            }
-            p:last-child {
-                margin-bottom: 0;
-            }
+        }
+
+        .info-box p:first-child {
+            margin-top: 0;
+        }
+
+        .info-box p:last-child {
+            margin-bottom: 0;
         }
 
         /* buttons */
@@ -465,16 +466,14 @@ export function getEthicsCommissionFormCSS() {
             border: 1px solid var(--dbp-content);
             min-width: 250px;
             min-height: 130px;
+        }
 
-            .button-label {
-                padding-left: 0.5em;
-            }
+        .form-header .button-label {
+            padding-left: 0.5em;
+        }
 
-            &.is-pinned {
-                .buttons-wrapper {
-                    align-items: center;
-                }
-            }
+        .form-header.is-pinned .buttons-wrapper{
+            align-items: center;
         }
 
         .buttons-wrapper,
@@ -497,28 +496,21 @@ export function getEthicsCommissionFormCSS() {
         .form-delete-submission-button {
             color: var(--dbp-danger);
             border-color: var(--dbp-danger);
-
-            .button-label,
-            dbp-icon {
-                color: var(--dbp-danger);
-            }
         }
 
-        .edit-permissions {
-            .button-text {
-                padding-left: 5px;
-            }
+        .form-delete-submission-button .button-label,
+        .form-delete-submission-button dbp-icon {
+            color: var(--dbp-danger);
+        }
+
+        .edit-permissions .button-text {
+            padding-left: 5px;
         }
 
         @container form (width < 750px) {
             /* Make icon buttons for small screens ? */
-            .form-header {
-                button,
-                dbp-button {
-                    .button-label {
-                        display: none;
-                    }
-                }
+            .form-header :is(button, dbp-button) .button-label
+                display: none;
             }
 
             .submission-details {
@@ -527,15 +519,14 @@ export function getEthicsCommissionFormCSS() {
         }
 
         @container form (width < 420px) {
-            .submission-details {
-                .user-entry {
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-                .person-permissions {
-                    width: 100%;
-                    justify-content: flex-end;
-                }
+            .submission-details .user-entry {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .submission-details .person-permissions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
 
@@ -709,16 +700,12 @@ export function getEthicsCommissionFormCSS() {
         }
 
         /* animations */
+        :is(.button, dbp-button) dbp-icon {
+            transition: transform 0.1s ease-in;
+        }
 
-        .button,
-        dbp-button {
-            dbp-icon {
-                transition: transform 0.1s ease-in;
-            }
-
-            &:hover dbp-icon {
-                transform: scale(1.25);
-            }
+        :is(.button, dbp-button):hover dbp-icon {
+            transform: scale(1.25);
         }
 
         @keyframes fadeIn {
