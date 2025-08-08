@@ -781,7 +781,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     submissionDetailsFormButton.ariaLabel =
                         'show-submissions.open-detailed-view-form';
                     submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
-                    submissionDetailsFormButton.iconName = 'agenda';
+                    submissionDetailsFormButton.iconName = 'open-new-window';
                     submissionDetailsFormButton.title = 'show-submissions.open-detailed-view-form';
                     submissionDetailsFormButton.id = id.toString();
                     submissionDetailsFormButton.setAttribute('subscribe', 'lang');
