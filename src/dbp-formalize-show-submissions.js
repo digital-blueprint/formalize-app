@@ -38,7 +38,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super();
         this.allForms = [];
         this.activity = new Activity(metadata);
-        this.boundPressEnterAndSubmitSearchHandler = this.pressEnterAndSubmitSearch.bind(this);
+        this.boundKeyEventHandler = this.handleKeyEvents.bind(this);
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
         this.selectedRowCount = {
@@ -218,7 +218,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        document.removeEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+        document.removeEventListener('keyup', this.boundKeyEventHandler);
         document.removeEventListener('click', this.boundCloseActionsDropdownHandler);
         document.removeEventListener(
             'dbp-tabulator-table-row-selection-changed-event',
@@ -325,7 +325,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
-            document.addEventListener('keyup', this.boundPressEnterAndSubmitSearchHandler);
+            document.addEventListener('keyup', this.boundKeyEventHandler);
             document.addEventListener('click', this.boundCloseActionsDropdownHandler);
             document.addEventListener(
                 'dbp-tabulator-table-row-selection-changed-event',
@@ -1353,18 +1353,29 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Keydown Event function if enter pressed, then start filtering the table
+     * Handle key events for the searchBar
      *
      * @param event
      */
-    pressEnterAndSubmitSearch(event) {
-        // @TODO: Change funciton name and add ESC to close the searchbar
-        if (event.keyCode === 13) {
-            const activeElement = this.shadowRoot.activeElement;
-            if (activeElement && activeElement.classList.contains('searchbar')) {
+    handleKeyEvents(event) {
+        const activeElement = this.shadowRoot.activeElement;
+
+        if (activeElement && activeElement.classList.contains('searchbar')) {
+            // ENTER
+            if (event.keyCode === 13) {
                 event.preventDefault();
                 const state = activeElement.getAttribute('data-state');
                 this.filterTable(state);
+                // close search widget
+                this.searchWidgetIsOpen = {
+                    ...this.searchWidgetIsOpen,
+                    [state]: false,
+                };
+            }
+
+            // ESC
+            if (event.keyCode === 27) {
+                const state = activeElement.getAttribute('data-state');
                 // close search widget
                 this.searchWidgetIsOpen = {
                     ...this.searchWidgetIsOpen,
