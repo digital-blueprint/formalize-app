@@ -3367,19 +3367,23 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <button
                         class="search-button"
                         id="search-button--${state}"
-                        @click="${() => {
+                        @click="${async () => {
                             if (this.searchWidgetIsOpen[state]) {
                                 this.filterTable(state);
-                                // close search widget
+                                // Close search widget
                                 this.searchWidgetIsOpen = {
                                     ...this.searchWidgetIsOpen,
                                     [state]: false,
                                 };
                             } else {
+                                // Open search widget
                                 this.searchWidgetIsOpen = {
                                     ...this.searchWidgetIsOpen,
                                     [state]: true,
                                 };
+                                // Wait for DOM update to complete
+                                await this.updateComplete;
+                                this._(`#searchbar--${state}`).focus();
                             }
                         }}">
                         <dbp-icon
