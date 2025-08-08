@@ -32,6 +32,7 @@ import xss from 'xss';
 import {send} from '@dbp-toolkit/common/notification';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
+import {Modal} from '@dbp-toolkit/common/src/modal.js';
 
 class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
@@ -180,6 +181,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-loading-button': LoadingButton,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-grant-permission-dialog': GrantPermissionDialog,
+            'dbp-modal': Modal,
         };
     }
 
@@ -2200,6 +2202,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     padding-top: 10px;
                 }
 
+                .modal--confirmation {
+                    --dbp-modal-max-width: 360px;
+                    --dbp-modal-min-height: auto;
+                }
+
+                .footer-menu {
+                    padding: 0;
+                    justify-content: flex-end;
+                    display: flex;
+                    gap: 1em;
+                    margin-block: 2em 0;
+                }
+
                 span.first {
                     margin-left: -6px;
                 }
@@ -3199,6 +3214,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             : this.submissionTables[state].tabulatorTable.getRows('visible');
 
         if (data.length > 0) {
+            const confirmed = await this.getDeletionConfirmation();
+            if (!confirmed) return;
+
             let responseStatus = [];
             let index = 0;
             for (const submission of data) {
@@ -3221,6 +3239,51 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 type: 'warning',
                 timeout: 5,
             });
+        }
+    }
+
+    /**
+     * Shows a confirmation dialog for deletion and waits for user response
+     * @returns {Promise<boolean>} true if user confirms, false if user cancels
+     */
+    async getDeletionConfirmation() {
+        return new Promise((resolve) => {
+            // Store the resolve function so we can call it from the modal buttons
+            this._deletionConfirmationResolve = resolve;
+
+            // Show the confirmation modal
+            const modal = this._('#deletion-confirmation-modal');
+            if (modal) {
+                modal.open();
+            }
+        });
+    }
+
+    /**
+     * Handles the confirmation button click
+     */
+    handleDeletionConfirm() {
+        const modal = this._('#deletion-confirmation-modal');
+        if (modal) {
+            modal.close();
+        }
+        if (this._deletionConfirmationResolve) {
+            this._deletionConfirmationResolve(true);
+            this._deletionConfirmationResolve = null;
+        }
+    }
+
+    /**
+     * Handles the cancel button click
+     */
+    handleDeletionCancel() {
+        const modal = this._('#deletion-confirmation-modal');
+        if (modal) {
+            modal.close();
+        }
+        if (this._deletionConfirmationResolve) {
+            this._deletionConfirmationResolve(false);
+            this._deletionConfirmationResolve = null;
         }
     }
 
@@ -3627,6 +3690,32 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 entry-point-url="${this.entryPointUrl}"
                 resource-identifier="${this.submissionId}"
                 resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+
+            <!-- Deletion Confirmation Modal -->
+            <dbp-modal
+                id="deletion-confirmation-modal"
+                class="modal modal--confirmation"
+                modal-id="deletion-confirmation-modal"
+                title="${i18n.t('show-submissions.delete-confirmation-title')}"
+                subscribe="lang">
+                <div slot="content">
+                    <p>${i18n.t('show-submissions.delete-confirmation-message')}</p>
+                </div>
+                <menu slot="footer" class="footer-menu">
+                    <dbp-button
+                        type="is-secondary"
+                        no-spinner-on-click
+                        @click="${() => this.handleDeletionCancel()}">
+                        ${i18n.t('show-submissions.abort')}
+                    </dbp-button>
+                    <dbp-button
+                        type="is-danger"
+                        no-spinner-on-click
+                        @click="${() => this.handleDeletionConfirm()}">
+                        ${i18n.t('show-submissions.delete')}
+                    </dbp-button>
+                </menu>
+            </dbp-modal>
         `;
     }
 }
