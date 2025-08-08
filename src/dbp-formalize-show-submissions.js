@@ -100,7 +100,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.storeSession = true;
         this.loadingFormsTable = false;
         this.loadingSubmissionTables = false;
-        this.noSubmissionAvailable = true;
+        this.noSubmissionAvailable = {
+            draft: true,
+            submitted: true,
+            accepted: true,
+        };
         this.modalContentHeight = 0;
         this.loadCourses = true;
         this.hiddenColumns = false;
@@ -154,6 +158,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
             accepted: false,
         };
+        this.searchWidgetIsOpen = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+        this.actionsWidgetIsOpen = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
     }
 
     static get scopedElements() {
@@ -193,6 +207,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             hiddenColumns: {type: Boolean, attribute: false},
             options_submissions: {type: Object, attribute: false},
             options_forms: {type: Object, attribute: false},
+            searchWidgetIsOpen: {type: Object, attribute: false},
+            actionsWidgetIsOpen: {type: Object, attribute: false},
 
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
@@ -282,7 +298,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             rowHeight: 64,
             layout: 'fitData',
             layoutColumnsOnNewData: true,
-            selectableRows: true,
+            selectableRows: 'highlight',
             rowHeader: {
                 formatter: 'rowSelection',
                 titleFormatter: 'rowSelection',
@@ -300,6 +316,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
+            placeholder: 'No Submission data available',
         };
 
         this.options_submissions.submitted = {...options_submissions};
@@ -331,6 +348,25 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 },
             );
         });
+    }
+
+    enableCheckboxSelection(state) {
+        this.options_submissions[state].rowHeader = {
+            formatter: 'rowSelection',
+            titleFormatter: 'rowSelection',
+            titleFormatterParams: {
+                rowRange: 'visible', // only toggle the visible rows
+            },
+            headerSort: false,
+            resizable: false,
+            frozen: true,
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+        };
+    }
+
+    disableCheckboxSelection(state) {
+        this.options_submissions[state].rowHeader = false;
     }
 
     getTableState(tableId) {
@@ -520,10 +556,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true; // show back button
                         this.showFormsTable = false;
+                        this.disableCheckboxSelection(state);
 
                         this.submissionTables[state].clearData();
                         this.submissionTables[state].buildTable();
                     } else {
+                        this.enableCheckboxSelection(state);
+
                         this.submissionTables[state].buildTable();
                         // Get table settings from localstorage
                         this.getSubmissionTableSettings(state);
@@ -681,11 +720,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.throwSomethingWentWrongNotification();
             return Promise.reject(e);
         }
-        if (data['hydra:member'].length === 0) {
-            this.noSubmissionAvailable = true;
-            return response;
-        }
-        this.noSubmissionAvailable = false;
 
         this.rawSubmissions = data['hydra:member'];
         this.submissionGrantedActions = [
@@ -709,6 +743,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
 
         for (const state of Object.keys(this.submissions)) {
+            if (submissions[state].length === 0) {
+                this.noSubmissionAvailable[state] = true;
+                return response;
+            } else {
+                this.noSubmissionAvailable[state] = false;
+            }
+
             let submissions_list = [];
             for (let [x, submission] of submissions[state].entries()) {
                 let dateCreated = submission['dateCreated'];
@@ -1169,7 +1210,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!filter || !search || !operator || !table) return;
 
         if (filter.value === '') {
-            table.clearFilter(state);
+            table.clearFilter();
             return;
         }
         const filterValue = filter.value;
@@ -1194,18 +1235,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Removes the current filters from the submissions table
-     * @param {string} state - The state of the submission table ('draft', 'submitted' or 'accepted').
      */
-    clearFilter(state) {
-        let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
-        let search = /** @type {HTMLSelectElement} */ (this._(`#search-select--${state}`));
-        const table = this.submissionTables[state];
+    clearAllFilters() {
+        for (const state of Object.keys(this.submissionTables)) {
+            let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
+            let search = /** @type {HTMLSelectElement} */ (this._(`#search-select--${state}`));
+            const table = this.submissionTables[state];
 
-        if (!filter || !search || !table) return;
+            if (!filter || !search || !table) return;
 
-        filter.value = '';
-        search.value = 'all';
-        table.clearFilter();
+            filter.value = '';
+            search.value = 'all';
+            table.clearFilter();
+        }
     }
 
     /**
@@ -1316,6 +1358,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param event
      */
     pressEnterAndSubmitSearch(event) {
+        // @TODO: Change funciton name and add ESC to close the searchbar
         if (event.keyCode === 13) {
             const activeElement = this.shadowRoot.activeElement;
             if (activeElement && activeElement.classList.contains('searchbar')) {
@@ -1333,11 +1376,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     closeActionsDropdown(event) {
         const path = event.composedPath();
         const actionsContainers = this._a('.actions-container');
-        const clickedInsideAny = Array.from(actionsContainers).some((dropdown) =>
+        const clickedInsideAnyActionsDropdown = Array.from(actionsContainers).some((dropdown) =>
             path.includes(dropdown),
         );
 
-        if (!clickedInsideAny) {
+        if (!clickedInsideAnyActionsDropdown) {
             this.closeAllActionsDropdown();
         }
     }
@@ -2508,11 +2551,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     // Not in use...
-    setTableData() {
-        if (this.formsTable) {
-            this.formsTable.setData(this.allForms);
-        }
-    }
+    // setTableData() {
+    //     if (this.formsTable) {
+    //         this.formsTable.setData(this.allForms);
+    //     }
+    // }
 
     renderSubmissionDetailsModal(state) {
         const i18n = this._i18n;
@@ -2737,12 +2780,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     renderActionsWidget(state) {
         const i18n = this._i18n;
+
         return html`
-            <div class="actions-container" id="actions-container--${state}">
+            <div
+                class="actions-container ${classMap({open: this.actionsWidgetIsOpen[state]})}"
+                id="actions-container--${state}">
                 <button
                     class="button open-actions-button is-secondary"
                     id="action-button-${state}"
                     @click="${() => {
+                        this.setActionButtonsStates(state);
                         this.toggleActionsDropdown(state);
                     }}">
                     ${i18n.t('show-submissions.actions-button-text')}
@@ -2751,7 +2798,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         name="chevron-down"
                         aria-hidden="true"></dbp-icon>
                 </button>
-                <div class="actions-dropdown" inert>
+                <div class="actions-dropdown" ?inert=${!this.actionsWidgetIsOpen[state]}>
                     <ul class="actions-list">
                         ${this.isAcceptSubmissionEnabled[state]
                             ? html`
@@ -2759,8 +2806,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                       <button
                                           class="button action-button button--accept"
                                           @click="${async () => {
+                                              await this.handleAcceptSubmission();
                                               this.toggleActionsDropdown(state);
-                                              this.handleAcceptSubmission(state);
                                           }}">
                                           <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
                                           Accept
@@ -2774,8 +2821,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                       <button
                                           class="button action-button button--reopen"
                                           @click="${async () => {
+                                              await this.handleReopenSubmission();
                                               this.toggleActionsDropdown(state);
-                                              this.handleReopenSubmission(state);
                                           }}">
                                           <dbp-icon
                                               name="spinner-arrow"
@@ -2791,8 +2838,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                       <button
                                           class="button action-button button--edit-submission"
                                           @mousedown="${async (event) => {
-                                              this.toggleActionsDropdown(state);
                                               await this.handleEditSubmissions(event, state);
+                                              this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
                                           Edit draft/submission
@@ -2806,8 +2853,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                       <button
                                           class="button action-button button--edit-permission"
                                           @click="${async () => {
-                                              this.toggleActionsDropdown(state);
                                               await this.handleEditSubmissionsPermission(state);
+                                              this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon
                                               name="edit-permission"
@@ -2855,27 +2902,32 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
+    /**
+     * Toggle actions dropdown
+     * @param {string} state - form state. draft, submitted or accepted
+     */
     toggleActionsDropdown(state) {
-        this.setActionButtonsStates(state);
-
-        const actionsContainer = this._(`#actions-container--${state}`);
-        const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
-        actionsDropdown.toggleAttribute('inert');
-        actionsContainer.classList.toggle('open');
+        this.actionsWidgetIsOpen = {
+            ...this.actionsWidgetIsOpen,
+            [state]: !this.actionsWidgetIsOpen[state],
+        };
     }
 
+    /**
+     * Close all actions dropdowns
+     */
     closeAllActionsDropdown() {
-        const actionsContainers = this._a(`.actions-container`);
-        const actionsDropdowns = this._a(`.actions-container .actions-dropdown`);
-
-        actionsDropdowns.forEach((dropdown) => {
-            dropdown.setAttribute('inert', 'inert');
-        });
-        actionsContainers.forEach((container) => {
-            container.classList.remove('open');
-        });
+        this.actionsWidgetIsOpen = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
     }
 
+    /**
+     * Set action buttons states
+     * @param {string} state - form state. draft, submitted or accepted
+     */
     setActionButtonsStates(state) {
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
         const visibleRows = this.submissionTables[state].tabulatorTable.getRows('visible');
@@ -2889,14 +2941,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.isAcceptSubmissionEnabled[state] =
             isAcceptedStateEnabled(allowedSubmissionStates) &&
-            state === 'submitted' &&
+            state === SUBMISSION_STATES.SUBMITTED &&
             this.selectedRowCount[state] > 0 &&
             (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                 this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
                 formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
         this.isReopenSubmissionEnabled[state] =
-            state === 'accepted' &&
+            state === SUBMISSION_STATES.ACCEPTED &&
             this.selectedRowCount[state] > 0 &&
             (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                 this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
@@ -2965,6 +3017,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    /**
+     * Handle refreshing table rows after accepting submissions
+     */
     async handleAcceptSubmission() {
         const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
         const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
@@ -3015,6 +3070,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    /**
+     * Handle refreshing table rows after reopening submissions
+     */
     async handleReopenSubmission() {
         const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
         const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
@@ -3262,11 +3320,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    openActionsDropdown(state) {
-        const actionsContainer = this._(`#actions-container--${state}`);
-        const actionsDropdown = this._(`#actions-container--${state} .actions-dropdown`);
-        actionsDropdown.toggleAttribute('inert');
-        actionsContainer.classList.toggle('open');
+    closeAllSearchWidgets() {
+        this.searchWidgetIsOpen = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
+    }
+
+    closeSearchWidget(state) {
+        const extendableSearchbar = this._(`#extendable-searchbar--${state}`);
+        extendableSearchbar.classList.add('closing');
+
+        setTimeout(() => {
+            this.searchWidgetIsOpen = {...this.searchWidgetIsOpen, [state]: false};
+            extendableSearchbar.classList.remove('closing');
+        }, 250);
     }
 
     renderSearchWidget(state) {
@@ -3274,22 +3343,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return html`
             <div class="search-container">
-                <div id="extendable-searchbar--${state}" class="extendable-searchbar">
+                <div
+                    id="extendable-searchbar--${state}"
+                    class="extendable-searchbar ${classMap({
+                        open: this.searchWidgetIsOpen[state],
+                    })}">
                     <button
                         class="search-button"
                         id="search-button--${state}"
                         @click="${() => {
-                            const isOpen = this._(
-                                `#extendable-searchbar--${state}`,
-                            ).classList.contains('open');
-                            if (!isOpen) {
-                                this._(`#extendable-searchbar--${state}`).classList.add('open');
-                                this._(
-                                    `#extendable-searchbar--${state} .search-close-button`,
-                                ).removeAttribute('inert');
-                                this._(`#searchbar-menu--${state}`).removeAttribute('inert');
-                            } else {
+                            if (this.searchWidgetIsOpen[state]) {
                                 this.filterTable(state);
+                            } else {
+                                this.searchWidgetIsOpen = {
+                                    ...this.searchWidgetIsOpen,
+                                    [state]: true,
+                                };
                             }
                         }}">
                         <dbp-icon
@@ -3298,7 +3367,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             name="search"></dbp-icon>
                     </button>
 
-                    <div class="extended-menu" id="searchbar-menu--${state}" inert>
+                    <div
+                        class="extended-menu"
+                        id="searchbar-menu--${state}"
+                        ?inert=${!this.searchWidgetIsOpen[state]}>
                         <input
                             type="text"
                             id="searchbar--${state}"
@@ -3371,20 +3443,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </div>
 
                     <button
-                        inert
                         class="search-close-button"
+                        ?inert=${!this.searchWidgetIsOpen[state]}
                         @click=${() => {
-                            this._(`#extendable-searchbar--${state}`).classList.add('closing');
-                            this._(
-                                `#extendable-searchbar--${state} .search-close-button`,
-                            ).setAttribute('inert', true);
-                            this._(`#searchbar-menu--${state}`).setAttribute('inert', true);
-                            setTimeout(() => {
-                                this._(`#extendable-searchbar--${state}`).classList.remove('open');
-                                this._(`#extendable-searchbar--${state}`).classList.remove(
-                                    'closing',
-                                );
-                            }, 250);
+                            this.closeSearchWidget(state);
                         }}>
                         <dbp-icon name="close"></dbp-icon>
                         <span class="visually-hidden">Close search</span>
@@ -3464,7 +3526,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             @click="${() => {
                                 this.showSubmissionTables = false;
                                 this.loadingSubmissionsTables = false;
-                                this.clearFilter();
+                                this.clearAllFilters();
+                                this.closeAllSearchWidgets();
                                 this.loadingFormsTable = false;
                                 this.showFormsTable = true;
                                 this.sendSetPropertyEvent('routing-url', '/', true);
@@ -3484,13 +3547,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 class="container submissions-table ${classMap({
                     hidden: !this.showSubmissionTables,
                 })}">
-                ${this.noSubmissionAvailable
-                    ? html`
-                          <div class="notification is-warning">
-                              ${i18n.t('show-submissions.no-submission-available-message')}
-                          </div>
-                      `
-                    : ''}
                 ${Object.values(SUBMISSION_STATES).map((state) => {
                     const submissionTableTitle = {
                         draft: i18n.t('show-submissions.submission-table-draft-title'),
@@ -3514,8 +3570,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <h3 class="table-title">${submissionTableTitle[state]}</h3>
 
                             <div class="table-buttons table-buttons--${state}">
-                                ${this.renderActionsWidget(state)} ${this.renderSearchWidget(state)}
-                                ${this.renderExportWidget(state)}
+                                ${this.noSubmissionAvailable[state] === true
+                                    ? ''
+                                    : html`
+                                          ${this.renderActionsWidget(state)}
+                                          ${this.renderSearchWidget(state)}
+                                          ${this.renderExportWidget(state)}
+                                      `}
                             </div>
 
                             <dbp-tabulator-table
