@@ -654,8 +654,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         'dbp-formalize-get-details-button',
                     );
                     btn.setAttribute('subscribe', 'lang');
-                    btn.setAttribute('title', 'show-submissions.open-forms');
-                    btn.setAttribute('aria-label', 'show-submissions.open-forms');
+                    btn.title = i18n.t('show-submissions.open-forms');
+                    btn.ariaLabel = i18n.t('show-submissions.open-forms');
                     btn.addEventListener('click', async (event) => {
                         this.loadingSubmissionTables = true;
                         // Switch to form submissions table

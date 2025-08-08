@@ -646,20 +646,16 @@ class FormalizeFormElement extends BaseFormElement {
             }
             const screenReaderText = this._('#form-scroller .visually-hidden');
             if (html.scrollTop < form.scrollHeight / 2) {
-                icon.setAttribute('name', 'chevron-down');
-                icon.setAttribute(
-                    'title',
-                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text'),
+                icon.name = 'chevron-down';
+                icon.title = i18n.t(
+                    'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
                 );
                 screenReaderText.textContent = i18n.t(
                     'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
                 );
             } else {
-                icon.setAttribute('name', 'chevron-up');
-                icon.setAttribute(
-                    'title',
-                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text'),
-                );
+                icon.name = 'chevron-up';
+                icon.title = i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text');
                 screenReaderText.textContent = i18n.t(
                     'render-form.forms.ethics-commission-form.scroll-to-top-text',
                 );
@@ -1377,11 +1373,8 @@ class FormalizeFormElement extends BaseFormElement {
         if (html.scrollTop < form.scrollHeight / 2) {
             html.scrollTo({top: form.scrollHeight, behavior: 'smooth'});
             setTimeout(() => {
-                icon.setAttribute('name', 'chevron-up');
-                icon.setAttribute(
-                    'title',
-                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text'),
-                );
+                icon.name = 'chevron-up';
+                icon.title = i18n.t('render-form.forms.ethics-commission-form.scroll-to-top-text');
                 screenReaderText.textContent = i18n.t(
                     'render-form.forms.ethics-commission-form.scroll-to-top-text',
                 );
@@ -1389,10 +1382,9 @@ class FormalizeFormElement extends BaseFormElement {
         } else {
             html.scrollTo({top: 0, behavior: 'smooth'});
             setTimeout(() => {
-                icon.setAttribute('name', 'chevron-down');
-                icon.setAttribute(
-                    'title',
-                    i18n.t('render-form.forms.ethics-commission-form.scroll-to-bottom-text'),
+                icon.name = 'chevron-down';
+                icon.title = i18n.t(
+                    'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
                 );
                 screenReaderText.textContent = i18n.t(
                     'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
