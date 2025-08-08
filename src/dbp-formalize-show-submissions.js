@@ -1365,6 +1365,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 event.preventDefault();
                 const state = activeElement.getAttribute('data-state');
                 this.filterTable(state);
+                // close search widget
+                this.searchWidgetIsOpen = {
+                    ...this.searchWidgetIsOpen,
+                    [state]: false,
+                };
             }
         }
     }
@@ -3354,6 +3359,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         @click="${() => {
                             if (this.searchWidgetIsOpen[state]) {
                                 this.filterTable(state);
+                                // close search widget
+                                this.searchWidgetIsOpen = {
+                                    ...this.searchWidgetIsOpen,
+                                    [state]: false,
+                                };
                             } else {
                                 this.searchWidgetIsOpen = {
                                     ...this.searchWidgetIsOpen,
