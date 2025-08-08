@@ -728,6 +728,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ...new Set(this.rawSubmissions.flatMap((item) => item.grantedActions)),
         ];
 
+        if (data['hydra:member'].length === 0) {
+            this.noSubmissionAvailable = {
+                draft: true,
+                submitted: true,
+                accepted: true,
+            };
+            return response;
+        }
+
         let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
         firstDataFeedElement = JSON.parse(firstDataFeedElement);
         let columns = Object.keys(firstDataFeedElement);
