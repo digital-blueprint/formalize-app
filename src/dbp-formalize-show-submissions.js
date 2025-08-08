@@ -1830,7 +1830,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     container: table-buttons / inline-size;
                 }
 
-                .table-buttons :is(select, input[type='text'], button) {
+                .table-buttons :where(select, input[type='text'], button) {
                     box-sizing: border-box;
                     height: 34px;
                     padding-block: 0;
