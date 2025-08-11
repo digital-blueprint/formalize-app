@@ -126,8 +126,6 @@ export class GetDetailsButton extends ScopedElementsMixin(DBPLitElement) {
 
     static get styles() {
         return css`
-            :host {
-            }
             dbp-icon-button {
                 font-size: 20px;
             }
@@ -198,6 +196,7 @@ export class GetSubmissionLink extends ScopedElementsMixin(DBPLitElement) {
                 line-height: 40px;
                 color: var(--dbp-content);
                 justify-content: center;
+                color: currentColor;
             }
             dbp-icon {
                 font-size: 24px;
