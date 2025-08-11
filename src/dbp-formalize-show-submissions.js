@@ -169,6 +169,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
             accepted: false,
         };
+        this.isActionAvailable = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
     }
 
     static get scopedElements() {
@@ -211,6 +216,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             options_forms: {type: Object, attribute: false},
             searchWidgetIsOpen: {type: Object, attribute: false},
             actionsWidgetIsOpen: {type: Object, attribute: false},
+            isActionAvailable: {type: Object, attribute: false},
 
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
@@ -345,6 +351,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             // this.setInitialSubmissionTableOrder(state);
                             this.defineSettings(state);
                             this.updateSubmissionTable(state);
+                            this.setIsActionAvailable(state);
                         }
                     }
                 },
@@ -2828,6 +2835,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <button
                     class="button open-actions-button is-secondary"
                     id="action-button-${state}"
+                    ?disabled=${!this.isActionAvailable.state}
                     @click="${() => {
                         this.setActionButtonsStates(state);
                         this.toggleActionsDropdown(state);
@@ -2940,6 +2948,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </div>
             </div>
         `;
+    }
+
+    setIsActionAvailable(state) {
+        this.setActionButtonsStates(state);
+        if (
+            this.isAcceptSubmissionEnabled[state] === false &&
+            this.isReopenSubmissionEnabled[state] === false &&
+            this.isEditSubmissionEnabled[state] === false &&
+            this.isEditSubmissionPermissionEnabled[state] === false &&
+            this.isDeleteAllSubmissionEnabled[state] === false &&
+            this.isDeleteSelectedSubmissionEnabled[state] === false
+        ) {
+            this.isActionAvailable = {...this.isActionAvailable, state: false};
+        } else {
+            this.isActionAvailable = {...this.isActionAvailable, state: true};
+        }
     }
 
     /**
