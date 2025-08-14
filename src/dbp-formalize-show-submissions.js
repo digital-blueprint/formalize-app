@@ -118,12 +118,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.formsTable = null;
 
-        this.selectedRowCount = {
-            draft: 0,
-            submitted: 0,
-            accepted: 0,
-        };
-
         this.isDeleteSelectedSubmissionEnabled = {
             draft: false,
             submitted: false,
@@ -196,14 +190,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             allForms: {type: Array, attribute: false},
             form: {type: String},
             name: {type: String},
-            forms: {type: Array, attribute: false},
-            submissions: {type: Array, attribute: false},
+            forms: {type: Object, attribute: false},
+            submissions: {type: Object, attribute: false},
             emptyCoursesTable: {type: Boolean, attribute: true},
             showFormsTable: {type: Boolean, attribute: false},
             showSubmissionTables: {type: Boolean, attribute: false},
             loadingFormsTable: {type: Boolean, attribute: false},
             loadingSubmissionTables: {type: Boolean, attribute: false},
-            submissionsColumns: {type: Array, attribute: false},
+            submissionsColumns: {type: Object, attribute: false},
             isPrevEnabled: {type: Boolean, attribute: false},
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
@@ -221,6 +215,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
             isEditSubmissionEnabled: {type: Boolean, attribute: false},
+
+            selectedRowCount: {type: Object, attribute: false},
+            visibleRowCount: {type: Object, attribute: false},
         };
     }
 
@@ -763,7 +760,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         for (const state of Object.keys(this.submissions)) {
             if (submissions[state].length === 0) {
                 this.noSubmissionAvailable[state] = true;
-                return response;
+                continue;
             } else {
                 this.noSubmissionAvailable[state] = false;
             }
@@ -2960,9 +2957,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.isDeleteAllSubmissionEnabled[state] === false &&
             this.isDeleteSelectedSubmissionEnabled[state] === false
         ) {
-            this.isActionAvailable = {...this.isActionAvailable, state: false};
+            this.isActionAvailable = {...this.isActionAvailable, [state]: false};
         } else {
-            this.isActionAvailable = {...this.isActionAvailable, state: true};
+            this.isActionAvailable = {...this.isActionAvailable, [state]: true};
         }
     }
 
