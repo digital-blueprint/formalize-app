@@ -47,7 +47,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: 0,
             accepted: 0,
         };
-        this.visibleRowCount = {
+        this.allRowCount = {
             draft: 0,
             submitted: 0,
             accepted: 0,
@@ -217,7 +217,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isEditSubmissionEnabled: {type: Boolean, attribute: false},
 
             selectedRowCount: {type: Object, attribute: false},
-            visibleRowCount: {type: Object, attribute: false},
+            allRowCount: {type: Object, attribute: false},
         };
     }
 
@@ -2844,7 +2844,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <button
                     class="button open-actions-button is-secondary"
                     id="action-button-${state}"
-                    ?disabled=${!this.isActionAvailable.state}
+                    ?disabled=${!this.isActionAvailable[state]}
                     @click="${() => {
                         this.setActionButtonsStates(state);
                         this.toggleActionsDropdown(state);
@@ -2931,7 +2931,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                          Delete all (${this.visibleRowCount[state]})
+                                          Delete all (${this.allRowCount[state]})
                                       </button>
                                   </li>
                               `
@@ -3003,14 +3003,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     setActionButtonsStates(state) {
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
-        const visibleRows = this.submissionTables[state].tabulatorTable.getRows('visible');
+        const allRows = this.submissionTables[state].tabulatorTable.getRows('all');
         const activeForm = this.forms.get(this.activeFormId);
         const formGrantedActions = activeForm.formGrantedActions;
         const allowedSubmissionStates = activeForm.allowedSubmissionStates;
 
         // Set row counts
         this.selectedRowCount[state] = selectedRows.length;
-        this.visibleRowCount[state] = visibleRows.length;
+        this.allRowCount[state] = allRows.length;
 
         this.isAcceptSubmissionEnabled[state] =
             isAcceptedStateEnabled(allowedSubmissionStates) &&
@@ -3033,8 +3033,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isDeleteAllSubmissionEnabled[state] =
-            this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-            this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
+            this.selectedRowCount[state] === 0 &&
+            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isEditSubmissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
