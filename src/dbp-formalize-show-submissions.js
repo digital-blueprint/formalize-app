@@ -2867,7 +2867,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                                          Accept
+                                          Accept (${this.selectedRowCount[state]})
                                       </button>
                                   </li>
                               `
@@ -2884,7 +2884,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           <dbp-icon
                                               name="spinner-arrow"
                                               aria-hidden="true"></dbp-icon>
-                                          Reopen
+                                          Reopen (${this.selectedRowCount[state]})
                                       </button>
                                   </li>
                               `
