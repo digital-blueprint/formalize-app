@@ -758,13 +758,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const submissions = {};
         submissions.submitted = data['hydra:member'].filter((submission) => {
-            return submission.submissionState === 4;
+            return submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED;
         });
         submissions.draft = data['hydra:member'].filter((submission) => {
-            return submission.submissionState === 1;
+            return submission.submissionState === SUBMISSION_STATES_BINARY.DRAFT;
         });
         submissions.accepted = data['hydra:member'].filter((submission) => {
-            return submission.submissionState === 16;
+            return submission.submissionState === SUBMISSION_STATES_BINARY.ACCEPTED;
         });
 
         for (const state of Object.keys(this.submissions)) {
