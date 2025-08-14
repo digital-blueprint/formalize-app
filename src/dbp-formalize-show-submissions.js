@@ -375,6 +375,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.options_submissions[state].rowHeader = false;
     }
 
+    disablePagination(state) {
+        this.submissionTables[state].paginationEnabled = false;
+    }
+
+    enablePagination(state) {
+        this.submissionTables[state].paginationEnabled = true;
+    }
+
     getTableState(tableId) {
         for (const state of Object.keys(this.submissionTables)) {
             if (this.submissionTables[state] && tableId === this.submissionTables[state].id) {
@@ -563,11 +571,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.showSubmissionTables = true; // show back button
                         this.showFormsTable = false;
                         this.disableCheckboxSelection(state);
+                        this.disablePagination(state);
 
                         this.submissionTables[state].clearData();
                         this.submissionTables[state].buildTable();
                     } else {
                         this.enableCheckboxSelection(state);
+                        this.enablePagination(state);
 
                         this.submissionTables[state].buildTable();
                         // Get table settings from localstorage
@@ -3705,7 +3715,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 id="tabulator-table-submissions-${state}"
                                 identifier="submissions-table-${state}"
                                 .options=${this.options_submissions[state]}
-                                pagination-enabled
                                 pagination-size="5"
                                 sticky-header></dbp-tabulator-table>
                         </div>
