@@ -1857,6 +1857,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     border: 0 none;
                     height: 2.625em;
                     background-color: transparent;
+                    width: 100%;
+                    text-align: left;
                 }
 
                 /* actions */
