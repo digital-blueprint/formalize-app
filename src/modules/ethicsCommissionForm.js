@@ -3520,8 +3520,8 @@ class FormalizeFormElement extends BaseFormElement {
                         label="Nehmen Menschen am Forschungsvorhaben als Proband*innen teil?"
                         description="(z.B.: durch Interviews; über per Ton und/oder Video aufgezeichnete Beobachtungen; bei Technologie-/Prototypentestungen)"
                         .items=${{
-                            yes: 'Ja',
-                            no: 'Nein',
+                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.testSubjects || ''}>
                     </dbp-form-enum-element>
@@ -3544,8 +3544,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.1. Nehmen die Proband*innen freiwillig an der Studie teil?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsVoluntary ||
                                           ''}></dbp-form-enum-element>
@@ -3557,8 +3561,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.2. 1.1.2.	Handelt es sich um einen Selbstversuch, bei dem Sie selbst Proband*in sind?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.isSelfExperiment ||
                                           ''}></dbp-form-enum-element>
@@ -3570,8 +3578,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.3. Wurden die Proband*innen über die an ihnen durchgeführte Studie im Vorfeld umfassend, in einfacher und verständlicher Sprache informiert (In-formed Consent)?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsInformedConsent ||
                                           ''}></dbp-form-enum-element>
@@ -3583,8 +3595,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.4. Wird sichergestellt, dass die Teilnahme ausschließlich nach Unterfertigung der informierten Einwilligung durch die Proband*innen und/oder ihrer gesetzlichen Vertreter*innen erfolgt? (Informed Consent)"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsConsentSigned ||
                                           ''}></dbp-form-enum-element>
@@ -3596,8 +3612,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.5. Besteht die Möglichkeit, von der Teilnahme ohne persönliche negative Auswirkungen zurückzutreten?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsWithdrawPossible ||
                                           ''}></dbp-form-enum-element>
@@ -3609,8 +3629,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.6. Nehmen Personen, die in studienrechtlicher und/oder arbeitsrechtlicher Abhängigkeit zur Studienleitung stehen (z.B.: Mitarbeitende des gleichen Instituts) als Proband*innen an der Studie teil?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsDependent ||
                                           ''}></dbp-form-enum-element>
@@ -3622,8 +3646,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.1.7. Sind andere potentiell vulnerable Personen involviert (Kinder, nicht einwilligungsfähige Personen, Opfer von Missbrauch oder Gewalt etc.)?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsVulnerable ||
                                           ''}></dbp-form-enum-element>
@@ -3643,8 +3671,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.2.1. Werden invasive Techniken angewandt (z.B.: zur Verabreichung von Medikamenten oder Kontrastmitteln, zur Entnahme von Gewebeproben, das Einsetzen von Implantaten, etc.)?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.invasiveTechniquesUsed ||
                                           ''}></dbp-form-enum-element>
@@ -3656,8 +3688,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.2.2. Werden Techniken verwendet, die einen Einfluss auf die Gehirnaktivität haben (z.B.: Beeinflussung oder Stimulation neuronaler Prozesse)?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.influenceOnBrainActivity ||
                                           ''}></dbp-form-enum-element>
@@ -3669,8 +3705,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.2.3. Führt die Teilnahme an der Studie bei den Proband*innen zu mindestens einer der folgenden Konsequenzen wie dem Erleben von Erniedrigung, Scham, Folter, Schmerzen, psychischem Druck, oder überdurchschnittlichem Stress, starker Belastung der menschlichen Sensorik oder zu sonstiger Konsequenz?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsTortured ||
                                           ''}></dbp-form-enum-element>
@@ -3684,8 +3724,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.2.4. Könnten Proband*innen zu Schaden kommen bzw. gibt es mögliche Risiken oder etwaige Folgeerscheinungen?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsHarmed ||
                                           ''}></dbp-form-enum-element>
@@ -3697,8 +3741,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.2.5. Rechtfertigt der Nutzen der Studie die Risiken für die Proband*innen?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsRisksJustified ||
                                           ''}></dbp-form-enum-element>
@@ -3710,8 +3758,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.2.6. Wurden alle Schritte unternommen, um die Risiken zu minimieren?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsRiskMinimized ||
                                           ''}></dbp-form-enum-element>
@@ -3728,8 +3780,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="1.3.1 Ist den Proband*innen die Teilnahme an der Studie im Gesamten zumutbar?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.testSubjectsReasonableToParticipate ||
                                           ''}></dbp-form-enum-element>
@@ -3750,8 +3806,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="Werden im Zuge des Forschungsvorhabens tote Körper/Leichen(-teile) eingesetzt?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.deadBodies || ''}>
                         </dbp-form-enum-element>
@@ -3765,8 +3821,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="1.4.1. Liegen entsprechende Rechtsgrundlagen/Dokumente vor?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.legalDocumentsAvailable || ''}>
                         </dbp-form-enum-element>
@@ -3778,8 +3834,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="1.4.2. Kann eine Störung der Totenruhe ausgeschlossen werden?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.disturbanceOfPeaceOfDead || ''}>
                         </dbp-form-enum-element>
@@ -3805,8 +3861,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="Bezieht sich das Forschungsvorhaben auf die Verwendung von menschlichen Stammzellen oder menschlichem Gewebe?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.humanStemCells || ''}>
                         </dbp-form-enum-element>
@@ -3825,8 +3881,12 @@ class FormalizeFormElement extends BaseFormElement {
                                               required
                                               label="1.5.1.	Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Zellen oder menschlichem Gewebe?"
                                               .items=${{
-                                                  yes: 'Ja',
-                                                  no: 'Nein',
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
                                               }}
                                               .value=${data.humanTissueUsed ||
                                               ''}></dbp-form-enum-element>
@@ -3844,8 +3904,12 @@ class FormalizeFormElement extends BaseFormElement {
                                               required
                                               label="1.5.2.	Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Stammzellen?"
                                               .items=${{
-                                                  yes: 'Ja',
-                                                  no: 'Nein',
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
                                               }}
                                               .value=${data.humanStemCellsUsed ||
                                               ''}></dbp-form-enum-element>
@@ -3864,8 +3928,12 @@ class FormalizeFormElement extends BaseFormElement {
                                                         required
                                                         label="1.5.2.1. Werden die Stammzellen direkt aus Embryos gewonnen?"
                                                         .items=${{
-                                                            yes: 'Ja',
-                                                            no: 'Nein',
+                                                            yes: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.yes',
+                                                            ),
+                                                            no: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.no',
+                                                            ),
                                                         }}
                                                         .value=${data.stemCellsFromEmbryos ||
                                                         ''}></dbp-form-enum-element>
@@ -3885,8 +3953,12 @@ class FormalizeFormElement extends BaseFormElement {
                                               required
                                               label="1.5.3. Beinhaltet das Forschungsvorhaben die Verwendung von menschlichen Embryos oder Föten?"
                                               .items=${{
-                                                  yes: 'Ja',
-                                                  no: 'Nein',
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
                                               }}
                                               .value=${data.useOfHumanEmbryos ||
                                               ''}></dbp-form-enum-element>
@@ -3905,8 +3977,12 @@ class FormalizeFormElement extends BaseFormElement {
                                                         required
                                                         label="1.5.3.1. Werden diese im Zuge der Forschung zerstört?"
                                                         .items=${{
-                                                            yes: 'Ja',
-                                                            no: 'Nein',
+                                                            yes: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.yes',
+                                                            ),
+                                                            no: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.no',
+                                                            ),
                                                         }}
                                                         .value=${data.stemCellsFromEmbryosDestroyed ||
                                                         ''}></dbp-form-enum-element>
@@ -3920,8 +3996,12 @@ class FormalizeFormElement extends BaseFormElement {
                                               required
                                               label="1.5.4. Sind die im Forschungsvorhaben verwendeten Zellen (bzw. ist das menschliche Gewebe) kommerziell verfügbar?"
                                               .items=${{
-                                                  yes: 'Ja',
-                                                  no: 'Nein',
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
                                               }}
                                               .value=${data.commerciallyAvailableCells ||
                                               ''}></dbp-form-enum-element>
@@ -3939,8 +4019,12 @@ class FormalizeFormElement extends BaseFormElement {
                                               required
                                               label="1.5.5 Werden die im Forschungsvorhaben verwendeten Zellen (bzw. das menschliche Gewebe) im Zuge des Forschungsvorhabens gewonnen?"
                                               .items=${{
-                                                  yes: 'Ja',
-                                                  no: 'Nein',
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
                                               }}
                                               .value=${data.cellsObtainedInResearch ||
                                               ''}></dbp-form-enum-element>
@@ -3984,8 +4068,8 @@ class FormalizeFormElement extends BaseFormElement {
                         required
                         label="Werden im Zuge des Forschungsvorhabens Tiere herangezogen?"
                         .items=${{
-                            yes: 'Ja',
-                            no: 'Nein',
+                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.animalsInvolved || ''}>
                     </dbp-form-enum-element>
@@ -4007,8 +4091,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.1.	Handelt es sich dabei um Wirbeltiere?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.isAnimalVertebrate ||
                                           ''}></dbp-form-enum-element>
@@ -4020,8 +4108,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.2.	Handelt es sich dabei um nicht-menschliche Primaten (Affen, Schimpansen, Gorillas etc.)?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.nonHumanPrimates ||
                                           ''}></dbp-form-enum-element>
@@ -4033,8 +4125,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.3. Sind diese Tiere genetisch verändert?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.geneticallyModifiedAnimals ||
                                           ''}></dbp-form-enum-element>
@@ -4046,8 +4142,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.4. Gehören diese Tiere einer bedrohten Tierart an?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.endangeredSpecies ||
                                           ''}></dbp-form-enum-element>
@@ -4059,8 +4159,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.5. Gibt es Alternativen zur Verwendung von Versuchstieren?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.alternativesToUseLaboratoryAnimals ||
                                           ''}></dbp-form-enum-element>
@@ -4072,8 +4176,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.6. Könnten Versuchstiere im Zuge des Forschungsvorhabens zu Schaden kommen?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.laboratoryAnimalsHarmed ||
                                           ''}></dbp-form-enum-element>
@@ -4085,8 +4193,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.7. Rechtfertigt der Nutzen der Studie die Risiken für die Versuchstiere?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.isRiskJustified ||
                                           ''}></dbp-form-enum-element>
@@ -4098,8 +4210,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="2.1.8. Liegen entsprechende Rechtsgrundlagen/Dokumente vor?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.relevantLegalDocumentAvailable ||
                                           ''}></dbp-form-enum-element>
@@ -4119,8 +4235,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="3.1. Kann Ihr Forschungsvorhaben negative Auswirkungen auf Umwelt, Tiere und/oder Pflanzen haben?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.harmfulSubstances || ''}>
                         </dbp-form-enum-element>
@@ -4132,8 +4248,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="3.2. Sind konkrete negative Auswirkungen auf bedrohte Pflanzenarten oder Naturschutzgebiete bzw. der Verlust von Biodiversität zu befürchten?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.negativeImpactsOnNature || ''}>
                         </dbp-form-enum-element>
@@ -4151,8 +4267,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="3.3. Kommt es zum Einsatz von Stoffen, die für Proband*innen und/oder Forscher*innen potentiell schädliche Konsequenzen haben können?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.harmfulSubstancesOnSubjects || ''}>
                         </dbp-form-enum-element>
@@ -4170,8 +4286,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="3.3.1. Wurden adäquate Sicherheitsmaßnahmen zur Reduktion des Risikos für Proband*innen und Forscher*innen getroffen?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.adequateSafetyMeasures ||
                                           ''}></dbp-form-enum-element>
@@ -4191,8 +4311,8 @@ class FormalizeFormElement extends BaseFormElement {
                             display-mode="list"
                             required
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
                                 <span slot="label">
@@ -4233,8 +4353,8 @@ class FormalizeFormElement extends BaseFormElement {
                         required
                         label="Wird ein Teil des Forschungsvorhabens außerhalb der EU/in Drittstaaten durchgeführt?"
                         .items=${{
-                            yes: 'Ja',
-                            no: 'Nein',
+                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.nonEuCountries || ''}>
                     </dbp-form-enum-element>
@@ -4258,8 +4378,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="4.1.1. Berühren die in Drittstaaten ausgeführten Aktivitäten potentiell ethische Themen entweder aus EU-Sicht oder aus Sicht des Drittstaats?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.ethicalIssues ||
                                           ''}></dbp-form-enum-element>
@@ -4277,8 +4401,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="4.1.2. Ist die Nutzung von lokalen Ressourcen in Drittstaaten geplant?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.thirdCountriesLocalResources ||
                                           ''}></dbp-form-enum-element>
@@ -4297,8 +4425,12 @@ class FormalizeFormElement extends BaseFormElement {
                                                     required
                                                     label="4.1.2.1. Ergeben sich daraus Fragen, wie die Forschungsmittel verteilt werden?"
                                                     .items=${{
-                                                        yes: 'Ja',
-                                                        no: 'Nein',
+                                                        yes: i18n.t(
+                                                            'render-form.forms.ethics-commission-form.yes',
+                                                        ),
+                                                        no: i18n.t(
+                                                            'render-form.forms.ethics-commission-form.no',
+                                                        ),
                                                     }}
                                                     .value=${data.questionResearchFounds ||
                                                     ''}></dbp-form-enum-element>
@@ -4312,8 +4444,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="4.1.3. Ist der Import von Material (außer Daten) aus Drittstaaten in die EU oder in andere Drittstaaten geplant? "
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.importMaterialFromThirdCountries ||
                                           ''}></dbp-form-enum-element>
@@ -4325,8 +4461,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="4.1.4. Beinhaltet das Forschungsvorhaben Staaten mit niedrigerem und/oder unterem mittlerem Einkommen?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.lowIncomeCountries ||
                                           ''}></dbp-form-enum-element>
@@ -4338,8 +4478,12 @@ class FormalizeFormElement extends BaseFormElement {
                                           required
                                           label="4.1.5. Könnte die Teilnahme am Forschungsvorhaben die Beteiligten aufgrund der Situation in dem entsprechenden Drittstaat bzw. in dem Land außerhalb der EU einem Risiko aussetzen?"
                                           .items=${{
-                                              yes: 'Ja',
-                                              no: 'Nein',
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
                                           }}
                                           .value=${data.exposeParticipantsToRisk ||
                                           ''}></dbp-form-enum-element>
@@ -4365,8 +4509,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="5.1.	Können die im Forschungsvorhaben eingesetzten informationsverarbeitenden Systeme menschliche Entscheidungsfindungsprozesse beeinflussen, ersetzen oder umgehen?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.replaceHumanDecisionMaking || ''}>
                         </dbp-form-enum-element>
@@ -4378,8 +4522,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="5.2.	Können die im Forschungsvorhaben eingesetzten informationsverarbeitenden Systeme Menschen potentiell stigmatisieren oder diskriminieren?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.potentiallyStigmatizePeople || ''}>
                         </dbp-form-enum-element>
@@ -4391,8 +4535,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="5.3.	Können die im Forschungsvorhaben eingesetzten informationsverarbeitenden Systeme potenziell zu negativen sozialen Konsequenzen zu führen?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.negativeSocialConsequences || ''}>
                         </dbp-form-enum-element>
@@ -4404,8 +4548,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="5.4.	Beinhaltet das Forschungsvorhaben den Einsatz von informationsverarbeitenden Systemen in einem Waffensystem? "
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.weaponSystem || ''}>
                         </dbp-form-enum-element>
@@ -4423,8 +4567,8 @@ class FormalizeFormElement extends BaseFormElement {
                             required
                             label="5.5.	Wirft die Entwicklung und/oder Anwendung dieser informationsverarbeitenden Systeme noch weitere ethische Fragen auf, die nicht von der Liste abgedeckt sind?"
                             .items=${{
-                                yes: 'Ja',
-                                no: 'Nein',
+                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.hasEthicalIssues || ''}>
                         </dbp-form-enum-element>

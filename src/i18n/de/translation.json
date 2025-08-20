@@ -102,8 +102,8 @@
                 "master-label": "ja, Master/Diplomingenieur*in",
                 "mobility-production": "Mobility & Production",
                 "names-of-supervising-persons-label": "",
-                "no": "",
-                "no-label": "nein",
+                "no": "Nein",
+                "no-label": "Nein",
                 "no-publication-label": "nein, keine Publikation geplant",
                 "one-publication-label": "ja, eine Publikation von Ergebnissen aus der/den Abschlussarbeit/en ist geplant",
                 "print-pdf-button-text": "PDF drucken",
@@ -132,7 +132,7 @@
                 "user-title-short": "Kurztitel/Akronym",
                 "view-attachment": "Ansehen",
                 "view-mode": "Cancel",
-                "yes": ""
+                "yes": "Ja"
             }
         },
         "room-select": {
