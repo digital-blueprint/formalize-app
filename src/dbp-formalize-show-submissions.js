@@ -168,6 +168,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
             accepted: false,
         };
+        this.needTableRebuild = {
+            draft: false,
+            submitted: false,
+            accepted: false,
+        };
     }
 
     static get scopedElements() {
@@ -211,6 +216,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             searchWidgetIsOpen: {type: Object, attribute: false},
             actionsWidgetIsOpen: {type: Object, attribute: false},
             isActionAvailable: {type: Object, attribute: false},
+            noSubmissionAvailable: {type: Object, attribute: false},
 
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
@@ -356,6 +362,100 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
     }
 
+    setSubmissionFormOptions(state) {
+        let lang_submissions = {
+            en: {
+                columns: {},
+            },
+            de: {
+                columns: {},
+            },
+        };
+
+        this.options_submissions[state] = {
+            langs: lang_submissions,
+            autoColumns: true, //'full',
+            rowHeight: 64,
+            layout: 'fitData',
+            layoutColumnsOnNewData: true,
+            selectableRows: 'highlight',
+            rowHeader: {
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                titleFormatterParams: {
+                    rowRange: 'visible', // only toggle the visible rows
+                },
+                headerSort: false,
+                resizable: false,
+                frozen: true,
+                headerHozAlign: 'center',
+                hozAlign: 'center',
+            },
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+            placeholder: 'No Submission data available',
+        };
+
+        this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
+            definitions.forEach((column) => {
+                if (column.field === 'submissionId') {
+                    column.visible = false;
+                }
+                if (column.field === 'htmlButtons') {
+                    column.formatter = 'html';
+                    column.hozAlign = 'center';
+                    column.vertAlign = 'middle';
+                    column.headerSort = false;
+                    column.minWidth = 64;
+                    column.frozen = true;
+                    column.headerHozAlign = 'right';
+                    // Add column settings button
+                    column.titleFormatter = (cell, formatterParams, onRendered) => {
+                        let columnSettingsButton = this.submissionTables[state].createScopedElement(
+                            'dbp-formalize-column-settings-button',
+                        );
+                        columnSettingsButton.setAttribute('subscribe', 'lang');
+                        columnSettingsButton.addEventListener('click', () => {
+                            this.defineSettings(state);
+                            this.openColumnOptionsModal(state);
+                        });
+                        return columnSettingsButton;
+                    };
+                } else {
+                    column.sorter = 'string';
+                }
+                if (column.field.includes('date')) {
+                    column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                        const timeStampA = this.dateToTimestamp(a);
+                        const timeStampB = this.dateToTimestamp(b);
+                        return timeStampA - timeStampB;
+                    };
+                }
+            });
+            return [
+                {
+                    title: 'ID',
+                    formatter: function (cell) {
+                        const row = cell.getRow();
+                        const table = row.getTable();
+                        const page = table.getPage();
+                        const pageSize = table.getPageSize();
+                        const position = row.getPosition(true); // position in current data view
+                        return (page - 1) * pageSize + position;
+                    },
+                    hozAlign: 'center',
+                    headerHozAlign: 'center',
+                    headerSort: false,
+                    width: 50,
+                },
+                ...definitions, // rest of the auto-generated columns
+            ];
+        };
+    }
+
     enableCheckboxSelection(state) {
         this.options_submissions[state].rowHeader = {
             formatter: 'rowSelection',
@@ -369,10 +469,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             headerHozAlign: 'center',
             hozAlign: 'center',
         };
+        this.options_submissions[state].headerVisible = true;
     }
 
     disableCheckboxSelection(state) {
         this.options_submissions[state].rowHeader = false;
+        this.options_submissions[state].headerVisible = false;
     }
 
     disablePagination(state) {
@@ -380,7 +482,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     enablePagination(state) {
-        this.submissionTables[state].paginationEnabled = true;
+        if (this.submissionTables[state].paginationEnabled === false) {
+            this.submissionTables[state].paginationEnabled = true;
+        }
     }
 
     getTableState(tableId) {
@@ -483,6 +587,34 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.showFormsTable = true;
                         this.showSubmissionTables = false;
                     }
+                }
+            }
+        }
+
+        if (changedProperties.has('submissions')) {
+            // const oldValue = changedProperties.get('submissions');
+            // console.log(`*** [updated] oldValue`, oldValue);
+            // console.log(`*** [updated] this.submissions`, this.submissions);
+
+            for (const state in this.submissions) {
+                if (this.submissions[state]?.length === 0) {
+                    this.noSubmissionAvailable[state] = true;
+                    this.disableCheckboxSelection(state);
+                    this.disablePagination(state);
+                    if (this.submissionTables[state].tabulatorTable) {
+                        this.submissionTables[state].tabulatorTable.destroy();
+                        this.setSubmissionFormOptions(state);
+                        this.submissionTables[state].buildTable();
+                    }
+                } else {
+                    this.noSubmissionAvailable[state] = false;
+                    this.enableCheckboxSelection(state);
+                    this.enablePagination(state);
+                }
+
+                if (this.needTableRebuild[state]) {
+                    this.submissionTables[state].buildTable();
+                    this.needTableRebuild[state] = false;
                 }
             }
         }
@@ -769,10 +901,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         for (const state of Object.keys(this.submissions)) {
             if (submissions[state].length === 0) {
-                this.noSubmissionAvailable[state] = true;
+                this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: true};
                 continue;
             } else {
-                this.noSubmissionAvailable[state] = false;
+                this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: false};
             }
 
             let submissions_list = [];
@@ -2928,7 +3060,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           class="button action-button button--delete-all"
                                           @click="${async () => {
                                               await this.handleDeleteSubmissions(state);
-                                              this.toggleActionsDropdown(state);
+                                              //   this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
                                           Delete all (${this.allRowCount[state]})
@@ -2943,7 +3075,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           class="button action-button button--delete-selected"
                                           @click="${async () => {
                                               await this.handleDeleteSubmissions(state, true);
-                                              this.toggleActionsDropdown(state);
+                                              //   this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon
                                               name="delete-selection"
@@ -3096,7 +3228,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     async handleAcceptSubmission() {
         const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
-        const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
+        // const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
 
         const dataSubmitted = submittedTable.getSelectedData();
         const rowsSubmitted = submittedTable.getSelectedRows();
@@ -3112,26 +3244,48 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 responseStatus.push(response);
                 // Delete row from the table and add row to the other table
                 if (response === true) {
-                    rowsSubmitted[index].delete();
+                    await rowsSubmitted[index].delete();
+                    // await acceptedTable.addRow(dataSubmitted[index]);
 
-                    this.submissions[SUBMISSION_STATES.ACCEPTED].push(submission);
-                    this.submissionTables[SUBMISSION_STATES.ACCEPTED].buildTable();
+                    // Remove entry from options.data
+                    this.options_submissions[SUBMISSION_STATES.SUBMITTED].data =
+                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data.filter((sub) => {
+                            return sub.submissionId !== submission.submissionId;
+                        });
+                    if (this.options_submissions[SUBMISSION_STATES.ACCEPTED].data) {
+                        this.options_submissions[SUBMISSION_STATES.ACCEPTED].data.push(submission);
+                    } else {
+                        this.options_submissions[SUBMISSION_STATES.ACCEPTED].data = [submission];
+                    }
+
+                    // Remove entry from this.submissions
+                    const filteredSubmissions = this.submissions[
+                        SUBMISSION_STATES.SUBMITTED
+                    ].filter((sub) => {
+                        return sub.submissionId !== submission.submissionId;
+                    });
+                    const existsInAccepted = this.submissions[SUBMISSION_STATES.ACCEPTED].some(
+                        (sub) => sub.submissionId === submission.submissionId,
+                    );
+                    if (!existsInAccepted) {
+                        this.submissions[SUBMISSION_STATES.ACCEPTED].push(submission);
+                    }
+                    this.submissions = {
+                        ...this.submissions,
+                        [SUBMISSION_STATES.SUBMITTED]: filteredSubmissions,
+                    };
 
                     // Get table settings from localstorage
                     this.getSubmissionTableSettings(SUBMISSION_STATES.ACCEPTED);
                     // this.setInitialSubmissionTableOrder(state);
                     this.defineSettings(SUBMISSION_STATES.ACCEPTED);
                     this.updateSubmissionTable(SUBMISSION_STATES.ACCEPTED);
-
-                    acceptedTable.addRow(dataSubmitted[index]);
-
-                    this.requestUpdate();
                 }
                 index++;
             }
-            // Update tables
-            acceptedTable.redraw(true);
-            submittedTable.redraw(true);
+            this.needTableRebuild[SUBMISSION_STATES.ACCEPTED] = true;
+            this.needTableRebuild[SUBMISSION_STATES.SUBMITTED] = true;
+
             // Report
             this.successFailureNotification(responseStatus);
         } else {
@@ -3149,7 +3303,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     async handleReopenSubmission() {
         const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
-        const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
+        // const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
+
         const dataAccepted = acceptedTable.getSelectedData();
         const rowsAccepted = acceptedTable.getSelectedRows();
 
@@ -3164,24 +3319,52 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 responseStatus.push(response);
                 // Delete row from the table and add row to the other table
                 if (response === true) {
-                    rowsAccepted[index].delete();
+                    await rowsAccepted[index].delete();
+                    // await submittedTable.addRow(dataAccepted[index]);
 
-                    this.submissions[SUBMISSION_STATES.SUBMITTED].push(submission);
-                    this.submissionTables[SUBMISSION_STATES.SUBMITTED].buildTable();
+                    // Remove entry from options.data
+                    this.options_submissions[SUBMISSION_STATES.ACCEPTED].data =
+                        this.options_submissions[SUBMISSION_STATES.ACCEPTED].data.filter((sub) => {
+                            return sub.submissionId !== submission.submissionId;
+                        });
+                    if (
+                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data &&
+                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data.length > 0
+                    ) {
+                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data.push(submission);
+                    } else {
+                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data = [submission];
+                    }
+
+                    // Remove entry from this.submissions
+                    const filteredSubmissions = this.submissions[SUBMISSION_STATES.ACCEPTED].filter(
+                        (sub) => {
+                            return sub.submissionId !== submission.submissionId;
+                        },
+                    );
+                    const existsInSubmitted = this.submissions[SUBMISSION_STATES.SUBMITTED].some(
+                        (sub) => sub.submissionId === submission.submissionId,
+                    );
+                    if (!existsInSubmitted) {
+                        this.submissions[SUBMISSION_STATES.SUBMITTED].push(submission);
+                    }
+                    this.submissions = {
+                        ...this.submissions,
+                        [SUBMISSION_STATES.ACCEPTED]: filteredSubmissions,
+                    };
 
                     // Get table settings from localstorage
                     this.getSubmissionTableSettings(SUBMISSION_STATES.SUBMITTED);
                     // this.setInitialSubmissionTableOrder(state);
                     this.defineSettings(SUBMISSION_STATES.SUBMITTED);
                     this.updateSubmissionTable(SUBMISSION_STATES.SUBMITTED);
-
-                    submittedTable.addRow(dataAccepted[index]);
                 }
                 index++;
             }
-            // Update tables
-            acceptedTable.redraw(true);
-            submittedTable.redraw(true);
+
+            this.needTableRebuild[SUBMISSION_STATES.SUBMITTED] = true;
+            this.needTableRebuild[SUBMISSION_STATES.ACCEPTED] = true;
+
             // Report
             this.successFailureNotification(responseStatus);
         } else {
@@ -3250,11 +3433,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async handleDeleteSubmissions(state, selectedOnly = false) {
         const data = selectedOnly
             ? this.submissionTables[state].tabulatorTable.getSelectedData()
-            : this.submissionTables[state].tabulatorTable.getData('visible');
+            : this.submissionTables[state].tabulatorTable.getData('all');
 
         const rows = selectedOnly
             ? this.submissionTables[state].tabulatorTable.getSelectedRows()
-            : this.submissionTables[state].tabulatorTable.getRows('visible');
+            : this.submissionTables[state].tabulatorTable.getRows('all');
 
         if (data.length > 0) {
             const confirmed = await this.getDeletionConfirmation();
@@ -3268,9 +3451,23 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Delete row from the table
                 if (response === true) {
                     rows[index].delete();
+
+                    // Remove entry from this.submissions[state]
+                    const filteredSubmissions = this.submissions[state].filter((sub) => {
+                        return sub.submissionId !== submission.submissionId;
+                    });
+                    this.submissions = {...this.submissions, [state]: filteredSubmissions};
+
+                    // Remove entry from options.data
+                    this.options_submissions[state].data = this.options_submissions[
+                        state
+                    ].data.filter((sub) => {
+                        return sub.submissionId !== submission.submissionId;
+                    });
                 }
                 index++;
             }
+            this.needTableRebuild[state] = true;
             // Update row-indexes
             this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
@@ -3353,12 +3550,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
 
             if (!response.ok) {
-                send({
-                    summary: 'Error',
-                    body: `Failed to delete submission. Response status: ${response.status}`,
-                    type: 'danger',
-                    timeout: 5,
-                });
+                console.warn(`Failed to delete submission. Response status: ${response.status}`);
+                // send({
+                //     summary: 'Error',
+                //     body: `Failed to delete submission. Response status: ${response.status}`,
+                //     type: 'danger',
+                //     timeout: 5,
+                // });
                 return false;
             } else {
                 return true;
@@ -3372,8 +3570,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 timeout: 5,
             });
             return false;
-        } finally {
-            console.log('delete submissions finally.');
         }
     }
 
@@ -3418,12 +3614,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
             let responseBody = await response.json();
             if (!response.ok) {
-                send({
-                    summary: 'Error',
-                    body: `Failed to set submission state. Response status: ${responseBody.status}`,
-                    type: 'danger',
-                    timeout: 5,
-                });
+                console.warn(
+                    `Failed to set submission state. Response status: ${responseBody.status}`,
+                );
+                // send({
+                //     summary: 'Error',
+                //     body: `Failed to set submission state. Response status: ${responseBody.status}`,
+                //     type: 'danger',
+                //     timeout: 5,
+                // });
                 return false;
             } else {
                 return true;
@@ -3437,8 +3636,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 timeout: 5,
             });
             return false;
-        } finally {
-            console.log('accept submissions finally.');
         }
     }
 
@@ -3590,7 +3787,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     render() {
         const i18n = this._i18n;
 
-        console.log(`this.submissions`, this.submissions);
+        // console.log(`this.submissions`, this.submissions);
 
         return html`
             <div
