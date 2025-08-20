@@ -1755,7 +1755,7 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.coApplicants || ''}>
                     </dbp-form-string-view>
 
-                    <p>${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}"</p>
+                    <p>${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}</p>
 
                     <dbp-form-enum-view
                         subscribe="lang"
@@ -3114,7 +3114,7 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.coApplicants || ''}>
                     </dbp-form-string-element>
 
-                    <p>${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}"</p>
+                    <p>${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}</p>
 
                     <dbp-form-enum-element
                         subscribe="lang"
@@ -3428,7 +3428,7 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.projectTimePeriod || ''}
                         required>
                     </dbp-form-string-element> -->
-c
+
                     <dbp-form-string-element
                         subscribe="lang"
                         rows="5"
