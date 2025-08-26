@@ -598,25 +598,41 @@ export function getEthicsCommissionFormCSS() {
             gap: 0.5em;
         }
 
-        @container form (width < 820px) {
+        @container form (width < 840px) {
             .additional-data {
                 display: none;
             }
+
             .file-info {
                 max-width: 42%;
             }
         }
 
-        @container form (width < 540px) {
+        @container form (width < 690px) {
             .file-block {
                 align-items: flex-start;
                 flex-direction: column;
                 gap: 1em;
             }
 
+            .file-info {
+                max-width: initial;
+            }
+
             .file-action-buttons {
                 width: 100%;
                 justify-content: flex-end;
+            }
+        }
+
+        @container form (width < 430px) {
+            .file-block:not(:last-child) {
+                margin-bottom: 1em;
+            }
+            .file-action-buttons {
+                flex-direction: column;
+                align-items: initial;
+                gap: 0.5em;
             }
         }
 
