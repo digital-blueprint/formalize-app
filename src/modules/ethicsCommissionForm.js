@@ -3116,7 +3116,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${data.consequencesOfBlocking ||
                                       ''}></dbp-form-string-view>
 
-                                  <dbp-form-string-element
+                                  <dbp-form-string-view
                                       class="${classMap({
                                           'fade-in': this.hasConfidentialPartSubQuestion,
                                       })}"
@@ -3126,7 +3126,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           'render-form.forms.ethics-commission-form.can-be-done-despite-restrictions-label',
                                       )}"
                                       value=${data.canBeDoneDespiteRestrictions ||
-                                      ''}></dbp-form-string-element>
+                                      ''}></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -3257,13 +3257,13 @@ class FormalizeFormElement extends BaseFormElement {
                     ${
                         this.diversityAspectsQuestionEnabled
                             ? html`
-                                  <dbp-form-string-element
+                                  <dbp-form-string-view
                                       subscribe="lang"
                                       label="7.4.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.diversity-aspects-examples-label',
                                       )}"
                                       value=${data.diversityAspectsExamples ||
-                                      ''}></dbp-form-string-element>
+                                      ''}></dbp-form-string-view>
                               `
                             : ''
                     }
