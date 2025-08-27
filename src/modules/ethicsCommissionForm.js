@@ -117,6 +117,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleFormRetractSubmission = this.handleFormRetractSubmission.bind(this);
         this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
+        this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
 
         // Conditional fields
         this.isNewSubmissionQuestionsEnabled = false;
@@ -602,10 +603,7 @@ class FormalizeFormElement extends BaseFormElement {
             window.addEventListener('scroll', this.handleScrollToTopBottom);
 
             // Listen to the event from file source
-            this.addEventListener('dbp-file-source-file-selected', (event) => {
-                this.filesToSubmit.set(event.detail.file.name, event.detail.file);
-                this.filesToSubmitCount = this.filesToSubmit.size;
-            });
+            this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
             this.addEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
 
@@ -661,7 +659,11 @@ class FormalizeFormElement extends BaseFormElement {
             'DbpFormalizeFormRevertAcceptedSubmission',
             this.handleFormRevertAcceptSubmission,
         );
+        this.removeEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
+
         this.removeEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
+
+        this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
         window.removeEventListener('scroll', this.handleScrollToTopBottom);
 
@@ -691,6 +693,11 @@ class FormalizeFormElement extends BaseFormElement {
                 this.scrollerIconName = SCROLLER_ICONS.UP;
             }
         }, 150);
+    }
+
+    handleFilesToSubmit(event) {
+        this.filesToSubmit.set(event.detail.file.name, event.detail.file);
+        this.filesToSubmitCount = this.filesToSubmit.size;
     }
 
     /**
