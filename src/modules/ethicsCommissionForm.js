@@ -2797,9 +2797,16 @@ class FormalizeFormElement extends BaseFormElement {
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
-                                <!-- @TODO: add translate webcomp -->
+                                <dbp-translated subscribe="lang">
+                                    <div slot="de">
+                                        3.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap/' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
+                                    </div>
+                                    <div slot="en">
+                                        3.4. Does your research project comply with the (<a href='https://www.tugraz.at/en/tu-graz/university/climate-neutral-tu-graz/roadmap/' target='_blank'>TU Graz sustainability strategy</a>)?
+                                    </div>
+                                </dbp-translated>
                                 <span slot="label">
-                                    5.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
+
                                 </span>
                         </dbp-form-enum-view>
 
@@ -4791,10 +4798,14 @@ class FormalizeFormElement extends BaseFormElement {
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
-                                <!-- @TODO: add translate webcomp -->
-                                <span slot="label">
-                                    <label>3.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?</label>
-                                </span>
+                                <dbp-translated subscribe="lang">
+                                    <div slot="de">
+                                        3.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap/' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
+                                    </div>
+                                    <div slot="en">
+                                        3.4. Does your research project comply with the (<a href='https://www.tugraz.at/en/tu-graz/university/climate-neutral-tu-graz/roadmap/' target='_blank'>TU Graz sustainability strategy</a>)?
+                                    </div>
+                                </dbp-translated>
                         </dbp-form-enum-element>
 
                         <!-- Conditional field IF previous answers is YES -->
