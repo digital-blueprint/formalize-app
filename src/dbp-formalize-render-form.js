@@ -34,6 +34,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this._onReceiveBeforeUnload = this.onReceiveBeforeUnload.bind(this);
         this._onDisableBeforeunloadWarning = this.onDisableBeforeunloadWarning.bind(this);
+        this._onFormDataUpdated = this.onFormDataUpdated.bind(this);
     }
 
     static get scopedElements() {
@@ -56,6 +57,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         window.addEventListener('beforeunload', this._onReceiveBeforeUnload);
         window.addEventListener('disableBeforeunloadWarning', this._onDisableBeforeunloadWarning);
+        window.addEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
 
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
@@ -72,6 +74,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'disableBeforeunloadWarning',
             this._onDisableBeforeunloadWarning,
         );
+        window.removeEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
     }
 
     updateFormUrlSlug() {
@@ -285,6 +288,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.loadedSubmission = data;
+    }
+
+    /**
+     * Update this.loadedSubmission and this.userAllSubmissions
+     * if a form changes submission data
+     * @param {CustomEvent} event
+     */
+    async onFormDataUpdated(event) {
+        if (event.detail && event.detail.needUpdate) {
+            await this.getSubmissionData();
+            if (this.formIdentifiers[this.formUrlSlug]) {
+                await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+            }
+        }
     }
 
     onDisableBeforeunloadWarning(event) {
