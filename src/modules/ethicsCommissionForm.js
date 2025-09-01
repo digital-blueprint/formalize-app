@@ -103,10 +103,10 @@ class FormalizeFormElement extends BaseFormElement {
         this.userAllAcceptedSubmissions = [];
 
         this.submittedFiles = new Map();
-        this.submittedFilesCount = 0;
+
         this.filesToSubmit = new Map();
-        this.filesToSubmitCount = 0;
-        this.filesToRemove = [];
+
+        this.filesToRemove = new Map();
         this.fileUploadError = false;
 
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
@@ -146,9 +146,7 @@ class FormalizeFormElement extends BaseFormElement {
             ...super.properties,
             submitted: {type: Boolean},
             submissionError: {type: Boolean},
-
-            submittedFilesCount: {type: Number},
-            filesToSubmitCount: {type: Number},
+            hideForm: {type: Boolean},
 
             resourceActions: {type: Object},
             scrollerIconName: {type: String},
@@ -362,7 +360,6 @@ class FormalizeFormElement extends BaseFormElement {
             this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
             this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
-            this.submittedFilesCount = this.submittedFiles.size;
 
             switch (Number(this.submissionBinaryState)) {
                 case 1:
@@ -530,69 +527,111 @@ class FormalizeFormElement extends BaseFormElement {
      * @returns {Array|null} An array of rendered file elements or null if no files are present.
      */
     renderAttachedFilesHtml() {
-        if (this.submittedFiles.size === 0 && this.filesToSubmit.size === 0) {
-            return null;
-        }
-
         let results = [];
 
-        const allAttachments = new Map([...this.submittedFiles, ...this.filesToSubmit]);
-
-        allAttachments.forEach((file, identifier) => {
-            results.push(html`
-                <div class="file-block">
-                    <span class="file-info">
-                        <strong class="file-name">${file.name}</strong>
-                        <span class="additional-data">
-                            <span class="file-type">(${file.type})</span>
-                            <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
-                        </span>
-                    </span>
-                    <div class="file-action-buttons">
-                        <button
-                            class="view-file-button button is-secondary"
-                            @click=${(e) => {
-                                e.preventDefault();
-                                // Open modal
-                                this._('#pdf-view-modal').open();
-                                // Open PDF viewer
-                                this._('dbp-pdf-viewer').showPDF(file);
-                            }}>
-                            <dbp-icon name="eye"></dbp-icon>
-                            ${this._i18n.t(
-                                'render-form.forms.ethics-commission-form.view-attachment',
-                            )}
-                        </button>
-                        <button
-                            class="download-file-button button is-secondary"
-                            @click=${(e) => {
-                                e.preventDefault();
-                                this._('#file-sink').files = [file];
-                            }}>
-                            <dbp-icon name="download"></dbp-icon>
-                            ${this._i18n.t(
-                                'render-form.forms.ethics-commission-form.download-attachment',
-                            )}
-                        </button>
-                        <button
-                            class="delete-file-button button is-secondary"
-                            .disabled=${this.currentState === SUBMISSION_STATES.ACCEPTED ||
-                            this.readOnly}
-                            @click=${(e) => {
-                                e.preventDefault();
-                                this.deleteAttachment(identifier);
-                            }}>
-                            <dbp-icon name="trash"></dbp-icon>
-                            ${this._i18n.t(
-                                'render-form.forms.ethics-commission-form.delete-attachment',
-                            )}
-                        </button>
-                    </div>
+        if (this.submittedFiles.size > 0) {
+            const submittedFilesHtml = html`
+                <div class="fileblock-container submitted-files">
+                    ${Array.from(this.submittedFiles).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier);
+                    })}
                 </div>
-            `);
-        });
+            `;
+            results.push(submittedFilesHtml);
+        }
+
+        if (this.filesToSubmit.size > 0) {
+            const filesToSubmitHtml = html`
+                <div class="fileblock-container files-to-upload">
+                    <div class="attachment-header">
+                        <dbp-icon name="upload"></dbp-icon>
+                        <h5>
+                            Files to upload
+                            <span class="attachment-warning">
+                                (you need to saveDraft or submit)
+                            </span>
+                        </h5>
+                    </div>
+                    ${Array.from(this.filesToSubmit).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier);
+                    })}
+                </div>
+            `;
+            results.push(filesToSubmitHtml);
+        }
+
+        if (this.filesToRemove.size > 0) {
+            const filesToRemoveHtml = html`
+                <div class="fileblock-container files-to-remove">
+                    <div class="attachment-header">
+                        <dbp-icon name="trash"></dbp-icon>
+                        <h5>
+                            Files to remove
+                            <span class="attachment-warning">
+                                (you need to saveDraft or submit)
+                            </span>
+                        </h5>
+                    </div>
+                    ${Array.from(this.filesToRemove).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier);
+                    })}
+                </div>
+            `;
+            results.push(filesToRemoveHtml);
+        }
 
         return results;
+    }
+
+    addFileBlock(file, identifier) {
+        return html`
+            <div class="file-block">
+                <span class="file-info">
+                    <strong class="file-name">${file.name}</strong>
+                    <span class="additional-data">
+                        <span class="file-type">(${file.type})</span>
+                        <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                    </span>
+                </span>
+                <div class="file-action-buttons">
+                    <button
+                        class="view-file-button button is-secondary"
+                        @click=${(e) => {
+                            e.preventDefault();
+                            // Open modal
+                            this._('#pdf-view-modal').open();
+                            // Open PDF viewer
+                            this._('dbp-pdf-viewer').showPDF(file);
+                        }}>
+                        <dbp-icon name="eye"></dbp-icon>
+                        ${this._i18n.t('render-form.forms.ethics-commission-form.view-attachment')}
+                    </button>
+                    <button
+                        class="download-file-button button is-secondary"
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this._('#file-sink').files = [file];
+                        }}>
+                        <dbp-icon name="download"></dbp-icon>
+                        ${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.download-attachment',
+                        )}
+                    </button>
+                    <button
+                        class="delete-file-button button is-secondary"
+                        .disabled=${this.filesToRemove.has(identifier) || this.readOnly}
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this.deleteAttachment(identifier);
+                        }}>
+                        <dbp-icon name="trash"></dbp-icon>
+                        ${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.delete-attachment',
+                        )}
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     connectedCallback() {
@@ -697,7 +736,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     handleFilesToSubmit(event) {
         this.filesToSubmit.set(event.detail.file.name, event.detail.file);
-        this.filesToSubmitCount = this.filesToSubmit.size;
+        this.requestUpdate();
     }
 
     /**
@@ -721,22 +760,18 @@ class FormalizeFormElement extends BaseFormElement {
         data.formData.identifier = this.auth['user-id'];
         const formData = new FormData();
 
-        // Upload attached files
-        if (this.filesToSubmitCount > 0) {
+        // Set files to upload as attachments
+        if (this.filesToSubmit.size > 0) {
             this.filesToSubmit.forEach((fileToAttach) => {
-                formData.append('file[]', fileToAttach, fileToAttach.name);
+                formData.append('attachments[]', fileToAttach, fileToAttach.name);
             });
-            // Remove files added to the request
-            this.filesToSubmit = new Map();
         }
 
-        // Set file to be removed
-        if (this.filesToRemove.length > 0) {
-            this.filesToRemove.forEach((file) => {
-                formData.append(`submittedFiles[${file.fileIdentifier}]`, 'null');
+        // Set files to remove from attachments
+        if (this.filesToRemove.size > 0) {
+            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
             });
-            // Remove files added to the request
-            this.filesToRemove = [];
         }
 
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
@@ -751,6 +786,10 @@ class FormalizeFormElement extends BaseFormElement {
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
         const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
+
+        const filesToSubmitBackup = this.filesToSubmit;
+        const filesToRemoveBackup = this.filesToRemove;
+        const submittedFilesBackup = this.submittedFiles;
 
         try {
             const response = await fetch(url, options);
@@ -767,6 +806,13 @@ class FormalizeFormElement extends BaseFormElement {
                 this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
                 this.submissionBinaryState = responseBody.submissionState;
+                this.submittedFiles = await this.transformApiResponseToFile(
+                    responseBody.submittedFiles,
+                );
+
+                // Remove files added to the request
+                this.filesToSubmit = new Map();
+                this.filesToRemove = new Map();
 
                 // Add new submission to the list
                 this.userAllDraftSubmissions.push(responseBody);
@@ -782,12 +828,31 @@ class FormalizeFormElement extends BaseFormElement {
                     type: 'success',
                     timeout: 5,
                 });
+
+                // formDataUpdated event to notify parent component
+                this.dispatchEvent(
+                    new CustomEvent('dbpFormDataUpdated', {
+                        detail: {
+                            needUpdate: true,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
             }
         } catch (error) {
+            // Restore files if something went wrong
+            this.filesToSubmit = filesToSubmitBackup;
+            this.filesToRemove = filesToRemoveBackup;
+            // Put back files that we did not delete?
+            this.submittedFiles = submittedFilesBackup;
+
+            this.requestUpdate();
+
             console.error(error);
             send({
                 summary: 'Error',
-                body: error.message,
+                body: `Failed to save form DRAFT. Error: ${error.message}`,
                 type: 'danger',
                 timeout: 5,
             });
@@ -808,17 +873,17 @@ class FormalizeFormElement extends BaseFormElement {
 
         const formData = new FormData();
 
-        // Set file to be removed
-        if (this.filesToRemove.length > 0) {
-            this.filesToRemove.forEach((file) => {
-                formData.append(`submittedFiles[${file.fileIdentifier}]`, 'null');
+        // Set files to upload as attachments
+        if (this.filesToSubmit.size > 0) {
+            this.filesToSubmit.forEach((fileToAttach) => {
+                formData.append('attachments[]', fileToAttach, fileToAttach.name);
             });
         }
 
-        // Upload attached files
-        if (this.filesToSubmitCount > 0) {
-            this.filesToSubmit.forEach((file) => {
-                formData.append('attachments[]', file, file.name);
+        // Set files to remove from attachments
+        if (this.filesToRemove.size > 0) {
+            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
             });
         }
 
@@ -834,6 +899,10 @@ class FormalizeFormElement extends BaseFormElement {
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
         const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
+
+        const filesToSubmitBackup = this.filesToSubmit;
+        const filesToRemoveBackup = this.filesToRemove;
+        const submittedFilesBackup = this.submittedFiles;
 
         try {
             const response = await fetch(url, options);
@@ -851,6 +920,10 @@ class FormalizeFormElement extends BaseFormElement {
                 this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.submitted = true;
 
+                // Remove files added to the request
+                this.filesToSubmit = new Map();
+                this.filesToRemove = new Map();
+
                 // Add new submission to the list
                 this.userAllDraftSubmissions.push(responseBody);
                 this.userAllSubmissions.push(responseBody);
@@ -863,8 +936,25 @@ class FormalizeFormElement extends BaseFormElement {
                     type: 'success',
                     timeout: 5,
                 });
+
+                // formDataUpdated event to notify parent component
+                this.dispatchEvent(
+                    new CustomEvent('dbpFormDataUpdated', {
+                        detail: {
+                            needUpdate: true,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
             }
         } catch (error) {
+            // Restore files if something went wrong
+            this.filesToSubmit = filesToSubmitBackup;
+            this.filesToRemove = filesToRemoveBackup;
+            // Put back files that we did not delete?
+            this.submittedFiles = submittedFilesBackup;
+
             console.error(error.message);
             send({
                 summary: 'Error',
@@ -1000,16 +1090,16 @@ class FormalizeFormElement extends BaseFormElement {
         const formData = new FormData();
 
         // Set file to be removed
-        if (this.filesToRemove.length > 0) {
-            this.filesToRemove.forEach((file) => {
-                formData.append(`submittedFiles[${file.fileIdentifier}]`, 'null');
+        if (this.filesToRemove.size > 0) {
+            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
             });
         }
 
         // Upload attached files
-        if (this.filesToSubmitCount > 0) {
-            this.filesToSubmit.forEach((file) => {
-                formData.append('attachments[]', file, file.name);
+        if (this.filesToSubmit.size > 0) {
+            this.filesToSubmit.forEach((fileToAttach) => {
+                formData.append('attachments[]', fileToAttach, fileToAttach.name);
             });
         }
 
@@ -1017,9 +1107,14 @@ class FormalizeFormElement extends BaseFormElement {
         const options = this._buildRequestOptions(formData, 'PATCH');
         const url = this._buildSubmissionUrl(event.detail.submissionId);
 
+        const filesToSubmitBackup = this.filesToSubmit;
+        const filesToRemoveBackup = this.filesToRemove;
+        const submittedFilesBackup = this.submittedFiles;
+
         try {
             const response = await fetch(url, options);
             let responseBody = await response.json();
+
             if (!response.ok) {
                 send({
                     summary: 'Error',
@@ -1028,6 +1123,24 @@ class FormalizeFormElement extends BaseFormElement {
                     timeout: 5,
                 });
             } else {
+                this.submittedFiles = await this.transformApiResponseToFile(
+                    responseBody.submittedFiles,
+                );
+                // Remove files added to the request
+                this.filesToSubmit = new Map();
+                this.filesToRemove = new Map();
+
+                // formDataUpdated event to notify parent component
+                this.dispatchEvent(
+                    new CustomEvent('dbpFormDataUpdated', {
+                        detail: {
+                            needUpdate: true,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
+
                 send({
                     summary: 'Success',
                     body: 'Form saved successfully',
@@ -1036,6 +1149,14 @@ class FormalizeFormElement extends BaseFormElement {
                 });
             }
         } catch (error) {
+            // Restore files if something went wrong
+            this.filesToSubmit = filesToSubmitBackup;
+            this.filesToRemove = filesToRemoveBackup;
+            // Put back files that we did not delete?
+            this.submittedFiles = submittedFilesBackup;
+
+            this.requestUpdate();
+
             console.error(error.message);
             send({
                 summary: 'Error',
@@ -1179,13 +1300,16 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {string} fileIdentifier uuid
      */
     deleteAttachment(fileIdentifier) {
-        this.filesToRemove.push(fileIdentifier);
+        // If the file is already submitted mark it for removal
+        const fileToRemove = this.submittedFiles.get(fileIdentifier);
+        if (fileToRemove) {
+            this.filesToRemove.set(fileIdentifier, fileToRemove);
+            this.submittedFiles.delete(fileIdentifier);
+        }
 
+        // If just uploaded remove from files to submit
         this.filesToSubmit.delete(fileIdentifier);
-        this.filesToSubmitCount = this.filesToSubmit.size;
 
-        this.submittedFiles.delete(fileIdentifier);
-        this.submittedFilesCount = this.submittedFiles.size;
         this.requestUpdate();
     }
 

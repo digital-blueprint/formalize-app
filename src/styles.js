@@ -549,8 +549,41 @@ export function getEthicsCommissionFormCSS() {
             flex-direction: column;
         }
 
+        .fileblock-container {
+            border: var(--dbp-border);
+            margin-bottom: 1em;
+        }
+
+        .fileblock-container.submitted-files {
+            margin-bottom: 2em;
+        }
+
         .attachment-upload-button {
             width: fit-content;
+        }
+
+        .attachment-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 1em;
+            padding-left: 1em;
+        }
+
+        .attachment-warning {
+            color: var(--dbp-warning);
+            font-weight: normal;
+            font-size: 0.8em;
+            padding-left: 0.5em;
+        }
+
+        .attachment-header dbp-icon {
+            font-size: 1.25em;
+        }
+
+        .attachment-header h5 {
+            /* align with the dbp-icon*/
+            margin: 1em 0;
         }
 
         .file-block {
