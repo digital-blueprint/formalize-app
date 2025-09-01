@@ -72,6 +72,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.submitted = false;
         this.submissionError = false;
         this.scrollTimeout = null;
+        this.hideForm = false;
 
         this.scrollerIconName = SCROLLER_ICONS.DOWN;
         this.scrollerIconTitle = i18n.t(
@@ -407,6 +408,9 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Get user permissions for the submission.
+     */
     async getUsersGrants() {
         try {
             // Get user permissions for the form
@@ -929,7 +933,7 @@ class FormalizeFormElement extends BaseFormElement {
                 this.userAllSubmissions.push(responseBody);
 
                 // Hide form after successful submission
-                this._('#ethics-commission-form').style.display = 'none';
+                this.hideForm = true;
                 send({
                     summary: 'Success',
                     body: 'Form submitted successfully',
@@ -1006,7 +1010,7 @@ class FormalizeFormElement extends BaseFormElement {
                 this.wasDeleteSubmissionSuccessful = true;
                 this.deleteSubmissionError = false;
                 // Hide form after successful deletion
-                this._('#ethics-commission-form').style.display = 'none';
+                this.hideForm = true;
             }
         } catch (error) {
             console.error(error.message);
@@ -1170,6 +1174,7 @@ class FormalizeFormElement extends BaseFormElement {
     /**
      * Handle accepting submission.
      * @param {object} event - The event object containing the form data.
+     * @todo remove function
      */
     async handleFormAcceptSubmission(event) {
         if (!event.detail.submissionId) return;
@@ -1220,6 +1225,11 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Handle reverting accepted submission.
+     * @param {object} event - The event object containing the form data.
+     * @todo remove function
+     */
     async handleFormRevertAcceptSubmission(event) {
         if (!event.detail.submissionId) return;
 
@@ -3552,7 +3562,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
 
-            <form id="ethics-commission-form" aria-labelledby="form-title">
+            <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({hidden: this.hideForm})}">
 
                 <div class="scroller-container">
                     <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
@@ -5905,6 +5915,7 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
+                    <!-- @TODO: REMOVE -->
                     ${this.isRetractButtonEnabled
                         ? html`
                               <dbp-button
@@ -5950,6 +5961,7 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
+                    <!-- @TODO: REMOVE -->
                     ${this.isAcceptButtonEnabled
                         ? html`
                               <dbp-button
@@ -5972,6 +5984,7 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
+                    <!-- @TODO: REMOVE -->
                     ${this.isRevertAcceptButtonEnabled
                         ? html`
                               <dbp-button
