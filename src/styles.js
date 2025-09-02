@@ -401,12 +401,6 @@ export function getEthicsCommissionFormCSS() {
             line-height: 1.2;
         }
 
-        .type-container {
-            display: flex;
-            justify-content: center;
-            gap: 3em;
-        }
-
         .section-title {
             font-size: 2.4em;
             font-weight: bold;
@@ -444,6 +438,17 @@ export function getEthicsCommissionFormCSS() {
 
         .info-box p:last-child {
             margin-bottom: 0;
+        }
+
+        .field-note {
+            font-size: smaller;
+            font-style: italic;
+            margin: -0.5em 0 2em;
+        }
+
+        .red-marked-asterisk {
+            font-weight: bold;
+            color: var(--dbp-danger);
         }
 
         /* buttons */

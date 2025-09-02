@@ -263,6 +263,8 @@
                 "yes": "Yes"
             }
         },
+        "required-files-asterisk": "* ",
+        "required-files-text": "indicates a required field",
         "room-select": {
             "login-required": "Login required",
             "placeholder": "Please select a room"
