@@ -301,7 +301,6 @@ export default (async () => {
                         {
                             src: await getPackagePath('@tugraz/web-components', 'src/spinner.js'),
                             dest: 'dist/' + (await getDistPath(pkg.name)),
-                            rename: 'tug_spinner.js',
                         },
                         {
                             src: await getPackagePath(
@@ -338,7 +337,6 @@ export default (async () => {
                         {
                             src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
                             dest: 'dist/' + (await getDistPath(pkg.name)),
-                            rename: 'org_spinner.js',
                         },
                         {
                             src: await getPackagePath(
