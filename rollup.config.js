@@ -12,7 +12,13 @@ import license from 'rollup-plugin-license';
 import del from 'rollup-plugin-delete';
 import emitEJS from 'rollup-plugin-emit-ejs';
 import {getBabelOutputPlugin} from '@rollup/plugin-babel';
-import {getPackagePath, getBuildInfo, generateTLSConfig, getDistPath} from '@dbp-toolkit/dev-utils';
+import {
+    getPackagePath,
+    getBuildInfo,
+    generateTLSConfig,
+    getDistPath,
+    getCopyTargets,
+} from '@dbp-toolkit/dev-utils';
 import {createRequire} from 'module';
 
 const require = createRequire(import.meta.url);
@@ -298,38 +304,13 @@ export default (async () => {
                             rename: 'tug_spinner.js',
                         },
                         {
-                            src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
-                            dest: 'dist/' + (await getDistPath(pkg.name)),
-                        },
-                        {
                             src: await getPackagePath(
                                 '@dbp-toolkit/common',
                                 'misc/browser-check.js',
                             ),
                             dest: 'dist/' + (await getDistPath(pkg.name)),
                         },
-                        {src: customAssetsPath + '*.metadata.json', dest: 'dist'},
-                        {
-                            src: await getPackagePath('@dbp-toolkit/common', 'assets/icons/*.svg'),
-                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/common', 'icons')),
-                        },
-                        {
-                            src: await getPackagePath('tabulator-tables', 'dist/css'),
-                            dest:
-                                'dist/' +
-                                (await getDistPath(
-                                    '@dbp-toolkit/tabulator-table',
-                                    'tabulator-tables',
-                                )),
-                        },
-                        {
-                            src: await getPackagePath('pdfjs-dist', 'legacy/build/pdf.worker.mjs'),
-                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
-                        },
-                        {
-                            src: await getPackagePath('pdfjs-dist', 'cmaps/*'),
-                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
-                        },
+                        ...(await getCopyTargets(pkg.name, 'dist')),
                     ],
                 }),
             whitelabel &&
@@ -360,10 +341,6 @@ export default (async () => {
                             rename: 'org_spinner.js',
                         },
                         {
-                            src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
-                            dest: 'dist/' + (await getDistPath(pkg.name)),
-                        },
-                        {
                             src: await getPackagePath(
                                 '@dbp-toolkit/common',
                                 'misc/browser-check.js',
@@ -371,27 +348,7 @@ export default (async () => {
                             dest: 'dist/' + (await getDistPath(pkg.name)),
                         },
                         {src: 'assets/*.metadata.json', dest: 'dist'},
-                        {
-                            src: await getPackagePath('@dbp-toolkit/common', 'assets/icons/*.svg'),
-                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/common', 'icons')),
-                        },
-                        {
-                            src: await getPackagePath('tabulator-tables', 'dist/css'),
-                            dest:
-                                'dist/' +
-                                (await getDistPath(
-                                    '@dbp-toolkit/tabulator-table',
-                                    'tabulator-tables',
-                                )),
-                        },
-                        {
-                            src: await getPackagePath('pdfjs-dist', 'legacy/build/pdf.worker.mjs'),
-                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
-                        },
-                        {
-                            src: await getPackagePath('pdfjs-dist', 'cmaps/*'),
-                            dest: 'dist/' + (await getDistPath('@dbp-toolkit/pdf-viewer', 'pdfjs')),
-                        },
+                        ...(await getCopyTargets(pkg.name, 'dist')),
                     ],
                 }),
             useBabel &&
