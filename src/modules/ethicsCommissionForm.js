@@ -30,7 +30,6 @@ import {
     SUBMISSION_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
-    isAcceptedStateEnabled,
 } from '../utils.js';
 import {
     gatherFormDataFromElement /*, validateRequiredFields*/,
@@ -91,17 +90,13 @@ class FormalizeFormElement extends BaseFormElement {
         this.isViewModeButtonAllowed = false;
         this.isDraftButtonAllowed = false;
         this.isDeleteSubmissionButtonAllowed = false;
-        this.isAcceptButtonEnabled = false;
-        this.isRevertAcceptButtonEnabled = false;
         this.isSubmitButtonEnabled = false;
         this.isPrintButtonAllowed = false;
         this.isDownloadButtonAllowed = false;
-        this.isRetractButtonEnabled = false;
         this.isSaveButtonEnabled = false;
 
         this.userAllDraftSubmissions = [];
         this.userAllSubmittedSubmissions = [];
-        this.userAllAcceptedSubmissions = [];
 
         this.submittedFiles = new Map();
 
@@ -113,9 +108,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
-        this.handleFormAcceptSubmission = this.handleFormAcceptSubmission.bind(this);
         this.handleFormSaveSubmission = this.handleFormSaveSubmission.bind(this);
-        this.handleFormRetractSubmission = this.handleFormRetractSubmission.bind(this);
         this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
         this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
@@ -158,10 +151,7 @@ class FormalizeFormElement extends BaseFormElement {
             isViewModeButtonAllowed: {type: Boolean},
             isDeleteSubmissionButtonAllowed: {type: Boolean},
             isDraftButtonAllowed: {type: Boolean},
-            isAcceptButtonEnabled: {type: Boolean},
             isSubmitButtonEnabled: {type: Boolean},
-            isRetractButtonEnabled: {type: Boolean},
-            isRevertAcceptButtonEnabled: {type: Boolean},
             isPrintButtonAllowed: {type: Boolean},
             isDownloadButtonAllowed: {type: Boolean},
 
@@ -249,9 +239,6 @@ class FormalizeFormElement extends BaseFormElement {
             this.userAllDraftSubmissions = this.userAllSubmissions.filter(
                 (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.DRAFT,
             );
-            this.userAllAcceptedSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.ACCEPTED,
-            );
             this.setButtonStates();
         }
 
@@ -323,34 +310,13 @@ class FormalizeFormElement extends BaseFormElement {
 
         // SUBMITTED
         if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
-            if (this.readOnly) {
-                this.isAcceptButtonEnabled =
-                    isAcceptedStateEnabled(this.allowedSubmissionStates) &&
-                    (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
-                this.isRetractButtonEnabled =
-                    isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                    (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                        this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
-            } else {
+            if (!this.readOnly) {
                 this.isDeleteSubmissionButtonAllowed = false;
                 this.isSaveButtonEnabled =
                     this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
             }
-        }
-
-        // ACCEPTED
-        if (this.currentState === SUBMISSION_STATES.ACCEPTED) {
-            this.isViewModeButtonAllowed = false;
-            this.isRevertAcceptButtonEnabled =
-                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions?.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
     }
 
@@ -368,9 +334,6 @@ class FormalizeFormElement extends BaseFormElement {
                     break;
                 case 4:
                     this.currentState = SUBMISSION_STATES.SUBMITTED;
-                    break;
-                case 16:
-                    this.currentState = SUBMISSION_STATES.ACCEPTED;
                     break;
                 default:
                     this.currentState = null;
@@ -661,23 +624,8 @@ class FormalizeFormElement extends BaseFormElement {
                 'DbpFormalizeFormDeleteSubmission',
                 this.handleFormDeleteSubmission,
             );
-            // Event listener for reopen submission
-            this.addEventListener(
-                'DbpFormalizeFormRetractSubmission',
-                this.handleFormRetractSubmission,
-            );
             // Event listener for save/PATCH submission
             this.addEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
-            // Event listener for accepting submission
-            this.addEventListener(
-                'DbpFormalizeFormAcceptSubmission',
-                this.handleFormAcceptSubmission,
-            );
-            // Event listener for reverting accepted submission
-            this.addEventListener(
-                'DbpFormalizeFormRevertAcceptedSubmission',
-                this.handleFormRevertAcceptSubmission,
-            );
         });
     }
 
@@ -690,18 +638,7 @@ class FormalizeFormElement extends BaseFormElement {
             'DbpFormalizeFormDeleteSubmission',
             this.handleFormDeleteSubmission,
         );
-        this.removeEventListener(
-            'DbpFormalizeFormRetractSubmission',
-            this.handleFormRetractSubmission,
-        );
-        this.removeEventListener(
-            'DbpFormalizeFormAcceptSubmission',
-            this.handleFormAcceptSubmission,
-        );
-        this.removeEventListener(
-            'DbpFormalizeFormRevertAcceptedSubmission',
-            this.handleFormRevertAcceptSubmission,
-        );
+
         this.removeEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
 
         this.removeEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
@@ -1041,46 +978,6 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
-    async handleFormRetractSubmission(event) {
-        if (!event.detail.submissionId) return;
-
-        const formData = new FormData();
-        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
-
-        const options = this._buildRequestOptions(formData, 'PATCH');
-        const url = this._buildSubmissionUrl(event.detail.submissionId);
-
-        try {
-            const response = await fetch(url, options);
-            let responseBody = await response.json();
-            if (!response.ok) {
-                send({
-                    summary: 'Error',
-                    body: `Failed to retract form submission. Response status: ${response.status}<br>${responseBody.description}`,
-                    type: 'danger',
-                    timeout: 5,
-                });
-            } else {
-                this.currentState = SUBMISSION_STATES.DRAFT;
-                this.requestUpdate();
-                send({
-                    summary: 'Success',
-                    body: 'Form submission retracted successfully',
-                    type: 'success',
-                    timeout: 5,
-                });
-            }
-        } catch (error) {
-            console.error(error.message);
-            send({
-                summary: 'Error',
-                body: error.message,
-                type: 'danger',
-                timeout: 5,
-            });
-        }
-    }
-
     /**
      * Handle save (PATCH) submission.
      * @param {object} event - The event object containing the form data.
@@ -1161,114 +1058,6 @@ class FormalizeFormElement extends BaseFormElement {
 
             this.requestUpdate();
 
-            console.error(error.message);
-            send({
-                summary: 'Error',
-                body: error.message,
-                type: 'danger',
-                timeout: 5,
-            });
-        }
-    }
-
-    /**
-     * Handle accepting submission.
-     * @param {object} event - The event object containing the form data.
-     * @todo remove function
-     */
-    async handleFormAcceptSubmission(event) {
-        if (!event.detail.submissionId) return;
-
-        const formData = new FormData();
-        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.ACCEPTED));
-
-        const options = this._buildRequestOptions(formData, 'PATCH');
-        const url = this._buildSubmissionUrl(event.detail.submissionId);
-
-        try {
-            const response = await fetch(url, options);
-            let responseBody = await response.json();
-            if (!response.ok) {
-                send({
-                    summary: 'Error',
-                    body: `Failed to accept form submission. Response status: ${response.status}<br>${responseBody.description}`,
-                    type: 'danger',
-                    timeout: 5,
-                });
-            } else {
-                this.currentState = SUBMISSION_STATES.ACCEPTED;
-                this.requestUpdate();
-                send({
-                    summary: 'Success',
-                    body: 'Form submission accepted successfully<br>You will be redirected.',
-                    type: 'success',
-                    timeout: 5,
-                });
-                setTimeout(() => {
-                    // Redirect to the read-only form
-                    this.disableLeavePageWarning();
-                    const emptyFormUrl =
-                        getFormRenderUrl(this.formUrlSlug) +
-                        `/${event.detail.submissionId}/readonly`;
-                    window.history.pushState({}, '', emptyFormUrl.toString());
-                    window.location.reload();
-                }, 5000);
-            }
-        } catch (error) {
-            console.error(error.message);
-            send({
-                summary: 'Error',
-                body: error.message,
-                type: 'danger',
-                timeout: 5,
-            });
-        }
-    }
-
-    /**
-     * Handle reverting accepted submission.
-     * @param {object} event - The event object containing the form data.
-     * @todo remove function
-     */
-    async handleFormRevertAcceptSubmission(event) {
-        if (!event.detail.submissionId) return;
-
-        const formData = new FormData();
-        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
-
-        const options = this._buildRequestOptions(formData, 'PATCH');
-        const url = this._buildSubmissionUrl(event.detail.submissionId);
-
-        try {
-            const response = await fetch(url, options);
-            let responseBody = await response.json();
-            if (!response.ok) {
-                send({
-                    summary: 'Error',
-                    body: `Failed to reopen form submission. Response status: ${response.status}<br>${responseBody.description}`,
-                    type: 'danger',
-                    timeout: 5,
-                });
-            } else {
-                this.currentState = SUBMISSION_STATES.SUBMITTED;
-                this.requestUpdate();
-                send({
-                    summary: 'Success',
-                    body: 'Form submission reopened successfully<br>You will be redirected.',
-                    type: 'success',
-                    timeout: 5,
-                });
-                // Redirect to the editable form
-                // Wait 5 sec before redirecting to allow user to read the success message?
-                setTimeout(() => {
-                    this.disableLeavePageWarning();
-                    const editableFormUrl =
-                        getFormRenderUrl(this.formUrlSlug) + `/${event.detail.submissionId}`;
-                    window.history.pushState({}, '', editableFormUrl.toString());
-                    window.location.reload();
-                }, 5000);
-            }
-        } catch (error) {
             console.error(error.message);
             send({
                 summary: 'Error',
@@ -5917,30 +5706,6 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
-                    <!-- @TODO: REMOVE -->
-                    ${this.isRetractButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-retract-button"
-                                  type="is-secondary"
-                                  disabled
-                                  no-spinner-on-click
-                                  @click=${this.sendRetractSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.retract-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.retract-button-text',
-                                  )}">
-                                  <dbp-icon name="reply" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.retract-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
                     ${this.isSaveButtonEnabled
                         ? html`
                               <dbp-button
@@ -5958,52 +5723,6 @@ class FormalizeFormElement extends BaseFormElement {
                                   <span class="button-label">
                                       ${i18n.t(
                                           'render-form.forms.ethics-commission-form.save-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    <!-- @TODO: REMOVE -->
-                    ${this.isAcceptButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-accept-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${this.sendAcceptSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.accept-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.accept-button-text',
-                                  )}">
-                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.accept-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    <!-- @TODO: REMOVE -->
-                    ${this.isRevertAcceptButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-revert-accept-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${this.sendRevertAcceptSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.revert-accept-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.revert-accept-button-text',
-                                  )}">
-                                  <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.revert-accept-button-text',
                                       )}
                                   </span>
                               </dbp-button>

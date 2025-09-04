@@ -23,7 +23,6 @@ import {
     SUBMISSION_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
-    isAcceptedStateEnabled,
     SUBMISSION_STATES_BINARY,
 } from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss, getTagsCSS} from './styles.js';
@@ -45,17 +44,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedRowCount = {
             draft: 0,
             submitted: 0,
-            accepted: 0,
         };
         this.allRowCount = {
             draft: 0,
             submitted: 0,
-            accepted: 0,
         };
         this.options_submissions = {
             draft: {},
             submitted: {},
-            accepted: {},
         };
         this.options_forms = {};
         this.forms = new Map();
@@ -65,7 +61,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissions = {
             draft: [],
             submitted: [],
-            accepted: [],
         };
         this.showSubmissionTables = false;
         this.showFormsTable = false;
@@ -73,17 +68,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionsColumns = {
             draft: [],
             submitted: [],
-            accepted: [],
         };
         this.submissionsColumnsInitial = {
             draft: [],
             submitted: [],
-            accepted: [],
         };
         this.tableSettingsInitialized = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.navigateBetweenDetailedSubmissionsHandler =
             this.navigateBetweenDetailedSubmissions.bind(this);
@@ -94,7 +86,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.totalNumberOfItems = {
             draft: 0,
             submitted: 0,
-            accepted: 0,
         };
         this.isPrevEnabled = false;
         this.isNextEnabled = false;
@@ -104,7 +95,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.noSubmissionAvailable = {
             draft: true,
             submitted: true,
-            accepted: true,
         };
         this.modalContentHeight = 0;
         this.loadCourses = true;
@@ -114,64 +104,44 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionTables = {
             submitted: null,
             draft: null,
-            accept: null,
         };
         this.formsTable = null;
 
         this.isDeleteSelectedSubmissionEnabled = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.isDeleteAllSubmissionEnabled = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.isEditSubmissionEnabled = {
             draft: false,
             submitted: false,
-            accepted: false,
-        };
-        this.isAcceptSubmissionEnabled = {
-            draft: false,
-            submitted: false,
-            accepted: false,
-        };
-        this.isReopenSubmissionEnabled = {
-            draft: false,
-            submitted: false,
-            accepted: false,
         };
         this.isEditSubmissionPermissionEnabled = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.enabledStates = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.searchWidgetIsOpen = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.actionsWidgetIsOpen = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.isActionAvailable = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
         this.needTableRebuild = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
     }
 
@@ -332,7 +302,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.options_submissions.submitted = {...options_submissions};
         this.options_submissions.draft = {...options_submissions};
-        this.options_submissions.accepted = {...options_submissions};
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
@@ -844,7 +813,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissions = {
             submitted: [],
             draft: [],
-            accepted: [],
         };
         const options = {
             method: 'GET',
@@ -878,7 +846,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.noSubmissionAvailable = {
                 draft: true,
                 submitted: true,
-                accepted: true,
             };
             return response;
         }
@@ -894,9 +861,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
         submissions.draft = data['hydra:member'].filter((submission) => {
             return submission.submissionState === SUBMISSION_STATES_BINARY.DRAFT;
-        });
-        submissions.accepted = data['hydra:member'].filter((submission) => {
-            return submission.submissionState === SUBMISSION_STATES_BINARY.ACCEPTED;
         });
 
         for (const state of Object.keys(this.submissions)) {
@@ -1045,7 +1009,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Sets the initial order of the submission table columns.
-     * @param {string} state - The state of the submission table ('draft', 'submitted' or 'accepted').
+     * @param {string} state - The state of the submission table ('draft' or 'submitted').
      */
     // @TODO: should be renamed set to DefaultSubmissionTableOrder.
     // Get the default field visibility form the schema.
@@ -1085,7 +1049,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Defines the editable settings based on the current submissions tabulator columns.
-     * @param {string} state - The state of the submission table ('draft', 'submitted' or 'accepted').
+     * @param {string} state - The state of the submission table ('draft' or 'submitted').
      */
     defineSettings(state) {
         const table = this.submissionTables[state];
@@ -1219,7 +1183,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Resets the settings to their currently not saved values
-     * @param {string} state - The state of the submission table ('draft', 'submitted' or 'accepted').
+     * @param {string} state - The state of the submission table ('draft' or 'submitted').
      */
     resetSettings(state) {
         let list = this._(`#column-options-modal-${state} .headers`);
@@ -1264,7 +1228,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Gets the detailed data of a specific row
-     * @param {string} state - The state of the submission ('draft', 'submitted' or 'accepted').
+     * @param {string} state - The state of the submission ('draft' or 'submitted').
      * @param entry
      * @param pos
      */
@@ -1595,7 +1559,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     /**
      * Update Submission Table (order and visibility)
      * Based on the column-options-modal icon state
-     * @param {string} state - 'submitted', 'draft' or 'accepted'
+     * @param {string} state - 'draft' or 'submitted'
      */
     updateSubmissionTable(state) {
         let list = this._(`#column-options-modal-${state} .headers`);
@@ -1646,7 +1610,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Gets stored submission table settings from localStorage
-     * @param {string} state - 'submitted', 'draft' or 'accepted'
+     * @param {string} state - 'draft' or 'submitted'
      * @returns {boolean} success
      */
     getSubmissionTableSettings(state) {
@@ -1687,7 +1651,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Stores submission Table settings in localStorage
-     * @param {string} state - 'submitted', 'draft'  or 'accepted'
+     * @param {string} state - 'draft' or 'submitted'
      */
     setSubmissionTableSettings(state) {
         if (this.storeSession && this.isLoggedIn()) {
@@ -1701,7 +1665,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Delete submission Table settings from localStorage
-     * @param {string} state - 'submitted', 'draft'  or 'accepted'
+     * @param {string} state - 'draft' or 'submitted'
      */
     deleteSubmissionTableSettings(state) {
         if (this.storeSession && this.isLoggedIn()) {
@@ -1777,7 +1741,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Shows entry of a specific position of this.submissionTable
-     * @param {string} state - 'submitted', 'draft'  or 'accepted'
+     * @param {string} state - 'draft' or 'submitted'
      * @param {number} positionToShow
      * @param {"next"|"previous"} direction
      */
@@ -2989,38 +2953,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </button>
                 <div class="actions-dropdown" ?inert=${!this.actionsWidgetIsOpen[state]}>
                     <ul class="actions-list">
-                        ${this.isAcceptSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--accept"
-                                          @click="${async () => {
-                                              await this.handleAcceptSubmission();
-                                              this.toggleActionsDropdown(state);
-                                          }}">
-                                          <dbp-icon name="checkmark" aria-hidden="true"></dbp-icon>
-                                          Accept (${this.selectedRowCount[state]})
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
-                        ${this.isReopenSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--reopen"
-                                          @click="${async () => {
-                                              await this.handleReopenSubmission();
-                                              this.toggleActionsDropdown(state);
-                                          }}">
-                                          <dbp-icon
-                                              name="spinner-arrow"
-                                              aria-hidden="true"></dbp-icon>
-                                          Reopen (${this.selectedRowCount[state]})
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
                         ${this.isEditSubmissionEnabled[state]
                             ? html`
                                   <li class="action">
@@ -3094,8 +3026,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     setIsActionAvailable(state) {
         this.setActionButtonsStates(state);
         if (
-            this.isAcceptSubmissionEnabled[state] === false &&
-            this.isReopenSubmissionEnabled[state] === false &&
             this.isEditSubmissionEnabled[state] === false &&
             this.isEditSubmissionPermissionEnabled[state] === false &&
             this.isDeleteAllSubmissionEnabled[state] === false &&
@@ -3109,7 +3039,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Toggle actions dropdown
-     * @param {string} state - form state. draft, submitted or accepted
+     * @param {string} state - form state. draft, or submitted
      */
     toggleActionsDropdown(state) {
         this.actionsWidgetIsOpen = {
@@ -3125,39 +3055,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.actionsWidgetIsOpen = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
     }
 
     /**
      * Set action buttons states
-     * @param {string} state - form state. draft, submitted or accepted
+     * @param {string} state - form state. draft or submitted
      */
     setActionButtonsStates(state) {
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
         const allRows = this.submissionTables[state].tabulatorTable.getRows('all');
         const activeForm = this.forms.get(this.activeFormId);
         const formGrantedActions = activeForm.formGrantedActions;
-        const allowedSubmissionStates = activeForm.allowedSubmissionStates;
 
         // Set row counts
         this.selectedRowCount[state] = selectedRows.length;
         this.allRowCount[state] = allRows.length;
-
-        this.isAcceptSubmissionEnabled[state] =
-            isAcceptedStateEnabled(allowedSubmissionStates) &&
-            state === SUBMISSION_STATES.SUBMITTED &&
-            this.selectedRowCount[state] > 0 &&
-            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
-
-        this.isReopenSubmissionEnabled[state] =
-            state === SUBMISSION_STATES.ACCEPTED &&
-            this.selectedRowCount[state] > 0 &&
-            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
         this.isDeleteSelectedSubmissionEnabled[state] =
             this.selectedRowCount[state] > 0 &&
@@ -3223,160 +3136,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    /**
-     * Handle refreshing table rows after accepting submissions
-     */
-    async handleAcceptSubmission() {
-        const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
-        // const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
-
-        const dataSubmitted = submittedTable.getSelectedData();
-        const rowsSubmitted = submittedTable.getSelectedRows();
-
-        if (dataSubmitted.length > 0) {
-            let responseStatus = [];
-            let index = 0;
-            for (const submission of dataSubmitted) {
-                const response = await this.apiSetSubmissionState(
-                    submission.submissionId,
-                    SUBMISSION_STATES.ACCEPTED,
-                );
-                responseStatus.push(response);
-                // Delete row from the table and add row to the other table
-                if (response === true) {
-                    await rowsSubmitted[index].delete();
-                    // await acceptedTable.addRow(dataSubmitted[index]);
-
-                    // Remove entry from options.data
-                    this.options_submissions[SUBMISSION_STATES.SUBMITTED].data =
-                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data.filter((sub) => {
-                            return sub.submissionId !== submission.submissionId;
-                        });
-                    if (this.options_submissions[SUBMISSION_STATES.ACCEPTED].data) {
-                        this.options_submissions[SUBMISSION_STATES.ACCEPTED].data.push(submission);
-                    } else {
-                        this.options_submissions[SUBMISSION_STATES.ACCEPTED].data = [submission];
-                    }
-
-                    // Remove entry from this.submissions
-                    const filteredSubmissions = this.submissions[
-                        SUBMISSION_STATES.SUBMITTED
-                    ].filter((sub) => {
-                        return sub.submissionId !== submission.submissionId;
-                    });
-                    const existsInAccepted = this.submissions[SUBMISSION_STATES.ACCEPTED].some(
-                        (sub) => sub.submissionId === submission.submissionId,
-                    );
-                    if (!existsInAccepted) {
-                        this.submissions[SUBMISSION_STATES.ACCEPTED].push(submission);
-                    }
-                    this.submissions = {
-                        ...this.submissions,
-                        [SUBMISSION_STATES.SUBMITTED]: filteredSubmissions,
-                    };
-
-                    // Get table settings from localstorage
-                    this.getSubmissionTableSettings(SUBMISSION_STATES.ACCEPTED);
-                    // this.setInitialSubmissionTableOrder(state);
-                    this.defineSettings(SUBMISSION_STATES.ACCEPTED);
-                    this.updateSubmissionTable(SUBMISSION_STATES.ACCEPTED);
-                }
-                index++;
-            }
-            this.needTableRebuild[SUBMISSION_STATES.ACCEPTED] = true;
-            this.needTableRebuild[SUBMISSION_STATES.SUBMITTED] = true;
-
-            // Report
-            this.successFailureNotification(responseStatus);
-        } else {
-            send({
-                summary: this._i18n.t('errors.warning-title'),
-                body: this._i18n.t('errors.no-submission-selected'),
-                type: 'warning',
-                timeout: 5,
-            });
-        }
-    }
-
-    /**
-     * Handle refreshing table rows after reopening submissions
-     */
-    async handleReopenSubmission() {
-        const acceptedTable = this.submissionTables[SUBMISSION_STATES.ACCEPTED].tabulatorTable;
-        // const submittedTable = this.submissionTables[SUBMISSION_STATES.SUBMITTED].tabulatorTable;
-
-        const dataAccepted = acceptedTable.getSelectedData();
-        const rowsAccepted = acceptedTable.getSelectedRows();
-
-        if (dataAccepted.length > 0) {
-            let responseStatus = [];
-            let index = 0;
-            for (const submission of dataAccepted) {
-                const response = await this.apiSetSubmissionState(
-                    submission.submissionId,
-                    SUBMISSION_STATES.SUBMITTED,
-                );
-                responseStatus.push(response);
-                // Delete row from the table and add row to the other table
-                if (response === true) {
-                    await rowsAccepted[index].delete();
-                    // await submittedTable.addRow(dataAccepted[index]);
-
-                    // Remove entry from options.data
-                    this.options_submissions[SUBMISSION_STATES.ACCEPTED].data =
-                        this.options_submissions[SUBMISSION_STATES.ACCEPTED].data.filter((sub) => {
-                            return sub.submissionId !== submission.submissionId;
-                        });
-                    if (
-                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data &&
-                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data.length > 0
-                    ) {
-                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data.push(submission);
-                    } else {
-                        this.options_submissions[SUBMISSION_STATES.SUBMITTED].data = [submission];
-                    }
-
-                    // Remove entry from this.submissions
-                    const filteredSubmissions = this.submissions[SUBMISSION_STATES.ACCEPTED].filter(
-                        (sub) => {
-                            return sub.submissionId !== submission.submissionId;
-                        },
-                    );
-                    const existsInSubmitted = this.submissions[SUBMISSION_STATES.SUBMITTED].some(
-                        (sub) => sub.submissionId === submission.submissionId,
-                    );
-                    if (!existsInSubmitted) {
-                        this.submissions[SUBMISSION_STATES.SUBMITTED].push(submission);
-                    }
-                    this.submissions = {
-                        ...this.submissions,
-                        [SUBMISSION_STATES.ACCEPTED]: filteredSubmissions,
-                    };
-
-                    // Get table settings from localstorage
-                    this.getSubmissionTableSettings(SUBMISSION_STATES.SUBMITTED);
-                    // this.setInitialSubmissionTableOrder(state);
-                    this.defineSettings(SUBMISSION_STATES.SUBMITTED);
-                    this.updateSubmissionTable(SUBMISSION_STATES.SUBMITTED);
-                }
-                index++;
-            }
-
-            this.needTableRebuild[SUBMISSION_STATES.SUBMITTED] = true;
-            this.needTableRebuild[SUBMISSION_STATES.ACCEPTED] = true;
-
-            // Report
-            this.successFailureNotification(responseStatus);
-        } else {
-            send({
-                summary: this._i18n.t('errors.warning-title'),
-                body: this._i18n.t('errors.no-submission-selected'),
-                type: 'warning',
-                timeout: 5,
-            });
-        }
-    }
-
     handleEditSubmissionsPermission(state) {
         const permissionDialog = this._('#grant-permission-dialog');
         const data = this.submissionTables[state].tabulatorTable.getSelectedData();
@@ -3401,10 +3160,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (activeForm.formName === 'Ethikkommission') {
             // Go to the readonly view of the form submission
             let formSubmissionUrl = getFormRenderUrl(activeFormSlug) + `/${submissionId}`;
-            // Open drafts in editable mode
-            if (state === 'accepted') {
-                formSubmissionUrl += '/readonly';
-            }
             const url = new URL(formSubmissionUrl);
             window.history.pushState({}, '', url);
 
@@ -3427,7 +3182,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Delete submissions visible in the table or all submissions
-     * @param {string} state - form state. draft, submitted or accepted
+     * @param {string} state - form state. draft or submitted
      * @param {boolean} selectedOnly - if true only the selected submissions are deleted
      */
     async handleDeleteSubmissions(state, selectedOnly = false) {
@@ -3586,9 +3341,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         let newState = null;
         switch (state) {
-            case SUBMISSION_STATES.ACCEPTED:
-                newState = String(SUBMISSION_STATES_BINARY.ACCEPTED);
-                break;
             case SUBMISSION_STATES.SUBMITTED:
                 newState = String(SUBMISSION_STATES_BINARY.SUBMITTED);
                 break;
@@ -3643,7 +3395,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.searchWidgetIsOpen = {
             draft: false,
             submitted: false,
-            accepted: false,
         };
     }
 
@@ -3879,7 +3630,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const submissionTableTitle = {
                         draft: i18n.t('show-submissions.submission-table-draft-title'),
                         submitted: i18n.t('show-submissions.submission-table-submitted-title'),
-                        accepted: i18n.t('show-submissions.submission-table-accepted-title'),
                     };
                     if (this.activeFormId) {
                         const activeForm = this.forms.get(this.activeFormId);
@@ -3887,7 +3637,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.enabledStates = {
                             draft: isDraftStateEnabled(allowedSubmissionStates),
                             submitted: isSubmittedStateEnabled(allowedSubmissionStates),
-                            accepted: isAcceptedStateEnabled(allowedSubmissionStates),
                         };
                     }
                     return html`

@@ -63,7 +63,6 @@
                 "title": "Register for an accessible exam date"
             },
             "ethics-commission-form": {
-                "accept-button-text": "Accept",
                 "acquisition-of-test-subjects-label": "Acquisition of the participants",
                 "acquisition-of-test-subjects-placeholder": "Please describe how you recruit participants for your study and attach any information material, notices, recruitment texts for emails, etc.",
                 "adequate-safety-measures-label": "Have adequate safety measures been taken to reduce the risk to participants and researchers?",
@@ -182,8 +181,6 @@
                 "relevant-legal-document-available-label": "Are corresponding legal bases/documents available?",
                 "replace-human-decision-making-label": "Can the information processing systems used in the research project influence, replace, or circumvent human decision-making processes?",
                 "research-project-description-label": "Description of the research project",
-                "retract-button-text": "Retract",
-                "revert-accept-button-text": "Reopen",
                 "risk-of-reputation-damage-label": "Is there a risk of reputational damage for Graz University of Technology?",
                 "risks-reasons-label": "If so, justification",
                 "save-button-text": "Save",
@@ -317,7 +314,6 @@
         "searchbar-placeholder": "Search for ...",
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!",
-        "submission-table-accepted-title": "Accepted",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted"
     }

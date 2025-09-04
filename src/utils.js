@@ -21,19 +21,16 @@ export const getFormShowSubmissionsUrl = (formId) => {
 export const SUBMISSION_STATE_NONE = 0b0; // 0
 export const SUBMISSION_STATE_DRAFT = 0b0001; // 1
 export const SUBMISSION_STATE_SUBMITTED = 0b0100; // 4
-export const SUBMISSION_STATE_ACCEPTED = 0b00010000; // 16
 
 export const SUBMISSION_STATES = Object.freeze({
     DRAFT: 'draft',
     SUBMITTED: 'submitted',
-    ACCEPTED: 'accepted',
 });
 
 export const SUBMISSION_STATES_BINARY = Object.freeze({
     NONE: SUBMISSION_STATE_NONE,
     DRAFT: SUBMISSION_STATE_DRAFT,
     SUBMITTED: SUBMISSION_STATE_SUBMITTED,
-    ACCEPTED: SUBMISSION_STATE_ACCEPTED,
 });
 
 export const FORM_PERMISSIONS = Object.freeze({
@@ -60,10 +57,6 @@ export function isDraftStateEnabled(allowedSubmissionStates) {
 
 export function isSubmittedStateEnabled(allowedSubmissionStates) {
     return (allowedSubmissionStates & SUBMISSION_STATE_SUBMITTED) === SUBMISSION_STATE_SUBMITTED;
-}
-
-export function isAcceptedStateEnabled(allowedSubmissionStates) {
-    return (allowedSubmissionStates & SUBMISSION_STATE_ACCEPTED) === SUBMISSION_STATE_ACCEPTED;
 }
 
 export function formatDate(value) {

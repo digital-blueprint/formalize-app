@@ -163,69 +163,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.dispatchEvent(customEvent);
     }
 
-    /**
-     * Sends an accept submission event with the submission ID to accept.
-     * @param {object} event
-     */
-    sendAcceptSubmission(event) {
-        if (!this.submissionId) {
-            return;
-        }
-
-        this.isAcceptButtonEnabled = false;
-        this.isRevertAcceptButtonEnabled = true;
-        const data = {
-            submissionId: this.submissionId,
-        };
-
-        const customEvent = new CustomEvent('DbpFormalizeFormAcceptSubmission', {
-            bubbles: true,
-            composed: true,
-            detail: data,
-        });
-        this.dispatchEvent(customEvent);
-    }
-
-    sendRetractSubmission(event) {
-        if (!this.submissionId) {
-            return;
-        }
-
-        const data = {
-            submissionId: this.submissionId,
-        };
-
-        const customEvent = new CustomEvent('DbpFormalizeFormRetractSubmission', {
-            bubbles: true,
-            composed: true,
-            detail: data,
-        });
-        this.dispatchEvent(customEvent);
-    }
-
-    /**
-     * Sends an revert-accept submission event with the submission ID to accept.
-     * @param {object} event
-     */
-    sendRevertAcceptSubmission(event) {
-        if (!this.submissionId) {
-            return;
-        }
-
-        this.isAcceptButtonEnabled = true;
-        this.isRevertAcceptButtonEnabled = false;
-        const data = {
-            submissionId: this.submissionId,
-        };
-
-        const customEvent = new CustomEvent('DbpFormalizeFormRevertAcceptedSubmission', {
-            bubbles: true,
-            composed: true,
-            detail: data,
-        });
-        this.dispatchEvent(customEvent);
-    }
-
     disableLeavePageWarning() {
         const disableEvent = new CustomEvent('disableBeforeunloadWarning', {
             bubbles: true,
