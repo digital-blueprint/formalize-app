@@ -2953,38 +2953,30 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </button>
                 <div class="actions-dropdown" ?inert=${!this.actionsWidgetIsOpen[state]}>
                     <ul class="actions-list">
-                        ${this.isEditSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--edit-submission"
-                                          @mousedown="${async (event) => {
-                                              await this.handleEditSubmissions(event, state);
-                                              this.toggleActionsDropdown(state);
-                                          }}">
-                                          <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                                          Edit draft/submission
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
-                        ${this.isEditSubmissionPermissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--edit-permission"
-                                          @click="${async () => {
-                                              await this.handleEditSubmissionsPermission(state);
-                                              this.toggleActionsDropdown(state);
-                                          }}">
-                                          <dbp-icon
-                                              name="edit-permission"
-                                              aria-hidden="true"></dbp-icon>
-                                          Edit permission
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
+                        <li class="action">
+                            <button
+                                class="button action-button button--edit-submission"
+                                ?disabled=${!this.isEditSubmissionEnabled[state]}
+                                @mousedown="${async (event) => {
+                                    await this.handleEditSubmissions(event, state);
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
+                                Edit draft/submission
+                            </button>
+                        </li>
+                        <li class="action">
+                            <button
+                                class="button action-button button--edit-permission"
+                                ?disabled=${!this.isEditSubmissionPermissionEnabled[state]}
+                                @click="${async () => {
+                                    await this.handleEditSubmissionsPermission(state);
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
+                                Edit permission
+                            </button>
+                        </li>
                         ${this.isDeleteAllSubmissionEnabled[state]
                             ? html`
                                   <li class="action">
