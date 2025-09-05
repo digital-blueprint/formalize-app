@@ -13,6 +13,14 @@
         "node": ">=20.0.0",
         "npm": ">=7.0.0"
     },
+    "dbp": {
+        "urls": [
+            {
+                "srcPackage": "select2",
+                "src": "**/*.css"
+            }
+        ]
+    },
     "devDependencies": {
         "@babel/core": "^7.10.3",
         "@babel/preset-env": "^7.10.3",
