@@ -245,6 +245,7 @@ export default (async () => {
                                 'MIT OR SEE LICENSE IN FEEL-FREE.md',
                                 '(MIT OR GPL-3.0-or-later)',
                                 'BSD',
+                                '(MIT AND Zlib)',
                             ];
                             if (!licenses.includes(dependency.license)) {
                                 throw new Error(
