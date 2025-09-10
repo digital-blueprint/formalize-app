@@ -429,21 +429,31 @@ export function getEthicsCommissionFormCSS() {
 
         .info-box {
             background-color: #c9e4c6;
-            padding: 1em;
+            padding: 1.5em;
         }
 
+        .info-box p:last-child,
         .info-box p:first-child {
             margin-top: 0;
-        }
-
-        .info-box p:last-child {
-            margin-bottom: 0;
         }
 
         .field-note {
             font-size: smaller;
             font-style: italic;
             margin: -0.5em 0 2em;
+            line-height: var(--dbp-form-line-height);
+        }
+
+        /* boolean field view */
+        .dbp-form-boolean-view fieldset {
+            border: 0 none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .dbp-form-boolean-view label {
+            font-weight: bold;
+            display: block;
         }
 
         .red-marked-asterisk {
@@ -828,9 +838,12 @@ export function getEthicsCommissionFormPrintCSS() {
                 text-align: center;
             }
 
+            .form-details,
             .form-header .buttons-wrapper,
             button,
             dbp-button,
+            #file-sink,
+            dbp-file-sink,
             .submission-permissions,
             .scroller-container {
                 display: none !important;
@@ -838,13 +851,43 @@ export function getEthicsCommissionFormPrintCSS() {
                 overflow: hidden;
             }
 
+            .form-header {
+                padding: 0;
+                min-height: initial;
+                border: 0 none;
+            }
+
+            .submission-dates .label {
+                margin: 0;
+            }
+
             .submission-dates-wrapper {
                 margin-bottom: var(--dbp-form-line-height);
             }
 
-            sup {
+            .info-box {
+                /*padding: calc(var(--dbp-form-line-height) / 2) var(--dbp-form-line-height);*/
+                padding: 0;
+                background-color: initial;
+            }
+
+            .field-note {
+                margin-top: calc(-1 * var(--dbp-form-line-height));
+                font-style: italic;
+                font-size: smaller;
+            }
+
+            p {
+                position: relative;
+            }
+
+            p sup {
                 vertical-align: baseline;
                 padding-left: 3px;
+                /* Required to not change the line-height of paragraphs */
+                position: absolute;
+                bottom: 5px;
+                display: inline-block;
             }
 
             fieldset {
@@ -856,7 +899,11 @@ export function getEthicsCommissionFormPrintCSS() {
             p,
             ul,
             ol {
-                margin: var(--dbp-form-line-height);
+                margin: var(--dbp-form-line-height) 0;
+            }
+
+            ul li {
+                height: var(--dbp-form-line-height);
             }
 
             fieldset label {

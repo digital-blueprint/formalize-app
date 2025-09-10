@@ -466,7 +466,7 @@ class FormalizeFormElement extends BaseFormElement {
     static get styles() {
         // language=css
         return css`
-            @layer theme, utility, formalize;
+            @layer theme, utility, formalize, print;
             @layer theme {
                 ${commonStyles.getGeneralCSS(false)}
                 ${commonStyles.getButtonCSS()}
@@ -1174,8 +1174,6 @@ class FormalizeFormElement extends BaseFormElement {
             form.classList.remove('print');
             // Restore original elements
             restoreElements();
-            // Force a re-render
-            // this.requestUpdate();
         }
     }
 
@@ -1251,6 +1249,33 @@ class FormalizeFormElement extends BaseFormElement {
         // Store original elements and their clones
         const shadowElements = [];
         element.querySelectorAll('*').forEach((el) => {
+            if (el.tagName === 'DBP-TRANSLATED' && el.shadowRoot) {
+                const shadowContent = el.shadowRoot.innerHTML;
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = shadowContent;
+
+                // For dbp-translated
+                const translationSlot = el.querySelector(`[slot="${this.lang}"]`);
+                if (translationSlot) {
+                    const slotContent = translationSlot.innerHTML;
+
+                    console.log(`slotContent`, slotContent);
+
+                    const fieldset = document.createElement('fieldset');
+                    fieldset.innerHTML = slotContent;
+                    wrapper.append(fieldset);
+                }
+
+                // Store original element and its clone for later restoration
+                shadowElements.push({
+                    original: el,
+                    clone: wrapper,
+                });
+
+                // Hide original element and insert clone
+                el.style.display = 'none';
+                el.insertAdjacentElement('afterend', wrapper);
+            }
             if (el.tagName.startsWith('DBP-FORM') && el.shadowRoot) {
                 const shadowContent = el.shadowRoot.innerHTML;
                 const wrapper = document.createElement('div');
@@ -1261,6 +1286,7 @@ class FormalizeFormElement extends BaseFormElement {
                     const slotLabel = slot.textContent;
                     const label = document.createElement('label');
                     label.textContent = slotLabel;
+
                     const fieldset = wrapper.querySelector('fieldset');
                     fieldset.prepend(label);
                 }
@@ -1612,7 +1638,10 @@ class FormalizeFormElement extends BaseFormElement {
 
             <style>
                 /* Style needs to be inline for html2pdf.js */
-                ${getEthicsCommissionFormPrintCSS()}
+                @layer theme, utility, formalize, print;
+                @layer print {
+                    ${getEthicsCommissionFormPrintCSS()}
+                }
             </style>
 
             <form id="ethics-commission-form" aria-labelledby="form-title">
@@ -1804,13 +1833,21 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${data.studyDescriptionDateOfTransmission ||
                                       ''}></dbp-form-date-view>
 
-                                  <div>
-                                      <span class="label">
-                                          ${i18n.t(
-                                              'render-form.forms.ethics-commission-form.data-protection-checked-label',
-                                          )}
-                                      </span>
-                                      ${data.dataProtectionChecked === true ? 'yes' : 'no'}
+                                  <div class="dbp-form-boolean-view">
+                                      <fieldset>
+                                          <label>
+                                              ${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label',
+                                              )}
+                                          </label>
+                                          ${data.dataProtectionChecked === true
+                                              ? i18n.t(
+                                                    'render-form.forms.ethics-commission-form.yes',
+                                                )
+                                              : i18n.t(
+                                                    'render-form.forms.ethics-commission-form.no',
+                                                )}
+                                      </fieldset>
                                   </div>
 
                                   <dbp-form-date-view
@@ -2732,9 +2769,6 @@ class FormalizeFormElement extends BaseFormElement {
                                         3.4. Does your research project comply with the (<a href='https://www.tugraz.at/en/tu-graz/university/climate-neutral-tu-graz/roadmap/' target='_blank'>TU Graz sustainability strategy</a>)?
                                     </div>
                                 </dbp-translated>
-                                <span slot="label">
-
-                                </span>
                         </dbp-form-enum-view>
 
                         <dbp-form-string-view
@@ -3307,8 +3341,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </div>
                     </div>
                 </article>
+            </form>
 
-                <dbp-file-sink
+            <dbp-file-sink
                     id="file-sink"
                     class="file-sink"
                     lang="${this.lang}"
@@ -3318,7 +3353,6 @@ class FormalizeFormElement extends BaseFormElement {
                     enabled-targets="local,clipboard,nextcloud"
                     filename="ethics-commission-form-${this.submissionId || ''}-attachments.zip"
                     subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
-            </form>
 
             <dbp-modal
                 id="pdf-view-modal"
@@ -5470,27 +5504,27 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <button @click="${this.openFilePicker}" class="button is-primary attachment-upload-button">${i18n.t('render-form.forms.ethics-commission-form.attache-file-button-label')}</button>
                     </div>
-
-                    <dbp-file-source
-                        id="file-source"
-                        class="file-source"
-                        lang="${this.lang}"
-                        allowed-mime-types='application/pdf'
-                        max-file-size="50000"
-                        enabled-targets="local,clipboard,nextcloud"
-                        subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
-
-                    <dbp-file-sink
-                        id="file-sink"
-                        class="file-sink"
-                        lang="${this.lang}"
-                        allowed-mime-types="application/pdf,.pdf"
-                        decompress-zip
-                        enabled-targets="local,clipboard,nextcloud"
-                        filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
-                        subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
                 </article>
             </form>
+
+            <dbp-file-source
+                id="file-source"
+                class="file-source"
+                lang="${this.lang}"
+                allowed-mime-types='application/pdf'
+                max-file-size="50000"
+                enabled-targets="local,clipboard,nextcloud"
+                subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
+
+            <dbp-file-sink
+                id="file-sink"
+                class="file-sink"
+                lang="${this.lang}"
+                allowed-mime-types="application/pdf,.pdf"
+                decompress-zip
+                enabled-targets="local,clipboard,nextcloud"
+                filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
+                subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
             <dbp-modal
                 id="pdf-view-modal"
