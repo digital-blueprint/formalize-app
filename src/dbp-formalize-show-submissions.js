@@ -143,6 +143,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: false,
             submitted: false,
         };
+        this.iconNameVisible = 'source_icons_eye-empty';
+        this.iconNameHidden = 'source_icons_eye-off';
     }
 
     static get scopedElements() {
@@ -1102,7 +1104,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             header_title.classList.add('header-title');
             headerField.appendChild(header_title);
 
-            let visibility = /** @type {IconButton} */ (
+            let visibilityIcon = /** @type {IconButton} */ (
                 this.createScopedElement('dbp-icon-button')
             );
 
@@ -1111,21 +1113,25 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             });
 
             if (savedField.length === 1 && savedField[0].visible === false) {
-                visibility.iconName = 'source_icons_eye-off';
+                visibilityIcon.iconName = this.iconNameHidden;
+                visibilityIcon.setAttribute('data-visibility', 'hidden');
             } else {
-                visibility.iconName = 'source_icons_eye-empty';
+                visibilityIcon.iconName = this.iconNameVisible;
+                visibilityIcon.setAttribute('data-visibility', 'visible');
             }
 
-            visibility.classList.add('header-visibility-icon');
+            visibilityIcon.classList.add('header-visibility-icon');
 
-            visibility.addEventListener('click', (event) => {
-                if (visibility.iconName === 'source_icons_eye-empty') {
-                    visibility.iconName = 'source_icons_eye-off';
+            visibilityIcon.addEventListener('click', (event) => {
+                if (visibilityIcon.getAttribute('data-visibility') === 'hidden') {
+                    visibilityIcon.iconName = this.iconNameVisible;
+                    visibilityIcon.setAttribute('data-visibility', 'visible');
                 } else {
-                    visibility.iconName = 'source_icons_eye-empty';
+                    visibilityIcon.iconName = this.iconNameHidden;
+                    visibilityIcon.setAttribute('data-visibility', 'hidden');
                 }
             });
-            headerField.appendChild(visibility);
+            headerField.appendChild(visibilityIcon);
 
             let header_move = document.createElement('span');
             header_move.classList.add('header-move');
@@ -1194,15 +1200,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // Restore initial column order
         [...listChildren].forEach((element, index) => {
-            let header_field = element.children[0];
+            let headerField = element.children[0];
             // Reset title
-            header_field.children[1].innerHTML = '<strong>' + columns[index].title + '</strong>';
+            headerField.children[1].innerHTML = '<strong>' + columns[index].title + '</strong>';
             // Reset visibility
-            let visibility = header_field.children[2];
+            let visibilityIcon = headerField.children[2];
             if (columns[index].visible) {
-                visibility.iconName = 'source_icons_eye-empty';
+                visibilityIcon.iconName = this.iconNameVisible;
+                visibilityIcon.setAttribute('data-visibility', 'visible');
             } else if (!columns[index].visible) {
-                visibility.iconName = 'source_icons_eye-off';
+                visibilityIcon.iconName = this.iconNameHidden;
+                visibilityIcon.setAttribute('data-visibility', 'hidden');
             }
             // Delete previous settings from localstorage
             this.deleteSubmissionTableSettings(state);
@@ -1219,10 +1227,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // Restore initial column order
         [...headerFields].forEach((headerField, index) => {
-            const visibility = headerField.querySelector('dbp-icon-button');
-            action == 'hide'
-                ? (visibility.iconName = 'source_icons_eye-off')
-                : (visibility.iconName = 'source_icons_eye-empty');
+            const visibilityIcon = headerField.querySelector('dbp-icon-button');
+            if (action == 'hide') {
+                visibilityIcon.iconName = this.iconNameHidden;
+                visibilityIcon.setAttribute('data-visibility', 'hidden');
+            } else {
+                visibilityIcon.iconName = this.iconNameVisible;
+                visibilityIcon.setAttribute('data-visibility', 'visible');
+            }
         });
     }
 
@@ -1570,18 +1582,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         let newColumns = [];
         [...list].forEach((element, index) => {
-            let header_field = element.children[0];
-            let current_title = header_field.children[1].innerText;
-            let visibility_icon = header_field.children[2];
+            let headerField = element.children[0];
+            let currentTitle = headerField.children[1].innerText;
+            let visibilityIcon = headerField.children[2];
             let visibility;
-            // @TODO use data attribute instead of iconName
-            if (visibility_icon.iconName === 'source_icons_eye-off') {
+            if (visibilityIcon.getAttribute('data-visibility') === 'hidden') {
                 visibility = false;
-            } else if (visibility_icon.iconName === 'source_icons_eye-empty') {
+            } else {
                 visibility = true;
             }
-            let new_column = {title: current_title, field: current_title, visible: visibility};
-            newColumns.push(new_column);
+            let newColumn = {title: currentTitle, field: currentTitle, visible: visibility};
+            newColumns.push(newColumn);
         });
 
         let columns = table.getColumns();
