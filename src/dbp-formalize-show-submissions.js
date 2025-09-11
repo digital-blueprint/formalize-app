@@ -2713,13 +2713,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
-    // Not in use...
-    // setTableData() {
-    //     if (this.formsTable) {
-    //         this.formsTable.setData(this.allForms);
-    //     }
-    // }
-
     renderSubmissionDetailsModal(state) {
         const i18n = this._i18n;
         return html`
@@ -3309,87 +3302,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             if (!response.ok) {
                 console.warn(`Failed to delete submission. Response status: ${response.status}`);
-                // send({
-                //     summary: 'Error',
-                //     body: `Failed to delete submission. Response status: ${response.status}`,
-                //     type: 'danger',
-                //     timeout: 5,
-                // });
                 return false;
             } else {
                 return true;
             }
         } catch (error) {
             console.error(error.message);
-            send({
-                summary: 'Error',
-                body: error.message,
-                type: 'danger',
-                timeout: 5,
-            });
-            return false;
-        }
-    }
-
-    async apiSetSubmissionState(submissionId, state) {
-        if (!submissionId) {
-            send({
-                summary: 'Error',
-                body: `No submission id provided`,
-                type: 'danger',
-                timeout: 5,
-            });
-            return false;
-        }
-
-        let newState = null;
-        switch (state) {
-            case SUBMISSION_STATES.SUBMITTED:
-                newState = String(SUBMISSION_STATES_BINARY.SUBMITTED);
-                break;
-            case SUBMISSION_STATES.DRAFT:
-                newState = String(SUBMISSION_STATES_BINARY.DRAFT);
-                break;
-        }
-        if (!newState) false;
-
-        const formData = new FormData();
-        formData.append('submissionState', newState);
-
-        try {
-            const response = await fetch(
-                this.entryPointUrl + `/formalize/submissions/${submissionId}`,
-                {
-                    method: 'PATCH',
-                    headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
-                    },
-                    body: formData,
-                },
-            );
-            let responseBody = await response.json();
-            if (!response.ok) {
-                console.warn(
-                    `Failed to set submission state. Response status: ${responseBody.status}`,
-                );
-                // send({
-                //     summary: 'Error',
-                //     body: `Failed to set submission state. Response status: ${responseBody.status}`,
-                //     type: 'danger',
-                //     timeout: 5,
-                // });
-                return false;
-            } else {
-                return true;
-            }
-        } catch (error) {
-            console.error(error.message);
-            send({
-                summary: 'Error',
-                body: error.message,
-                type: 'danger',
-                timeout: 5,
-            });
             return false;
         }
     }
