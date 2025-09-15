@@ -7,7 +7,8 @@
         "notfound-title": "Resource not found",
         "other-body": "There was an error accessing requested resource.",
         "other-title": "Error",
-        "success-title": "Success",
+        "submissions-processing-failed_one": "{{count}} submission failed to be processed",
+        "submissions-processing-failed_other": "{{count}} submissions failed to be processed",
         "unauthorized-body": "No authorization to access requested resource.",
         "unauthorized-title": "Unauthorized",
         "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
@@ -316,5 +317,10 @@
         "something-went-wrong-title": "Error!",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted"
+    },
+    "success": {
+        "submissions-processed_one": "{{count}} submission processed successfully",
+        "submissions-processed_other": "{{count}} submissions processed successfully",
+        "success-title": "Success"
     }
 }

@@ -7,7 +7,8 @@
         "notfound-title": "Ressource nicht gefunden",
         "other-body": "Beim Zugriff auf die angeforderte Ressource ist ein Fehler aufgetreten.",
         "other-title": "Fehler",
-        "success-title": "Erfolg",
+        "submissions-processing-failed_one": "{{count}} Einreichung konnte nicht verarbeitet werden",
+        "submissions-processing-failed_other": "{{count}} Einreichungen konnten nicht verarbeitet werden",
         "unauthorized-body": "Keine Berechtigung um auf die angeforderte Ressource zuzugreifen.",
         "unauthorized-title": "Keine Berechtigung",
         "unprocessable_entity-body": "Die Anmeldedaten sind ungültig oder unvollständig.",
@@ -316,5 +317,10 @@
         "something-went-wrong-title": "Fehler!",
         "submission-table-draft-title": "Drafts",
         "submission-table-submitted-title": "Submitted"
+    },
+    "success": {
+        "submissions-processed_one": "{{count}} Einreichung wurde erfolgreich verarbeitet",
+        "submissions-processed_other": "{{count}} Einreichungen wurden erfolgreich verarbeitet",
+        "success-title": ""
     }
 }

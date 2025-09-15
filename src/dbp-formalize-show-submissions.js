@@ -3094,8 +3094,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const successCount = responseStatus.filter((status) => status === true).length;
         if (successCount > 0) {
             send({
-                summary: this._i18n.t('errors.success-title'),
-                body: `${successCount} submission processed successfully`,
+                summary: this._i18n.t('success.success-title'),
+                body: this._i18n.t('success.submissions-processed', {count: successCount}),
                 type: 'success',
                 timeout: 5,
             });
@@ -3105,7 +3105,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (errorCount > 0) {
             send({
                 summary: this._i18n.t('errors.error-title'),
-                body: `${errorCount} submissions failed to process`,
+                body: this._i18n.t('errors.submissions-processing-failed', {count: errorCount}),
                 type: 'danger',
                 timeout: 5,
             });
