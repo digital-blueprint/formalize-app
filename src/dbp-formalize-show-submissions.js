@@ -15,6 +15,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {Activity} from './activity.js';
 import {CustomTabulatorTable} from './table-components.js';
 import MicroModal from './micromodal.es.js';
+import {FileSink} from '@dbp-toolkit/file-handling';
 import {
     SUBMISSION_STATES,
     FORM_PERMISSIONS,
@@ -107,6 +108,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.formsTable = null;
 
+        this.submissionsHasAttachment = false;
+        this.submittedFileDetails = {
+            draft: new Map(),
+            submitted: new Map(),
+        };
+
         this.isDeleteSelectedSubmissionEnabled = {
             draft: false,
             submitted: false,
@@ -158,6 +165,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
+            'dbp-file-sink': FileSink,
         };
     }
 
@@ -881,6 +889,31 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 dataFeedElement = JSON.parse(dataFeedElement);
                 let submissionId = submission['identifier'];
 
+                // Get attachments
+                const submittedFilesBasicResponse = submission['submittedFiles'];
+                let allAttachmentDetails = '';
+                if (
+                    submittedFilesBasicResponse &&
+                    Array.isArray(submittedFilesBasicResponse) &&
+                    submittedFilesBasicResponse.length > 0
+                ) {
+                    this.submissionsHasAttachment = true;
+                    // Extract file names from the submittedFiles array
+                    try {
+                        this.submittedFileDetails[state].set(
+                            submissionId,
+                            await this.getAttachmentFilesDetails(submissionId),
+                        );
+                    } catch (e) {
+                        console.error(e);
+                    }
+
+                    // Display file names in the table cell
+                    for (const attachment of this.submittedFileDetails[state].get(submissionId)) {
+                        allAttachmentDetails += `${attachment.fileName} `;
+                    }
+                }
+
                 const id = x + 1;
                 const cols = {dateCreated: dateCreated, ...dataFeedElement};
 
@@ -936,6 +969,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     submissionId: submissionId,
                     dateCreated: dateCreated,
                     ...dataFeedElement,
+                    attachments: allAttachmentDetails,
                     htmlButtons: actionButtonsDiv,
                 };
 
@@ -1007,6 +1041,47 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submissions_list = [];
         }
         return response;
+    }
+
+    /**
+     * Get details of attachment files for a specific submission
+     * fileName, fileSize, downloadUrl
+     * @param {string} submissionId
+     * @returns {Promise<any[]>} List of attachment details
+     */
+    async getAttachmentFilesDetails(submissionId) {
+        let submissionData = {};
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+
+        try {
+            const response = await this.httpGetAsync(
+                this.entryPointUrl + '/formalize/submissions/' + submissionId,
+                options,
+            );
+            if (!response.ok) {
+                this.handleErrorResponse(response);
+            }
+            submissionData = await response.json();
+        } catch (e) {
+            console.error(e);
+        }
+
+        if (
+            submissionData['submittedFiles'] &&
+            Array.isArray(submissionData['submittedFiles']) &&
+            submissionData['submittedFiles'].length > 0
+        ) {
+            return submissionData['submittedFiles'];
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -1325,8 +1400,61 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (e) e.stopPropagation();
 
-        const table = this.submissionTables[state];
-        table.download(exportValue, this.activeCourse);
+        if (exportValue === 'attachments') {
+            // Download all attachments of the current submission table
+            const downloadFiles = [];
+
+            // Get selected rows or all rows if no selection
+            const selectedRowsObjects =
+                this.submissionTables[state].tabulatorTable.getSelectedRows();
+            let rowsToExport = [];
+            let selectedRowsSubmissionData = [];
+            if (selectedRowsObjects && selectedRowsObjects.length > 0) {
+                rowsToExport = selectedRowsObjects;
+            } else {
+                rowsToExport = this.submissionTables[state].tabulatorTable.getRows();
+            }
+            rowsToExport.forEach((row) => {
+                const data = row.getData();
+                selectedRowsSubmissionData.push({
+                    submissionId: data.submissionId,
+                    dateCreated: data.dateCreated.replace(/ /, 'T'),
+                    userId: data.identifier,
+                });
+            });
+
+            console.log(`selectedRowsSubmissionData`, selectedRowsSubmissionData);
+
+            for (const [submissionId, attachments] of this.submittedFileDetails[state]) {
+                // If there are selected rows, only download the attachments of the selected rows
+                if (
+                    selectedRowsSubmissionData.length > 0 &&
+                    !selectedRowsSubmissionData.some((row) => row.submissionId === submissionId)
+                ) {
+                    continue;
+                }
+                if (!attachments || attachments.length === 0) continue;
+
+                attachments.forEach((attachment) => {
+                    const data = selectedRowsSubmissionData.find(
+                        (row) => row.submissionId === submissionId,
+                    );
+                    if (!data) return;
+
+                    downloadFiles.push({
+                        name: `attachments-${data.dateCreated}-${data.userId || 'unknown_author'}-${data.submissionId}/${attachment.fileName}`,
+                        url: attachment.downloadUrl,
+                    });
+                });
+            }
+
+            console.log(`downloadFiles`, downloadFiles);
+            this._('#file-sink').files = downloadFiles;
+        } else {
+            const table = this.submissionTables[state];
+            table.download(exportValue, this.activeCourse);
+        }
+
         exportInput.value = '-';
     }
 
@@ -1940,8 +2068,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     color: var(--dbp-on-secondary-surface);
                     border-color: var(--dbp-secondary-surface-border-color);
                     cursor: pointer;
-                    background-position-x: calc(100% - 0.4rem);
                     box-sizing: content-box;
+                    background: none;
                 }
 
                 .table-title {
@@ -2309,8 +2437,28 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 /* export button */
 
+                .export-container {
+                    position: relative;
+                }
+
                 .export-container .dropdown-menu {
                     padding: 0rem 2rem 0rem 0.5rem;
+                }
+
+                .export-container dbp-icon[name='chevron-down'] {
+                    transition: transform 250ms ease-in;
+                }
+
+                .export-container select:open + dbp-icon[name='chevron-down'] {
+                    transform: rotate(180deg);
+                }
+
+                .export-select-icon {
+                    position: absolute;
+                    right: 0.5em;
+                    top: 0.5em;
+                    z-index: 11;
+                    pointer-events: none;
                 }
 
                 /* TABLE BUTTON HEADER END */
@@ -2930,7 +3078,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <option value="csv">CSV</option>
                     <option value="xlsx">Excel</option>
                     <option value="pdf">PDF</option>
+                    ${this.submissionsHasAttachment
+                        ? html`
+                              <option value="attachments">
+                                  ${i18n.t('show-submissions.export-attachments-label')}
+                              </option>
+                          `
+                        : ''}
                 </select>
+                <dbp-icon
+                    class="export-select-icon"
+                    name="chevron-down"
+                    aria-hidden="true"></dbp-icon>
             </div>
         `;
     }
@@ -3372,6 +3531,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         class="extended-menu"
                         id="searchbar-menu--${state}"
                         ?inert=${!this.searchWidgetIsOpen[state]}>
+                        <label for="searchbar--${state}">
+                            ${i18n.t('show-submissions.search-input-label')}:
+                        </label>
                         <input
                             type="text"
                             id="searchbar--${state}"
@@ -3600,6 +3762,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 entry-point-url="${this.entryPointUrl}"
                 resource-identifier="${this.submissionId}"
                 resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+
+            <dbp-file-sink
+                streamed
+                id="file-sink"
+                class="file-sink"
+                lang="${this.lang}"
+                allowed-mime-types="application/pdf,.pdf"
+                decompress-zip
+                enabled-targets="local,clipboard,nextcloud"
+                subscribe="auth,nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
             <!-- Deletion Confirmation Modal -->
             <dbp-modal
