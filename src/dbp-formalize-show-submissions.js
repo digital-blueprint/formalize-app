@@ -1937,10 +1937,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 .dropdown-menu {
-                    background-color: var(--dbp-secondary-surface);
                     color: var(--dbp-on-secondary-surface);
                     border-color: var(--dbp-secondary-surface-border-color);
-                    background-size: auto 45%;
                     cursor: pointer;
                     background-position-x: calc(100% - 0.4rem);
                     box-sizing: content-box;
@@ -2019,7 +2017,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 .action:hover {
-                    background-color: #f7f7f7;
+                    /* @TODO we need a lighter grey than muted */
+                    background-color: light-dark(#f7f7f7, #333333);
+                    /* background-color: #f7f7f7; */
+                    color: var(--dbp-on-muted-surface);
                 }
 
                 .action:hover dbp-icon {

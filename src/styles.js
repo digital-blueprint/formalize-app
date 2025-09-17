@@ -234,12 +234,12 @@ export function getTagsCSS() {
 
         .tag.tag--mode {
             background-color: #f2f2f2;
-            color: var(--dbp-content);
+            color: #121212;
         }
 
         .tag.tag--state {
             background-color: var(--dbp-warning-surface);
-            color: var(--dbp-content);
+            color: var(--dbp-on-warning-surface);
         }
     `;
 }
@@ -336,6 +336,14 @@ export function getEthicsCommissionFormCSS() {
 
         .user-permissions-title:hover {
             background-color: light-dark(#f7f7f7, #333333);
+            background-color: light-dark(
+                color-mix(in srgb, var(--dbp-content) 20%, transparent),
+                color-mix(in srgb, var(--dbp-background) 80%, white)
+            );
+            background-color: light-dark(
+                color-mix(in srgb, var(--dbp-muted) 10%, white),
+                color-mix(in srgb, var(--dbp-muted) 40%, black)
+            );
         }
 
         .user-permissions-title[disabled] {
@@ -428,7 +436,9 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .info-box {
-            background-color: #c9e4c6;
+            /*background-color: #c9e4c6;*/
+            background-color: var(--dbp-success-surface);
+            color: var(--dbp-on-success-surface);
             padding: 1.5em;
         }
 
