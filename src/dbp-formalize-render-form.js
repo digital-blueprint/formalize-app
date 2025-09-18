@@ -389,21 +389,22 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
         const allowedSubmissionStates = this.formProperties.allowedSubmissionStates;
         const maxNumberOfSubmissionsPerUser = this.formProperties.maxNumSubmissionsPerCreator;
-        const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
+        // const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
+        this.grantedActions = this.formProperties.grantedActions;
         this.usersSubmissionCount = this.formProperties.numSubmissionsByCurrentUser;
 
         // Don't display the form before setting usersSubmissionCount.
         if (this.usersSubmissionCount === null) return;
 
         if (this.usersSubmissionCount > 0) {
+            // Form already submitted, can't submit again
             if (maxNumberOfSubmissionsPerUser === 1) {
-                // Form already submitted, can't submit again
                 let submissionUrl = '';
+                // User can read the submission or manage the form show read-only form
                 if (
-                    allowedActionsWhenSubmitted.includes('read') ||
-                    allowedActionsWhenSubmitted.includes('manage')
+                    this.grantedActions.includes(FORM_PERMISSIONS.READ_SUBMISSIONS) ||
+                    this.grantedActions.includes(FORM_PERMISSIONS.MANAGE)
                 ) {
-                    // User can read the submission or manage the form show read-only form
                     const oldSubmissionId = this.userAllSubmissions[0].identifier;
                     submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
                 }
@@ -471,8 +472,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let formAlreadySubmittedWarning = html``;
         if (
             this.usersSubmissionCount > 0 &&
-            (allowedActionsWhenSubmitted.includes('read') ||
-                allowedActionsWhenSubmitted.includes('manage'))
+            (this.grantedActions.includes(FORM_PERMISSIONS.READ_SUBMISSIONS) ||
+                this.grantedActions.includes(FORM_PERMISSIONS.MANAGE))
         ) {
             // An empty form is shown with the message that the user already submitted the form
             // and show a link to the submissions in the show-submissions page
