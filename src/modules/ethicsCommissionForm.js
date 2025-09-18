@@ -81,10 +81,13 @@ class FormalizeFormElement extends BaseFormElement {
             'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
         );
 
+        this.currentSubmission = {};
         this.submitterName = null;
         this.newSubmissionId = null;
-        this.resourceActions = [];
+        this.allUsersSubmissionGrants = [];
+        this.submissionGrantedActions = [];
         this.isAdmin = false;
+        this.isFormManager = false;
 
         // Button
         this.isViewModeButtonAllowed = false;
@@ -99,9 +102,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.userAllSubmittedSubmissions = [];
 
         this.submittedFiles = new Map();
-
         this.filesToSubmit = new Map();
-
         this.filesToRemove = new Map();
         this.fileUploadError = false;
 
@@ -138,41 +139,42 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
-            submitted: {type: Boolean},
-            submissionError: {type: Boolean},
-            hideForm: {type: Boolean},
+            submitted: {type: Boolean, attribute: false},
+            submissionError: {type: Boolean, attribute: false},
+            hideForm: {type: Boolean, attribute: false},
+            allUsersSubmissionGrants: {type: Array, attribute: false},
 
-            resourceActions: {type: Object},
-            scrollerIconName: {type: String},
-            scrollerIconTitle: {type: String},
-            scrollerIconScreenReaderText: {type: String},
+            resourceActions: {type: Object, attribute: false},
+            scrollerIconName: {type: String, attribute: false},
+            scrollerIconTitle: {type: String, attribute: false},
+            scrollerIconScreenReaderText: {type: String, attribute: false},
 
             // Buttons
-            isViewModeButtonAllowed: {type: Boolean},
-            isDeleteSubmissionButtonAllowed: {type: Boolean},
-            isDraftButtonAllowed: {type: Boolean},
-            isSubmitButtonEnabled: {type: Boolean},
-            isPrintButtonAllowed: {type: Boolean},
-            isDownloadButtonAllowed: {type: Boolean},
+            isViewModeButtonAllowed: {type: Boolean, attribute: false},
+            isDeleteSubmissionButtonAllowed: {type: Boolean, attribute: false},
+            isDraftButtonAllowed: {type: Boolean, attribute: false},
+            isSubmitButtonEnabled: {type: Boolean, attribute: false},
+            isPrintButtonAllowed: {type: Boolean, attribute: false},
+            isDownloadButtonAllowed: {type: Boolean, attribute: false},
 
-            isNewSubmissionQuestionsEnabled: {type: Boolean},
-            qualificationWorkQuestionsEnabled: {type: Boolean},
-            humanTestSubjectsQuestionsEnabled: {type: Boolean},
-            humanStemCellsQuestionsEnabled: {type: Boolean},
-            stemCellFromHumanEmbryosQuestionsEnabled: {type: Boolean},
-            cellsObtainedInResearchQuestionsEnabled: {type: Boolean},
-            harmfulSubstancesOnSubjects: {type: Boolean},
-            animalQuestionsEnabled: {type: Boolean},
-            nonEuCountriesQuestionsEnabled: {type: Boolean},
-            questionResearchFoundsQuestionsEnabled: {type: Boolean},
-            ethicalIssuesListQuestion: {type: Boolean},
-            hasConflictOfInterestSubQuestion: {type: Boolean},
-            hasConfidentialPartSubQuestion: {type: Boolean},
-            hasConflictInContentControlSubQuestion: {type: Boolean},
-            stakeholderParticipationPlannedSubQuestion: {type: Boolean},
-            riskSubQuestion: {type: Boolean},
-            stemCellFromEmbryosQuestionsEnabled: {type: Boolean},
-            diversityAspectsQuestionEnabled: {type: Boolean},
+            isNewSubmissionQuestionsEnabled: {type: Boolean, attribute: false},
+            qualificationWorkQuestionsEnabled: {type: Boolean, attribute: false},
+            humanTestSubjectsQuestionsEnabled: {type: Boolean, attribute: false},
+            humanStemCellsQuestionsEnabled: {type: Boolean, attribute: false},
+            stemCellFromHumanEmbryosQuestionsEnabled: {type: Boolean, attribute: false},
+            cellsObtainedInResearchQuestionsEnabled: {type: Boolean, attribute: false},
+            harmfulSubstancesOnSubjects: {type: Boolean, attribute: false},
+            animalQuestionsEnabled: {type: Boolean, attribute: false},
+            nonEuCountriesQuestionsEnabled: {type: Boolean, attribute: false},
+            questionResearchFoundsQuestionsEnabled: {type: Boolean, attribute: false},
+            ethicalIssuesListQuestion: {type: Boolean, attribute: false},
+            hasConflictOfInterestSubQuestion: {type: Boolean, attribute: false},
+            hasConfidentialPartSubQuestion: {type: Boolean, attribute: false},
+            hasConflictInContentControlSubQuestion: {type: Boolean, attribute: false},
+            stakeholderParticipationPlannedSubQuestion: {type: Boolean, attribute: false},
+            riskSubQuestion: {type: Boolean, attribute: false},
+            stemCellFromEmbryosQuestionsEnabled: {type: Boolean, attribute: false},
+            diversityAspectsQuestionEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -207,6 +209,9 @@ class FormalizeFormElement extends BaseFormElement {
             if (Object.keys(this.data).length > 0) {
                 await this.processFormData();
             }
+            if (this.formIdentifier) {
+                await this.getUsersGrants();
+            }
 
             this.updateComplete.then(async () => {
                 await this.processConditionalFields();
@@ -221,6 +226,9 @@ class FormalizeFormElement extends BaseFormElement {
                     (grant) =>
                         grant === FORM_PERMISSIONS.MANAGE ||
                         grant === FORM_PERMISSIONS.UPDATE_SUBMISSIONS,
+                );
+                this.isFormManager = this.formGrantedActions.some(
+                    (grant) => grant === FORM_PERMISSIONS.MANAGE,
                 );
                 this.setButtonStates();
             }
@@ -322,6 +330,8 @@ class FormalizeFormElement extends BaseFormElement {
 
     async processFormData() {
         try {
+            this.currentSubmission = this.data;
+
             this.submissionId = this.data.identifier;
             this.formData = JSON.parse(this.data.dataFeedElement);
             this.submissionBinaryState = this.data.submissionState;
@@ -421,7 +431,7 @@ class FormalizeFormElement extends BaseFormElement {
                         userEntry.actions.push(resourceAction.action);
                     }
                 }
-                this.resourceActions = resourceActions;
+                this.allUsersSubmissionGrants = resourceActions;
             }
         } catch (e) {
             console.log(e);
@@ -1497,21 +1507,9 @@ class FormalizeFormElement extends BaseFormElement {
     renderSubmissionDates() {
         const i18n = this._i18n;
 
-        const currentSubmission = this.userAllSubmissions.find(
-            (submission) => submission.identifier === this.submissionId,
-        );
-
-        const dateCreated = this.newSubmissionId
-            ? formatDate(this.data.dateCreated)
-            : formatDate(currentSubmission?.dateCreated);
-
-        const dateLastModified = this.newSubmissionId
-            ? formatDate(this.data.dateLastModified)
-            : formatDate(currentSubmission?.dateLastModified);
-
-        const deadLine = this.newSubmissionId
-            ? formatDate(this.data.availabilityEnds)
-            : formatDate(currentSubmission?.availabilityEnds);
+        const dateCreated = formatDate(this.currentSubmission.dateCreated);
+        const dateLastModified = formatDate(this.currentSubmission.dateLastModified);
+        const deadLine = formatDate(this.currentSubmission.availabilityEnds);
 
         return html`
             <div class="submission-dates">
@@ -1568,62 +1566,81 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Render submission details
-     * submission date, submitter, last changed.
+     * Render submission details, list of grants and share grants button
      * @returns {import('lit').TemplateResult} The HTML template result
      */
     renderSubmissionPermissions() {
         const i18n = this._i18n;
-        return html`
-            <div class="submission-details">
-                <div id="submission-permissions" class="submission-permissions">
-                    <div class="permissions-header">
-                        <button
-                            class="user-permissions-title"
-                            .disabled=${this.resourceActions.length === 0}
-                            @click="${(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                this._('#submission-permissions').classList.toggle('open');
-                            }}">
-                            <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
-                            ${i18n.t(
-                                'render-form.forms.ethics-commission-form.user-permissions-title',
-                            )}
-                            (${this.resourceActions.length ? this.resourceActions.length : 0})
-                        </button>
-                        <dbp-button
-                            class="edit-permissions"
-                            no-spinner-on-click
-                            type="is-secondary"
-                            @click=${() => this._('#grant-permission-dialog').open()}>
-                            <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                            <span class="button-text">
-                                ${i18n.t(
-                                    'render-form.forms.ethics-commission-form.edit-permission-button-text',
-                                )}
-                            </span>
-                        </dbp-button>
-                    </div>
-                    <div class="users-permissions">
-                        ${this.resourceActions.map(
-                            (userEntry) => html`
-                                <div class="user-entry">
-                                    <span class="person-name">${userEntry.userName}:</span>
-                                    <span class="person-permissions">
-                                        ${userEntry.actions.map(
-                                            (action) => html`
-                                                <span class="person-permission">${action}</span>
-                                            `,
+
+        // If current user has manage right for the submission
+        // OR has form level manage right
+        if (
+            this.allUsersSubmissionGrants?.find(
+                (resourceAction) =>
+                    resourceAction.userId === this.auth['user-id'] &&
+                    resourceAction.actions?.includes(SUBMISSION_PERMISSIONS.MANAGE),
+            ) ||
+            this.isFormManager
+        ) {
+            return html`
+                <div class="form-details">
+                    <div class="submission-details">
+                        <div id="submission-permissions" class="submission-permissions">
+                            <div class="permissions-header">
+                                <button
+                                    class="user-permissions-title"
+                                    .disabled=${this.allUsersSubmissionGrants.length === 0}
+                                    @click="${(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        this._('#submission-permissions').classList.toggle('open');
+                                    }}">
+                                    <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
+                                    ${i18n.t(
+                                        'render-form.forms.ethics-commission-form.user-permissions-title',
+                                    )}
+                                    (${this.allUsersSubmissionGrants.length
+                                        ? this.allUsersSubmissionGrants.length
+                                        : 0})
+                                </button>
+                                <dbp-button
+                                    class="edit-permissions"
+                                    no-spinner-on-click
+                                    type="is-secondary"
+                                    @click=${() => this._('#grant-permission-dialog').open()}>
+                                    <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
+                                    <span class="button-text">
+                                        ${i18n.t(
+                                            'render-form.forms.ethics-commission-form.edit-permission-button-text',
                                         )}
                                     </span>
-                                </div>
-                            `,
-                        )}
+                                </dbp-button>
+                            </div>
+                            <div class="users-permissions">
+                                ${this.allUsersSubmissionGrants.map(
+                                    (userEntry) => html`
+                                        <div class="user-entry">
+                                            <span class="person-name">${userEntry.userName}:</span>
+                                            <span class="person-permissions">
+                                                ${userEntry.actions.map(
+                                                    (action) => html`
+                                                        <span class="person-permission">
+                                                            ${action}
+                                                        </span>
+                                                    `,
+                                                )}
+                                            </span>
+                                        </div>
+                                    `,
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            return html``;
+        }
     }
 
     /**
@@ -1660,9 +1677,8 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
                 </div>
-                <div class="form-details">
-                    ${this.renderSubmissionPermissions()}
-                </div>
+
+                ${this.renderSubmissionPermissions()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -3405,9 +3421,8 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
                 </div>
-                <div class="form-details">
-                    ${this.renderSubmissionPermissions()}
-                </div>
+
+                ${this.renderSubmissionPermissions()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
