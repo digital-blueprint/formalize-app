@@ -86,6 +86,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const formElement = this.shadowRoot.querySelector('form');
         const data = {
             formData: gatherFormDataFromElement(formElement),
+            submissionId: this.submissionId,
         };
 
         const customEvent = new CustomEvent('DbpFormalizeFormSubmission', {
@@ -109,6 +110,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const data = {
             formData: gatherFormDataFromElement(formElement),
             validationResult: validationResult,
+            submissionId: this.submissionId,
         };
 
         const customEvent = new CustomEvent('DbpFormalizeFormSaveDraft', {
