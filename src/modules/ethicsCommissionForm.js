@@ -333,6 +333,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.currentSubmission = this.data;
 
             this.submissionId = this.data.identifier;
+            this.submissionCreatorId = this.data.creatorId;
             this.formData = JSON.parse(this.data.dataFeedElement);
             this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
@@ -353,7 +354,7 @@ class FormalizeFormElement extends BaseFormElement {
             if (this.formData) {
                 try {
                     const submitterDetailsResponse = await this.apiGetUserDetails(
-                        this.formData.identifier,
+                        this.submissionCreatorId,
                     );
                     if (!submitterDetailsResponse.ok) {
                         send({
@@ -707,8 +708,16 @@ class FormalizeFormElement extends BaseFormElement {
             });
         }
 
-        // Include unique identifier for person who is submitting
-        data.formData.identifier = this.auth['user-id'];
+        // POST or PATCH
+        let isExistingDraft = false;
+        if (data.submissionId) {
+            isExistingDraft = true;
+        }
+
+        // Include unique identifier for person who first submitted the form (creator)
+        data.formData.identifier = isExistingDraft
+            ? this.submissionCreatorId
+            : this.auth['user-id'];
         const formData = new FormData();
 
         // Set files to upload as attachments
@@ -728,11 +737,6 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
-
-        // POST or PATCH
-        const isExistingDraft = this.userAllDraftSubmissions?.find(
-            (item) => item.identifier === this.submissionId,
-        );
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
@@ -819,8 +823,17 @@ class FormalizeFormElement extends BaseFormElement {
     async handleFormSubmission(event) {
         // Access the data from the event detail
         const data = event.detail;
-        // Include unique identifier for person who is submitting
-        data.formData.identifier = this.auth['user-id'];
+
+        // POST or PATCH
+        let isExistingDraft = false;
+        if (data.submissionId) {
+            isExistingDraft = true;
+        }
+
+        // Include unique identifier for person who first submitted the form (creator)
+        data.formData.identifier = isExistingDraft
+            ? this.submissionCreatorId
+            : this.auth['user-id'];
 
         const formData = new FormData();
 
@@ -841,11 +854,6 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
-
-        // If we have a draft submission, we need to update it
-        const isExistingDraft = this.userAllDraftSubmissions?.find(
-            (item) => item.identifier === this.submissionId,
-        );
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
@@ -997,7 +1005,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         const data = event.detail;
         // Include unique identifier for person who is submitting
-        data.formData.identifier = this.auth['user-id'];
+        data.formData.identifier = this.submissionCreatorId;
         const formData = new FormData();
 
         // Set file to be removed
