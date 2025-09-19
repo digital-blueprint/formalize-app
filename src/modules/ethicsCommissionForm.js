@@ -2779,12 +2779,16 @@ class FormalizeFormElement extends BaseFormElement {
                         }
 
                         <dbp-form-enum-view
+                            class="conditional-field"
+                            data-target-variable="complyWithSustainabilityStrategy"
+                            data-condition="yes"
                             subscribe="lang"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
+                            <span slot="label">
                                 <dbp-translated subscribe="lang">
                                     <div slot="de">
                                         3.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap/' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
@@ -2793,15 +2797,22 @@ class FormalizeFormElement extends BaseFormElement {
                                         3.4. Does your research project comply with the (<a href='https://www.tugraz.at/en/tu-graz/university/climate-neutral-tu-graz/roadmap/' target='_blank'>TU Graz sustainability strategy</a>)?
                                     </div>
                                 </dbp-translated>
+                            </span>
                         </dbp-form-enum-view>
 
-                        <dbp-form-string-view
-                            subscribe="lang"
-                            label="3.5. ${i18n.t(
-                                'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
-                            )}"
-                            value=${data.appropriateUseOfResources || ''}>
-                        </dbp-form-string-view>
+                        ${
+                            this.complyWithSustainabilityStrategyQuestionsEnabled
+                                ? html`
+                                      <dbp-form-string-view
+                                          subscribe="lang"
+                                          label="3.5. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
+                                          )}"
+                                          value=${data.appropriateUseOfResources ||
+                                          ''}></dbp-form-string-view>
+                                  `
+                                : ''
+                        }
 
                     </div>
                 </article>
@@ -4783,6 +4794,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
+                            <span slot="label">
                                 <dbp-translated subscribe="lang">
                                     <div slot="de">
                                         3.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap/' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
@@ -4791,6 +4803,7 @@ class FormalizeFormElement extends BaseFormElement {
                                         3.4. Does your research project comply with the (<a href='https://www.tugraz.at/en/tu-graz/university/climate-neutral-tu-graz/roadmap/' target='_blank'>TU Graz sustainability strategy</a>)?
                                     </div>
                                 </dbp-translated>
+                            </span>
                         </dbp-form-enum-element>
 
                         ${
