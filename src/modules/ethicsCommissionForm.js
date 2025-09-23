@@ -775,7 +775,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 // Update URL with the submission ID
                 const newSubmissionUrl =
-                    getFormRenderUrl(this.formUrlSlug) + `/${this.newSubmissionId}`;
+                    getFormRenderUrl(this.formUrlSlug, this.lang) + `/${this.newSubmissionId}`;
                 window.history.pushState({}, '', newSubmissionUrl.toString());
                 send({
                     summary: 'Success',
@@ -987,7 +987,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // Redirect to submission list page or to the empty form?
                 // Wait 5 sec before redirecting to allow user to read the success message?
                 setTimeout(() => {
-                    const emptyFormUrl = getFormRenderUrl(this.formUrlSlug);
+                    const emptyFormUrl = getFormRenderUrl(this.formUrlSlug, this.lang);
                     window.history.pushState({}, '', emptyFormUrl.toString());
                     // Reload the page to reflect the new submission ID
                     window.location.reload();

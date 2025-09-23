@@ -600,6 +600,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
 
+        if (changedProperties.has('lang')) {
+            console.log(`changedProperties`, changedProperties);
+            console.log(`*** [updated] this.lang`, this.lang);
+
+            const activeForm = this.forms.get(this.activeFormId);
+            const activeFormSlug = activeForm ? activeForm.formSlug : null;
+            this.createSubmissionUrl = activeFormSlug
+                ? getFormRenderUrl(activeFormSlug, this.lang)
+                : '';
+            // To re-create get-submission-links with the new language
+            this.switchToSubmissionTable(activeForm);
+        }
+
         super.updated(changedProperties);
     }
 
@@ -676,7 +689,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             const activeForm = this.forms.get(this.activeFormId);
             const activeFormSlug = activeForm ? activeForm.formSlug : null;
-            this.createSubmissionUrl = activeFormSlug ? getFormRenderUrl(activeFormSlug) : '';
+            this.createSubmissionUrl = activeFormSlug
+                ? getFormRenderUrl(activeFormSlug, this.lang)
+                : '';
 
             for (const state of Object.keys(this.submissionTables)) {
                 if (this.submissionTables[state]) {
@@ -791,7 +806,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.loadingSubmissionTables = true;
                         // Switch to form submissions table
                         this.routingUrl = `/${formId}`;
-                        const formSubmissionUrl = getFormShowSubmissionsUrl(formId);
+                        const formSubmissionUrl = getFormShowSubmissionsUrl(formId, this.lang);
                         const url = new URL(formSubmissionUrl);
                         window.history.pushState({}, '', url);
                         this.sendSetPropertyEvent('routing-url', `/${formId}`, true);
@@ -934,7 +949,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     // Set submission URL
                     const activeFormSlug = activeForm ? activeForm.formSlug : null;
                     let formSubmissionUrl =
-                        getFormRenderUrl(activeFormSlug) + `/${submissionId}/readonly`;
+                        getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}/readonly`;
                     /*
                         t('show-submissions.open-detailed-view-form')
                     */
@@ -3333,7 +3348,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // other forms don't have read-only view
         if (activeForm.formName === 'Ethikkommission') {
             // Go to the readonly view of the form submission
-            let formSubmissionUrl = getFormRenderUrl(activeFormSlug) + `/${submissionId}`;
+            let formSubmissionUrl =
+                getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
             const url = new URL(formSubmissionUrl);
             window.history.pushState({}, '', url);
 

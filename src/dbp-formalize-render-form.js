@@ -406,7 +406,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.grantedActions.includes(FORM_PERMISSIONS.MANAGE)
                 ) {
                     const oldSubmissionId = this.userAllSubmissions[0].identifier;
-                    submissionUrl = `${getFormRenderUrl(this.formUrlSlug)}/${oldSubmissionId}/readonly`;
+                    submissionUrl = `${getFormRenderUrl(this.formUrlSlug, this.lang)}/${oldSubmissionId}/readonly`;
                 }
                 return html`
                     <div class="notification is-warning">
@@ -462,7 +462,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
                         n: this.usersSubmissionCount,
                     })}
-                    <a href="${getFormShowSubmissionsUrl(this.formIdentifiers[this.formUrlSlug])}">
+                    <a
+                        href="${getFormShowSubmissionsUrl(
+                            this.formIdentifiers[this.formUrlSlug],
+                            this.lang,
+                        )}">
                         ${this._i18n.t('render-form.check-previous-submissions-warning')}
                     </a>
                 </div>
@@ -474,13 +478,18 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.usersSubmissionCount > 0 &&
             (this.grantedActions.includes(FORM_PERMISSIONS.READ_SUBMISSIONS) ||
                 this.grantedActions.includes(FORM_PERMISSIONS.MANAGE))
+            // this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE))
         ) {
             // An empty form is shown with the message that the user already submitted the form
             // and show a link to the submissions in the show-submissions page
             formAlreadySubmittedWarning = html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-warning')}
-                    <a href="${getFormShowSubmissionsUrl(this.formIdentifiers[this.formUrlSlug])}">
+                    <a
+                        href="${getFormShowSubmissionsUrl(
+                            this.formIdentifiers[this.formUrlSlug],
+                            this.lang,
+                        )}">
                         ${this._i18n.t('render-form.check-previous-submissions-warning')}
                     </a>
                 </div>

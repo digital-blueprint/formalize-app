@@ -3,18 +3,18 @@ export const pascalToKebab = (str) => {
     return str.replace(/([A-Z])/g, '-$1').toLowerCase();
 };
 
-export const getFormRenderUrl = (formUrlSlug) => {
+export const getFormRenderUrl = (formUrlSlug, lang) => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
-    const basePath = currentUrl.pathname.replace(/^(.*\/[de][en])\/.*$/, '$1');
-    return `${origin}${basePath}/render-form/${formUrlSlug}`;
+    const basePath = currentUrl.pathname.replace(/^(.*\/)[de][en]\/.*$/, '$1');
+    return `${origin}${basePath}${lang}/render-form/${formUrlSlug}`;
 };
 
-export const getFormShowSubmissionsUrl = (formId) => {
+export const getFormShowSubmissionsUrl = (formId, lang) => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
-    const basePath = currentUrl.pathname.replace(/^(.*\/[de][en])\/.*$/, '$1');
-    return `${origin}${basePath}/show-submissions/${formId}`;
+    const basePath = currentUrl.pathname.replace(/^(.*\/)[de][en]\/.*$/, '$1');
+    return `${origin}${basePath}${lang}/show-submissions/${formId}`;
 };
 
 // Submission states
