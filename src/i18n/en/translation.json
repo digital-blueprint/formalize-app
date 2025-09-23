@@ -276,6 +276,7 @@
         "all-filters-show": "Show all",
         "apply-col-settings": "Apply filter options",
         "back-text": "Back to form list",
+        "create-submission-button": "Create submission",
         "default-export-select": "Export",
         "delete": "Delete",
         "delete-confirmation-message": "Are you sure you want to delete the selected submission(s)? This action cannot be undone.",

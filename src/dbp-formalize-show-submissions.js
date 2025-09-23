@@ -152,6 +152,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.iconNameVisible = 'source_icons_eye-empty';
         this.iconNameHidden = 'source_icons_eye-off';
+        this.createSubmissionUrl = '';
     }
 
     static get scopedElements() {
@@ -197,6 +198,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             actionsWidgetIsOpen: {type: Object, attribute: false},
             isActionAvailable: {type: Object, attribute: false},
             noSubmissionAvailable: {type: Object, attribute: false},
+            createSubmissionUrl: {type: String, attribute: false},
 
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
@@ -671,6 +673,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             } else {
                 this.sendSetPropertyEvent('routing-url', `/${form.formId}`, true);
             }
+
+            const activeForm = this.forms.get(this.activeFormId);
+            const activeFormSlug = activeForm ? activeForm.formSlug : null;
+            this.createSubmissionUrl = activeFormSlug ? getFormRenderUrl(activeFormSlug) : '';
 
             for (const state of Object.keys(this.submissionTables)) {
                 if (this.submissionTables[state]) {
@@ -2430,6 +2436,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     background-color: light-dark(#f7f7f7, #333333);
                 }
 
+                .create-submission-button {
+                    background-color: var(--dbp-primary-surface);
+                    border-color: var(--dbp-primary-surface-border-color);
+                    color: var(--dbp-on-primary-surface);
+                    height: 2em;
+                    display: inline-flex;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 0 1em;
+                    margin-bottom: 3em;
+                }
+
                 .spacer {
                     color: #999999;
                     font-size: 24px;
@@ -3702,6 +3720,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </span>
                     <div class="table-header submissions">
                         <h3>${this.activeCourse}</h3>
+                        ${this.createSubmissionUrl
+                            ? html`
+                                  <a
+                                      class="create-submission-button"
+                                      href="${this.createSubmissionUrl}"
+                                      target="_blank">
+                                      ${i18n.t('show-submissions.create-submission-button')}
+                                  </a>
+                              `
+                            : ''}
                     </div>
                 </div>
             </div>
