@@ -80,7 +80,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.navigateBetweenDetailedSubmissionsHandler =
             this.navigateBetweenDetailedSubmissions.bind(this);
-        this.activeCourse = '';
+        this.activeFormName = '';
         this.activeFormId = '';
         this.currentRow = null;
         this.currentBeautyId = 0;
@@ -660,10 +660,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {object} form - form object
      */
     switchToSubmissionTable(form) {
-        if (this.activeCourse) {
+        if (this.activeFormName) {
             this.deleteSettings();
         }
-        this.activeCourse = form.formName;
+        this.activeFormName = form.formName;
         this.activeFormId = form.formId;
         this.showFormsTable = false;
         this.loadingSubmissionTables = true;
@@ -723,7 +723,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.showFormsTable = false;
 
                         // Open submission details modal if /details/[uuid] is in the URL
-                        if (isRequestDetailedView && this.activeCourse !== 'Ethikkommission') {
+                        if (isRequestDetailedView && this.activeFormName !== 'Ethikkommission') {
                             const selectedIndex = this.submissions[state].findIndex(
                                 (submission) => submission.submissionId === submissionId,
                             );
@@ -1473,7 +1473,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this._('#file-sink').files = downloadFiles;
         } else {
             const table = this.submissionTables[state];
-            table.download(exportValue, this.activeCourse);
+            table.download(exportValue, this.activeFormName);
         }
 
         exportInput.value = '-';
@@ -1779,7 +1779,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             let optionsString = localStorage.getItem(
                 'dbp-formalize-tableoptions-' +
-                    this.activeCourse +
+                    this.activeFormName +
                     '-' +
                     state +
                     '-' +
@@ -1817,7 +1817,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['user-id'];
             localStorage.setItem(
-                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + state + '-' + publicId,
+                'dbp-formalize-tableoptions-' + this.activeFormName + '-' + state + '-' + publicId,
                 JSON.stringify(this.submissionsColumns[state]),
             );
         }
@@ -1831,7 +1831,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['user-id'];
             localStorage.removeItem(
-                'dbp-formalize-tableoptions-' + this.activeCourse + '-' + state + '-' + publicId,
+                'dbp-formalize-tableoptions-' + this.activeFormName + '-' + state + '-' + publicId,
             );
         }
     }
@@ -3735,7 +3735,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </a>
                     </span>
                     <div class="table-header submissions">
-                        <h3>${this.activeCourse}</h3>
+                        <h3>${this.activeFormName}</h3>
                         ${this.createSubmissionUrl
                             ? html`
                                   <a
