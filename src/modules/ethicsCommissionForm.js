@@ -68,6 +68,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.currentState = null;
         this.submissionBinaryState = SUBMISSION_STATES_BINARY.NONE;
+
         this.submitted = false;
         this.submissionError = false;
         this.scrollTimeout = null;
@@ -84,10 +85,16 @@ class FormalizeFormElement extends BaseFormElement {
         this.currentSubmission = {};
         this.submitterName = null;
         this.newSubmissionId = null;
-        this.allUsersSubmissionGrants = [];
-        this.submissionGrantedActions = [];
+
+        this.userAllDraftSubmissions = [];
+        this.userAllSubmittedSubmissions = [];
+
+        // Grants
+        this.formGrantedActions = [];
         this.isAdmin = false;
         this.isFormManager = false;
+        this.submissionGrantedActions = [];
+        this.allUsersSubmissionGrants = [];
 
         // Button
         this.isViewModeButtonAllowed = false;
@@ -98,14 +105,13 @@ class FormalizeFormElement extends BaseFormElement {
         this.isDownloadButtonAllowed = false;
         this.isSaveButtonEnabled = false;
 
-        this.userAllDraftSubmissions = [];
-        this.userAllSubmittedSubmissions = [];
-
+        // Attachments
         this.submittedFiles = new Map();
         this.filesToSubmit = new Map();
         this.filesToRemove = new Map();
         this.fileUploadError = false;
 
+        // Event handlers
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
@@ -383,7 +389,8 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Get user permissions for the submission.
+     * Get all submission level grants for the current submission
+     * Set this.allUsersSubmissionGrants used in share permission header
      */
     async getUsersGrants() {
         try {
@@ -1583,10 +1590,8 @@ class FormalizeFormElement extends BaseFormElement {
         // If current user has manage right for the submission
         // OR has form level manage right
         if (
-            this.allUsersSubmissionGrants?.find(
-                (resourceAction) =>
-                    resourceAction.userId === this.auth['user-id'] &&
-                    resourceAction.actions?.includes(SUBMISSION_PERMISSIONS.MANAGE),
+            this.submissionGrantedActions.some(
+                (grant) => grant === SUBMISSION_PERMISSIONS.MANAGE,
             ) ||
             this.isFormManager
         ) {
