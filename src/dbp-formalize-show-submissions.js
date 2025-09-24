@@ -3159,7 +3159,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.toggleActionsDropdown(state);
                                 }}">
                                 <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                                Edit draft/submission
+                                ${i18n.t('show-submissions.edit-submission-button-text')}
                             </button>
                         </li>
                         <li class="action">
@@ -3171,7 +3171,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.toggleActionsDropdown(state);
                                 }}">
                                 <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                                Edit permission
+                                ${i18n.t('show-submissions.edit-permission-button-text')}
                             </button>
                         </li>
                         ${this.isDeleteAllSubmissionEnabled[state]
@@ -3184,7 +3184,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               //   this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                          Delete all (${this.allRowCount[state]})
+                                          ${i18n.t(
+                                              'show-submissions.delete-all-submissions-button-text',
+                                              {n: this.allRowCount[state]},
+                                          )}
                                       </button>
                                   </li>
                               `
@@ -3201,7 +3204,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           <dbp-icon
                                               name="delete-selection"
                                               aria-hidden="true"></dbp-icon>
-                                          Delete selection (${this.selectedRowCount[state]})
+                                          ${i18n.t(
+                                              'show-submissions.delete-selected-submissions-button-text',
+                                              {n: this.selectedRowCount[state]},
+                                          )}
                                       </button>
                                   </li>
                               `
