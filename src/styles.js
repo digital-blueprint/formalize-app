@@ -809,119 +809,7 @@ export function getEthicsCommissionFormPrintCSS() {
             font-size: var(--dbp-form-font-size) !important;
             line-height: var(--dbp-form-line-height) !important;
 
-            /* PAGE BREAKS */
-            .form-sub-title,
-            .section-title {
-                page-break-before: always;
-                break-before: page;
-            }
-
-            fieldset {
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-
-            /* Title styles */
-            .form-title,
-            .form-sub-title,
-            .section-title,
-            .section-sub-title,
-            .question-group-title {
-                line-height: var(--dbp-form-line-height) !important;
-                font-size: var(--dbp-form-line-height);
-                margin: 0;
-                padding: 0 0 var(--dbp-form-line-height) 0;
-                text-align: center;
-            }
-
-            .section-sub-title {
-                font-size: 20px; /* custom size. Need to be less than line-height */
-                padding: 0 0 var(--dbp-form-line-height) 0;
-                margin: 0;
-                text-align: center;
-            }
-
-            .question-group-title {
-                font-size: 18px; /* custom size. Need to be less than line-height */
-                padding: 0 0 var(--dbp-form-line-height) 0;
-                margin: 0;
-                text-align: center;
-            }
-
-            .form-details,
-            .form-header .buttons-wrapper,
-            button,
-            dbp-button,
-            #file-sink,
-            dbp-file-sink,
-            .submission-permissions,
-            .scroller-container {
-                display: none !important;
-                height: 0;
-                overflow: hidden;
-            }
-
-            .form-header {
-                padding: 0;
-                min-height: initial;
-                border: 0 none;
-            }
-
-            .submission-dates .label {
-                margin: 0;
-            }
-
-            .submission-dates-wrapper {
-                margin-bottom: var(--dbp-form-line-height);
-            }
-
-            .info-box {
-                /*padding: calc(var(--dbp-form-line-height) / 2) var(--dbp-form-line-height);*/
-                padding: 0;
-                background-color: initial;
-            }
-
-            .field-note {
-                margin-top: calc(-1 * var(--dbp-form-line-height));
-                font-style: italic;
-                font-size: smaller;
-            }
-
-            p {
-                position: relative;
-            }
-
-            p sup {
-                vertical-align: baseline;
-                padding-left: 3px;
-                /* Required to not change the line-height of paragraphs */
-                position: absolute;
-                bottom: 5px;
-                display: inline-block;
-            }
-
-            fieldset {
-                border: none;
-                margin: 0;
-                padding: 0 0 var(--dbp-form-line-height) 0;
-            }
-
-            p,
-            ul,
-            ol {
-                margin: var(--dbp-form-line-height) 0;
-            }
-
-            ul li {
-                height: var(--dbp-form-line-height);
-            }
-
-            fieldset label {
-                font-weight: bold;
-                display: block;
-            }
-
-            /* Line height debug background */
+            /* Line height debug background
             background-image: linear-gradient(
                 to bottom,
                 rgba(0, 120, 255, 0.1) 0,
@@ -930,7 +818,120 @@ export function getEthicsCommissionFormPrintCSS() {
                 transparent var(--dbp-form-line-height)
             );
             background-size: 100% var(--dbp-form-line-height);
-            background-position: 0 0;
+            background-position: 0 0;*/
+        }
+
+        /* PAGE BREAKS */
+        .print :is(.form-sub-title, .section-title) {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        .print fieldset {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* Title styles */
+        .print
+            :is(
+                .form-title,
+                .form-sub-title,
+                .section-title,
+                .section-sub-title,
+                .question-group-title
+            ) {
+            line-height: var(--dbp-form-line-height) !important;
+            font-size: var(--dbp-form-line-height);
+            margin: 0;
+            padding: 0 0 var(--dbp-form-line-height) 0;
+            text-align: center;
+        }
+
+        .print .section-sub-title {
+            font-size: 20px; /* custom size. Need to be less than line-height */
+            padding: 0 0 var(--dbp-form-line-height) 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        .print .question-group-title {
+            font-size: 18px; /* custom size. Need to be less than line-height */
+        }
+
+        /* Hidden elements in print */
+        .print
+            :is(
+                .form-details,
+                .form-header .buttons-wrapper,
+                button,
+                dbp-button,
+                #file-sink,
+                dbp-file-sink,
+                .submission-permissions,
+                .scroller-container
+            ) {
+            display: none !important;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .print .form-header {
+            padding: 0;
+            min-height: initial;
+            border: 0 none;
+        }
+
+        .print .submission-dates .label {
+            margin: 0;
+        }
+
+        .print .submission-dates-wrapper {
+            margin-bottom: var(--dbp-form-line-height);
+        }
+
+        .print .info-box {
+            /*padding: calc(var(--dbp-form-line-height) / 2) var(--dbp-form-line-height);*/
+            padding: 0;
+            background-color: initial;
+        }
+
+        .print .field-note {
+            margin-top: calc(-1 * var(--dbp-form-line-height));
+            font-style: italic;
+            font-size: smaller;
+        }
+
+        .print p {
+            position: relative;
+        }
+
+        .print p sup {
+            vertical-align: baseline;
+            padding-left: 3px;
+            /* Required to not change the line-height of paragraphs */
+            position: absolute;
+            bottom: 5px;
+            display: inline-block;
+        }
+
+        .print fieldset {
+            border: none;
+            margin: 0;
+            padding: 0 0 var(--dbp-form-line-height) 0;
+        }
+
+        .print :is(p, ul, ol) {
+            margin: var(--dbp-form-line-height) 0;
+        }
+
+        .print ul li {
+            height: var(--dbp-form-line-height);
+        }
+
+        .print fieldset label {
+            font-weight: bold;
+            display: block;
         }
     `;
 }
