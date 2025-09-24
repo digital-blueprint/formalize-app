@@ -74,7 +74,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     summary: this._i18n.t('errors.unauthorized-title'),
                     body: this._i18n.t('errors.unauthorized-body'),
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
                 break;
             case 403:
@@ -82,7 +82,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     summary: this._i18n.t('errors.unauthorized-title'),
                     body: this._i18n.t('errors.unauthorized-body'),
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
                 break;
             case 404:
@@ -90,7 +90,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     summary: this._i18n.t('errors.notfound-title'),
                     body: this._i18n.t('errors.notfound-body'),
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
                 break;
             case 422: // unprocessable entity
@@ -98,7 +98,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     summary: this._i18n.t('errors.unprocessable_entity-title'),
                     body: this._i18n.t('errors.unprocessable_entity-body'),
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
                 break;
             default:
@@ -106,7 +106,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     summary: this._i18n.t('errors.other-title'),
                     body: this._i18n.t('errors.other-body'),
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
         }
         //throw new Error(response);

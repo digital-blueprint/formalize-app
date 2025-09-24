@@ -623,7 +623,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             summary: i18n.t('show-submissions.something-went-wrong-title'),
             body: i18n.t('show-submissions.something-went-wrong-body'),
             type: 'danger',
-            timeout: 5,
+            timeout: 0,
         });
     }
 
@@ -791,7 +791,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         ...this.forms.get(formId),
                         formName,
                         formId,
-                        // allowedActionsWhenSubmitted,
                         allowedSubmissionStates,
                         formGrantedActions,
                     });
@@ -827,7 +826,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: i18n.t('show-submissions.failed-to-get-forms-title'),
                 body: i18n.t('show-submissions.failed-to-get-forms-body'),
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         }
     }
@@ -3296,7 +3295,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: this._i18n.t('success.success-title'),
                 body: this._i18n.t('success.submissions-processed', {count: successCount}),
                 type: 'success',
-                timeout: 5,
+                timeout: 0,
             });
         }
 
@@ -3306,7 +3305,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: this._i18n.t('errors.error-title'),
                 body: this._i18n.t('errors.submissions-processing-failed', {count: errorCount}),
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         }
     }
@@ -3371,7 +3370,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: 'Warning',
                 body: 'This feature is not yet implemented for this form.',
                 type: 'warning',
-                timeout: 5,
+                timeout: 10,
             });
         }
     }
@@ -3428,7 +3427,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: this._i18n.t('errors.warning-title'),
                 body: this._i18n.t('errors.no-submission-selected'),
                 type: 'warning',
-                timeout: 5,
+                timeout: 10,
             });
         }
     }
@@ -3484,7 +3483,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: 'Error',
                 body: `No submission id provided`,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
             return false;
         }

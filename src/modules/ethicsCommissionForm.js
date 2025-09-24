@@ -367,7 +367,7 @@ class FormalizeFormElement extends BaseFormElement {
                             summary: 'Error',
                             body: `Failed to get submitter details. Response status: ${submitterDetailsResponse.status}`,
                             type: 'danger',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     } else {
                         const submitterDetails = await submitterDetailsResponse.json();
@@ -379,7 +379,7 @@ class FormalizeFormElement extends BaseFormElement {
                         summary: 'Error',
                         body: `Failed to get submitter details`,
                         type: 'danger',
-                        timeout: 5,
+                        timeout: 0,
                     });
                 }
             }
@@ -401,7 +401,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Error',
                     body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
             }
             const resourceActionsBody = await resourceActionsResponse.json();
@@ -418,7 +418,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 summary: 'Error',
                                 body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
                                 type: 'danger',
-                                timeout: 5,
+                                timeout: 0,
                             });
                         }
                         const userDetails = await userDetailsResponse.json();
@@ -447,7 +447,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Error',
                 body: `Failed to process user permissions`,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         }
     }
@@ -711,7 +711,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Warning',
                 body: `The form has validation error. Fix them before submitting the form`,
                 type: 'warning',
-                timeout: 5,
+                timeout: 10,
             });
         }
 
@@ -761,7 +761,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Error',
                     body: `Failed to save form DRAFT. Response status: ${response.status}`,
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
             } else {
                 let responseBody = await response.json();
@@ -788,7 +788,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Success',
                     body: 'Draft saved successfully',
                     type: 'success',
-                    timeout: 5,
+                    timeout: 0,
                 });
 
                 // formDataUpdated event to notify parent component
@@ -816,7 +816,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Error',
                 body: `Failed to save form DRAFT. Error: ${error.message}`,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         } finally {
             this.setButtonStates();
@@ -879,7 +879,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Error',
                     body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
             } else {
                 this.submissionError = false;
@@ -900,7 +900,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Success',
                     body: 'Form submitted successfully',
                     type: 'success',
-                    timeout: 5,
+                    timeout: 0,
                 });
 
                 // formDataUpdated event to notify parent component
@@ -926,7 +926,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Error',
                 body: error.message,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         }
     }
@@ -944,7 +944,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Error',
                 body: `No submission id provided`,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
             return;
         }
@@ -966,7 +966,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Error',
                     body: `Failed to delete submission. Response status: ${response.status}`,
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
             } else {
                 this.wasDeleteSubmissionSuccessful = true;
@@ -980,7 +980,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Error',
                 body: error.message,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         } finally {
             if (this.wasDeleteSubmissionSuccessful) {
@@ -1046,7 +1046,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Error',
                     body: `Failed to save form. Response status: ${response.status}<br>${responseBody.description}`,
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
             } else {
                 this.submittedFiles = await this.transformApiResponseToFile(
@@ -1071,7 +1071,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Success',
                     body: 'Form saved successfully',
                     type: 'success',
-                    timeout: 5,
+                    timeout: 0,
                 });
             }
         } catch (error) {
@@ -1088,7 +1088,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: 'Error',
                 body: error.message,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
         }
     }
@@ -1418,7 +1418,7 @@ class FormalizeFormElement extends BaseFormElement {
                         summary: this._i18n.t('errors.other-title'),
                         body: this._i18n.t('errors.other-body'),
                         type: 'danger',
-                        timeout: 5,
+                        timeout: 0,
                     });
                 } else {
                     const fileBlob = await response.blob();

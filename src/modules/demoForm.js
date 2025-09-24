@@ -70,7 +70,7 @@ class FormalizeFormElement extends BaseFormElement {
                             summary: 'Error',
                             body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
                             type: 'danger',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     } else {
                         this.wasSubmissionSuccessful = true;
@@ -81,7 +81,7 @@ class FormalizeFormElement extends BaseFormElement {
                         summary: 'Error',
                         body: error.message,
                         type: 'danger',
-                        timeout: 5,
+                        timeout: 0,
                     });
                 } finally {
                     if (this.wasSubmissionSuccessful) {

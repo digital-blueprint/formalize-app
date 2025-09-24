@@ -439,7 +439,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     summary: 'Error',
                     body: 'Invalid submission data',
                     type: 'danger',
-                    timeout: 5,
+                    timeout: 0,
                 });
                 this.formDisplayDenied = true;
             }
