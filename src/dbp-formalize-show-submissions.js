@@ -382,9 +382,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
             definitions.forEach((column) => {
-                if (column.field === 'submissionId') {
-                    column.visible = false;
-                }
                 if (column.field === 'htmlButtons') {
                     column.formatter = 'html';
                     column.hozAlign = 'center';
@@ -516,6 +513,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const form = this.forms.get(formId);
                     if (form) {
                         this.switchToSubmissionTable(form);
+                    } else {
+                        send({
+                            summary: this._i18n.t('errors.notfound-title'),
+                            body: this._i18n.t('errors.notfound-body'),
+                            type: 'danger',
+                            timeout: 0,
+                        });
                     }
                 } else {
                     this.formsTable = /** @type {CustomTabulatorTable} */ (
@@ -551,6 +555,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     await this.getListOfAllForms();
                 }
 
+                // Show submission table
                 const formId = this.getRoutingData().pathSegments[0] || '';
                 if (formId) {
                     const form = this.forms.get(formId);
@@ -601,9 +606,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('lang')) {
-            console.log(`changedProperties`, changedProperties);
-            console.log(`*** [updated] this.lang`, this.lang);
-
             const activeForm = this.forms.get(this.activeFormId);
             const activeFormSlug = activeForm ? activeForm.formSlug : null;
             this.createSubmissionUrl = activeFormSlug
@@ -668,25 +670,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.showFormsTable = false;
         this.loadingSubmissionTables = true;
         this.getAllFormSubmissions(this.activeFormId).then(async () => {
-            const submissionId =
-                this.getRoutingData().pathSegments[2] &&
-                this.getRoutingData().pathSegments[2].match(/[0-9a-f-]+/)
-                    ? this.getRoutingData().pathSegments[2]
-                    : null;
-
-            const isRequestDetailedView =
-                this.getRoutingData().pathSegments[1] === 'details' && submissionId;
-
-            if (isRequestDetailedView) {
-                this.sendSetPropertyEvent(
-                    'routing-url',
-                    `/${form.formId}/details/${submissionId}`,
-                    true,
-                );
-            } else {
-                this.sendSetPropertyEvent('routing-url', `/${form.formId}`, true);
-            }
-
             const activeForm = this.forms.get(this.activeFormId);
             const activeFormSlug = activeForm ? activeForm.formSlug : null;
             this.createSubmissionUrl = activeFormSlug
@@ -723,7 +706,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.showFormsTable = false;
 
                         // Open submission details modal if /details/[uuid] is in the URL
-                        if (isRequestDetailedView && this.activeFormName !== 'Ethikkommission') {
+                        const routingData = this.getRoutingData();
+                        const submissionId =
+                            routingData.pathSegments[2] &&
+                            routingData.pathSegments[2].match(/[0-9a-f-]+/)
+                                ? routingData.pathSegments[2]
+                                : null;
+                        const isRequestDetailedView =
+                            routingData.pathSegments[1] === 'details' && submissionId;
+
+                        if (isRequestDetailedView) {
+                            // Get the selected submission
                             const selectedIndex = this.submissions[state].findIndex(
                                 (submission) => submission.submissionId === submissionId,
                             );
@@ -732,13 +725,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     ? this.submissions[state][selectedIndex]
                                     : null;
 
-                            // Remove htmlButtons
-                            delete selectedSubmission.htmlButtons;
-
-                            const cols = selectedSubmission;
-                            const id = selectedIndex;
-                            // Open details modal
-                            this.requestDetailedSubmission(state, cols, id);
+                            if (selectedSubmission) {
+                                const cols = selectedSubmission;
+                                const id = selectedIndex + 1;
+                                // Open details modal
+                                this.requestDetailedSubmission(state, cols, id);
+                            }
                         }
                     }
                 }
@@ -935,12 +927,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 const id = x + 1;
-                const cols = {dateCreated: dateCreated, ...dataFeedElement};
+                const cols = {
+                    dateCreated: dateCreated,
+                    ...dataFeedElement,
+                    submissionId: submissionId,
+                };
 
                 let actionButtonsDiv = this.createScopedElement('div');
                 const activeForm = this.forms.get(formId);
 
                 // Add show submission as form link
+                // @TODO: only for forms that we are rendering ourselves and have readonly view
                 if (activeForm.formName === 'Ethikkommission') {
                     const submissionDetailsFormButton = this.submissionTables[
                         state
@@ -978,7 +975,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 submissionDetailsButton.setAttribute('subscribe', 'lang');
                 submissionDetailsButton.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    this.requestDetailedSubmission(state, cols, id);
+
+                    // Add 'details/submissionId' to the URL when opening submission details modal
+                    const routingData = this.getRoutingData();
+                    const formId = routingData.pathSegments[0];
+                    if (formId.match(/[0-9a-f-]+/)) {
+                        this.addDetailsToUrl(submissionId);
+
+                        this.requestDetailedSubmission(state, cols, id);
+                    }
                     return;
                 });
 
@@ -986,9 +991,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 actionButtonsDiv.classList.add('actions-buttons');
 
                 let entry = {
-                    submissionId: submissionId,
                     dateCreated: dateCreated,
                     ...dataFeedElement,
+                    submissionId: submissionId,
                     attachments: allAttachmentDetails,
                     htmlButtons: actionButtonsDiv,
                 };
@@ -1172,7 +1177,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             if (fieldDefinition.titleFormatter === 'rowSelection') return false;
             if (fieldDefinition.title === 'ID') return false;
-            if (fieldDefinition.field === 'submissionId') return false;
             if (fieldDefinition.frozen) return false;
 
             return true;
@@ -1345,11 +1349,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             !this._(`#apply-col-settings-${state}`)
         )
             return;
+
+        // Reset modal content
         this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML = '';
 
         if (this.submissionsColumns[state].length !== 0) {
             for (let current_column of this.submissionsColumns[state]) {
-                if (entry[current_column.field] !== undefined) {
+                if (current_column.field && current_column.field !== 'htmlButtons') {
                     this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
                         `<div class='element-left'>` + xss(current_column.field) + `:</div>`;
 
@@ -1367,6 +1373,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         } else {
             for (const [key, value] of Object.entries(entry)) {
+                // Skip the action buttons column and empty keys
+                if (key === 'htmlButtons') continue;
+                if (!key) continue;
+
                 this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
                     `<div class='element-left'>` + xss(key) + `:</div>`;
 
@@ -1395,14 +1405,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ).classList.add('first');
 
         this.showDetailedModal(state);
-
-        this.modalContentHeight =
-            this._(`#detailed-submission-modal-box-${state} > .modal-header`).offsetHeight +
-            this._(`#detailed-submission-modal-box-${state} > .modal-footer`).offsetHeight;
-        this._(`#detailed-submission-modal-box-${state} .content-wrapper`).setAttribute(
-            'style',
-            'max-height: calc(100vh - ' + this.modalContentHeight + 'px);',
-        );
     }
 
     /**
@@ -1568,7 +1570,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Opens submission Columns Modal
-     *
+     * @param {string} state
      */
     openColumnOptionsModal(state) {
         let modal = this._(`#column-options-modal-${state}`);
@@ -1588,7 +1590,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Close Column Options Modal
-     *
+     * @param {string} state
      */
     closeColumnOptionsModal(state) {
         let modal = this._(`#column-options-modal-${state}`);
@@ -1599,12 +1601,62 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Close submission Columns Modal
-     *
+     * @param {string} state
      */
     closeDetailModal(state) {
         let modal = this._(`#detailed-submission-modal-${state}`);
         if (modal) {
+            // Remove the details part from the URL when closing the modal
+            this.removeDetailsFromUrl();
             MicroModal.close(modal);
+        }
+    }
+
+    /**
+     * Append 'details/submissionId' to the URL
+     * (called when opening the modal)
+     * @param {string} submissionId
+     */
+    addDetailsToUrl(submissionId) {
+        const currentUrl = new URL(window.location.href);
+        const pathSegments = currentUrl.pathname.split('/');
+        const baseIndex = pathSegments.indexOf(metadata['routing_name']);
+        // Remove everything before and including the routing_name
+        if (baseIndex > -1) {
+            pathSegments.splice(0, baseIndex + 1);
+
+            // Check if we already have details in the URL (while paginating)
+            if (
+                pathSegments[0].match(/[0-9a-f-]+/) &&
+                pathSegments[1] === 'details' &&
+                pathSegments[2].match(/[0-9a-f-]+/)
+            ) {
+                currentUrl.pathname = currentUrl.pathname.replace(
+                    /\/details\/.*$/,
+                    `/details/${submissionId}`,
+                );
+            } else {
+                currentUrl.pathname += `/details/${submissionId}`;
+            }
+
+            const submissionDetailsUrl = new URL(currentUrl.toString());
+            window.history.pushState({}, '', submissionDetailsUrl.toString());
+        }
+    }
+
+    /**
+     * Remove 'details/submissionId' from the URL
+     * (called when closing the modal or pressing ESC)
+     */
+    removeDetailsFromUrl() {
+        const currentUrl = new URL(window.location.href);
+        const pathSegments = currentUrl.pathname.split('/');
+        const detailsIndex = pathSegments.indexOf('details');
+        if (detailsIndex > -1) {
+            // Remove 'details' and the submissionId from the URL
+            pathSegments.splice(detailsIndex, 2);
+            currentUrl.pathname = pathSegments.join('/');
+            window.history.pushState({}, '', currentUrl.toString());
         }
     }
 
@@ -1627,6 +1679,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     document.addEventListener(
                         'keydown',
                         this.navigateBetweenDetailedSubmissionsHandler,
+                        true /* useCapture to run before the micromodal's keydown listener.*/,
                     );
                 },
             });
@@ -1713,6 +1766,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (nextBtn && !nextBtn.disabled) {
                 this.showEntryOfPos(state, this.currentDetailPosition + 1, 'next');
             }
+        }
+
+        // ESC
+        if (event.keyCode === 27) {
+            this.removeDetailsFromUrl();
         }
     }
 
@@ -1922,6 +1980,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 next_data[cell.getField()] = cell.getValue();
             }
         }
+
+        // Append /details/submissionId to the URL
+        this.addDetailsToUrl(next_data.submissionId);
 
         this.requestDetailedSubmission(state, next_data, positionToShow);
     }
@@ -2902,7 +2963,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 id="detailed-submission-modal-${state}"
                 data-state=${state}
                 aria-hidden="true">
-                <div class="modal-overlay" tabindex="-2" data-micromodal-close>
+                <div class="modal-overlay" tabindex="-2">
                     <div
                         class="modal-container detailed-submission-modal-box"
                         id="detailed-submission-modal-box-${state}"
