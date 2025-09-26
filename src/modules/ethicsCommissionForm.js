@@ -788,7 +788,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Success',
                     body: 'Draft saved successfully',
                     type: 'success',
-                    timeout: 0,
+                    timeout: 5,
                 });
 
                 // formDataUpdated event to notify parent component
@@ -900,7 +900,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Success',
                     body: 'Form submitted successfully',
                     type: 'success',
-                    timeout: 0,
+                    timeout: 5,
                 });
 
                 // formDataUpdated event to notify parent component
@@ -1071,7 +1071,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: 'Success',
                     body: 'Form saved successfully',
                     type: 'success',
-                    timeout: 0,
+                    timeout: 5,
                 });
             }
         } catch (error) {

@@ -3359,7 +3359,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 summary: this._i18n.t('success.success-title'),
                 body: this._i18n.t('success.submissions-processed', {count: successCount}),
                 type: 'success',
-                timeout: 0,
+                timeout: 5,
             });
         }
 
