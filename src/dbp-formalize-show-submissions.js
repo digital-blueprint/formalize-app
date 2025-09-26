@@ -749,12 +749,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.loadCourses = false;
             this.loadingFormsTable = true;
 
-            const response = await fetch(this.entryPointUrl + '/formalize/forms/', {
-                headers: {
-                    'Content-Type': 'application/ld+json',
-                    Authorization: 'Bearer ' + this.auth.token,
+            const response = await fetch(
+                this.entryPointUrl + '/formalize/forms' + '?perPage=9999',
+                {
+                    headers: {
+                        'Content-Type': 'application/ld+json',
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
                 },
-            });
+            );
 
             if (!response.ok) {
                 this.handleErrorResponse(response);
