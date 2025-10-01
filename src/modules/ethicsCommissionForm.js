@@ -145,6 +145,7 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
+            formData: {type: Object, attribute: false},
             submitted: {type: Boolean, attribute: false},
             submissionError: {type: Boolean, attribute: false},
             hideForm: {type: Boolean, attribute: false},
@@ -211,12 +212,14 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
 
         // console.log('changedProperties', changedProperties);
+
         if (changedProperties.has('data')) {
             if (Object.keys(this.data).length > 0) {
                 await this.processFormData();
             }
             if (this.formIdentifier) {
                 await this.getUsersGrants();
+                this.setButtonStates();
             }
 
             this.updateComplete.then(async () => {
@@ -291,10 +294,41 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    resetForm() {
+        // Reset submission / state related fields
+        this.currentSubmission = {};
+        this.formData = {};
+        this.data = {};
+
+        this.submittedFiles = new Map();
+        this.currentState = null;
+        this.submitterName = '';
+        this.submissionBinaryState = 0;
+
+        // this.submissionId = '';
+        // this.submissionCreatorId = '';
+        // this.submissionGrantedActions = [];
+
+        this.dispatchEvent(
+            new CustomEvent('dbpFormReset', {
+                bubbles: true,
+                composed: true,
+            }),
+        );
+    }
+
     /**
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
+        this.isViewModeButtonAllowed = false;
+        this.isDraftButtonAllowed = false;
+        this.isDeleteSubmissionButtonAllowed = false;
+        this.isSubmitButtonEnabled = false;
+        this.isPrintButtonAllowed = false;
+        this.isDownloadButtonAllowed = false;
+        this.isSaveButtonEnabled = false;
+
         // No state
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed = isDraftStateEnabled(this.allowedSubmissionStates);
@@ -335,6 +369,7 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     async processFormData() {
+        console.log(`processFormData`, this.data);
         try {
             this.currentSubmission = this.data;
 
@@ -440,6 +475,8 @@ class FormalizeFormElement extends BaseFormElement {
                     }
                 }
                 this.allUsersSubmissionGrants = resourceActions;
+            } else {
+                this.allUsersSubmissionGrants = [];
             }
         } catch (e) {
             console.log(e);
@@ -971,8 +1008,6 @@ class FormalizeFormElement extends BaseFormElement {
             } else {
                 this.wasDeleteSubmissionSuccessful = true;
                 this.deleteSubmissionError = false;
-                // Hide form after successful deletion
-                this.hideForm = true;
             }
         } catch (error) {
             console.error(error.message);
@@ -986,19 +1021,16 @@ class FormalizeFormElement extends BaseFormElement {
             if (this.wasDeleteSubmissionSuccessful) {
                 send({
                     summary: 'Success',
-                    body: 'Form submission deleted successfully. You will be redirected to the empty form.',
+                    body: 'Form submission deleted successfully.',
                     type: 'success',
                     timeout: 5,
                 });
 
-                // Redirect to submission list page or to the empty form?
-                // Wait 5 sec before redirecting to allow user to read the success message?
-                setTimeout(() => {
-                    const emptyFormUrl = getFormRenderUrl(this.formUrlSlug, this.lang);
-                    window.history.pushState({}, '', emptyFormUrl.toString());
-                    // Reload the page to reflect the new submission ID
-                    window.location.reload();
-                }, 5000);
+                const emptyFormUrl = getFormRenderUrl(this.formUrlSlug, this.lang);
+                window.history.pushState({}, '', emptyFormUrl.toString());
+
+                this.resetForm();
+                this.sendSetPropertyEvent('routing-url', `/${this.formUrlSlug}`);
             }
         }
     }

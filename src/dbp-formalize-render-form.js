@@ -35,6 +35,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this._onReceiveBeforeUnload = this.onReceiveBeforeUnload.bind(this);
         this._onDisableBeforeunloadWarning = this.onDisableBeforeunloadWarning.bind(this);
         this._onFormDataUpdated = this.onFormDataUpdated.bind(this);
+        this._onFormReset = this.onFormReset.bind(this);
     }
 
     static get scopedElements() {
@@ -58,6 +59,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         window.addEventListener('beforeunload', this._onReceiveBeforeUnload);
         window.addEventListener('disableBeforeunloadWarning', this._onDisableBeforeunloadWarning);
         window.addEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
+        window.addEventListener('dbpFormReset', this._onFormReset);
 
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
@@ -75,6 +77,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this._onDisableBeforeunloadWarning,
         );
         window.removeEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
+        window.removeEventListener('dbpFormReset', this._onFormReset);
     }
 
     updateFormUrlSlug() {
@@ -288,6 +291,15 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.loadedSubmission = data;
+    }
+
+    async onFormReset() {
+        this.loadedSubmission = {};
+        this.submissionId = '';
+        this.readOnly = false;
+        if (this.formIdentifiers[this.formUrlSlug]) {
+            await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+        }
     }
 
     /**
