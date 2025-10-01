@@ -519,13 +519,19 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .form-delete-submission-button {
+            --dbp-secondary-surface-border-color: var(--dbp-danger);
+            --dbp-hover-background-color: var(--dbp-danger);
             color: var(--dbp-danger);
-            border-color: var(--dbp-danger);
         }
 
         .form-delete-submission-button .button-label,
         .form-delete-submission-button dbp-icon {
             color: var(--dbp-danger);
+        }
+
+        .form-delete-submission-button:hover .button-label,
+        .form-delete-submission-button:hover dbp-icon {
+            color: black;
         }
 
         .edit-permissions .button-text {

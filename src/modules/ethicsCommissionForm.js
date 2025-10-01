@@ -5627,8 +5627,9 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="action-buttons">
                     ${this.isDeleteSubmissionButtonAllowed
                         ? html`
-                              <button
-                                  class="form-delete-submission-button button is-secondary"
+                              <dbp-button
+                                  class="form-delete-submission-button"
+                                  type="is-secondary"
                                   @click=${this.sendDeleteSubmission}
                                   no-spinner-on-click
                                   title="${i18n.t(
@@ -5647,7 +5648,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
                                             )}
                                   </span>
-                              </button>
+                              </dbp-button>
                           `
                         : ''}
                     ${this.isViewModeButtonAllowed
