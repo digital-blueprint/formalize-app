@@ -5696,6 +5696,9 @@ class FormalizeFormElement extends BaseFormElement {
                                   class="toggle-edit-mode"
                                   type="is-secondary"
                                   no-spinner-on-click
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.toggle-edit-submission-button-title',
+                                  )}"
                                   @click="${() => {
                                       this.readOnly = !this.readOnly;
                                       const form = this.shadowRoot.querySelector('form');
