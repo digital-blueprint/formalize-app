@@ -171,6 +171,7 @@ class FormalizeFormElement extends BaseFormElement {
             stemCellFromHumanEmbryosQuestionsEnabled: {type: Boolean, attribute: false},
             cellsObtainedInResearchQuestionsEnabled: {type: Boolean, attribute: false},
             harmfulSubstancesOnSubjects: {type: Boolean, attribute: false},
+            complyWithSustainabilityStrategyQuestionsEnabled: {type: Boolean, attribute: false},
             animalQuestionsEnabled: {type: Boolean, attribute: false},
             nonEuCountriesQuestionsEnabled: {type: Boolean, attribute: false},
             questionResearchFoundsQuestionsEnabled: {type: Boolean, attribute: false},
@@ -4847,6 +4848,11 @@ class FormalizeFormElement extends BaseFormElement {
                             this.complyWithSustainabilityStrategyQuestionsEnabled
                                 ? html`
                                       <dbp-form-string-element
+                                          class="${classMap({
+                                              'fade-in':
+                                                  this
+                                                      .complyWithSustainabilityStrategyQuestionsEnabled,
+                                          })}"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
                                           label="3.5. ${i18n.t(
