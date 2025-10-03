@@ -3459,6 +3459,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (!confirmed) return;
 
             let responseStatus = [];
+            let failedRequestToSelect = [];
             let index = 0;
             for (const submission of data) {
                 const response = await this.apiDeleteSubmissions(submission.submissionId);
@@ -3479,6 +3480,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     ].data.filter((sub) => {
                         return sub.submissionId !== submission.submissionId;
                     });
+                } else {
+                    failedRequestToSelect.push(submission.submissionId);
                 }
                 index++;
             }
@@ -3487,6 +3490,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
             this.successFailureNotification(responseStatus);
+
+            // Re-select failed submissions
+            if (failedRequestToSelect.length > 0) {
+                const table = this.submissionTables[state];
+                for (const failedSubmissionId of failedRequestToSelect) {
+                    table
+                        .getRows()
+                        .filter((row) => row.getData().submissionId === failedSubmissionId)
+                        .forEach((row) => row.select());
+                }
+            }
         } else {
             send({
                 summary: this._i18n.t('errors.warning-title'),
