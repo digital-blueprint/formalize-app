@@ -305,8 +305,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.currentState = null;
         this.submitterName = '';
         this.submissionBinaryState = 0;
+        this.submissionId = '';
 
-        // this.submissionId = '';
         // this.submissionCreatorId = '';
         // this.submissionGrantedActions = [];
 
