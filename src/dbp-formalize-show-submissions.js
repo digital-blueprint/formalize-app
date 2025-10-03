@@ -933,6 +933,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const cols = {
                     dateCreated: dateCreated,
                     ...dataFeedElement,
+                    attachments: allAttachmentDetails,
                     submissionId: submissionId,
                 };
 
