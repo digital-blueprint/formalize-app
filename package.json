@@ -49,6 +49,7 @@
         "playwright": "^1.34.0",
         "playwright-core": "^1.20.2",
         "prettier": "^3.0.0",
+        "rolldown": "^1.0.0-beta.42",
         "rollup": "^4.0.0",
         "rollup-plugin-copy": "^3.3.0",
         "rollup-plugin-delete": "^3.0.0",
@@ -78,9 +79,9 @@
         "xss": "^1.0.11"
     },
     "scripts": {
-        "build": "rollup -c",
-        "build-wl": "rollup -c",
-        "build-custom": "rollup -c --environment APP_ENV:localCustom",
+        "build": "rolldown -c rollup.config.js",
+        "build-wl": "rolldown -c rollup.config.js",
+        "build-custom": "rolldown -c rollup.config.js --environment APP_ENV:localCustom",
         "i18next:fix": "i18next --silent",
         "i18next": "i18next --fail-on-update --silent",
         "fix": "npm run eslint:fix && npm run prettier:fix && npm run i18next:fix",
@@ -89,13 +90,13 @@
         "eslint": "eslint \"**/*.{js,ts}\"",
         "prettier:fix": "prettier \"**/*.{js,json,ts,md,yaml,yml}\" --write",
         "prettier": "prettier \"**/*.{js,json,ts,md,yaml,yml}\" --check",
-        "watch": "rollup -c --watch",
-        "watch-wl": "rollup -c --watch",
-        "watch-custom": "rollup -c --watch --environment APP_ENV:localCustom",
-        "watch-full": "rollup -c --watch --environment FORCE_FULL",
-        "watch-bs": "rollup -c --watch --environment APP_ENV:bs",
-        "test": "rollup -c --environment APP_ENV:test && karma start karma.conf.cjs --singleRun",
-        "test-full": "rollup -c --environment FORCE_FULL,APP_ENV:test && karma start karma.conf.cjs --singleRun",
+        "watch": "rolldown -c rollup.config.js --watch",
+        "watch-wl": "rolldown -c rollup.config.js --watch",
+        "watch-custom": "rolldown -c rollup.config.js --watch --environment APP_ENV:localCustom",
+        "watch-full": "rolldown -c rollup.config.js --watch --environment FORCE_FULL",
+        "watch-bs": "rolldown -c rollup.config.js --watch --environment APP_ENV:bs",
+        "test": "rolldown -c rollup.config.js --environment APP_ENV:test && karma start karma.conf.cjs --singleRun",
+        "test-full": "rolldown -c rollup.config.js --environment FORCE_FULL,APP_ENV:test && karma start karma.conf.cjs --singleRun",
         "publish": "sed -i 's/\"private\": true/\"private\": false/' package.json && can-npm-publish --verbose 2>&1 && npm publish --access public 2>&1; sed -i 's/\"private\": false/\"private\": true/' package.json"
     }
 }
