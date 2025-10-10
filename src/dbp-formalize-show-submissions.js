@@ -1073,10 +1073,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
+     * @typedef {object} AttachmentDetails
+     * @property {string} fileName - name of the file
+     * @property {string} downloadUrl - blob download URL
+     * @property {number} [fileSize] - size of the file
+     * @property {string} fileAttributeName - file attribute name
+     * @property {string} identifier - file identifier uuid
+     * @property {string} mimeType - file MIME type
+     */
+
+    /**
      * Get details of attachment files for a specific submission
      * fileName, fileSize, downloadUrl
      * @param {string} submissionId
-     * @returns {Promise<any[]>} List of attachment details
+     * @returns {Promise<AttachmentDetails[]>} List of attachment details
      */
     async getAttachmentFilesDetails(submissionId) {
         let submissionData = {};

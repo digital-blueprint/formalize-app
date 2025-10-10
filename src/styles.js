@@ -277,7 +277,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .submission-dates .label {
-            margin: 0.5em 0 0 0;
+            margin: 0 0 0.5em 0;
             display: inline-block;
         }
 
@@ -501,6 +501,25 @@ export function getEthicsCommissionFormCSS() {
             align-items: center;
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .tag-management {
+            min-width: 200px;
+            /*max-width: 500px;*/
+            width: 50%;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .tag-management dbp-form-enum-element {
+            max-width: 100%;
+            display: block;
+            flex-grow: 1;
+        }
+
         .buttons-wrapper,
         .dates-wrapper {
             display: flex;
@@ -546,6 +565,18 @@ export function getEthicsCommissionFormCSS() {
 
             .submission-details {
                 flex-direction: column;
+            }
+        }
+
+        @container form (width < 540px) {
+            .header-top {
+                flex-direction: column;
+                gap: 1em;
+            }
+            .tag-management {
+                max-width: 100%;
+                width: 100%;
+                justify-content: flex-start;
             }
         }
 
@@ -742,6 +773,7 @@ export function getEthicsCommissionFormCSS() {
 
         @media only screen and (max-width: 768px) {
             .form-header {
+                /* fix this => .tag-management [-180px?] */
                 top: -60px;
             }
         }

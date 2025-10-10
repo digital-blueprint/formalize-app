@@ -91,3 +91,18 @@ export async function httpGetAsync(url, options) {
             return error;
         });
 }
+
+/**
+ * Return an object with the same property names as the values
+ * @param {Array} array
+ * @returns {object}
+ */
+export const arrayToObject = (array) => {
+    if (!Array.isArray(array) || array.length < 1) return {};
+
+    const result = Object.create(null);
+    for (const value of array) {
+        result[value] = value;
+    }
+    return result;
+};

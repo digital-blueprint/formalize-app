@@ -8,7 +8,7 @@ import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
-import {getFormRenderUrl, formatDate, httpGetAsync} from '../utils.js';
+import {getFormRenderUrl, formatDate, httpGetAsync, arrayToObject} from '../utils.js';
 import {
     getTagsCSS,
     getEthicsCommissionFormCSS,
@@ -83,6 +83,10 @@ class FormalizeFormElement extends BaseFormElement {
         );
 
         this.currentSubmission = {};
+        // Tags
+        this.selectedTags = {};
+        this.allowedTags = {};
+
         this.submitterName = null;
         this.newSubmissionId = null;
 
@@ -119,6 +123,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
         this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
+        this.handleSelect2Close = this.handleSelect2Close.bind(this);
 
         // Conditional fields
         this.isNewSubmissionQuestionsEnabled = false;
@@ -232,6 +237,7 @@ class FormalizeFormElement extends BaseFormElement {
             if (Object.keys(this.formProperties).length > 0) {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
                 this.formGrantedActions = this.formProperties.grantedActions;
+                this.allowedTags = arrayToObject(this.formProperties.availableTags);
                 this.isAdmin = this.formGrantedActions.some(
                     (grant) =>
                         grant === FORM_PERMISSIONS.MANAGE ||
@@ -370,7 +376,7 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     async processFormData() {
-        console.log(`processFormData`, this.data);
+        // console.log(`[update: data] processFormData`, this.data);
         try {
             this.currentSubmission = this.data;
 
@@ -379,6 +385,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.formData = JSON.parse(this.data.dataFeedElement);
             this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
+            this.selectedTags = arrayToObject(this.data.tags);
             this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
 
             switch (Number(this.submissionBinaryState)) {
@@ -682,6 +689,9 @@ class FormalizeFormElement extends BaseFormElement {
             );
             // Event listener for save/PATCH submission
             this.addEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
+
+            // Event listener for closing select2
+            window.addEventListener('click', this.handleSelect2Close);
         });
     }
 
@@ -702,6 +712,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
         window.removeEventListener('scroll', this.handleScrollToTopBottom);
+
+        window.removeEventListener('click', this.handleSelect2Close);
 
         if (this._formHeaderObserver) {
             this._formHeaderObserver.disconnect();
@@ -729,6 +741,23 @@ class FormalizeFormElement extends BaseFormElement {
                 this.scrollerIconName = SCROLLER_ICONS.UP;
             }
         }, 150);
+    }
+
+    handleSelect2Close(event) {
+        console.log(`[handleSelect2Close] event`, event);
+        const path = event.composedPath();
+        const openSelect2 = this._('dbp-form-enum-element[display-mode="tags"]');
+        const openSelect2Input = openSelect2.shadowRoot.querySelector('.select2');
+        const openSelect2Dropdown = openSelect2.shadowRoot.querySelector('#select-dropdown');
+
+        // If clicked outside of the select2 component
+        if (
+            openSelect2 &&
+            !path.includes(openSelect2Input) &&
+            !path.includes(openSelect2Dropdown)
+        ) {
+            openSelect2.closeSelect2();
+        }
     }
 
     handleFilesToSubmit(event) {
@@ -782,6 +811,9 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
+        // Add tags
+        const selectedTags = Object.values(this.selectedTags);
+        formData.append('tags', JSON.stringify(selectedTags));
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
@@ -899,6 +931,9 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
+        // Add tags
+        const selectedTags = Object.values(this.selectedTags);
+        formData.append('tags', JSON.stringify(selectedTags));
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
@@ -1316,10 +1351,8 @@ class FormalizeFormElement extends BaseFormElement {
                 const translationSlot = el.querySelector(`[slot="${this.lang}"]`);
                 if (translationSlot) {
                     const slotContent = translationSlot.innerHTML;
-
-                    console.log(`slotContent`, slotContent);
-
                     const fieldset = document.createElement('fieldset');
+
                     fieldset.innerHTML = slotContent;
                     wrapper.append(fieldset);
                 }
@@ -1425,9 +1458,19 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
+     * @typedef {object} AttachmentApiFile
+     * @property {string} fileName - name of the file
+     * @property {string} downloadUrl - blob download URL
+     * @property {number} [fileSize] - size of the file
+     * @property {string} fileAttributeName - file attribute name
+     * @property {string} identifier - file identifier uuid
+     * @property {string} mimeType - file MIME type
+     */
+
+    /**
      * Transforms the API response to a File object.
-     * @param {object} apiFileResponse
-     * @returns {Promise<Map<any, any>>} A promise that resolves to a map of file identifiers to File objects
+     * @param {AttachmentApiFile[]} apiFileResponse
+     * @returns {Promise<Map<string, File>>} A promise that resolves to a map of file identifiers to File objects
      */
     async transformApiResponseToFile(apiFileResponse) {
         if (!apiFileResponse || apiFileResponse.length === 0) {
@@ -1567,7 +1610,7 @@ class FormalizeFormElement extends BaseFormElement {
                               <span class="label">
                                   ${i18n.t(
                                       'render-form.forms.ethics-commission-form.submission-deadline-label',
-                                  )}
+                                  )}:
                               </span>
                               <span class="value">${deadLine}</span>
                           </div>
@@ -1579,7 +1622,7 @@ class FormalizeFormElement extends BaseFormElement {
                               <span class="label">
                                   ${i18n.t(
                                       'render-form.forms.ethics-commission-form.submission-date-label',
-                                  )}
+                                  )}:
                               </span>
                               <span class="value">${dateCreated}</span>
                           </div>
@@ -1591,7 +1634,7 @@ class FormalizeFormElement extends BaseFormElement {
                               <span class="label">
                                   ${i18n.t(
                                       'render-form.forms.ethics-commission-form.last-modified-date-label',
-                                  )}
+                                  )}:
                               </span>
                               <span class="value">${dateLastModified}</span>
                           </div>
@@ -1603,7 +1646,7 @@ class FormalizeFormElement extends BaseFormElement {
                               <span class="label">
                                   ${i18n.t(
                                       'render-form.forms.ethics-commission-form.submitter-name-label',
-                                  )}
+                                  )}:
                               </span>
                               <span class="value">${this.submitterName}</span>
                           </div>
@@ -1730,6 +1773,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <dbp-form-enum-view
                     subscribe="lang"
+                    layout-type="inline"
                     label="${i18n.t('render-form.forms.ethics-commission-form.type-label')}"
                     .items=${{
                         study: i18n.t('render-form.forms.ethics-commission-form.study'),
@@ -1782,6 +1826,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        display-mode="tags"
                         label="${i18n.t('render-form.forms.ethics-commission-form.fields-of-expertise-label')}"
                         .items=${{
                             'advanced-material-sciences': i18n.t(
@@ -1809,6 +1854,7 @@ class FormalizeFormElement extends BaseFormElement {
                         class="conditional-field"
                         data-target-variable="isNewSubmissionQuestionsEnabled"
                         data-condition="no"
+                        layout-type="inline"
                         label="${i18n.t('render-form.forms.ethics-commission-form.is-new-submission-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -5630,6 +5676,46 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    renderHeaderTags() {
+        if (Object.keys(this.allowedTags).length === 0) {
+            return html``;
+        }
+
+        if (this.readOnly) {
+            return this.selectedTags
+                ? html`
+                      <dbp-form-enum-view
+                          subscribe="lang"
+                          name="formTags"
+                          display-mode="tags"
+                          layout-type="inline"
+                          label="Tags:"
+                          .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
+                  `
+                : html``;
+        } else {
+            if (this.isAdmin) {
+                return html`
+                    <dbp-form-enum-element
+                        id="form-tags"
+                        name="formTags"
+                        subscribe="lang"
+                        label="Tags:"
+                        @change="${(event) => {
+                            if (this.allowedTags && Object.keys(this.allowedTags).length > 0) {
+                                this.setCurrentTags(event);
+                            }
+                        }}"
+                        display-mode="tags"
+                        layout-type="inline"
+                        multiple
+                        .value=${Object.values(this.selectedTags)}
+                        .items=${this.allowedTags}></dbp-form-enum-element>
+                `;
+            }
+        }
+    }
+
     renderStatusTags() {
         const stateTag = this.currentState;
         const modeTag = !this.readOnly ? 'edit mode' : '';
@@ -5650,6 +5736,20 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    setCurrentTags(event) {
+        if (Object.keys(this.allowedTags).length === 0) return;
+
+        let selectedTags = {};
+        const selectedTagsFromEvent = event.detail.value;
+
+        if (selectedTagsFromEvent.length > 0) {
+            for (const tagName of selectedTagsFromEvent) {
+                selectedTags[tagName] = tagName;
+            }
+        }
+        this.selectedTags = selectedTags;
+    }
+
     /**
      * Render the buttons needed for the form.
      * @returns {import('lit').TemplateResult} HTML for the button row.
@@ -5658,7 +5758,10 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
 
         return html`
-            <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
+            <div class="header-top">
+                <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
+                <div class="tag-management">${this.renderHeaderTags()}</div>
+            </div>
             <div class="buttons-wrapper">
                 ${this.renderStatusTags()}
 
