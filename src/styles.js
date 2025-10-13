@@ -801,6 +801,20 @@ export function getEthicsCommissionFormCSS() {
             --dbp-modal-width: 80vw;
         }
 
+        .modal--confirmation {
+            --dbp-modal-width: 320px;
+            --dbp-modal-max-width: 360px;
+            --dbp-modal-min-height: auto;
+        }
+
+        .modal--confirmation .footer-menu {
+            padding: 0;
+            justify-content: flex-end;
+            display: flex;
+            gap: 1em;
+            margin-block: 2em 0;
+        }
+
         /* utils */
         .visually-hidden {
             position: absolute !important;

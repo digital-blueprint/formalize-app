@@ -8,7 +8,15 @@ import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
-import {getFormRenderUrl, formatDate, httpGetAsync, arrayToObject} from '../utils.js';
+import {
+    getFormRenderUrl,
+    formatDate,
+    httpGetAsync,
+    arrayToObject,
+    getDeletionConfirmation,
+    handleDeletionConfirm,
+    handleDeletionCancel,
+} from '../utils.js';
 import {
     getTagsCSS,
     getEthicsCommissionFormCSS,
@@ -124,6 +132,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
         this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
         this.handleSelect2Close = this.handleSelect2Close.bind(this);
+        this._deletionConfirmationResolve = null;
 
         // Conditional fields
         this.isNewSubmissionQuestionsEnabled = false;
@@ -312,9 +321,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.submitterName = '';
         this.submissionBinaryState = 0;
         this.submissionId = '';
-
-        // this.submissionCreatorId = '';
-        // this.submissionGrantedActions = [];
+        this.selectedTags = {};
 
         this.dispatchEvent(
             new CustomEvent('dbpFormReset', {
@@ -744,9 +751,10 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     handleSelect2Close(event) {
-        console.log(`[handleSelect2Close] event`, event);
         const path = event.composedPath();
         const openSelect2 = this._('dbp-form-enum-element[display-mode="tags"]');
+        if (!openSelect2) return;
+
         const openSelect2Input = openSelect2.shadowRoot.querySelector('.select2');
         const openSelect2Dropdown = openSelect2.shadowRoot.querySelector('#select-dropdown');
 
@@ -1021,6 +1029,9 @@ class FormalizeFormElement extends BaseFormElement {
             });
             return;
         }
+
+        const confirmed = await getDeletionConfirmation(this);
+        if (!confirmed) return;
 
         try {
             const response = await fetch(
@@ -3493,6 +3504,32 @@ class FormalizeFormElement extends BaseFormElement {
                 entry-point-url="${this.entryPointUrl}"
                 resource-identifier="${this.submissionId}"
                 resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+
+            <!-- Deletion Confirmation Modal -->
+            <dbp-modal
+                id="deletion-confirmation-modal"
+                class="modal modal--confirmation"
+                modal-id="deletion-confirmation-modal"
+                title="${i18n.t('show-submissions.delete-confirmation-title')}"
+                subscribe="lang">
+                <div slot="content">
+                    <p>${i18n.t('show-submissions.delete-confirmation-message')}</p>
+                </div>
+                <menu slot="footer" class="footer-menu">
+                    <dbp-button
+                        type="is-secondary"
+                        no-spinner-on-click
+                        @click="${() => handleDeletionCancel(this)}">
+                        ${i18n.t('show-submissions.abort')}
+                    </dbp-button>
+                    <dbp-button
+                        type="is-danger"
+                        no-spinner-on-click
+                        @click="${() => handleDeletionConfirm(this)}">
+                        ${i18n.t('show-submissions.delete')}
+                    </dbp-button>
+                </menu>
+            </dbp-modal>
 
             ${this.renderResult(this.submitted)}
         `;

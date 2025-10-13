@@ -25,6 +25,9 @@ import {
     isDraftStateEnabled,
     isSubmittedStateEnabled,
     SUBMISSION_STATES_BINARY,
+    getDeletionConfirmation,
+    handleDeletionConfirm,
+    handleDeletionCancel,
 } from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss, getTagsCSS} from './styles.js';
 import metadata from './dbp-formalize-show-submissions.metadata.json';
@@ -42,6 +45,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.boundKeyEventHandler = this.handleKeyEvents.bind(this);
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
+        this._deletionConfirmationResolve = null;
         this.selectedRowCount = {
             draft: 0,
             submitted: 0,
@@ -3255,7 +3259,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           class="button action-button button--delete-all"
                                           @click="${async () => {
                                               await this.handleDeleteSubmissions(state);
-                                              //   this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
                                           ${i18n.t(
@@ -3273,7 +3276,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           class="button action-button button--delete-selected"
                                           @click="${async () => {
                                               await this.handleDeleteSubmissions(state, true);
-                                              //   this.toggleActionsDropdown(state);
                                           }}">
                                           <dbp-icon
                                               name="delete-selection"
@@ -3465,7 +3467,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             : this.submissionTables[state].tabulatorTable.getRows('all');
 
         if (data.length > 0) {
-            const confirmed = await this.getDeletionConfirmation();
+            const confirmed = await getDeletionConfirmation(this);
             if (!confirmed) return;
 
             let responseStatus = [];
@@ -3518,51 +3520,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 type: 'warning',
                 timeout: 10,
             });
-        }
-    }
-
-    /**
-     * Shows a confirmation dialog for deletion and waits for user response
-     * @returns {Promise<boolean>} true if user confirms, false if user cancels
-     */
-    async getDeletionConfirmation() {
-        return new Promise((resolve) => {
-            // Store the resolve function so we can call it from the modal buttons
-            this._deletionConfirmationResolve = resolve;
-
-            // Show the confirmation modal
-            const modal = this._('#deletion-confirmation-modal');
-            if (modal) {
-                modal.open();
-            }
-        });
-    }
-
-    /**
-     * Handles the confirmation button click
-     */
-    handleDeletionConfirm() {
-        const modal = this._('#deletion-confirmation-modal');
-        if (modal) {
-            modal.close();
-        }
-        if (this._deletionConfirmationResolve) {
-            this._deletionConfirmationResolve(true);
-            this._deletionConfirmationResolve = null;
-        }
-    }
-
-    /**
-     * Handles the cancel button click
-     */
-    handleDeletionCancel() {
-        const modal = this._('#deletion-confirmation-modal');
-        if (modal) {
-            modal.close();
-        }
-        if (this._deletionConfirmationResolve) {
-            this._deletionConfirmationResolve(false);
-            this._deletionConfirmationResolve = null;
         }
     }
 
@@ -3925,13 +3882,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <dbp-button
                         type="is-secondary"
                         no-spinner-on-click
-                        @click="${() => this.handleDeletionCancel()}">
+                        @click="${() => handleDeletionCancel(this)}">
                         ${i18n.t('show-submissions.abort')}
                     </dbp-button>
                     <dbp-button
                         type="is-danger"
                         no-spinner-on-click
-                        @click="${() => this.handleDeletionConfirm()}">
+                        @click="${() => handleDeletionConfirm(this)}">
                         ${i18n.t('show-submissions.delete')}
                     </dbp-button>
                 </menu>
