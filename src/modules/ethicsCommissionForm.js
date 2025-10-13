@@ -5719,7 +5719,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         if (this.readOnly) {
-            return this.selectedTags
+            return Object.values(this.selectedTags).length > 0
                 ? html`
                       <dbp-form-enum-view
                           subscribe="lang"
