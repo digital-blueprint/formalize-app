@@ -5712,6 +5712,16 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${Object.values(this.selectedTags)}
                         .items=${this.allowedTags}></dbp-form-enum-element>
                 `;
+            } else {
+                return html`
+                    <dbp-form-enum-view
+                        subscribe="lang"
+                        name="formTags"
+                        display-mode="tags"
+                        layout-type="inline"
+                        label="Tags:"
+                        .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
+                `;
             }
         }
     }
