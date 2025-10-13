@@ -921,7 +921,8 @@ export function getEthicsCommissionFormPrintCSS() {
                 #file-sink,
                 dbp-file-sink,
                 .submission-permissions,
-                .scroller-container
+                .scroller-container,
+                .tag-management
             ) {
             display: none !important;
             height: 0;
