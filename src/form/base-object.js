@@ -146,12 +146,21 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * Sends an save submission event with the submission ID to PATCH.
      * @param {object} event
      */
-    sendSaveSubmission(event) {
+    async sendSaveSubmission(event) {
         if (!this.submissionId) {
             return;
         }
 
         const formElement = this.shadowRoot.querySelector('form');
+
+        // Validate the form before proceeding
+        const validationResult = await validateRequiredFields(formElement);
+        console.log('[sendSaveSubmission] validationResult', validationResult);
+        if (!validationResult) {
+            this.scrollToFirstInvalidField(formElement);
+            return;
+        }
+
         const data = {
             submissionId: this.submissionId,
             formData: gatherFormDataFromElement(formElement),
