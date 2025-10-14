@@ -5229,8 +5229,7 @@ class FormalizeFormElement extends BaseFormElement {
                             label="${i18n.t('render-form.forms.ethics-commission-form.other-comments-on-information-processing-label')}"
                             placeholder=""
                             value=${data.otherCommentsOnInformationProcessing || ''}
-                            rows="5"
-                            required>
+                            rows="5">
                         </dbp-form-string-element>
                     </div>
                 </article>
