@@ -136,6 +136,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Conditional fields
         this.isNewSubmissionQuestionsEnabled = false;
+        this.deadBodiesQuestionsEnabled = false;
         this.qualificationWorkQuestionsEnabled = false;
         this.humanTestSubjectsQuestionsEnabled = false;
         this.humanStemCellsQuestionsEnabled = false;
@@ -179,6 +180,7 @@ class FormalizeFormElement extends BaseFormElement {
             isDownloadButtonAllowed: {type: Boolean, attribute: false},
 
             isNewSubmissionQuestionsEnabled: {type: Boolean, attribute: false},
+            deadBodiesQuestionsEnabled: {type: Boolean, attribute: false},
             qualificationWorkQuestionsEnabled: {type: Boolean, attribute: false},
             humanTestSubjectsQuestionsEnabled: {type: Boolean, attribute: false},
             humanStemCellsQuestionsEnabled: {type: Boolean, attribute: false},
@@ -2436,6 +2438,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </h4>
 
                     <dbp-form-enum-view
+                        class="conditional-field"
+                        data-target-variable="deadBodiesQuestionsEnabled"
+                        data-condition="yes"
                         subscribe="lang"
                         label="${i18n.t('render-form.forms.ethics-commission-form.dead-bodies-label')}"
                         .items=${{
@@ -2445,25 +2450,48 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.deadBodies || ''}>
                     </dbp-form-enum-view>
 
-                    <dbp-form-enum-view
-                        subscribe="lang"
-                        label="1.4.1. ${i18n.t('render-form.forms.ethics-commission-form.legal-documents-available-label')}"
-                        .items=${{
-                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
-                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
-                        }}
-                        .value=${data.legalDocumentsAvailable || ''}>
-                    </dbp-form-enum-view>
+                    ${
+                        this.deadBodiesQuestionsEnabled
+                            ? html`
+                                  <div
+                                      class="question-group ${classMap({
+                                          'fade-in': this.humanStemCellsQuestionsEnabled,
+                                      })}">
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.4.1. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.legal-documents-available-label',
+                                          )}"
+                                          .items=${{
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
+                                          }}
+                                          .value=${data.legalDocumentsAvailable ||
+                                          ''}></dbp-form-enum-view>
 
-                    <dbp-form-enum-view
-                        subscribe="lang"
-                        label="1.4.2. ${i18n.t('render-form.forms.ethics-commission-form.disturbance-of-peace-of-dead-label')}"
-                        .items=${{
-                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
-                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
-                        }}
-                        .value=${data.disturbanceOfPeaceOfDead || ''}>
-                    </dbp-form-enum-view>
+                                      <dbp-form-enum-view
+                                          subscribe="lang"
+                                          label="1.4.2. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.disturbance-of-peace-of-dead-label',
+                                          )}"
+                                          .items=${{
+                                              yes: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.yes',
+                                              ),
+                                              no: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.no',
+                                              ),
+                                          }}
+                                          .value=${data.disturbanceOfPeaceOfDead ||
+                                          ''}></dbp-form-enum-view>
+                                  </div>
+                              `
+                            : ''
+                    }
 
                     <h4 class="question-group-title">
                         1.5. ${i18n.t(
@@ -4364,6 +4392,12 @@ class FormalizeFormElement extends BaseFormElement {
                         </h4>
 
                         <dbp-form-enum-element
+                            @change="${(e) => {
+                                if (e.detail.value) {
+                                    this.deadBodiesQuestionsEnabled =
+                                        e.detail.value === 'yes' ? true : false;
+                                }
+                            }}"
                             subscribe="lang"
                             name="deadBodies"
                             display-mode="list"
@@ -4376,31 +4410,54 @@ class FormalizeFormElement extends BaseFormElement {
                             .value=${data.deadBodies || ''}>
                         </dbp-form-enum-element>
 
-                        <dbp-form-enum-element
-                            subscribe="lang"
-                            name="legalDocumentsAvailable"
-                            display-mode="list"
-                            required
-                            label="1.4.1. ${i18n.t('render-form.forms.ethics-commission-form.legal-documents-available-label')}"
-                            .items=${{
-                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
-                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
-                            }}
-                            .value=${data.legalDocumentsAvailable || ''}>
-                        </dbp-form-enum-element>
+                        ${
+                            this.deadBodiesQuestionsEnabled
+                                ? html`
+                                      <div
+                                          class="question-group ${classMap({
+                                              'fade-in': this.deadBodiesQuestionsEnabled,
+                                          })}">
+                                          <dbp-form-enum-element
+                                              subscribe="lang"
+                                              name="legalDocumentsAvailable"
+                                              display-mode="list"
+                                              required
+                                              label="1.4.1. ${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.legal-documents-available-label',
+                                              )}"
+                                              .items=${{
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
+                                              }}
+                                              .value=${data.legalDocumentsAvailable ||
+                                              ''}></dbp-form-enum-element>
 
-                        <dbp-form-enum-element
-                            subscribe="lang"
-                            name="disturbanceOfPeaceOfDead"
-                            display-mode="list"
-                            required
-                            label="1.4.2. ${i18n.t('render-form.forms.ethics-commission-form.disturbance-of-peace-of-dead-label')}"
-                            .items=${{
-                                yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
-                                no: i18n.t('render-form.forms.ethics-commission-form.no'),
-                            }}
-                            .value=${data.disturbanceOfPeaceOfDead || ''}>
-                        </dbp-form-enum-element>
+                                          <dbp-form-enum-element
+                                              subscribe="lang"
+                                              name="disturbanceOfPeaceOfDead"
+                                              display-mode="list"
+                                              required
+                                              label="1.4.2. ${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.disturbance-of-peace-of-dead-label',
+                                              )}"
+                                              .items=${{
+                                                  yes: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.yes',
+                                                  ),
+                                                  no: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.no',
+                                                  ),
+                                              }}
+                                              .value=${data.disturbanceOfPeaceOfDead ||
+                                              ''}></dbp-form-enum-element>
+                                      </div>
+                                  `
+                                : ''
+                        }
                     </div>
 
                     <div class="question-group">
