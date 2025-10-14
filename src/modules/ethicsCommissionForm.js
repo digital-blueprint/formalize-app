@@ -3184,7 +3184,7 @@ class FormalizeFormElement extends BaseFormElement {
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
-                        .value=${data.hasConfidentalPart || ''}>
+                        .value=${data.hasConfidentialPart || ''}>
                     </dbp-form-enum-view>
 
                     ${
@@ -3709,7 +3709,6 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-element
                         @change="${(e) => {
-                            console.log('qualificationWork', e.detail.value);
                             if (e.detail.value) {
                                 this.qualificationWorkQuestionsEnabled =
                                     e.detail.value === 'no' ? true : false;
@@ -5286,7 +5285,7 @@ class FormalizeFormElement extends BaseFormElement {
                             }
                         }}"
                         subscribe="lang"
-                        name="hasConfidentalPart"
+                        name="hasConfidentialPart"
                         display-mode="list"
                         required
                         label="6.2. ${i18n.t('render-form.forms.ethics-commission-form.has-confidential-part-label')}"
@@ -5294,7 +5293,7 @@ class FormalizeFormElement extends BaseFormElement {
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
-                        .value=${data.hasConfidentalPart || ''}>
+                        .value=${data.hasConfidentialPart || ''}>
                     </dbp-form-enum-element>
 
                     ${
