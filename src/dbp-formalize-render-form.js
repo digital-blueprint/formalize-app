@@ -94,6 +94,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.submissionId && this.getRoutingData().pathSegments[2] === 'readonly') {
             // Load the submission data in readonly mode
             this.readOnly = true;
+        } else {
+            this.readOnly = false;
         }
 
         // Update the formUrlSlug if it has changed

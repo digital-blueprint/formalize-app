@@ -28,7 +28,7 @@
         },
         "form-already-submitted-n-times-warning": "You already submitted this form {{n}} times. You can't submit it again.",
         "form-already-submitted-warning": "You already submitted this form!",
-        "form-exit-warning-message": "Are you sure you want to quit filling out this form? Any unsaved changes will be lost.",
+        "form-exit-warning-message": "Are you sure you want to quit filling out this form? Any unsaved changes may get lost.",
         "form-not-accessible": "This form is not available for you!",
         "form-not-found": "No form is selected to be filled out. Please start the process through the corresponding website.",
         "form-with-slug-not-found": "Form with slug '{{slug}}' not found!",

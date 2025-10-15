@@ -988,6 +988,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 // Hide form after successful submission
                 this.hideForm = true;
+                this.disableLeavePageWarning();
                 send({
                     summary: 'Success',
                     body: 'Form submitted successfully',
@@ -5914,19 +5915,28 @@ class FormalizeFormElement extends BaseFormElement {
                                       'render-form.forms.ethics-commission-form.toggle-edit-submission-button-title',
                                   )}"
                                   @click="${() => {
-                                      this.readOnly = !this.readOnly;
-                                      const form = this.shadowRoot.querySelector('form');
-                                      const data = gatherFormDataFromElement(form);
-
-                                      if (Object.keys(data).length) {
-                                          this.formData = data;
+                                      if (this.readOnly) {
+                                          this.redirectToEditForm();
+                                          return;
                                       }
 
-                                      // Add/remove 'readonly' from the current url
-                                      if (this.readOnly) {
+                                      const confirmed = confirm(
+                                          this._i18n.t('render-form.form-exit-warning-message'),
+                                      );
+                                      if (confirmed) {
+                                          const form = this.shadowRoot.querySelector('form');
+                                          const data = gatherFormDataFromElement(form);
+                                          if (Object.keys(data).length) {
+                                              this.formData = data;
+                                          }
+
+                                          this.disableLeavePageWarning();
                                           this.redirectToReadonlyForm();
+                                          this.readOnly = !this.readOnly;
+                                          return;
                                       } else {
-                                          this.redirectToEditForm();
+                                          // Do nothing if cancel was clicked
+                                          return;
                                       }
                                   }}">
                                   ${this.readOnly

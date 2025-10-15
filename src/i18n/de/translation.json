@@ -28,7 +28,7 @@
         },
         "form-already-submitted-n-times-warning": "Sie haben dieses Formular bereits {{n}} Mal abgeschickt. Sie können es nicht noch einmal abschicken",
         "form-already-submitted-warning": "Sie haben dieses Formular bereits abgeschickt!",
-        "form-exit-warning-message": "Sind Sie sich sicher, dass Sie dieses Formular nicht mehr ausfüllen möchten? Ihre nicht gespeicherten Änderungen werden dadurch verloren gehen.",
+        "form-exit-warning-message": "Sind Sie sich sicher, dass Sie dieses Formular nicht mehr ausfüllen möchten? Nicht gespeicherte Änderungen könnten verloren gehen.",
         "form-not-accessible": "Dieses Formular ist für Sie nicht verfügbar!",
         "form-not-found": "Es ist kein Formular zum Ausfüllen gewählt. Bitte starten Sie den Prozess über die entsprechende Webseite.",
         "form-with-slug-not-found": "Formular mit Slug '{{slug}}' nicht gefunden!",
