@@ -566,6 +566,7 @@ class FormalizeFormElement extends BaseFormElement {
      * @returns {Array|null} An array of rendered file elements or null if no files are present.
      */
     renderAttachedFilesHtml() {
+        const i18n = this._i18n;
         let results = [];
 
         if (this.submittedFiles.size > 0) {
@@ -585,9 +586,13 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="attachment-header">
                         <dbp-icon name="upload"></dbp-icon>
                         <h5>
-                            Files to upload
+                            ${i18n.t(
+                                'render-form.forms.ethics-commission-form.attachment-upload-file-text',
+                            )}
                             <span class="attachment-warning">
-                                (you need to saveDraft or submit)
+                                ${i18n.t(
+                                    'render-form.forms.ethics-commission-form.attachment-upload-warning-text',
+                                )}
                             </span>
                         </h5>
                     </div>
@@ -605,9 +610,13 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="attachment-header">
                         <dbp-icon name="trash"></dbp-icon>
                         <h5>
-                            Files to remove
+                            ${i18n.t(
+                                'render-form.forms.ethics-commission-form.attachment-remove-file-text',
+                            )}
                             <span class="attachment-warning">
-                                (you need to saveDraft or submit)
+                                ${i18n.t(
+                                    'render-form.forms.ethics-commission-form.attachment-upload-warning-text',
+                                )}
                             </span>
                         </h5>
                     </div>
