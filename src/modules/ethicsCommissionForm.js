@@ -1866,11 +1866,11 @@ class FormalizeFormElement extends BaseFormElement {
                             'human-and-biotechnology': i18n.t(
                                 'render-form.forms.ethics-commission-form.human-and-biotechnology',
                             ),
-                            'information-communication-computing': i18n.t(
-                                'render-form.forms.ethics-commission-form.information-communication-computing',
+                            'information-communication-and-computing': i18n.t(
+                                'render-form.forms.ethics-commission-form.information-communication-and-computing',
                             ),
-                            'mobility-production': i18n.t(
-                                'render-form.forms.ethics-commission-form.mobility-production',
+                            'mobility-and-production': i18n.t(
+                                'render-form.forms.ethics-commission-form.mobility-and-production',
                             ),
                             'sustainable-systems': i18n.t(
                                 'render-form.forms.ethics-commission-form.sustainable-systems',
@@ -3803,11 +3803,11 @@ class FormalizeFormElement extends BaseFormElement {
                             'human-and-biotechnology': i18n.t(
                                 'render-form.forms.ethics-commission-form.human-and-biotechnology',
                             ),
-                            'information-communication-computing': i18n.t(
-                                'render-form.forms.ethics-commission-form.information-communication-computing',
+                            'information-communication-and-computing': i18n.t(
+                                'render-form.forms.ethics-commission-form.information-communication-and-computing',
                             ),
-                            'mobility-production': i18n.t(
-                                'render-form.forms.ethics-commission-form.mobility-production',
+                            'mobility-and-production': i18n.t(
+                                'render-form.forms.ethics-commission-form.mobility-and-production',
                             ),
                             'sustainable-systems': i18n.t(
                                 'render-form.forms.ethics-commission-form.sustainable-systems',
