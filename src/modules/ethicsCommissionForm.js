@@ -1796,6 +1796,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <dbp-form-enum-view
                     subscribe="lang"
+                    name="type"
                     layout-type="inline"
                     label="${i18n.t('render-form.forms.ethics-commission-form.type-label')}"
                     .items=${{
@@ -1809,18 +1810,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="userTitle"
                         label="${i18n.t('render-form.forms.ethics-commission-form.user-title')}"
                         value=${data.userTitle || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="userTitleShort"
                         label="${i18n.t('render-form.forms.ethics-commission-form.user-title-short')}"
                         value=${data.userTitleShort || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="applicant"
                         label="${i18n.t('render-form.forms.ethics-commission-form.applicant-label')}"
                         value=${data.applicant || ''}>
                     </dbp-form-string-view>
@@ -1829,18 +1833,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="contactDetails"
                         label="${i18n.t('render-form.forms.ethics-commission-form.contact-details-label')}"
                         value=${data.contactDetails || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="jobPosition"
                         label="${i18n.t('render-form.forms.ethics-commission-form.job-position-label')}"
                         value=${data.jobPosition || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="coApplicants"
                         label="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-label')}"
                         value=${data.coApplicants || ''}>
                     </dbp-form-string-view>
@@ -1849,6 +1856,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="fieldsOfExpertise"
                         display-mode="tags"
                         label="${i18n.t('render-form.forms.ethics-commission-form.fields-of-expertise-label')}"
                         .items=${{
@@ -1874,6 +1882,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="isNewSubmission"
                         class="conditional-field"
                         data-target-variable="isNewSubmissionQuestionsEnabled"
                         data-condition="no"
@@ -1890,6 +1899,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
+                                      name="applicationReferenceNumber"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.application-reference-number-label',
                                       )}"
@@ -1901,6 +1911,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="qualificationWork"
                         class="conditional-field"
                         data-target-variable="qualificationWorkQuestionsEnabled"
                         data-condition="no"
@@ -1923,6 +1934,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
+                                      name="namesOfSupervisingPersons"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.names-of-supervising-persons-label',
                                       )}"
@@ -1934,6 +1946,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="isPublicationPlanned"
                         label="${i18n.t('render-form.forms.ethics-commission-form.is-publication-planned-label')}"
                         .items=${{
                             'no-publication': i18n.t(
@@ -1951,6 +1964,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
+                                      name="studyDescription"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.study-description-label',
                                       )}"
@@ -1958,6 +1972,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                   <dbp-form-date-view
                                       subscribe="lang"
+                                      name="studyDescriptionDateOfTransmission"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.date-of-transmission-label',
                                       )}"
@@ -1983,6 +1998,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                   <dbp-form-date-view
                                       subscribe="lang"
+                                      name="dataProtectionDate"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.data-protection-date-label',
                                       )}"
@@ -1993,6 +2009,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="shortDescription"
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.short-description-label',
                         )}"
@@ -2000,6 +2017,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="dataSource"
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.data-source-label',
                         )}"
@@ -2007,18 +2025,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="numberOfTestPersons"
                         label="${i18n.t('render-form.forms.ethics-commission-form.number-of-test-persons-label')}"
                         value=${data.numberOfTestPersons || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="acquisitionOfTestSubjects"
                         label="${i18n.t('render-form.forms.ethics-commission-form.acquisition-of-test-subjects-label')}"
                         value=${data.acquisitionOfTestSubjects || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="volunteersCompensation"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-label')}"
                         value=${data.volunteersCompensation || ''}>
                     </dbp-form-string-view>
@@ -2027,18 +2048,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="volunteersCompensationEarlyEnd"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-early-end-label')}"
                         value=${data.volunteersCompensationEarlyEnd || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="participationCriteria"
                         label="${i18n.t('render-form.forms.ethics-commission-form.participation-criteria-label')}"
                         value=${data.participationCriteria || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="subjectsDependencies"
                         label="${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-label')}"
                         value=${data.subjectsDependencies || ''}>
                     </dbp-form-string-view>
@@ -2047,18 +2071,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="founding"
                         label="${i18n.t('render-form.forms.ethics-commission-form.founding-label')}"
                         value=${data.founding || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-date-view
                         subscribe="lang"
+                        name="projectStartDate"
                         label="${i18n.t('render-form.forms.ethics-commission-form.project-start-date-label')}"
                         value=${data.projectStartDate || ''}>
                     </dbp-form-date-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="reasonOfSubmission"
                         label="${i18n.t('render-form.forms.ethics-commission-form.reason-of-submission-label')}"
                         value=${data.reasonOfSubmission || ''}>
                     </dbp-form-string-view>
@@ -2173,6 +2200,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="humanTestSubjectsQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
+                        name="testSubjects"
                         label="${i18n.t('render-form.forms.ethics-commission-form.test-subjects-label')}"
                         description="${i18n.t('render-form.forms.ethics-commission-form.test-subject-description')}"
                         .items=${{
@@ -2198,6 +2226,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsVoluntary"
                                           label="1.1.1 ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-voluntary-label',
                                           )}"
@@ -2214,6 +2243,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="isSelfExperiment"
                                           label="1.1.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.is-self-experiment-label',
                                           )}"
@@ -2230,6 +2260,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsInformedConsent"
                                           label="1.1.3. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-informed-consent-label',
                                           )}"
@@ -2246,6 +2277,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsConsentSigned"
                                           label="1.1.4. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-consent-signed-label',
                                           )}"
@@ -2262,6 +2294,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsWithdrawPossible"
                                           label="1.1.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-withdraw-possible-label',
                                           )}"
@@ -2278,6 +2311,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsDependent"
                                           label="1.1.6. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-dependent-label',
                                           )}"
@@ -2294,6 +2328,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsVulnerable"
                                           label="1.1.7. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-vulnerable-label',
                                           )}"
@@ -2319,6 +2354,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="invasiveTechniquesUsed"
                                           label="1.2.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.invasive-techniques-used-label',
                                           )}"
@@ -2335,6 +2371,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="influenceOnBrainActivity"
                                           label="1.2.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.influence-on-brain-activity-label',
                                           )}"
@@ -2351,6 +2388,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsTortured"
                                           label="1.2.3. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-tortured-label',
                                           )}"
@@ -2367,6 +2405,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsHarmed"
                                           label="1.2.4. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-harmed-label',
                                           )}"
@@ -2383,6 +2422,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsRisksJustified"
                                           label="1.2.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-risks-justified-label',
                                           )}"
@@ -2399,6 +2439,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsRiskMinimized"
                                           label="1.2.6. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-risk-minimized-label',
                                           )}"
@@ -2423,6 +2464,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       </h4>
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="testSubjectsReasonableToParticipate"
                                           label="1.3.1 ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-reasonable-to-participate-label',
                                           )}"
@@ -2452,6 +2494,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="deadBodiesQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
+                        name="deadBodies"
                         label="${i18n.t('render-form.forms.ethics-commission-form.dead-bodies-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2469,6 +2512,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}">
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="legalDocumentsAvailable"
                                           label="1.4.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.legal-documents-available-label',
                                           )}"
@@ -2485,6 +2529,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="disturbanceOfPeaceOfDead"
                                           label="1.4.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.disturbance-of-peace-of-dead-label',
                                           )}"
@@ -2514,6 +2559,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="humanStemCellsQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
+                        name="humanStemCells"
                         label="1.5 ${i18n.t('render-form.forms.ethics-commission-form.human-stem-cells-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2531,6 +2577,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}">
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="humanTissueUsed"
                                           label="1.5.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.human-tissue-used-label',
                                           )}"
@@ -2549,6 +2596,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           data-target-variable="stemCellFromEmbryosQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
+                                          name="humanStemCellsUsed"
                                           label="1.5.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.human-stem-cells-used-label',
                                           )}"
@@ -2572,6 +2620,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                                 .stemCellFromEmbryosQuestionsEnabled,
                                                     })}"
                                                     subscribe="lang"
+                                                    name="stemCellsFromEmbryos"
                                                     label="1.5.2.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
                                                     )}"
@@ -2593,6 +2642,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           data-target-variable="stemCellFromHumanEmbryosQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
+                                          name="useOfHumanEmbryos"
                                           label="1.5.3. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.use-of-human-embryos-label',
                                           )}"
@@ -2616,6 +2666,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                                 .stemCellFromHumanEmbryosQuestionsEnabled,
                                                     })}"
                                                     subscribe="lang"
+                                                    name="stemCellsFromEmbryosDestroyed"
                                                     label="1.5.3.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
                                                     )}"
@@ -2634,6 +2685,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="commerciallyAvailableCells"
                                           label="1.5.4. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.commercially-available-cells-label',
                                           )}"
@@ -2653,6 +2705,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           data-target-variable="cellsObtainedInResearchQuestionsEnabled"
                                           data-condition="no"
                                           subscribe="lang"
+                                          name="cellsObtainedInResearch"
                                           label="1.5.5 ${i18n.t(
                                               'render-form.forms.ethics-commission-form.cells-obtained-in-research-label',
                                           )}"
@@ -2676,6 +2729,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                                 .cellsObtainedInResearchQuestionsEnabled,
                                                     })}"
                                                     subscribe="lang"
+                                                    name="tissueOrCellsSource"
                                                     label="1.5.5.1 ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
                                                     )}"
@@ -2697,6 +2751,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="animalQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
+                        name="animalsInvolved"
                         label="${i18n.t('render-form.forms.ethics-commission-form.section-animals-involved-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2720,6 +2775,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       </h4>
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="isAnimalVertebrate"
                                           label="2.1.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.is-animal-vertebrate-label',
                                           )}"
@@ -2736,6 +2792,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="nonHumanPrimates"
                                           label="2.1.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.non-human-primates-label',
                                           )}"
@@ -2752,6 +2809,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="geneticallyModifiedAnimals"
                                           label="2.1.3. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.genetically-modified-animals-label',
                                           )}"
@@ -2768,6 +2826,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="endangeredSpecies"
                                           label="2.1.4. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.endangered-species-label',
                                           )}"
@@ -2784,6 +2843,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="alternativesToUseLaboratoryAnimals"
                                           label="2.1.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.alternatives-to-use-laboratory-animals-label',
                                           )}"
@@ -2800,6 +2860,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="laboratoryAnimalsHarmed"
                                           label="2.1.6. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.laboratory-animals-harmed-label',
                                           )}"
@@ -2816,6 +2877,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="isRiskJustified"
                                           label="2.1.7. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.is-risk-justified-label',
                                           )}"
@@ -2831,6 +2893,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="relevantLegalDocumentAvailable"
                                           label="2.1.8. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.relevant-legal-document-available-label',
                                           )}"
@@ -2855,6 +2918,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            name="harmfulSubstances"
                             label="3.1. ${i18n.t('render-form.forms.ethics-commission-form.harmful-substances-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2865,6 +2929,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            name="negativeImpactsOnNature"
                             label="3.2. ${i18n.t('render-form.forms.ethics-commission-form.negative-impacts-on-nature-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2878,6 +2943,7 @@ class FormalizeFormElement extends BaseFormElement {
                             data-target-variable="harmfulSubstancesOnSubjects"
                             data-condition="yes"
                             subscribe="lang"
+                            name="harmfulSubstancesOnSubjects"
                             label="3.3. ${i18n.t('render-form.forms.ethics-commission-form.harmful-substances-on-subjects-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2894,6 +2960,7 @@ class FormalizeFormElement extends BaseFormElement {
                                               'fade-in': this.harmfulSubstancesOnSubjects,
                                           })}"
                                           subscribe="lang"
+                                          name="adequateSafetyMeasures"
                                           label="3.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
@@ -2916,6 +2983,7 @@ class FormalizeFormElement extends BaseFormElement {
                             data-target-variable="complyWithSustainabilityStrategy"
                             data-condition="yes"
                             subscribe="lang"
+                            name="complyWithSustainabilityStrategy"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
@@ -2938,6 +3006,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 ? html`
                                       <dbp-form-string-view
                                           subscribe="lang"
+                                          name="appropriateUseOfResources"
                                           label="3.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
@@ -2957,6 +3026,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="nonEuCountriesQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
+                        name="nonEuCountries"
                         label="${i18n.t('render-form.forms.ethics-commission-form.non-eu-countries-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2981,6 +3051,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="ethicalIssues"
                                           label="4.1.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.ethical-issues-label',
                                           )}"
@@ -2999,6 +3070,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           data-target-variable="questionResearchFoundsQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
+                                          name="thirdCountriesLocalResources"
                                           label="4.1.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.third-countries-local-resources-label',
                                           )}"
@@ -3022,6 +3094,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                                 .questionResearchFoundsQuestionsEnabled,
                                                     })}"
                                                     subscribe="lang"
+                                                    name="questionResearchFounds"
                                                     label="4.1.2.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.question-research-founds-label',
                                                     )}"
@@ -3040,6 +3113,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="importMaterialFromThirdCountries"
                                           label="4.1.3. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.import-material-from-third-countries-label',
                                           )}"
@@ -3056,6 +3130,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="lowIncomeCountries"
                                           label="4.1.4. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.low-income-countries-label',
                                           )}"
@@ -3072,6 +3147,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
+                                          name="exposeParticipantsToRisk"
                                           label="4.1.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.expose-participants-to-risk-label',
                                           )}"
@@ -3103,6 +3179,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            name="replaceHumanDecisionMaking"
                             label="5.1. ${i18n.t('render-form.forms.ethics-commission-form.replace-human-decision-making-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3113,6 +3190,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            name="potentiallyStigmatizePeople"
                             label="5.2. ${i18n.t('render-form.forms.ethics-commission-form.potentially-stigmatize-people-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3123,6 +3201,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            name="negativeSocialConsequences"
                             label="5.3. ${i18n.t('render-form.forms.ethics-commission-form.negative-social-consequences-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3133,6 +3212,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            name="weaponSystem"
                             label="5.4. ${i18n.t('render-form.forms.ethics-commission-form.weapon-system-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3146,6 +3226,7 @@ class FormalizeFormElement extends BaseFormElement {
                             data-target-variable="ethicalIssuesListQuestion"
                             data-condition="yes"
                             subscribe="lang"
+                            name="hasEthicalIssues"
                             label="5.5. ${i18n.t('render-form.forms.ethics-commission-form.has-ethical-issues-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3162,6 +3243,7 @@ class FormalizeFormElement extends BaseFormElement {
                                               'fade-in': this.ethicalIssuesListQuestion,
                                           })}"
                                           subscribe="lang"
+                                          name="ethicalIssuesList"
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.ethical-issues-list-label',
                                           )}"
@@ -3173,6 +3255,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-string-view
                             subscribe="lang"
+                            name="otherCommentsOnInformationProcessing"
                             label="${i18n.t('render-form.forms.ethics-commission-form.other-comments-on-information-processing-label')}"
                             value=${data.otherCommentsOnInformationProcessing || ''}>
                         </dbp-form-string-view>
@@ -3187,6 +3270,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="hasConflictOfInterestSubQuestion"
                         data-condition="yes"
                         subscribe="lang"
+                        name="hasConflictOfInterest"
                         label="6.1. ${i18n.t('render-form.forms.ethics-commission-form.has-conflict-of-interest-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3203,6 +3287,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           'fade-in': this.hasConflictOfInterestSubQuestion,
                                       })}"
                                       subscribe="lang"
+                                      name="conflictOfInterestList"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-of-interest-list-label',
                                       )}"
@@ -3217,6 +3302,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="hasConfidentialPartSubQuestion"
                         data-condition="yes"
                         subscribe="lang"
+                        name="hasConfidentialPart"
                         label="6.2. ${i18n.t('render-form.forms.ethics-commission-form.has-confidential-part-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3233,6 +3319,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           'fade-in': this.hasConfidentialPartSubQuestion,
                                       })}"
                                       subscribe="lang"
+                                      name="natureOfBlocking"
                                       label="6.2.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.nature-of-blocking-label',
                                       )}"
@@ -3243,6 +3330,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           'fade-in': this.hasConfidentialPartSubQuestion,
                                       })}"
                                       subscribe="lang"
+                                      name="reasonOfBlocking"
                                       label="6.2.2. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.reason-of-blocking-label',
                                       )}"
@@ -3253,6 +3341,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           'fade-in': this.hasConfidentialPartSubQuestion,
                                       })}"
                                       subscribe="lang"
+                                      name="consequencesOfBlocking"
                                       label="6.2.3. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.consequences-of-blocking-label',
                                       )}"
@@ -3279,6 +3368,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="hasConflictInContentControlSubQuestion"
                         data-condition="yes"
                         subscribe="lang"
+                        name="hasConflictInContentControl"
                         label="6.3. ${i18n.t('render-form.forms.ethics-commission-form.has-conflict-in-content-control-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3295,6 +3385,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           'fade-in': this.hasConflictInContentControlSubQuestion,
                                       })}"
                                       subscribe="lang"
+                                      name="conflictInContentControlList"
                                       label="6.3.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-in-content-control-list-label',
                                       )}"
@@ -3309,6 +3400,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="stakeholderParticipationPlannedSubQuestion"
                         data-condition="yes"
                         subscribe="lang"
+                        name="stakeholderParticipationPlanned"
                         label="6.4. ${i18n.t('render-form.forms.ethics-commission-form.stakeholder-participation-planned-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3326,6 +3418,7 @@ class FormalizeFormElement extends BaseFormElement {
                                               this.stakeholderParticipationPlannedSubQuestion,
                                       })}"
                                       subscribe="lang"
+                                      name="hasProvisionForAppropriateRecognition"
                                       label="6.4.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.provision-for-appropriate-recognition-label',
                                       )}"
@@ -3347,6 +3440,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="employmentContract"
                         label="7.1. ${i18n.t('render-form.forms.ethics-commission-form.employment-contract-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3357,6 +3451,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="workLifeBalance"
                         label="7.2. ${i18n.t('render-form.forms.ethics-commission-form.work-life-balance-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3367,6 +3462,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="fairCompensation"
                         label="7.3. ${i18n.t('render-form.forms.ethics-commission-form.fair-compensation-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3380,6 +3476,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="diversityAspectsQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
+                        name="diversityAspects"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
@@ -3402,6 +3499,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
+                                      name="diversityAspectsExamples"
                                       label="7.4.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.diversity-aspects-examples-label',
                                       )}"
@@ -3417,6 +3515,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="hasRiskOfReputationDamage"
                         label="8.1. ${i18n.t('render-form.forms.ethics-commission-form.risk-of-reputation-damage-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3427,6 +3526,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="specificTechnologyAssessment"
                         label="8.2. ${i18n.t('render-form.forms.ethics-commission-form.specific-technology-assessment-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3437,6 +3537,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="relatedToDevelopmentOfWeapons"
                         label="8.3. ${i18n.t('render-form.forms.ethics-commission-form.related-to-development-of-weapons-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3447,6 +3548,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="hasDualUse"
                         label="8.4. ${i18n.t('render-form.forms.ethics-commission-form.has-dual-use-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3460,6 +3562,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-target-variable="riskSubQuestion"
                         data-condition="yes"
                         subscribe="lang"
+                        name="hasAnyRisks"
                         label="8.5. ${i18n.t('render-form.forms.ethics-commission-form.has-any-risks-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3474,6 +3577,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   <dbp-form-string-view
                                       class="${classMap({'fade-in': this.riskSubQuestion})}"
                                       subscribe="lang"
+                                      name="risksReasons"
                                       label="8.5.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.risks-reasons-label',
                                       )}"
@@ -3484,6 +3588,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-view
                         subscribe="lang"
+                        name="hasNegativeEffects"
                         label="8.6. ${i18n.t('render-form.forms.ethics-commission-form.has-negative-effects-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
