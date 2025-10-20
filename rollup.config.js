@@ -272,6 +272,7 @@ export default (async () => {
             urlPlugin(await getUrlOptions(pkg.name, 'shared')),
             !whitelabel &&
                 copy({
+                    copySync: true,
                     targets: [
                         {src: customAssetsPath + 'silent-check-sso.html', dest: 'dist'},
                         {
@@ -288,8 +289,8 @@ export default (async () => {
                             dest: 'dist/' + (await getDistPath(pkg.name)),
                         },
                         {
-                            src: customAssetsPath + 'icon/*',
-                            dest: 'dist/' + (await getDistPath(pkg.name, 'icon')),
+                            src: customAssetsPath + 'icon',
+                            dest: 'dist/' + (await getDistPath(pkg.name, '.')),
                         },
                         {src: customAssetsPath + '*.metadata.json', dest: 'dist'},
                         {src: customAssetsPath + 'modules.json', dest: 'dist'},
@@ -299,8 +300,9 @@ export default (async () => {
                             rename: pkg.internalName + '.webmanifest',
                         },
                         {
-                            src: await getPackagePath('@tugraz/font-source-sans-pro', 'files/*'),
-                            dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/source-sans-pro')),
+                            src: await getPackagePath('@tugraz/font-source-sans-pro', 'files'),
+                            dest: 'dist/' + (await getDistPath(pkg.name, 'fonts')),
+                            rename: 'source-sans-pro',
                         },
                         {
                             src: await getPackagePath('@tugraz/web-components', 'src/spinner.js'),
@@ -318,14 +320,15 @@ export default (async () => {
                 }),
             whitelabel &&
                 copy({
+                    copySync: true,
                     targets: [
                         {src: 'assets/silent-check-sso.html', dest: 'dist'},
                         {src: 'assets/htaccess-shared', dest: 'dist/shared/', rename: '.htaccess'},
                         {src: 'assets/*.css', dest: 'dist/' + (await getDistPath(pkg.name))},
                         {src: 'assets/*.svg', dest: 'dist/' + (await getDistPath(pkg.name))},
                         {
-                            src: 'assets/icon/*',
-                            dest: 'dist/' + (await getDistPath(pkg.name, 'icon')),
+                            src: 'assets/icon',
+                            dest: 'dist/' + (await getDistPath(pkg.name, '.')),
                         },
                         {src: 'src/*.metadata.json', dest: 'dist'},
                         {src: 'assets/modules.json', dest: 'dist'},
@@ -335,8 +338,9 @@ export default (async () => {
                             rename: pkg.internalName + '.webmanifest',
                         },
                         {
-                            src: await getPackagePath('@fontsource/nunito-sans', '*'),
-                            dest: 'dist/' + (await getDistPath(pkg.name, 'fonts/nunito-sans')),
+                            src: await getPackagePath('@fontsource/nunito-sans', '.'),
+                            dest: 'dist/' + (await getDistPath(pkg.name, 'fonts')),
+                            rename: 'nunito-sans',
                         },
                         {
                             src: await getPackagePath('@dbp-toolkit/common', 'src/spinner.js'),
