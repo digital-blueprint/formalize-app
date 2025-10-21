@@ -435,6 +435,11 @@ export function getEthicsCommissionFormCSS() {
             text-underline-offset: 2px;
         }
 
+        .admin-fields {
+            background: #f1f1f1;
+            padding: 1em 2em;
+        }
+
         .info-box {
             /*background-color: #c9e4c6;*/
             background-color: var(--dbp-success-surface);
@@ -759,6 +764,11 @@ export function getEthicsCommissionFormCSS() {
 
         .lettered-list {
             list-style-type: lower-alpha;
+        }
+
+        .lettered-list a {
+            text-decoration: underline;
+            text-underline-offset: 2px;
         }
 
         @media only screen and (max-width: 1600px) {
