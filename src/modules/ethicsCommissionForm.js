@@ -122,6 +122,11 @@ class FormalizeFormElement extends BaseFormElement {
         this.filesToSubmit = new Map();
         this.filesToRemove = new Map();
         this.fileUploadError = false;
+        // Voting files
+        this.uploadToVoting = false;
+        this.votingFile = new Map();
+        this.votingFileToSubmit = new Map();
+        this.votingFileToRemove = new Map();
 
         // Event handlers
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
@@ -303,6 +308,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.data = {};
 
         this.submittedFiles = new Map();
+        this.votingFile = new Map();
         this.currentState = null;
         this.submitterName = '';
         this.submissionBinaryState = 0;
@@ -379,7 +385,16 @@ class FormalizeFormElement extends BaseFormElement {
             this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
             this.selectedTags = arrayToObject(this.data.tags);
-            this.submittedFiles = await this.transformApiResponseToFile(this.data.submittedFiles);
+            // Attachments
+            const submittedFilesObject = this.data.submittedFiles.filter((file) => {
+                return file.fileAttributeName === 'attachments';
+            });
+            const votingFileObject = this.data.submittedFiles.filter((file) => {
+                return file.fileAttributeName === 'voting';
+            });
+
+            this.submittedFiles = await this.transformApiResponseToFile(submittedFilesObject);
+            this.votingFile = await this.transformApiResponseToFile(votingFileObject);
 
             switch (Number(this.submissionBinaryState)) {
                 case 1:
@@ -566,24 +581,32 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Renders attached file list with action buttons
+     * @param {string} fileGroup - The group of files to render ('attachments' or 'voting')
      * @returns {Array|null} An array of rendered file elements or null if no files are present.
      */
-    renderAttachedFilesHtml() {
+    renderAttachedFilesHtml(fileGroup = 'attachments') {
         const i18n = this._i18n;
         let results = [];
 
-        if (this.submittedFiles.size > 0) {
+        // Select files based on group
+        const submittedFiles = fileGroup === 'attachments' ? this.submittedFiles : this.votingFile;
+        const filesToSubmit =
+            fileGroup === 'attachments' ? this.filesToSubmit : this.votingFileToSubmit;
+        const filesToRemove =
+            fileGroup === 'attachments' ? this.filesToRemove : this.votingFileToRemove;
+
+        if (submittedFiles.size > 0) {
             const submittedFilesHtml = html`
                 <div class="fileblock-container submitted-files">
-                    ${Array.from(this.submittedFiles).map(([identifier, file]) => {
-                        return this.addFileBlock(file, identifier);
+                    ${Array.from(submittedFiles).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
                     })}
                 </div>
             `;
             results.push(submittedFilesHtml);
         }
 
-        if (this.filesToSubmit.size > 0) {
+        if (filesToSubmit.size > 0) {
             const filesToSubmitHtml = html`
                 <div class="fileblock-container files-to-upload">
                     <div class="attachment-header">
@@ -599,15 +622,15 @@ class FormalizeFormElement extends BaseFormElement {
                             </span>
                         </h5>
                     </div>
-                    ${Array.from(this.filesToSubmit).map(([identifier, file]) => {
-                        return this.addFileBlock(file, identifier);
+                    ${Array.from(filesToSubmit).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
                     })}
                 </div>
             `;
             results.push(filesToSubmitHtml);
         }
 
-        if (this.filesToRemove.size > 0) {
+        if (filesToRemove.size > 0) {
             const filesToRemoveHtml = html`
                 <div class="fileblock-container files-to-remove">
                     <div class="attachment-header">
@@ -623,8 +646,8 @@ class FormalizeFormElement extends BaseFormElement {
                             </span>
                         </h5>
                     </div>
-                    ${Array.from(this.filesToRemove).map(([identifier, file]) => {
-                        return this.addFileBlock(file, identifier);
+                    ${Array.from(filesToRemove).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
                     })}
                 </div>
             `;
@@ -634,7 +657,7 @@ class FormalizeFormElement extends BaseFormElement {
         return results;
     }
 
-    addFileBlock(file, identifier) {
+    addFileBlock(file, identifier, fileGroup = 'attachments') {
         return html`
             <div class="file-block">
                 <span class="file-info">
@@ -670,10 +693,12 @@ class FormalizeFormElement extends BaseFormElement {
                     </button>
                     <button
                         class="delete-file-button button is-secondary"
-                        .disabled=${this.filesToRemove.has(identifier) || this.readOnly}
+                        .disabled=${this.filesToRemove.has(identifier) ||
+                        this.votingFileToRemove.has(identifier) ||
+                        this.readOnly}
                         @click=${(e) => {
                             e.preventDefault();
-                            this.deleteAttachment(identifier);
+                            this.deleteAttachment(identifier, fileGroup);
                         }}>
                         <dbp-icon name="trash"></dbp-icon>
                         ${this._i18n.t(
@@ -831,7 +856,12 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     handleFilesToSubmit(event) {
-        this.filesToSubmit.set(event.detail.file.name, event.detail.file);
+        if (this.uploadToVoting) {
+            this.votingFileToSubmit.set(event.detail.file.name, event.detail.file);
+            // this.uploadToVoting = false;
+        } else {
+            this.filesToSubmit.set(event.detail.file.name, event.detail.file);
+        }
         this.requestUpdate();
     }
 
@@ -864,16 +894,28 @@ class FormalizeFormElement extends BaseFormElement {
             : this.auth['user-id'];
         const formData = new FormData();
 
-        // Set files to upload as attachments
+        // Set attachment files to upload
         if (this.filesToSubmit.size > 0) {
             this.filesToSubmit.forEach((fileToAttach) => {
                 formData.append('attachments[]', fileToAttach, fileToAttach.name);
             });
         }
+        // Set voting files to upload
+        if (this.votingFileToSubmit.size > 0) {
+            this.votingFileToSubmit.forEach((fileToAttach) => {
+                formData.append('voting[]', fileToAttach, fileToAttach.name);
+            });
+        }
 
-        // Set files to remove from attachments
+        // Set attachment files to remove
         if (this.filesToRemove.size > 0) {
             this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+            });
+        }
+        // Set voting files to remove
+        if (this.votingFileToRemove.size > 0) {
+            this.votingFileToRemove.forEach((fileObject, fileIdentifier) => {
                 formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
             });
         }
@@ -892,16 +934,16 @@ class FormalizeFormElement extends BaseFormElement {
         const filesToSubmitBackup = this.filesToSubmit;
         const filesToRemoveBackup = this.filesToRemove;
         const submittedFilesBackup = this.submittedFiles;
+        const votingFilesBackup = this.votingFile;
 
         try {
             const response = await fetch(url, options);
             let responseBody = await response.json();
 
             if (!response.ok) {
-                const errorDetails = responseBody['relay:errorDetails']['/'].join('<br>');
                 send({
                     summary: 'Error',
-                    body: `Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}<br>${errorDetails}`,
+                    body: `Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -916,6 +958,9 @@ class FormalizeFormElement extends BaseFormElement {
                 // Remove files added to the request
                 this.filesToSubmit = new Map();
                 this.filesToRemove = new Map();
+
+                this.votingFileToSubmit = new Map();
+                this.votingFileToRemove = new Map();
 
                 // Add new submission to the list
                 this.userAllDraftSubmissions.push(responseBody);
@@ -949,6 +994,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.filesToRemove = filesToRemoveBackup;
             // Put back files that we did not delete?
             this.submittedFiles = submittedFilesBackup;
+            this.votingFile = votingFilesBackup;
 
             this.requestUpdate();
 
@@ -991,10 +1037,22 @@ class FormalizeFormElement extends BaseFormElement {
                 formData.append('attachments[]', fileToAttach, fileToAttach.name);
             });
         }
+        // Set voting files to upload
+        if (this.votingFileToSubmit.size > 0) {
+            this.votingFileToSubmit.forEach((fileToAttach) => {
+                formData.append('voting[]', fileToAttach, fileToAttach.name);
+            });
+        }
 
         // Set files to remove from attachments
         if (this.filesToRemove.size > 0) {
             this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+            });
+        }
+        // Set voting files to remove
+        if (this.votingFileToRemove.size > 0) {
+            this.votingFileToRemove.forEach((fileObject, fileIdentifier) => {
                 formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
             });
         }
@@ -1019,10 +1077,9 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
             if (!response.ok) {
                 this.submissionError = true;
-                const errorDetails = responseBody['relay:errorDetails']['/'].join('<br>');
                 send({
                     summary: 'Error',
-                    body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}<br>${errorDetails}`,
+                    body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1034,6 +1091,9 @@ class FormalizeFormElement extends BaseFormElement {
                 // Remove files added to the request
                 this.filesToSubmit = new Map();
                 this.filesToRemove = new Map();
+
+                this.votingFileToSubmit = new Map();
+                this.votingFileToRemove = new Map();
 
                 // Add new submission to the list
                 this.userAllDraftSubmissions.push(responseBody);
@@ -1159,21 +1219,37 @@ class FormalizeFormElement extends BaseFormElement {
         data.formData.identifier = this.submissionCreatorId;
         const formData = new FormData();
 
-        // Set file to be removed
-        if (this.filesToRemove.size > 0) {
-            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
-                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
-            });
-        }
-
-        // Upload attached files
+        // Set attachment files to upload
         if (this.filesToSubmit.size > 0) {
             this.filesToSubmit.forEach((fileToAttach) => {
                 formData.append('attachments[]', fileToAttach, fileToAttach.name);
             });
         }
+        // Set voting files to upload
+        if (this.votingFileToSubmit.size > 0) {
+            this.votingFileToSubmit.forEach((fileToAttach) => {
+                formData.append('voting[]', fileToAttach, fileToAttach.name);
+            });
+        }
+
+        // Set attachment files to remove
+        if (this.filesToRemove.size > 0) {
+            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+            });
+        }
+        // Set voting files to remove
+        if (this.votingFileToRemove.size > 0) {
+            this.votingFileToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+            });
+        }
 
         formData.append('dataFeedElement', JSON.stringify(data.formData));
+        // Add tags
+        const selectedTags = Object.values(this.selectedTags);
+        formData.append('tags', JSON.stringify(selectedTags));
+
         const options = this._buildRequestOptions(formData, 'PATCH');
         const url = this._buildSubmissionUrl(event.detail.submissionId);
 
@@ -1186,10 +1262,9 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
 
             if (!response.ok) {
-                const errorDetails = responseBody['relay:errorDetails']['/'].join('<br>');
                 send({
                     summary: `${responseBody['hydra:title']}`,
-                    body: `Failed to save form. Response status: ${response.status}<br>${responseBody.detail}<br>${errorDetails}`,
+                    body: `Failed to save form. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1200,6 +1275,9 @@ class FormalizeFormElement extends BaseFormElement {
                 // Remove files added to the request
                 this.filesToSubmit = new Map();
                 this.filesToRemove = new Map();
+
+                this.votingFileToSubmit = new Map();
+                this.votingFileToRemove = new Map();
 
                 // formDataUpdated event to notify parent component
                 this.dispatchEvent(
@@ -1267,17 +1345,26 @@ class FormalizeFormElement extends BaseFormElement {
     /**
      * Handle removing files from the list of attachments.
      * @param {string} fileIdentifier uuid
+     * @param {string} fileGroup - The group of files to handle ('attachments' or 'voting')
      */
-    deleteAttachment(fileIdentifier) {
-        // If the file is already submitted mark it for removal
-        const fileToRemove = this.submittedFiles.get(fileIdentifier);
-        if (fileToRemove) {
-            this.filesToRemove.set(fileIdentifier, fileToRemove);
-            this.submittedFiles.delete(fileIdentifier);
+    deleteAttachment(fileIdentifier, fileGroup = 'attachments') {
+        if (fileGroup === 'attachments') {
+            // Handle regular attachments
+            const fileToRemove = this.submittedFiles.get(fileIdentifier);
+            if (fileToRemove) {
+                this.filesToRemove.set(fileIdentifier, fileToRemove);
+                this.submittedFiles.delete(fileIdentifier);
+            }
+            this.filesToSubmit.delete(fileIdentifier);
+        } else if (fileGroup === 'voting') {
+            // Handle voting files
+            const fileToRemove = this.votingFile.get(fileIdentifier);
+            if (fileToRemove) {
+                this.votingFileToRemove.set(fileIdentifier, fileToRemove);
+                this.votingFile.delete(fileIdentifier);
+            }
+            this.votingFileToSubmit.delete(fileIdentifier);
         }
-
-        // If just uploaded remove from files to submit
-        this.filesToSubmit.delete(fileIdentifier);
 
         this.requestUpdate();
     }
@@ -1488,28 +1575,10 @@ class FormalizeFormElement extends BaseFormElement {
     async downloadAllFiles(event) {
         // Get PDF as File object
         const pdfFile = await this.generatePDF(false);
-
-        /*
-        // Streamed version
-        const downloadFiles = [];
-        downloadFiles.push({
-            name: `printedFormPDF/${pdfFile.name}`,
-            url: URL.createObjectURL(pdfFile),
-        });
-
-        Array.from(this.submittedFiles.values()).forEach((attachment) => {
-            downloadFiles.push({
-                name: `attachments/${attachment.name}`,
-                url: URL.createObjectURL(attachment),
-            });
-        });
-
-        this._('#file-sink').files = downloadFiles;
-        */
-
-        // Not streamed version
         const attachmentFiles = Array.from(this.submittedFiles.values());
-        this._('#file-sink').files = [pdfFile, ...attachmentFiles];
+        const votingFiles = Array.from(this.votingFile.values());
+
+        this._('#file-sink').files = [pdfFile, ...attachmentFiles, ...votingFiles];
     }
 
     /**
@@ -3571,7 +3640,18 @@ class FormalizeFormElement extends BaseFormElement {
                         <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
 
                         <div class="uploaded-files">
-                            ${this.renderAttachedFilesHtml()}
+                            ${this.renderAttachedFilesHtml('attachments')}
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.admin-voting-results-title')}</h3>
+
+                    <div class="file-upload-container">
+
+                        <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
+
+                        <div class="uploaded-files">
+                            ${this.renderAttachedFilesHtml('voting')}
                         </div>
                     </div>
                 </article>
@@ -5738,11 +5818,66 @@ class FormalizeFormElement extends BaseFormElement {
                         <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
 
                         <div class="uploaded-files">
-                            ${this.renderAttachedFilesHtml()}
+                            ${this.renderAttachedFilesHtml('attachments')}
                         </div>
 
-                        <button @click="${this.openFilePicker}" class="button is-primary attachment-upload-button">${i18n.t('render-form.forms.ethics-commission-form.attache-file-button-label')}</button>
+                        <button @click="${(event) => {
+                            this.uploadToVoting = false;
+                            this.openFilePicker(event);
+                        }}" class="button is-secondary upload-button upload-button--attachment">
+                            <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
+                            ${i18n.t('render-form.forms.ethics-commission-form.upload-attachment-button-label')}
+                        </button>
                     </div>
+
+                    ${
+                        this.isAdmin
+                            ? html`
+                                  <h3 class="section-title">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.admin-voting-file-upload',
+                                      )}
+                                  </h3>
+                                  <div class="description">
+                                      <dbp-translated subscribe="lang">
+                                          <div slot="en">
+                                              <p>Upload voting results here</p>
+                                          </div>
+                                          <div slot="de">
+                                              <p>
+                                                  Bitte laden Sie hier die Abstimmungsergebnisse
+                                                  hoch
+                                              </p>
+                                          </div>
+                                      </dbp-translated>
+                                  </div>
+
+                                  <div class="file-upload-container">
+                                      <h4 class="attachments-title">
+                                          ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.admin-voting-results-title',
+                                          )}
+                                      </h4>
+
+                                      <div class="uploaded-files">
+                                          ${this.renderAttachedFilesHtml('voting')}
+                                      </div>
+
+                                      <button
+                                          @click="${(event) => {
+                                              this.uploadToVoting = true;
+                                              this.openFilePicker(event);
+                                          }}"
+                                          class="button is-secondary upload-button upload-button--voting">
+                                          <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.upload-voting-button-label',
+                                          )}
+                                      </button>
+                                  </div>
+                              `
+                            : ''
+                    }
                 </article>
             </form>
 

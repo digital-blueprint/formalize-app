@@ -625,8 +625,12 @@ export function getEthicsCommissionFormCSS() {
             margin-bottom: 2em;
         }
 
-        .attachment-upload-button {
+        .upload-button {
             width: fit-content;
+        }
+
+        .upload-button dbp-icon {
+            margin-right: 0.25em;
         }
 
         .attachment-header {
