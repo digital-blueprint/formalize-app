@@ -136,27 +136,29 @@ class FormalizeFormElement extends BaseFormElement {
         this._deletionConfirmationResolve = null;
 
         // Conditional fields
-        this.isNewSubmissionQuestionsEnabled = false;
-        this.deadBodiesQuestionsEnabled = false;
-        this.qualificationWorkQuestionsEnabled = true;
-        this.humanTestSubjectsQuestionsEnabled = false;
-        this.testSubjectsTorturedQuestionsEnabled = false;
-        this.humanStemCellsQuestionsEnabled = false;
-        this.stemCellFromEmbryosQuestionsEnabled = false;
-        this.stemCellFromHumanEmbryosQuestionsEnabled = false;
-        this.cellsObtainedInResearchQuestionsEnabled = false;
-        this.animalQuestionsEnabled = false;
-        this.harmfulSubstancesOnSubjectsQuestionsEnabled = false;
-        this.complyWithSustainabilityStrategyQuestionsEnabled = false;
-        this.nonEuCountriesQuestionsEnabled = false;
-        this.questionResearchFoundsQuestionsEnabled = false;
-        this.ethicalIssuesListQuestionEnabled = false;
-        this.hasConflictOfInterestSubQuestionEnabled = false;
-        this.hasConfidentialPartSubQuestionEnabled = false;
-        this.hasConflictInContentControlSubQuestionEnabled = false;
-        this.stakeholderParticipationPlannedSubQuestionEnabled = false;
-        this.diversityAspectsQuestionEnabled = false;
-        this.riskSubQuestionEnabled = false;
+        this.conditionalFields = {
+            isNewSubmission: false,
+            qualificationWork: true,
+            testSubjects: false,
+            testSubjectsTortured: false,
+            deadBodies: false,
+            humanStemCells: false,
+            humanStemCellsUsed: false,
+            useOfHumanEmbryos: false,
+            cellsObtainedInResearch: false,
+            animalsInvolved: false,
+            harmfulSubstancesOnSubjects: false,
+            complyWithSustainabilityStrategy: false,
+            nonEuCountries: false,
+            thirdCountriesLocalResources: false,
+            hasEthicalIssues: false,
+            hasConflictOfInterest: false,
+            hasConfidentialPart: false,
+            hasConflictInContentControl: false,
+            stakeholderParticipationPlanned: false,
+            diversityAspects: false,
+            hasAnyRisks: false,
+        };
     }
 
     static get properties() {
@@ -180,27 +182,7 @@ class FormalizeFormElement extends BaseFormElement {
             isPrintButtonAllowed: {type: Boolean, attribute: false},
             isDownloadButtonAllowed: {type: Boolean, attribute: false},
 
-            isNewSubmissionQuestionsEnabled: {type: Boolean, attribute: false},
-            deadBodiesQuestionsEnabled: {type: Boolean, attribute: false},
-            qualificationWorkQuestionsEnabled: {type: Boolean, attribute: false},
-            humanTestSubjectsQuestionsEnabled: {type: Boolean, attribute: false},
-            testSubjectsTorturedQuestionsEnabled: {type: Boolean, attribute: false},
-            humanStemCellsQuestionsEnabled: {type: Boolean, attribute: false},
-            stemCellFromHumanEmbryosQuestionsEnabled: {type: Boolean, attribute: false},
-            cellsObtainedInResearchQuestionsEnabled: {type: Boolean, attribute: false},
-            harmfulSubstancesOnSubjectsQuestionsEnabled: {type: Boolean, attribute: false},
-            complyWithSustainabilityStrategyQuestionsEnabled: {type: Boolean, attribute: false},
-            animalQuestionsEnabled: {type: Boolean, attribute: false},
-            nonEuCountriesQuestionsEnabled: {type: Boolean, attribute: false},
-            questionResearchFoundsQuestionsEnabled: {type: Boolean, attribute: false},
-            ethicalIssuesListQuestionEnabled: {type: Boolean, attribute: false},
-            hasConflictOfInterestSubQuestionEnabled: {type: Boolean, attribute: false},
-            hasConfidentialPartSubQuestionEnabled: {type: Boolean, attribute: false},
-            hasConflictInContentControlSubQuestionEnabled: {type: Boolean, attribute: false},
-            stakeholderParticipationPlannedSubQuestionEnabled: {type: Boolean, attribute: false},
-            riskSubQuestionEnabled: {type: Boolean, attribute: false},
-            stemCellFromEmbryosQuestionsEnabled: {type: Boolean, attribute: false},
-            diversityAspectsQuestionEnabled: {type: Boolean, attribute: false},
+            conditionalFields: {type: Object, attribute: false},
         };
     }
 
@@ -512,36 +494,45 @@ class FormalizeFormElement extends BaseFormElement {
      * Handle conditional fields initialization.
      */
     async processConditionalFields() {
-        const conditionalFields = this._a('.conditional-field');
+        const conditionalFields = this._a('[data-condition]');
         const conditionalFieldsCount = conditionalFields.length;
 
         conditionalFields.forEach((field) => {
             const value = field.value;
-            if (!value) return;
+            if (value === undefined || value === '') return;
 
-            if (field.dataset.targetVariable) {
-                const targetVariable = field.dataset.targetVariable;
-                const condition = field.dataset.condition || 'yes';
+            const fieldName = field.getAttribute('name');
+            const condition = field.dataset.condition; // || 'yes';
 
-                // Handle negation with ! prefix
-                let isConditionMet;
-                if (condition.startsWith('!')) {
-                    const negatedCondition = condition.substring(1);
+            // Handle negation with ! prefix
+            let isConditionMet;
+            if (condition.startsWith('!')) {
+                const negatedCondition = condition.substring(1);
+                if (Array.isArray(value)) {
+                    isConditionMet = value.includes(negatedCondition) ? false : true;
+                } else {
                     isConditionMet = value !== negatedCondition;
+                }
+            } else {
+                if (Array.isArray(value)) {
+                    isConditionMet = value.includes(condition) ? true : false;
                 } else {
                     isConditionMet = value === condition;
                 }
+            }
 
-                if (this[targetVariable] !== undefined) {
-                    this[targetVariable] = isConditionMet;
-                }
+            if (this.conditionalFields[fieldName] !== undefined) {
+                this.conditionalFields = {
+                    ...this.conditionalFields,
+                    [fieldName]: isConditionMet,
+                };
             }
         });
 
         await this.updateComplete;
 
-        // Run again to handle conditional fields inside other conditional fields
-        const newConditionalFieldsCount = this._a('.conditional-field').length;
+        // Run again to handle conditional fields inside other conditional fields just rendered
+        const newConditionalFieldsCount = this._a('[data-condition]').length;
         if (newConditionalFieldsCount > conditionalFieldsCount) {
             this.processConditionalFields();
         }
@@ -802,7 +793,40 @@ class FormalizeFormElement extends BaseFormElement {
      */
     handleFieldChanges(event) {
         if (event.detail && event.detail.fieldName && event.detail.value) {
-            this.formData[event.detail.fieldName] = event.detail.value;
+            const fieldName = event.detail.fieldName;
+            const value = event.detail.value;
+
+            // Update form data
+            this.formData[fieldName] = value;
+
+            const field = this._(`[name=${fieldName}]`);
+            const condition = field.dataset?.condition;
+            if (!condition) return;
+
+            // Handle negation with ! prefix
+            let isConditionMet;
+            if (condition.startsWith('!')) {
+                const negatedCondition = condition.substring(1);
+                if (Array.isArray(value)) {
+                    isConditionMet = value.includes(negatedCondition) ? false : true;
+                } else {
+                    isConditionMet = value !== negatedCondition;
+                }
+            } else {
+                if (Array.isArray(value)) {
+                    isConditionMet = value.includes(condition) ? true : false;
+                } else {
+                    isConditionMet = value === condition;
+                }
+            }
+
+            // Update conditional fields
+            this.conditionalFields = {
+                ...this.conditionalFields,
+                [fieldName]: isConditionMet,
+            };
+
+            console.log(`this.conditionalFields`, this.conditionalFields);
         }
     }
 
@@ -871,16 +895,17 @@ class FormalizeFormElement extends BaseFormElement {
 
         try {
             const response = await fetch(url, options);
+            let responseBody = await response.json();
 
             if (!response.ok) {
+                const errorDetails = responseBody['relay:errorDetails']['/'].join('<br>');
                 send({
                     summary: 'Error',
-                    body: `Failed to save form DRAFT. Response status: ${response.status}`,
+                    body: `Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}<br>${errorDetails}`,
                     type: 'danger',
                     timeout: 0,
                 });
             } else {
-                let responseBody = await response.json();
                 this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
                 this.submissionBinaryState = responseBody.submissionState;
@@ -994,9 +1019,10 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
             if (!response.ok) {
                 this.submissionError = true;
+                const errorDetails = responseBody['relay:errorDetails']['/'].join('<br>');
                 send({
                     summary: 'Error',
-                    body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
+                    body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}<br>${errorDetails}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1160,9 +1186,10 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
 
             if (!response.ok) {
+                const errorDetails = responseBody['relay:errorDetails']['/'].join('<br>');
                 send({
-                    summary: 'Error',
-                    body: `Failed to save form. Response status: ${response.status}<br>${responseBody.description}`,
+                    summary: `${responseBody['hydra:title']}`,
+                    body: `Failed to save form. Response status: ${response.status}<br>${responseBody.detail}<br>${errorDetails}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1910,8 +1937,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="isNewSubmission"
-                        class="conditional-field"
-                        data-target-variable="isNewSubmissionQuestionsEnabled"
                         data-condition="no"
                         layout-type="inline"
                         label="${i18n.t('render-form.forms.ethics-commission-form.is-new-submission-label')}"
@@ -1922,7 +1947,7 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.isNewSubmission || ''}></dbp-form-enum-view>
 
                     ${
-                        this.isNewSubmissionQuestionsEnabled
+                        this.conditionalFields.isNewSubmission
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
@@ -1939,8 +1964,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="qualificationWork"
-                        class="conditional-field"
-                        data-target-variable="qualificationWorkQuestionsEnabled"
                         data-condition="!no"
                         label="${i18n.t('render-form.forms.ethics-commission-form.qualification-work-label')}"
                         .items=${{
@@ -1957,7 +1980,7 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.qualificationWorkQuestionsEnabled
+                        this.conditionalFields.qualificationWork
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
@@ -2224,8 +2247,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <h4 class="section-sub-title">1. ${i18n.t('render-form.forms.ethics-commission-form.section-people-title')}</h4>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="humanTestSubjectsQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="testSubjects"
@@ -2239,12 +2260,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.humanTestSubjectsQuestionsEnabled
+                        this.conditionalFields.testSubjects
                             ? html`
-                                  <div
-                                      class="question-group ${classMap({
-                                          'fade-in': this.humanTestSubjectsQuestionsEnabled,
-                                      })}">
+                                  <div class="question-group">
                                       <h4 class="question-group-title">
                                           1.1.
                                           ${i18n.t(
@@ -2415,8 +2433,6 @@ class FormalizeFormElement extends BaseFormElement {
                                           ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          class="conditional-field"
-                                          data-target-variable="testSubjectsTorturedQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
                                           name="testSubjectsTortured"
@@ -2434,14 +2450,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.testSubjectsTortured ||
                                           ''}></dbp-form-enum-view>
 
-                                      ${this.testSubjectsTorturedQuestionsEnabled
+                                      ${this.conditionalFields.testSubjectsTortured
                                           ? html`
                                                 <dbp-form-string-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this
-                                                                .testSubjectsTorturedQuestionsEnabled,
-                                                    })}"
                                                     subscribe="lang"
                                                     name="testSubjectsTorturedExamples"
                                                     label="1.2.3.1 ${i18n.t(
@@ -2539,8 +2550,6 @@ class FormalizeFormElement extends BaseFormElement {
                     </h4>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="deadBodiesQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="deadBodies"
@@ -2553,12 +2562,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.deadBodiesQuestionsEnabled
+                        this.conditionalFields.deadBodies
                             ? html`
-                                  <div
-                                      class="question-group ${classMap({
-                                          'fade-in': this.deadBodiesQuestionsEnabled,
-                                      })}">
+                                  <div class="question-group">
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="legalDocumentsAvailable"
@@ -2604,8 +2610,6 @@ class FormalizeFormElement extends BaseFormElement {
                     </h4>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="humanStemCellsQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="humanStemCells"
@@ -2618,12 +2622,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.humanStemCellsQuestionsEnabled
+                        this.conditionalFields.humanStemCells
                             ? html`
-                                  <div
-                                      class="question-group ${classMap({
-                                          'fade-in': this.humanStemCellsQuestionsEnabled,
-                                      })}">
+                                  <div class="question-group">
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="humanTissueUsed"
@@ -2641,8 +2642,6 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.humanTissueUsed || ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          class="conditional-field"
-                                          data-target-variable="stemCellFromEmbryosQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
                                           name="humanStemCellsUsed"
@@ -2660,14 +2659,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.humanStemCellsUsed ||
                                           ''}></dbp-form-enum-view>
 
-                                      ${this.stemCellFromEmbryosQuestionsEnabled
+                                      ${this.conditionalFields.humanStemCellsUsed
                                           ? html`
                                                 <dbp-form-enum-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this
-                                                                .stemCellFromEmbryosQuestionsEnabled,
-                                                    })}"
                                                     subscribe="lang"
                                                     name="stemCellsFromEmbryos"
                                                     label="1.5.2.1. ${i18n.t(
@@ -2687,8 +2681,6 @@ class FormalizeFormElement extends BaseFormElement {
                                           : ''}
 
                                       <dbp-form-enum-view
-                                          class="conditional-field"
-                                          data-target-variable="stemCellFromHumanEmbryosQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
                                           name="useOfHumanEmbryos"
@@ -2706,14 +2698,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.useOfHumanEmbryos ||
                                           ''}></dbp-form-enum-view>
 
-                                      ${this.stemCellFromHumanEmbryosQuestionsEnabled
+                                      ${this.conditionalFields.useOfHumanEmbryos
                                           ? html`
                                                 <dbp-form-enum-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this
-                                                                .stemCellFromHumanEmbryosQuestionsEnabled,
-                                                    })}"
                                                     subscribe="lang"
                                                     name="stemCellsFromEmbryosDestroyed"
                                                     label="1.5.3.1. ${i18n.t(
@@ -2750,8 +2737,6 @@ class FormalizeFormElement extends BaseFormElement {
                                           ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          class="conditional-field"
-                                          data-target-variable="cellsObtainedInResearchQuestionsEnabled"
                                           data-condition="no"
                                           subscribe="lang"
                                           name="cellsObtainedInResearch"
@@ -2769,14 +2754,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.cellsObtainedInResearch ||
                                           ''}></dbp-form-enum-view>
 
-                                      ${this.cellsObtainedInResearchQuestionsEnabled
+                                      ${this.conditionalFields.cellsObtainedInResearch
                                           ? html`
                                                 <dbp-form-string-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this
-                                                                .cellsObtainedInResearchQuestionsEnabled,
-                                                    })}"
                                                     subscribe="lang"
                                                     name="tissueOrCellsSource"
                                                     label="1.5.5.1 ${i18n.t(
@@ -2796,8 +2776,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">2. ${i18n.t('render-form.forms.ethics-commission-form.section-animals-title')}</h3>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="animalQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="animalsInvolved"
@@ -2810,12 +2788,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.animalQuestionsEnabled
+                        this.conditionalFields.animalsInvolved
                             ? html`
-                                  <div
-                                      class="question-group ${classMap({
-                                          'fade-in': this.animalQuestionsEnabled,
-                                      })}">
+                                  <div class="question-group ">
                                       <h4 class="question-group-title">
                                           2.1.
                                           ${i18n.t(
@@ -2988,8 +2963,6 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         <dbp-form-enum-view
-                            class="conditional-field"
-                            data-target-variable="harmfulSubstancesOnSubjectsQuestionsEnabled"
                             data-condition="yes"
                             subscribe="lang"
                             name="harmfulSubstancesOnSubjects"
@@ -3002,13 +2975,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         ${
-                            this.harmfulSubstancesOnSubjectsQuestionsEnabled
+                            this.conditionalFields.harmfulSubstancesOnSubjects
                                 ? html`
                                       <dbp-form-enum-view
-                                          class="${classMap({
-                                              'fade-in':
-                                                  this.harmfulSubstancesOnSubjectsQuestionsEnabled,
-                                          })}"
                                           subscribe="lang"
                                           name="adequateSafetyMeasures"
                                           label="3.3.1. ${i18n.t(
@@ -3029,8 +2998,6 @@ class FormalizeFormElement extends BaseFormElement {
                         }
 
                         <dbp-form-enum-view
-                            class="conditional-field"
-                            data-target-variable="complyWithSustainabilityStrategyQuestionsEnabled"
                             data-condition="yes"
                             subscribe="lang"
                             name="complyWithSustainabilityStrategy"
@@ -3052,12 +3019,10 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         ${
-                            this.complyWithSustainabilityStrategyQuestionsEnabled
+                            this.conditionalFields.complyWithSustainabilityStrategy
                                 ? html`
                                       <dbp-form-string-view
-                                          class="question-group ${classMap({
-                                              'fade-in': this.nonEuCountriesQuestionsEnabled,
-                                          })}"
+                                          class="question-group"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
                                           label="3.5. ${i18n.t(
@@ -3075,8 +3040,6 @@ class FormalizeFormElement extends BaseFormElement {
                 <article>
                     <h3 class="section-sub-title">4. ${i18n.t('render-form.forms.ethics-commission-form.section-non-eu-states-title')}</h3>
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="nonEuCountriesQuestionsEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="nonEuCountries"
@@ -3089,12 +3052,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.nonEuCountriesQuestionsEnabled
+                        this.conditionalFields.nonEuCountries
                             ? html`
-                                  <div
-                                      class="question-group ${classMap({
-                                          'fade-in': this.nonEuCountriesQuestionsEnabled,
-                                      })}">
+                                  <div class="question-group">
                                       <h4 class="question-group-title">
                                           4.1
                                           ${i18n.t(
@@ -3119,8 +3079,6 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.ethicalIssues || ''}></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
-                                          class="conditional-field"
-                                          data-target-variable="questionResearchFoundsQuestionsEnabled"
                                           data-condition="yes"
                                           subscribe="lang"
                                           name="thirdCountriesLocalResources"
@@ -3138,14 +3096,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.thirdCountriesLocalResources ||
                                           ''}></dbp-form-enum-view>
 
-                                      ${this.questionResearchFoundsQuestionsEnabled
+                                      ${this.conditionalFields.thirdCountriesLocalResources
                                           ? html`
                                                 <dbp-form-enum-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this
-                                                                .questionResearchFoundsQuestionsEnabled,
-                                                    })}"
                                                     subscribe="lang"
                                                     name="questionResearchFounds"
                                                     label="4.1.2.1. ${i18n.t(
@@ -3223,7 +3176,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <article>
                     <h3 class="section-sub-title">5. ${i18n.t('render-form.forms.ethics-commission-form.section-information-systems-title')}</h3>
 
-                    <div class="question-group ${classMap({'fade-in': this.nonEuCountriesQuestionsEnabled})}">
+                    <div class="question-group">
 
                         <dbp-form-enum-view
                             subscribe="lang"
@@ -3270,8 +3223,6 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         <dbp-form-enum-view
-                            class="conditional-field"
-                            data-target-variable="ethicalIssuesListQuestionEnabled"
                             data-condition="yes"
                             subscribe="lang"
                             name="hasEthicalIssues"
@@ -3284,12 +3235,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         ${
-                            this.ethicalIssuesListQuestionEnabled
+                            this.conditionalFields.hasEthicalIssues
                                 ? html`
                                       <dbp-form-string-view
-                                          class="${classMap({
-                                              'fade-in': this.ethicalIssuesListQuestionEnabled,
-                                          })}"
                                           subscribe="lang"
                                           name="ethicalIssuesList"
                                           label="${i18n.t(
@@ -3314,8 +3262,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">6. ${i18n.t('render-form.forms.ethics-commission-form.section-conflicts-of-interest-title')}</h3>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="hasConflictOfInterestSubQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="hasConflictOfInterest"
@@ -3328,12 +3274,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.hasConflictOfInterestSubQuestionEnabled
+                        this.conditionalFields.hasConflictOfInterest
                             ? html`
                                   <dbp-form-string-view
-                                      class="${classMap({
-                                          'fade-in': this.hasConflictOfInterestSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="conflictOfInterestList"
                                       label="${i18n.t(
@@ -3346,8 +3289,6 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="hasConfidentialPartSubQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="hasConfidentialPart"
@@ -3360,12 +3301,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.hasConfidentialPartSubQuestionEnabled
+                        this.conditionalFields.hasConfidentialPart
                             ? html`
                                   <dbp-form-string-view
-                                      class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="natureOfBlocking"
                                       label="6.2.1. ${i18n.t(
@@ -3374,9 +3312,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${data.natureOfBlocking || ''}></dbp-form-string-view>
 
                                   <dbp-form-string-view
-                                      class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="reasonOfBlocking"
                                       label="6.2.2. ${i18n.t(
@@ -3385,9 +3320,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${data.reasonOfBlocking || ''}></dbp-form-string-view>
 
                                   <dbp-form-string-view
-                                      class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="consequencesOfBlocking"
                                       label="6.2.3. ${i18n.t(
@@ -3397,9 +3329,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       ''}></dbp-form-string-view>
 
                                   <dbp-form-string-view
-                                      class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="canBeDoneDespiteRestrictions"
                                       label="6.2.4. ${i18n.t(
@@ -3412,8 +3341,6 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="hasConflictInContentControlSubQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="hasConflictInContentControl"
@@ -3426,13 +3353,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.hasConflictInContentControlSubQuestionEnabled
+                        this.conditionalFields.hasConflictInContentControl
                             ? html`
                                   <dbp-form-string-view
-                                      class="${classMap({
-                                          'fade-in':
-                                              this.hasConflictInContentControlSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="conflictInContentControlList"
                                       label="6.3.1 ${i18n.t(
@@ -3445,8 +3368,6 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="stakeholderParticipationPlannedSubQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="stakeholderParticipationPlanned"
@@ -3459,14 +3380,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.stakeholderParticipationPlannedSubQuestionEnabled
+                        this.conditionalFields.stakeholderParticipationPlanned
                             ? html`
                                   <dbp-form-enum-view
-                                      class="${classMap({
-                                          'fade-in':
-                                              this
-                                                  .stakeholderParticipationPlannedSubQuestionEnabled,
-                                      })}"
                                       subscribe="lang"
                                       name="hasProvisionForAppropriateRecognition"
                                       label="6.4.1. ${i18n.t(
@@ -3522,8 +3438,6 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="diversityAspectsQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="diversityAspects"
@@ -3545,7 +3459,7 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.diversityAspectsQuestionEnabled
+                        this.conditionalFields.diversityAspects
                             ? html`
                                   <dbp-form-string-view
                                       subscribe="lang"
@@ -3608,8 +3522,6 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     <dbp-form-enum-view
-                        class="conditional-field"
-                        data-target-variable="riskSubQuestionEnabled"
                         data-condition="yes"
                         subscribe="lang"
                         name="hasAnyRisks"
@@ -3622,10 +3534,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.riskSubQuestionEnabled
+                        this.conditionalFields.hasAnyRisks
                             ? html`
                                   <dbp-form-string-view
-                                      class="${classMap({'fade-in': this.riskSubQuestionEnabled})}"
                                       subscribe="lang"
                                       name="risksReasons"
                                       label="8.5.1 ${i18n.t(
@@ -3868,13 +3779,8 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.isNewSubmissionQuestionsEnabled =
-                                    e.detail.value === 'no' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
+                        data-condition="no"
                         name="isNewSubmission"
                         display-mode="list"
                         required
@@ -3886,9 +3792,12 @@ class FormalizeFormElement extends BaseFormElement {
                         .value=${data.isNewSubmission || ''}></dbp-form-enum-element>
 
                     ${
-                        this.isNewSubmissionQuestionsEnabled
+                        this.conditionalFields.isNewSubmission
                             ? html`
                                   <dbp-form-string-element
+                                      class="${classMap({
+                                          'fade-in': this.conditionalFields.isNewSubmission,
+                                      })}"
                                       subscribe="lang"
                                       name="applicationReferenceNumber"
                                       label="${i18n.t(
@@ -3901,15 +3810,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value.includes('no')) {
-                                this.qualificationWorkQuestionsEnabled = false;
-                            } else {
-                                this.qualificationWorkQuestionsEnabled = true;
-                            }
-                        }}"
                         subscribe="lang"
                         name="qualificationWork"
+                        data-condition="!no"
                         display-mode="list"
                         required
                         label="${i18n.t('render-form.forms.ethics-commission-form.qualification-work-label')}"
@@ -3928,11 +3831,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.qualificationWorkQuestionsEnabled
+                        this.conditionalFields.qualificationWork
                             ? html`
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.qualificationWorkQuestionsEnabled,
+                                          'fade-in': this.conditionalFields.qualificationWork,
                                       })}"
                                       subscribe="lang"
                                       name="namesOfSupervisingPersons"
@@ -3991,8 +3894,8 @@ class FormalizeFormElement extends BaseFormElement {
                                           description="${i18n.t(
                                               'render-form.forms.ethics-commission-form.filled-by-admins-warning',
                                           )}"
-                                          value=${data.studyDescriptionDateOfTransmission || ''}
-                                          required></dbp-form-date-element>
+                                          value=${data.studyDescriptionDateOfTransmission ||
+                                          ''}></dbp-form-date-element>
 
                                       <dbp-form-boolean-element
                                           subscribe="lang"
@@ -4012,8 +3915,8 @@ class FormalizeFormElement extends BaseFormElement {
                                           description="${i18n.t(
                                               'render-form.forms.ethics-commission-form.filled-by-admins-warning',
                                           )}"
-                                          value=${data.dataProtectionDate || ''}
-                                          required></dbp-form-date-element>
+                                          value=${data.dataProtectionDate ||
+                                          ''}></dbp-form-date-element>
                                   </div>
                               `
                             : ''
@@ -4246,12 +4149,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <h4 class="section-sub-title">1. ${i18n.t('render-form.forms.ethics-commission-form.section-people-title')}</h4>
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.humanTestSubjectsQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
+                        data-condition="yes"
                         subscribe="lang"
                         name="testSubjects"
                         display-mode="list"
@@ -4266,11 +4164,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.humanTestSubjectsQuestionsEnabled
+                        this.conditionalFields.testSubjects
                             ? html`
                                   <div
                                       class="question-group ${classMap({
-                                          'fade-in': this.humanTestSubjectsQuestionsEnabled,
+                                          'fade-in': this.conditionalFields.testSubjects,
                                       })}">
                                       <h4 class="question-group-title">
                                           1.1.
@@ -4460,14 +4358,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           ''}></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
-                                          @change="${(e) => {
-                                              if (e.detail.value) {
-                                                  this.testSubjectsTorturedQuestionsEnabled =
-                                                      e.detail.value === 'yes' ? true : false;
-                                              }
-                                          }}"
                                           subscribe="lang"
                                           name="testSubjectsTortured"
+                                          data-condition="yes"
                                           display-mode="list"
                                           required
                                           label="1.2.3. ${i18n.t(
@@ -4484,13 +4377,13 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.testSubjectsTortured ||
                                           ''}></dbp-form-enum-element>
 
-                                      ${this.testSubjectsTorturedQuestionsEnabled
+                                      ${this.conditionalFields.testSubjectsTortured
                                           ? html`
                                                 <dbp-form-string-element
                                                     class="${classMap({
                                                         'fade-in':
-                                                            this
-                                                                .testSubjectsTorturedQuestionsEnabled,
+                                                            this.conditionalFields
+                                                                .testSubjectsTortured,
                                                     })}"
                                                     subscribe="lang"
                                                     name="testSubjectsTorturedExamples"
@@ -4599,14 +4492,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </h4>
 
                         <dbp-form-enum-element
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.deadBodiesQuestionsEnabled =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
                             subscribe="lang"
                             name="deadBodies"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             label="${i18n.t('render-form.forms.ethics-commission-form.dead-bodies-label')}"
@@ -4618,11 +4506,11 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         ${
-                            this.deadBodiesQuestionsEnabled
+                            this.conditionalFields.deadBodies
                                 ? html`
                                       <div
                                           class="question-group ${classMap({
-                                              'fade-in': this.deadBodiesQuestionsEnabled,
+                                              'fade-in': this.conditionalFields.deadBodies,
                                           })}">
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4675,14 +4563,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </h4>
 
                         <dbp-form-enum-element
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.humanStemCellsQuestionsEnabled =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
                             subscribe="lang"
                             name="humanStemCells"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             label="1.5 ${i18n.t('render-form.forms.ethics-commission-form.human-stem-cells-label')}"
@@ -4694,11 +4577,11 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         ${
-                            this.humanStemCellsQuestionsEnabled
+                            this.conditionalFields.humanStemCells
                                 ? html`
                                       <div
                                           class="question-group ${classMap({
-                                              'fade-in': this.humanStemCellsQuestionsEnabled,
+                                              'fade-in': this.conditionalFields.humanStemCells,
                                           })}">
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4720,14 +4603,9 @@ class FormalizeFormElement extends BaseFormElement {
                                               ''}></dbp-form-enum-element>
 
                                           <dbp-form-enum-element
-                                              @change="${(e) => {
-                                                  if (e.detail.value) {
-                                                      this.stemCellFromEmbryosQuestionsEnabled =
-                                                          e.detail.value === 'yes' ? true : false;
-                                                  }
-                                              }}"
                                               subscribe="lang"
                                               name="humanStemCellsUsed"
+                                              data-condition="yes"
                                               display-mode="list"
                                               required
                                               label="1.5.2. ${i18n.t(
@@ -4744,13 +4622,13 @@ class FormalizeFormElement extends BaseFormElement {
                                               .value=${data.humanStemCellsUsed ||
                                               ''}></dbp-form-enum-element>
 
-                                          ${this.stemCellFromEmbryosQuestionsEnabled
+                                          ${this.conditionalFields.humanStemCellsUsed
                                               ? html`
                                                     <dbp-form-enum-element
                                                         class="${classMap({
                                                             'fade-in':
-                                                                this
-                                                                    .stemCellFromEmbryosQuestionsEnabled,
+                                                                this.conditionalFields
+                                                                    .humanStemCellsUsed,
                                                         })}"
                                                         subscribe="lang"
                                                         name="stemCellsFromEmbryos"
@@ -4773,14 +4651,9 @@ class FormalizeFormElement extends BaseFormElement {
                                               : ''}
 
                                           <dbp-form-enum-element
-                                              @change="${(e) => {
-                                                  if (e.detail.value) {
-                                                      this.stemCellFromHumanEmbryosQuestionsEnabled =
-                                                          e.detail.value === 'yes' ? true : false;
-                                                  }
-                                              }}"
                                               subscribe="lang"
                                               name="useOfHumanEmbryos"
+                                              data-condition="yes"
                                               display-mode="list"
                                               required
                                               label="1.5.3. ${i18n.t(
@@ -4797,13 +4670,13 @@ class FormalizeFormElement extends BaseFormElement {
                                               .value=${data.useOfHumanEmbryos ||
                                               ''}></dbp-form-enum-element>
 
-                                          ${this.stemCellFromHumanEmbryosQuestionsEnabled
+                                          ${this.conditionalFields.useOfHumanEmbryos
                                               ? html`
                                                     <dbp-form-enum-element
                                                         class="${classMap({
                                                             'fade-in':
-                                                                this
-                                                                    .stemCellFromHumanEmbryosQuestionsEnabled,
+                                                                this.conditionalFields
+                                                                    .useOfHumanEmbryos,
                                                         })}"
                                                         subscribe="lang"
                                                         name="stemCellsFromEmbryosDestroyed"
@@ -4845,14 +4718,9 @@ class FormalizeFormElement extends BaseFormElement {
                                               ''}></dbp-form-enum-element>
 
                                           <dbp-form-enum-element
-                                              @change="${(e) => {
-                                                  if (e.detail.value) {
-                                                      this.cellsObtainedInResearchQuestionsEnabled =
-                                                          e.detail.value === 'yes' ? true : false;
-                                                  }
-                                              }}"
                                               subscribe="lang"
                                               name="cellsObtainedInResearch"
+                                              data-condition="no"
                                               display-mode="list"
                                               required
                                               label="1.5.5 ${i18n.t(
@@ -4869,13 +4737,13 @@ class FormalizeFormElement extends BaseFormElement {
                                               .value=${data.cellsObtainedInResearch ||
                                               ''}></dbp-form-enum-element>
 
-                                          ${!this.cellsObtainedInResearchQuestionsEnabled
+                                          ${this.conditionalFields.cellsObtainedInResearch
                                               ? html`
                                                     <dbp-form-string-element
                                                         class="${classMap({
                                                             'fade-in':
-                                                                this
-                                                                    .cellsObtainedInResearchQuestionsEnabled,
+                                                                this.conditionalFields
+                                                                    .cellsObtainedInResearch,
                                                         })}"
                                                         subscribe="lang"
                                                         name="tissueOrCellsSource"
@@ -4898,14 +4766,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">2. ${i18n.t('render-form.forms.ethics-commission-form.section-animals-title')}</h3>
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.animalQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="animalsInvolved"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="${i18n.t('render-form.forms.ethics-commission-form.section-animals-involved-label')}"
@@ -4917,11 +4780,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.animalQuestionsEnabled
+                        this.conditionalFields.animalsInvolved
                             ? html`
                                   <div
                                       class="question-group ${classMap({
-                                          'fade-in': this.animalQuestionsEnabled,
+                                          'fade-in': this.conditionalFields.animalsInvolved,
                                       })}">
                                       <h4 class="question-group-title">
                                           2.1.
@@ -5116,14 +4979,9 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         <dbp-form-enum-element
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.harmfulSubstancesOnSubjectsQuestionsEnabled =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
                             subscribe="lang"
                             name="harmfulSubstancesOnSubjects"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             label="3.3. ${i18n.t('render-form.forms.ethics-commission-form.harmful-substances-on-subjects-label')}"
@@ -5135,12 +4993,13 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         ${
-                            this.harmfulSubstancesOnSubjectsQuestionsEnabled
+                            this.conditionalFields.harmfulSubstancesOnSubjects
                                 ? html`
                                       <dbp-form-enum-element
                                           class="${classMap({
                                               'fade-in':
-                                                  this.harmfulSubstancesOnSubjectsQuestionsEnabled,
+                                                  this.conditionalFields
+                                                      .harmfulSubstancesOnSubjects,
                                           })}"
                                           subscribe="lang"
                                           name="adequateSafetyMeasures"
@@ -5164,14 +5023,9 @@ class FormalizeFormElement extends BaseFormElement {
                         }
 
                         <dbp-form-enum-element
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.complyWithSustainabilityStrategyQuestionsEnabled =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
                             subscribe="lang"
                             name="complyWithSustainabilityStrategy"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             .items=${{
@@ -5192,13 +5046,13 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         ${
-                            this.complyWithSustainabilityStrategyQuestionsEnabled
+                            this.conditionalFields.complyWithSustainabilityStrategy
                                 ? html`
                                       <dbp-form-string-element
                                           class="${classMap({
                                               'fade-in':
-                                                  this
-                                                      .complyWithSustainabilityStrategyQuestionsEnabled,
+                                                  this.conditionalFields
+                                                      .complyWithSustainabilityStrategy,
                                           })}"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
@@ -5220,14 +5074,9 @@ class FormalizeFormElement extends BaseFormElement {
                 <article>
                     <h3 class="section-sub-title">4. ${i18n.t('render-form.forms.ethics-commission-form.section-non-eu-states-title')}</h3>
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.nonEuCountriesQuestionsEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="nonEuCountries"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="${i18n.t('render-form.forms.ethics-commission-form.non-eu-countries-label')}"
@@ -5239,11 +5088,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.nonEuCountriesQuestionsEnabled
+                        this.conditionalFields.nonEuCountries
                             ? html`
                                   <div
                                       class="question-group ${classMap({
-                                          'fade-in': this.nonEuCountriesQuestionsEnabled,
+                                          'fade-in': this.conditionalFields.nonEuCountries,
                                       })}">
                                       <h4 class="question-group-title">
                                           4.1
@@ -5272,14 +5121,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           ''}></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
-                                          @change="${(e) => {
-                                              if (e.detail.value) {
-                                                  this.questionResearchFoundsQuestionsEnabled =
-                                                      e.detail.value === 'yes' ? true : false;
-                                              }
-                                          }}"
                                           subscribe="lang"
                                           name="thirdCountriesLocalResources"
+                                          data-condition="yes"
                                           display-mode="list"
                                           required
                                           label="4.1.2. ${i18n.t(
@@ -5296,13 +5140,13 @@ class FormalizeFormElement extends BaseFormElement {
                                           .value=${data.thirdCountriesLocalResources ||
                                           ''}></dbp-form-enum-element>
 
-                                      ${this.questionResearchFoundsQuestionsEnabled
+                                      ${this.conditionalFields.thirdCountriesLocalResources
                                           ? html`
                                                 <dbp-form-enum-element
                                                     class="${classMap({
                                                         'fade-in':
-                                                            this
-                                                                .questionResearchFoundsQuestionsEnabled,
+                                                            this.conditionalFields
+                                                                .thirdCountriesLocalResources,
                                                     })}"
                                                     subscribe="lang"
                                                     name="questionResearchFounds"
@@ -5391,7 +5235,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <article>
                     <h3 class="section-sub-title">5. ${i18n.t('render-form.forms.ethics-commission-form.section-information-systems-title')}</h3>
 
-                    <div class="question-group ${classMap({'fade-in': this.nonEuCountriesQuestionsEnabled})}">
+                    <div class="question-group">
                         <p>
                             ${i18n.t(
                                 'render-form.forms.ethics-commission-form.section-information-systems-subtitle',
@@ -5451,13 +5295,8 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         <dbp-form-enum-element
-                            @change="${(e) => {
-                                if (e.detail.value) {
-                                    this.ethicalIssuesListQuestionEnabled =
-                                        e.detail.value === 'yes' ? true : false;
-                                }
-                            }}"
                             subscribe="lang"
+                            data-condition="yes"
                             name="hasEthicalIssues"
                             display-mode="list"
                             required
@@ -5470,11 +5309,11 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         ${
-                            this.ethicalIssuesListQuestionEnabled
+                            this.conditionalFields.hasEthicalIssues
                                 ? html`
                                       <dbp-form-string-element
                                           class="${classMap({
-                                              'fade-in': this.ethicalIssuesListQuestionEnabled,
+                                              'fade-in': this.conditionalFields.hasEthicalIssues,
                                           })}"
                                           subscribe="lang"
                                           name="ethicalIssuesList"
@@ -5503,14 +5342,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <h3 class="section-sub-title">6. ${i18n.t('render-form.forms.ethics-commission-form.section-conflicts-of-interest-title')}</h3>
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.hasConflictOfInterestSubQuestionEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="hasConflictOfInterest"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="6.1. ${i18n.t('render-form.forms.ethics-commission-form.has-conflict-of-interest-label')}"
@@ -5522,11 +5356,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.hasConflictOfInterestSubQuestionEnabled
+                        this.conditionalFields.hasConflictOfInterest
                             ? html`
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.hasConflictOfInterestSubQuestionEnabled,
+                                          'fade-in': this.conditionalFields.hasConflictOfInterest,
                                       })}"
                                       subscribe="lang"
                                       name="conflictOfInterestList"
@@ -5542,14 +5376,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.hasConfidentialPartSubQuestionEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="hasConfidentialPart"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="6.2. ${i18n.t('render-form.forms.ethics-commission-form.has-confidential-part-label')}"
@@ -5561,11 +5390,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.hasConfidentialPartSubQuestionEnabled
+                        this.conditionalFields.hasConfidentialPart
                             ? html`
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
+                                          'fade-in': this.conditionalFields.hasConfidentialPart,
                                       })}"
                                       subscribe="lang"
                                       name="natureOfBlocking"
@@ -5579,7 +5408,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
+                                          'fade-in': this.conditionalFields.hasConfidentialPart,
                                       })}"
                                       subscribe="lang"
                                       name="reasonOfBlocking"
@@ -5593,7 +5422,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
+                                          'fade-in': this.conditionalFields.hasConfidentialPart,
                                       })}"
                                       subscribe="lang"
                                       name="consequencesOfBlocking"
@@ -5607,7 +5436,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.hasConfidentialPartSubQuestionEnabled,
+                                          'fade-in': this.conditionalFields.hasConfidentialPart,
                                       })}"
                                       subscribe="lang"
                                       name="canBeDoneDespiteRestrictions"
@@ -5623,14 +5452,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.hasConflictInContentControlSubQuestionEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="hasConflictInContentControl"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="6.3. ${i18n.t('render-form.forms.ethics-commission-form.has-conflict-in-content-control-label')}"
@@ -5642,12 +5466,12 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.hasConflictInContentControlSubQuestionEnabled
+                        this.conditionalFields.hasConflictInContentControl
                             ? html`
                                   <dbp-form-string-element
                                       class="${classMap({
                                           'fade-in':
-                                              this.hasConflictInContentControlSubQuestionEnabled,
+                                              this.conditionalFields.hasConflictInContentControl,
                                       })}"
                                       subscribe="lang"
                                       name="conflictInContentControlList"
@@ -5663,14 +5487,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.stakeholderParticipationPlannedSubQuestionEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="stakeholderParticipationPlanned"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="6.4. ${i18n.t('render-form.forms.ethics-commission-form.stakeholder-participation-planned-label')}"
@@ -5682,13 +5501,13 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.stakeholderParticipationPlannedSubQuestionEnabled
+                        this.conditionalFields.stakeholderParticipationPlanned
                             ? html`
                                   <dbp-form-enum-element
                                       class="${classMap({
                                           'fade-in':
-                                              this
-                                                  .stakeholderParticipationPlannedSubQuestionEnabled,
+                                              this.conditionalFields
+                                                  .stakeholderParticipationPlanned,
                                       })}"
                                       subscribe="lang"
                                       name="hasProvisionForAppropriateRecognition"
@@ -5753,14 +5572,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.diversityAspectsQuestionEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="diversityAspects"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label=""
@@ -5782,11 +5596,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.diversityAspectsQuestionEnabled
+                        this.conditionalFields.diversityAspects
                             ? html`
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.diversityAspectsQuestionEnabled,
+                                          'fade-in': this.conditionalFields.diversityAspects,
                                       })}"
                                       subscribe="lang"
                                       name="diversityAspectsExamples"
@@ -5857,14 +5671,9 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     <dbp-form-enum-element
-                        @change="${(e) => {
-                            if (e.detail.value) {
-                                this.riskSubQuestionEnabled =
-                                    e.detail.value === 'yes' ? true : false;
-                            }
-                        }}"
                         subscribe="lang"
                         name="hasAnyRisks"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="8.5. ${i18n.t('render-form.forms.ethics-commission-form.has-any-risks-label')}"
@@ -5876,10 +5685,12 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.riskSubQuestionEnabled
+                        this.conditionalFields.hasAnyRisks
                             ? html`
                                   <dbp-form-string-element
-                                      class="${classMap({'fade-in': this.riskSubQuestionEnabled})}"
+                                      class="${classMap({
+                                          'fade-in': this.conditionalFields.hasAnyRisks,
+                                      })}"
                                       subscribe="lang"
                                       name="risksReasons"
                                       label="8.5.1 ${i18n.t(
