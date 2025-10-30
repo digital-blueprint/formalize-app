@@ -1425,7 +1425,7 @@ class FormalizeFormElement extends BaseFormElement {
         // window.scrollTo(0, 0);
 
         const opt = {
-            margin: [70, 50], // Don't change vertical margin or lines can break when printing.
+            margin: [70, 51], // Don't change vertical margin or lines can break when printing.
             filename: 'Ethical_Review_Application.pdf',
             image: {type: 'jpeg', quality: 0.98},
             html2canvas: {
@@ -3684,7 +3684,7 @@ class FormalizeFormElement extends BaseFormElement {
                         </div>
                     </div>
 
-                    <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.admin-voting-results-title')}</h3>
+                    <h3 class="section-title section-title--top-margin">${i18n.t('render-form.forms.ethics-commission-form.admin-voting-results-title')}</h3>
 
                     <div class="file-upload-container">
 
@@ -6268,6 +6268,29 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
+
+                    <!-- ${this.isPrintButtonAllowed
+                        ? html`
+                              <dbp-button
+                                  class="form-print-pdf-button"
+                                  type="is-secondary"
+                                  no-spinner-on-click
+                                  @click=${() => this.generatePDF(true)}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                  )}">
+                                  <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.print-pdf-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''} -->
 
                     <!--
                     ${this.isDeleteSubmissionButtonAllowed

@@ -436,7 +436,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .admin-fields {
-            background: #f1f1f1;
+            background: light-dark(#f1f1f1, #2a2a2a);
             padding: 1em 2em;
         }
 
@@ -598,7 +598,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .file-upload-container {
-            margin-bottom: 3em;
+            /*margin-bottom: 3em;*/
             border: var(--dbp-border);
             padding: 1em 1em 1.5em 1em;
             display: flex;
@@ -622,7 +622,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .fileblock-container.submitted-files {
-            margin-bottom: 2em;
+            margin-bottom: 0.75em; /*12px*/
         }
 
         .upload-button {
@@ -662,7 +662,7 @@ export function getEthicsCommissionFormCSS() {
             justify-content: space-between;
             align-items: center;
             border: 1px solid #dadada;
-            padding: 0.5em;
+            padding: calc(0.75em - 1px); /* compensation for the border */
         }
 
         .file-block:nth-child(2n + 1) {
@@ -912,6 +912,11 @@ export function getEthicsCommissionFormPrintCSS() {
             margin: 0;
             padding: 0 0 var(--dbp-form-line-height) 0;
             text-align: center;
+        }
+
+        .print .section-title--top-margin {
+            padding-top: 50px;
+            padding-bottom: 50px;
         }
 
         .print .section-sub-title {
