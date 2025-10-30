@@ -2,7 +2,7 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import {Button, Icon, IconButton, Translated} from '@dbp-toolkit/common';
+import {Button, Icon, IconButton, Translated, DBPSelect} from '@dbp-toolkit/common';
 import {send} from '@dbp-toolkit/common/notification.js';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
@@ -209,6 +209,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-button': Button,
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
+            'dbp-select': DBPSelect,
         };
     }
 
@@ -339,33 +340,23 @@ class FormalizeFormElement extends BaseFormElement {
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed = isDraftStateEnabled(this.allowedSubmissionStates);
             this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
-        } else {
-            // Buttons in all state
-            if (this.readOnly) {
-                // this.isPrintButtonAllowed = true;
-                this.isPrintButtonAllowed = false; // Disable print button for now
-                this.isDownloadButtonAllowed = true;
-            }
-            this.isViewModeButtonAllowed = true;
-            this.isDeleteSubmissionButtonAllowed =
-                this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
         }
 
         // DRAFT
         if (this.currentState === SUBMISSION_STATES.DRAFT) {
             this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
             if (!this.readOnly) {
-                this.isDeleteSubmissionButtonAllowed = false;
+                // edit mode
                 this.isDraftButtonAllowed = true;
+                this.isViewModeButtonAllowed = true;
             }
         }
 
         // SUBMITTED
         if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
             if (!this.readOnly) {
-                this.isDeleteSubmissionButtonAllowed = false;
+                // edit mode
+                this.isViewModeButtonAllowed = true;
                 this.isSaveButtonEnabled =
                     this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
@@ -817,6 +808,56 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {CustomEvent} event
      */
     handleFieldChanges(event) {
+        // Action dropdown buttons
+        if (event.detail && event.detail.option && event.detail.value) {
+            const option = event.detail.option;
+            const value = event.detail.value;
+
+            if (option.name === 'cancel' && value === 'cancel') {
+                if (this.readOnly) {
+                    this.redirectToEditForm();
+                    return;
+                }
+                const confirmed = confirm(this._i18n.t('render-form.form-exit-warning-message'));
+                if (confirmed) {
+                    const form = this.shadowRoot.querySelector('form');
+                    const data = gatherFormDataFromElement(form);
+                    if (Object.keys(data).length) {
+                        this.formData = data;
+                    }
+
+                    this.disableLeavePageWarning();
+                    this.redirectToReadonlyForm();
+                    this.readOnly = !this.readOnly;
+                    return;
+                } else {
+                    // Do nothing if cancel was clicked
+                    return;
+                }
+            }
+
+            if (option.name === 'download' && value === 'download') {
+                this.downloadAllFiles();
+                return;
+            }
+
+            if (option.name === 'delete' && value === 'delete') {
+                this.sendDeleteSubmission();
+                return;
+            }
+
+            if (option.name === 'save' && value === 'save') {
+                this.sendSaveSubmission();
+                return;
+            }
+
+            if (option.name === 'edit-permissions' && value === 'edit-permissions') {
+                this._('#grant-permission-dialog').open();
+                return;
+            }
+        }
+
+        // Form elements
         if (event.detail && event.detail.fieldName && event.detail.value) {
             const fieldName = event.detail.fieldName;
             const value = event.detail.value;
@@ -1806,6 +1847,7 @@ class FormalizeFormElement extends BaseFormElement {
      * Render submission details, list of grants and share grants button
      * @returns {import('lit').TemplateResult} The HTML template result
      */
+    /*
     renderSubmissionPermissions() {
         const i18n = this._i18n;
 
@@ -1876,7 +1918,7 @@ class FormalizeFormElement extends BaseFormElement {
         } else {
             return html``;
         }
-    }
+    }*/
 
     /**
      * Renders the form in read-only mode.
@@ -1912,8 +1954,6 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
                 </div>
-
-                ${this.renderSubmissionPermissions()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -3745,8 +3785,6 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
                 </div>
-
-                ${this.renderSubmissionPermissions()}
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
 
@@ -6016,6 +6054,82 @@ class FormalizeFormElement extends BaseFormElement {
     getButtonRowHtml() {
         const i18n = this._i18n;
 
+        this.formActions = [];
+
+        // DRAFT
+        if (this.currentState === SUBMISSION_STATES.DRAFT) {
+            if (this.readOnly) {
+                this.formActions = [
+                    {
+                        name: 'cancel',
+                        label: this.readOnly
+                            ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
+                            : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
+                        iconName: this.readOnly ? 'pencil' : 'close',
+                    },
+                    {
+                        name: 'edit-permissions',
+                        label: i18n.t(
+                            'render-form.forms.ethics-commission-form.edit-permission-button-text',
+                        ),
+                        iconName: 'edit-permission',
+                        disabled: !this.isAdmin && !this.isFormManager,
+                    },
+                    {
+                        name: 'download',
+                        label: i18n.t(
+                            'render-form.forms.ethics-commission-form.download-button-text',
+                        ),
+                        iconName: 'download',
+                    },
+                    {
+                        name: 'delete',
+                        label: i18n.t(
+                            'render-form.forms.ethics-commission-form.discard-draft-button-text-label',
+                        ),
+                        iconName: 'trash',
+                    },
+                ];
+            }
+        }
+
+        // SUBMITTED
+        if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
+            if (this.readOnly) {
+                this.formActions = [
+                    {
+                        name: 'cancel',
+                        label: this.readOnly
+                            ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
+                            : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
+                        iconName: this.readOnly ? 'pencil' : 'close',
+                    },
+                    {
+                        name: 'edit-permissions',
+                        label: i18n.t(
+                            'render-form.forms.ethics-commission-form.edit-permission-button-text',
+                        ),
+                        iconName: 'edit-permission',
+                        disabled: !this.isAdmin && !this.isFormManager,
+                    },
+                    {
+                        name: 'download',
+                        label: i18n.t(
+                            'render-form.forms.ethics-commission-form.download-button-text',
+                        ),
+                        iconName: 'download',
+                    },
+                    {
+                        name: 'delete',
+                        label: i18n.t(
+                            'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
+                        ),
+                        iconName: 'trash',
+                    },
+                ];
+            }
+        }
+
         return html`
             <div class="header-top">
                 <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
@@ -6025,6 +6139,137 @@ class FormalizeFormElement extends BaseFormElement {
                 ${this.renderStatusTags()}
 
                 <div class="action-buttons">
+                    ${this.formActions.length > 0
+                        ? html`
+                              <dbp-select
+                                  id="action-dropdown"
+                                  label="Actions"
+                                  .options="${this.formActions}"></dbp-select>
+                          `
+                        : ''}
+                    ${this.isViewModeButtonAllowed
+                        ? html`
+                              <dbp-button
+                                  id="toggle-edit-mode"
+                                  class="toggle-edit-mode"
+                                  type="is-secondary"
+                                  no-spinner-on-click
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.toggle-edit-submission-button-title',
+                                  )}"
+                                  @click="${() => {
+                                      if (this.readOnly) {
+                                          this.redirectToEditForm();
+                                          return;
+                                      }
+
+                                      const confirmed = confirm(
+                                          this._i18n.t('render-form.form-exit-warning-message'),
+                                      );
+                                      if (confirmed) {
+                                          const form = this.shadowRoot.querySelector('form');
+                                          const data = gatherFormDataFromElement(form);
+                                          if (Object.keys(data).length) {
+                                              this.formData = data;
+                                          }
+
+                                          this.disableLeavePageWarning();
+                                          this.redirectToReadonlyForm();
+                                          this.readOnly = !this.readOnly;
+                                          return;
+                                      } else {
+                                          // Do nothing if cancel was clicked
+                                          return;
+                                      }
+                                  }}">
+                                  ${this.readOnly
+                                      ? html`
+                                            <dbp-icon name="pencil"></dbp-icon>
+                                            <span class="button-label">
+                                                ${i18n.t(
+                                                    'render-form.forms.ethics-commission-form.edit-mode',
+                                                )}
+                                            </span>
+                                        `
+                                      : html`
+                                            <dbp-icon name="close"></dbp-icon>
+                                            <span class="button-label">
+                                                ${i18n.t(
+                                                    'render-form.forms.ethics-commission-form.view-mode',
+                                                )}
+                                            </span>
+                                        `}
+                              </dbp-button>
+                          `
+                        : ''}
+                    ${this.isDraftButtonAllowed
+                        ? html`
+                              <dbp-button
+                                  class="form-save-draft-button"
+                                  type="is-secondary"
+                                  no-spinner-on-click
+                                  @click=${this.sendSaveDraft}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
+                                  )}">
+                                  <dbp-icon name="save" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.save-draft-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
+                    ${this.isSaveButtonEnabled
+                        ? html`
+                              <dbp-button
+                                  class="form-save-button"
+                                  type="is-primary"
+                                  no-spinner-on-click
+                                  @click=${this.sendSaveSubmission}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.save-button-text',
+                                  )}">
+                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.save-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
+                    ${this.isSubmitButtonEnabled
+                        ? html`
+                              <dbp-button
+                                  class="form-submit-button"
+                                  type="is-primary"
+                                  no-spinner-on-click
+                                  @click=${this.validateAndSendSubmission}
+                                  title="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submit-button-text',
+                                  )}"
+                                  aria-label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.submit-button-text',
+                                  )}">
+                                  <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
+                                  <span class="button-label">
+                                      ${i18n.t(
+                                          'render-form.forms.ethics-commission-form.submit-button-text',
+                                      )}
+                                  </span>
+                              </dbp-button>
+                          `
+                        : ''}
+
+                    <!--
                     ${this.isDeleteSubmissionButtonAllowed
                         ? html`
                               <dbp-button
@@ -6215,7 +6460,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   </span>
                               </dbp-button>
                           `
-                        : ''}
+                        : ''} -->
                 </div>
             </div>
         `;
