@@ -907,6 +907,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 let dataFeedElement = submission['dataFeedElement'];
                 dataFeedElement = JSON.parse(dataFeedElement);
                 let submissionId = submission['identifier'];
+                // Iterate trough dataFeedElement to find array fields and convert them strings
+                for (const [key, value] of Object.entries(dataFeedElement)) {
+                    if (Array.isArray(value)) {
+                        dataFeedElement[key] = value.join(', ');
+                    }
+                }
 
                 // Get attachments
                 const submittedFilesBasicResponse = submission['submittedFiles'];
