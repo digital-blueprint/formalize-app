@@ -3180,6 +3180,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     renderExportWidget(state) {
         const i18n = this._i18n;
+
+        const exportCount =
+            this.selectedRowCount[state] === 0
+                ? this.allRowCount[state]
+                : this.selectedRowCount[state];
+
         return html`
             <div class="export-container">
                 <select
@@ -3192,13 +3198,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <option value="-" disabled selected>
                         ${i18n.t('show-submissions.default-export-select')}
                     </option>
-                    <option value="csv">CSV</option>
-                    <option value="xlsx">Excel</option>
-                    <option value="pdf">PDF</option>
+                    <option value="csv">CSV (${exportCount})</option>
+                    <option value="xlsx">Excel (${exportCount})</option>
+                    <option value="pdf">PDF (${exportCount})</option>
                     ${this.submissionsHasAttachment
                         ? html`
                               <option value="attachments">
-                                  ${i18n.t('show-submissions.export-attachments-label')}
+                                  ${i18n.t('show-submissions.export-attachments-label', {
+                                      n: exportCount,
+                                  })}
                               </option>
                           `
                         : ''}
