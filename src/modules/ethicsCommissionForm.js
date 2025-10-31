@@ -4046,7 +4046,7 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.short-description-label',
                         )}"
-                        maxlength="2500"
+                        word-count-limit="300"
                         placeholder="${i18n.t(
                             'render-form.forms.ethics-commission-form.short-description-placeholder',
                         )}"
