@@ -2722,7 +2722,7 @@ class FormalizeFormElement extends BaseFormElement {
                         data-condition="yes"
                         subscribe="lang"
                         name="humanStemCells"
-                        label="1.5 ${i18n.t('render-form.forms.ethics-commission-form.human-stem-cells-label')}"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.human-stem-cells-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
@@ -4686,7 +4686,7 @@ class FormalizeFormElement extends BaseFormElement {
                             data-condition="yes"
                             display-mode="list"
                             required
-                            label="1.5 ${i18n.t('render-form.forms.ethics-commission-form.human-stem-cells-label')}"
+                            label="${i18n.t('render-form.forms.ethics-commission-form.human-stem-cells-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
