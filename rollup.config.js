@@ -1,14 +1,8 @@
 import url from 'node:url';
 import process from 'node:process';
-import {globSync} from 'glob';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import copy from 'rollup-plugin-copy';
-import terser from '@rollup/plugin-terser';
-import json from '@rollup/plugin-json';
+import {globSync} from 'node:fs';
 import serve from 'rollup-plugin-serve';
 import license from 'rollup-plugin-license';
-import del from 'rollup-plugin-delete';
 import emitEJS from 'rollup-plugin-emit-ejs';
 import {getBabelOutputPlugin} from '@rollup/plugin-babel';
 import {
@@ -31,7 +25,6 @@ let useBabel = buildFull;
 let checkLicenses = buildFull;
 let treeshake = buildFull;
 let useHTTPS = true;
-let isRolldown = process.argv.some((arg) => arg.includes('rolldown'));
 
 // if true, app assets and configs are whitelabel
 let whitelabel;
@@ -151,17 +144,14 @@ export default (async () => {
             chunkFileNames: 'shared/[name].[hash].js',
             format: 'esm',
             sourcemap: true,
-            ...(isRolldown ? {minify: doMinify} : {}),
+            minify: doMinify,
+            cleanDir: true,
         },
         moduleTypes: {
             '.css': 'js', // work around rolldown handling the CSS import before the URL plugin can
         },
         treeshake: treeshake,
-        //preserveEntrySignatures: false,
         plugins: [
-            del({
-                targets: 'dist/*',
-            }),
             !whitelabel &&
                 emitEJS({
                     src: customAssetsPath,
@@ -222,11 +212,6 @@ export default (async () => {
                         nextcloudName: config.nextcloudName,
                     },
                 }),
-            !isRolldown &&
-                resolve({
-                    browser: true,
-                    preferBuiltins: true,
-                }),
             checkLicenses &&
                 license({
                     banner: {
@@ -261,17 +246,9 @@ export default (async () => {
                         },
                     },
                 }),
-            !isRolldown &&
-                commonjs({
-                    include: 'node_modules/**',
-                    strictRequires: 'auto',
-                }),
-            !isRolldown && json(),
-            await assetPlugin(pkg.name, 'dist'),
             !whitelabel &&
-                copy({
-                    copySync: true,
-                    targets: [
+                (await assetPlugin(pkg.name, 'dist', {
+                    copyTargets: [
                         {src: customAssetsPath + 'silent-check-sso.html', dest: 'dist'},
                         {
                             src: customAssetsPath + 'htaccess-shared',
@@ -314,11 +291,10 @@ export default (async () => {
                             dest: 'dist/' + (await getDistPath(pkg.name)),
                         },
                     ],
-                }),
+                })),
             whitelabel &&
-                copy({
-                    copySync: true,
-                    targets: [
+                (await assetPlugin(pkg.name, 'dist', {
+                    copyTargets: [
                         {src: 'assets/silent-check-sso.html', dest: 'dist'},
                         {src: 'assets/htaccess-shared', dest: 'dist/shared/', rename: '.htaccess'},
                         {src: 'assets/*.css', dest: 'dist/' + (await getDistPath(pkg.name))},
@@ -352,7 +328,7 @@ export default (async () => {
                         },
                         {src: 'assets/*.metadata.json', dest: 'dist'},
                     ],
-                }),
+                })),
             useBabel &&
                 getBabelOutputPlugin({
                     compact: false,
@@ -371,7 +347,6 @@ export default (async () => {
                         ],
                     ],
                 }),
-            doMinify && !isRolldown ? terser() : false,
             watch
                 ? serve({
                       contentBase: '.',
