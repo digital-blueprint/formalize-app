@@ -95,7 +95,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.selectedTags = {};
         this.allowedTags = {};
 
-        this.submitterName = null;
+        this.lastModifiedCreatorName = null;
         this.newSubmissionId = null;
 
         this.userAllDraftSubmissions = [];
@@ -311,7 +311,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.submittedFiles = new Map();
         this.votingFile = new Map();
         this.currentState = null;
-        this.submitterName = '';
+        this.lastModifiedCreatorName = '';
         this.submissionBinaryState = 0;
         this.submissionId = '';
         this.selectedTags = {};
@@ -371,7 +371,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.currentSubmission = this.data;
 
             this.submissionId = this.data.identifier;
-            this.submissionCreatorId = this.data.creatorId;
+            this.lastModifiedCreatorId = this.data.lastModifiedById;
             this.formData = JSON.parse(this.data.dataFeedElement);
             this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
@@ -401,25 +401,25 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (this.formData) {
                 try {
-                    const submitterDetailsResponse = await this.apiGetUserDetails(
-                        this.submissionCreatorId,
+                    const lastModifierDetailsResponse = await this.apiGetUserDetails(
+                        this.lastModifiedCreatorId,
                     );
-                    if (!submitterDetailsResponse.ok) {
+                    if (!lastModifierDetailsResponse.ok) {
                         send({
                             summary: 'Error',
-                            body: `Failed to get submitter details. Response status: ${submitterDetailsResponse.status}`,
+                            body: `Failed to get last modifier details. Response status: ${lastModifierDetailsResponse.status}`,
                             type: 'danger',
                             timeout: 0,
                         });
                     } else {
-                        const submitterDetails = await submitterDetailsResponse.json();
-                        this.submitterName = `${submitterDetails?.givenName} ${submitterDetails?.familyName}`;
+                        const lastModifierDetails = await lastModifierDetailsResponse.json();
+                        this.lastModifiedCreatorName = `${lastModifierDetails?.givenName} ${lastModifierDetails?.familyName}`;
                     }
                 } catch (e) {
                     console.log(e);
                     send({
                         summary: 'Error',
-                        body: `Failed to get submitter details`,
+                        body: `Failed to get last modifier details`,
                         type: 'danger',
                         timeout: 0,
                     });
@@ -458,7 +458,7 @@ class FormalizeFormElement extends BaseFormElement {
                         if (!userDetailsResponse.ok) {
                             send({
                                 summary: 'Error',
-                                body: `Failed to get submitter details. Response status: ${userDetailsResponse.status}`,
+                                body: `Failed to get user details. Response status: ${userDetailsResponse.status}`,
                                 type: 'danger',
                                 timeout: 0,
                             });
@@ -1779,7 +1779,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Render submission details
-     * submission date, submitter, last changed.
+     * submission date, last modified, last modified by.
      * @returns {import('lit').TemplateResult} The HTML template result
      */
     renderSubmissionDates() {
@@ -1827,15 +1827,15 @@ class FormalizeFormElement extends BaseFormElement {
                           </div>
                       `
                     : ''}
-                ${this.submitterName
+                ${this.lastModifiedCreatorName
                     ? html`
-                          <div class="submitter">
+                          <div class="last-modified-by">
                               <span class="label">
                                   ${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submitter-name-label',
+                                      'render-form.forms.ethics-commission-form.last-modified-by-name-label',
                                   )}:
                               </span>
-                              <span class="value">${this.submitterName}</span>
+                              <span class="value">${this.lastModifiedCreatorName}</span>
                           </div>
                       `
                     : ''}
