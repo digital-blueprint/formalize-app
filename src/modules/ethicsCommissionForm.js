@@ -4193,7 +4193,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Angaben zur durchführenden Forschungseinrichtung und zu einer verantwortlichen Kontaktperson (Vor- und Nachname, E-Mail-Adresse und evtl. Telefonnummer) für weitere Fragen, Anregungen oder Beschwerden</p></li>
                                     <li><p>Angabe möglicher Risiken für die Proband*innen (Unannehmlichkeiten, Gefahren, Belastungen) und etwaiger Folgen</p></li>
                                     <li>
-                                        <p>Angaben über die Höhe der Aufwandsentschädigung (auch im Falle eines vorzeitigen Abbruchs) sowie eines sonstigen Nutzens für die Proband*innen<sup><a href="#footnote1-de" id="footnote1-ref-de">1</a></sup></p>
+                                        <p>Angaben über die Höhe der Aufwandsentschädigung (auch im Falle eines vorzeitigen Abbruchs) sowie eines sonstigen Nutzens für die Proband*innen</p>
                                         <div class="info-box">
                                             <p>Bitte kümmern Sie sich frühzeitig um ein entsprechendes Budget für Aufwandsentschädigungen für die Proband*innen Ihrer Studie (Budgetierung in Forschungsanträgen)!</p>
                                             <p>Die Angemessenheit der Aufwandsentschädigung hängt zunächst davon ab, ob es für die Durchführung der Studie eine Finanzierung gibt oder nicht. </p>
@@ -4223,7 +4223,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Details of the research institution conducting the study and a responsible contact person (first and last name, e-mail address and telephone number if applicable) for further questions, suggestions or complaints </p></li>
                                     <li><p>Indication of possible risks for the participants (inconvenience, danger, stress) and possible consequences</p></li>
                                     <li>
-                                        <p>Information on the amount of the compensation (including in the event of premature termination) and other benefits for the participants<sup><a href="#footnote1-en" id="footnote1-ref-en">1</a></sup></p>
+                                        <p>Information on the amount of the compensation (including in the event of premature termination) and other benefits for the participants</p>
                                         <div class="info-box">
                                             <p>Please ensure that funding for the participant compensation is secured at an early stage of the planning (budgeting in research proposals)!</p>
                                             <p>The appropriateness of the compensation depends first and foremost on whether or not funding is available for the study.</p>
