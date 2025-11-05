@@ -1960,7 +1960,6 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-enum-view
                     subscribe="lang"
                     name="type"
-                    layout-type="inline"
                     label="${i18n.t('render-form.forms.ethics-commission-form.type-label')}"
                     .items=${{
                         study: i18n.t('render-form.forms.ethics-commission-form.study'),
@@ -6015,13 +6014,21 @@ class FormalizeFormElement extends BaseFormElement {
 
     renderStatusTags() {
         const stateTag = this.currentState;
-        const modeTag = !this.readOnly ? 'edit mode' : '';
+        const tagTranslations = {
+            draft: this._i18n.t('render-form.forms.ethics-commission-form.draft-state-tag-label'),
+            submitted: this._i18n.t(
+                'render-form.forms.ethics-commission-form.submitted-state-tag-label',
+            ),
+        };
+        const modeTag = !this.readOnly
+            ? this._i18n.t('render-form.forms.ethics-commission-form.edit-mode-tag-label')
+            : '';
 
         return html`
             <div class="tag-container">
                 ${stateTag
                     ? html`
-                          <span class="tag tag--state">${stateTag}</span>
+                          <span class="tag tag--state">${tagTranslations[stateTag]}</span>
                       `
                     : ''}
                 ${modeTag

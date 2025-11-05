@@ -109,7 +109,9 @@
                 "doctorat-label": "ja, Doktorat",
                 "download-attachment": "Herunterladen",
                 "download-button-text": "Herunterladen",
+                "draft-state-tag-label": "Entwürfe",
                 "edit-mode": "Bearbeiten",
+                "edit-mode-tag-label": "Bearbeitungmodus",
                 "edit-permission-button-text": "Berechtigungen bearbeiten",
                 "employment-contract-label": "Sind in Ihrem Forschungsvorhaben Arbeitsverträge kurzer Dauer (bis zu einem Jahr) geplant?",
                 "endangered-species-label": "Gehören diese Tiere einer bedrohten Tierart an?c",
@@ -232,6 +234,7 @@
                 "submission-result-notification": "Sie haben das Formular der Ethik-Kommission erfolgreich eingereicht",
                 "submission-result-thanks": "Vielen Dank für Ihre Anmeldung!",
                 "submit-button-text": "Abschicken",
+                "submitted-state-tag-label": "Eingereicht",
                 "sustainable-systems": "Sustainable Systems",
                 "test-subject-description": "(z.B.: durch Interviews; über per Ton und/oder Video aufgezeichnete Beobachtungen; bei Technologie-/Prototypentestungen)",
                 "test-subjects-consent-signed-label": "Wird sichergestellt, dass die Teilnahme ausschließlich nach Unterfertigung der informierten Einwilligung durch die Proband*innen und/oder ihrer gesetzlichen Vertreter*innen erfolgt (Informed Consent)?",
@@ -331,8 +334,8 @@
         "searchbar-placeholder": "Suchen für ...",
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
-        "submission-table-draft-title": "Drafts",
-        "submission-table-submitted-title": "Submitted"
+        "submission-table-draft-title": "Entwürfe",
+        "submission-table-submitted-title": "Eingereicht"
     },
     "success": {
         "submissions-processed_one": "{{count}} Einreichung wurde erfolgreich verarbeitet",
