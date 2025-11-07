@@ -2247,6 +2247,13 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
+                        name="projectDuration"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.project-duration-label')}"
+                        value=${data.projectDuration || ''}>
+                    </dbp-form-string-view>
+
+                    <dbp-form-string-view
+                        subscribe="lang"
                         name="reasonOfSubmission"
                         label="${i18n.t('render-form.forms.ethics-commission-form.reason-of-submission-label')}"
                         value=${data.reasonOfSubmission || ''}>
@@ -4149,7 +4156,13 @@ class FormalizeFormElement extends BaseFormElement {
                         required>
                     </dbp-form-date-element>
 
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.project-start-date-description')}</p>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="projectDuration"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.project-duration-label')}"
+                        value=${data.projectDuration || ''}
+                        required>
+                    </dbp-form-string-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
