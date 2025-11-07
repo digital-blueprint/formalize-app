@@ -914,7 +914,11 @@ class FormalizeFormElement extends BaseFormElement {
         // Access the data from the event detail
         const data = event.detail;
         const validationResult = data.validationResult;
+
         if (validationResult === false) {
+            const formElement = this._('form');
+            // Scroll to first invalid field if validation failed
+            this.scrollToFirstInvalidField(formElement);
             send({
                 summary: 'Warning',
                 body: `The form has validation error. Fix them before submitting the form`,
