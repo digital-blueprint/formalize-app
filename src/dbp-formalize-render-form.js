@@ -1,6 +1,6 @@
 import {html, css} from 'lit';
 import {html as staticHtml, unsafeStatic} from 'lit/static-html.js';
-import {ScopedElementsMixin} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, sendNotification} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
@@ -11,7 +11,6 @@ import {
     FORM_PERMISSIONS,
 } from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
-import {send} from '@dbp-toolkit/common/notification.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
@@ -449,7 +448,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ) {
                 data = this.loadedSubmission;
             } else {
-                send({
+                sendNotification({
                     summary: 'Error',
                     body: 'Invalid submission data',
                     type: 'danger',

@@ -1,8 +1,7 @@
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n';
-import {send} from '@dbp-toolkit/common/notification.js';
 import {getStackTrace} from '@dbp-toolkit/common/src/error.js';
-import {AuthMixin, LangMixin} from '@dbp-toolkit/common';
+import {AuthMixin, LangMixin, sendNotification} from '@dbp-toolkit/common';
 
 export default class DBPFormalizeLitElement extends LangMixin(
     AuthMixin(DBPLitElement),
@@ -70,7 +69,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
     handleErrorResponse(response) {
         switch (response.status) {
             case 401:
-                send({
+                sendNotification({
                     summary: this._i18n.t('errors.unauthorized-title'),
                     body: this._i18n.t('errors.unauthorized-body'),
                     type: 'danger',
@@ -78,7 +77,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 });
                 break;
             case 403:
-                send({
+                sendNotification({
                     summary: this._i18n.t('errors.unauthorized-title'),
                     body: this._i18n.t('errors.unauthorized-body'),
                     type: 'danger',
@@ -86,7 +85,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 });
                 break;
             case 404:
-                send({
+                sendNotification({
                     summary: this._i18n.t('errors.notfound-title'),
                     body: this._i18n.t('errors.notfound-body'),
                     type: 'danger',
@@ -94,7 +93,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 });
                 break;
             case 422: // unprocessable entity
-                send({
+                sendNotification({
                     summary: this._i18n.t('errors.unprocessable_entity-title'),
                     body: this._i18n.t('errors.unprocessable_entity-body'),
                     type: 'danger',
@@ -102,7 +101,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 });
                 break;
             default:
-                send({
+                sendNotification({
                     summary: this._i18n.t('errors.other-title'),
                     body: this._i18n.t('errors.other-body'),
                     type: 'danger',

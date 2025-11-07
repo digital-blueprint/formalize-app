@@ -2,8 +2,14 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import {Button, Icon, IconButton, Translated, DBPSelect} from '@dbp-toolkit/common';
-import {send} from '@dbp-toolkit/common/notification.js';
+import {
+    Button,
+    Icon,
+    IconButton,
+    Translated,
+    DBPSelect,
+    sendNotification,
+} from '@dbp-toolkit/common';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
@@ -405,7 +411,7 @@ class FormalizeFormElement extends BaseFormElement {
                         this.lastModifiedCreatorId,
                     );
                     if (!lastModifierDetailsResponse.ok) {
-                        send({
+                        sendNotification({
                             summary: 'Error',
                             body: `Failed to get last modifier details. Response status: ${lastModifierDetailsResponse.status}`,
                             type: 'danger',
@@ -417,7 +423,7 @@ class FormalizeFormElement extends BaseFormElement {
                     }
                 } catch (e) {
                     console.log(e);
-                    send({
+                    sendNotification({
                         summary: 'Error',
                         body: `Failed to get last modifier details`,
                         type: 'danger',
@@ -439,7 +445,7 @@ class FormalizeFormElement extends BaseFormElement {
             // Get user permissions for the form
             const resourceActionsResponse = await this.apiGetResourceActionGrants();
             if (!resourceActionsResponse.ok) {
-                send({
+                sendNotification({
                     summary: 'Error',
                     body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
                     type: 'danger',
@@ -456,7 +462,7 @@ class FormalizeFormElement extends BaseFormElement {
                             resourceAction.userIdentifier,
                         );
                         if (!userDetailsResponse.ok) {
-                            send({
+                            sendNotification({
                                 summary: 'Error',
                                 body: `Failed to get user details. Response status: ${userDetailsResponse.status}`,
                                 type: 'danger',
@@ -487,7 +493,7 @@ class FormalizeFormElement extends BaseFormElement {
             }
         } catch (e) {
             console.log(e);
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: `Failed to process user permissions`,
                 type: 'danger',
@@ -919,7 +925,7 @@ class FormalizeFormElement extends BaseFormElement {
             const formElement = this._('form');
             // Scroll to first invalid field if validation failed
             this.scrollToFirstInvalidField(formElement);
-            send({
+            sendNotification({
                 summary: 'Warning',
                 body: `The form has validation error. Fix them before submitting the form`,
                 type: 'warning',
@@ -986,7 +992,7 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
 
             if (!response.ok) {
-                send({
+                sendNotification({
                     summary: 'Error',
                     body: `Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
@@ -1015,7 +1021,7 @@ class FormalizeFormElement extends BaseFormElement {
                 const newSubmissionUrl =
                     getFormRenderUrl(this.formUrlSlug, this.lang) + `/${this.newSubmissionId}`;
                 window.history.pushState({}, '', newSubmissionUrl.toString());
-                send({
+                sendNotification({
                     summary: 'Success',
                     body: 'Draft saved successfully',
                     type: 'success',
@@ -1044,7 +1050,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.requestUpdate();
 
             console.error(error);
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: `Failed to save form DRAFT. Error: ${error.message}`,
                 type: 'danger',
@@ -1122,7 +1128,7 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
             if (!response.ok) {
                 this.submissionError = true;
-                send({
+                sendNotification({
                     summary: 'Error',
                     body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
@@ -1147,7 +1153,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // Hide form after successful submission
                 this.hideForm = true;
                 this.disableLeavePageWarning();
-                send({
+                sendNotification({
                     summary: 'Success',
                     body: 'Form submitted successfully',
                     type: 'success',
@@ -1173,7 +1179,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.submittedFiles = submittedFilesBackup;
 
             console.error(error.message);
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: error.message,
                 type: 'danger',
@@ -1191,7 +1197,7 @@ class FormalizeFormElement extends BaseFormElement {
         const submissionId = data.submissionId;
 
         if (!submissionId) {
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: `No submission id provided`,
                 type: 'danger',
@@ -1216,7 +1222,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (!response.ok) {
                 this.deleteSubmissionError = true;
-                send({
+                sendNotification({
                     summary: 'Error',
                     body: `Failed to delete submission. Response status: ${response.status}`,
                     type: 'danger',
@@ -1228,7 +1234,7 @@ class FormalizeFormElement extends BaseFormElement {
             }
         } catch (error) {
             console.error(error.message);
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: error.message,
                 type: 'danger',
@@ -1236,7 +1242,7 @@ class FormalizeFormElement extends BaseFormElement {
             });
         } finally {
             if (this.wasDeleteSubmissionSuccessful) {
-                send({
+                sendNotification({
                     summary: 'Success',
                     body: 'Form submission deleted successfully.',
                     type: 'success',
@@ -1307,7 +1313,7 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
 
             if (!response.ok) {
-                send({
+                sendNotification({
                     summary: `${responseBody['hydra:title']}`,
                     body: `Failed to save form. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
@@ -1335,7 +1341,7 @@ class FormalizeFormElement extends BaseFormElement {
                     }),
                 );
 
-                send({
+                sendNotification({
                     summary: 'Success',
                     body: 'Form saved successfully',
                     type: 'success',
@@ -1352,7 +1358,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.requestUpdate();
 
             console.error(error.message);
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: error.message,
                 type: 'danger',
@@ -1681,7 +1687,7 @@ class FormalizeFormElement extends BaseFormElement {
                 const response = await fetch(apiFile.downloadUrl, options);
                 if (!response.ok) {
                     // this.handleErrorResponse(response);
-                    send({
+                    sendNotification({
                         summary: this._i18n.t('errors.other-title'),
                         body: this._i18n.t('errors.other-body'),
                         type: 'danger',

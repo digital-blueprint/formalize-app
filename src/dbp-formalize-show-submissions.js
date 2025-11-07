@@ -8,6 +8,7 @@ import {
     LoadingButton,
     MiniSpinner,
     Translated,
+    sendNotification,
 } from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
@@ -32,7 +33,6 @@ import {
 import {getSelectorFixCSS, getFileHandlingCss, getTagsCSS} from './styles.js';
 import metadata from './dbp-formalize-show-submissions.metadata.json';
 import xss from 'xss';
-import {send} from '@dbp-toolkit/common/notification';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
@@ -518,7 +518,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (form) {
                         this.switchToSubmissionTable(form);
                     } else {
-                        send({
+                        sendNotification({
                             summary: this._i18n.t('errors.notfound-title'),
                             body: this._i18n.t('errors.notfound-body'),
                             type: 'danger',
@@ -625,7 +625,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     throwSomethingWentWrongNotification() {
         const i18n = this._i18n;
 
-        send({
+        sendNotification({
             summary: i18n.t('show-submissions.something-went-wrong-title'),
             body: i18n.t('show-submissions.something-went-wrong-body'),
             type: 'danger',
@@ -821,7 +821,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         } catch (e) {
             this.loadCourses = true;
             console.error('[updated] Error getting list of forms:', e);
-            send({
+            sendNotification({
                 summary: i18n.t('show-submissions.failed-to-get-forms-title'),
                 body: i18n.t('show-submissions.failed-to-get-forms-body'),
                 type: 'danger',
@@ -3382,7 +3382,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     successFailureNotification(responseStatus) {
         const successCount = responseStatus.filter((status) => status === true).length;
         if (successCount > 0) {
-            send({
+            sendNotification({
                 summary: this._i18n.t('success.success-title'),
                 body: this._i18n.t('success.submissions-processed', {count: successCount}),
                 type: 'success',
@@ -3392,7 +3392,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const errorCount = responseStatus.filter((status) => status === false).length;
         if (errorCount > 0) {
-            send({
+            sendNotification({
                 summary: this._i18n.t('errors.error-title'),
                 body: this._i18n.t('errors.submissions-processing-failed', {count: errorCount}),
                 type: 'danger',
@@ -3457,7 +3457,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 window.location.href = url.toString();
             }
         } else {
-            send({
+            sendNotification({
                 summary: 'Warning',
                 body: 'This feature is not yet implemented for this form.',
                 type: 'warning',
@@ -3528,7 +3528,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
             }
         } else {
-            send({
+            sendNotification({
                 summary: this._i18n.t('errors.warning-title'),
                 body: this._i18n.t('errors.no-submission-selected'),
                 type: 'warning',
@@ -3539,7 +3539,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async apiDeleteSubmissions(submissionId) {
         if (!submissionId) {
-            send({
+            sendNotification({
                 summary: 'Error',
                 body: `No submission id provided`,
                 type: 'danger',

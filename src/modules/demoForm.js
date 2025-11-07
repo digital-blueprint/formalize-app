@@ -8,7 +8,7 @@ import {
     DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
 import {SUBMISSION_STATES_BINARY} from '../utils.js';
-import {send} from '@dbp-toolkit/common/notification.js';
+import {sendNotification} from '@dbp-toolkit/common';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
 // import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
@@ -66,7 +66,7 @@ class FormalizeFormElement extends BaseFormElement {
                     const response = await fetch(url, options);
                     let responseBody = await response.json();
                     if (!response.ok) {
-                        send({
+                        sendNotification({
                             summary: 'Error',
                             body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
                             type: 'danger',
@@ -77,7 +77,7 @@ class FormalizeFormElement extends BaseFormElement {
                     }
                 } catch (error) {
                     console.error(error.message);
-                    send({
+                    sendNotification({
                         summary: 'Error',
                         body: error.message,
                         type: 'danger',
@@ -85,7 +85,7 @@ class FormalizeFormElement extends BaseFormElement {
                     });
                 } finally {
                     if (this.wasSubmissionSuccessful) {
-                        send({
+                        sendNotification({
                             summary: 'Success',
                             body: 'Form submitted successfully',
                             type: 'success',
