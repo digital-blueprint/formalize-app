@@ -5878,12 +5878,15 @@ class FormalizeFormElement extends BaseFormElement {
                                   <div class="description">
                                       <dbp-translated subscribe="lang">
                                           <div slot="en">
-                                              <p>Upload voting results here</p>
+                                              <p>
+                                                  This field is filled in by the administrative
+                                                  office.
+                                              </p>
                                           </div>
                                           <div slot="de">
                                               <p>
-                                                  Bitte laden Sie hier die Abstimmungsergebnisse
-                                                  hoch
+                                                  Dieses Feld wird von der Geschäftsstelle
+                                                  ausgefüllt.
                                               </p>
                                           </div>
                                       </dbp-translated>
