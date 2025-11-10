@@ -269,14 +269,14 @@ export function getEthicsCommissionFormCSS() {
             min-width: 250px;
         }
 
-        .submission-dates {
+        .submission-info {
             display: flex;
             justify-content: flex-start;
             flex-direction: column;
             gap: 0;
         }
 
-        .submission-dates .label {
+        .submission-info .label {
             margin: 0 0 0.5em 0;
             display: inline-block;
         }
@@ -954,11 +954,11 @@ export function getEthicsCommissionFormPrintCSS() {
             border: 0 none;
         }
 
-        .print .submission-dates .label {
+        .print .submission-info .label {
             margin: 0;
         }
 
-        .print .submission-dates-wrapper {
+        .print .submission-info-wrapper {
             margin-bottom: var(--dbp-form-line-height);
         }
 

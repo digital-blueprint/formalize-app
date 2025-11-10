@@ -1792,7 +1792,7 @@ class FormalizeFormElement extends BaseFormElement {
      * submission date, last modified, last modified by.
      * @returns {import('lit').TemplateResult} The HTML template result
      */
-    renderSubmissionDates() {
+    renderSubmissionInfo() {
         const i18n = this._i18n;
 
         const dateCreated = formatDate(this.currentSubmission.dateCreated);
@@ -1800,7 +1800,7 @@ class FormalizeFormElement extends BaseFormElement {
         const deadLine = formatDate(this.currentSubmission.availabilityEnds);
 
         return html`
-            <div class="submission-dates">
+            <div class="submission-info">
                 ${deadLine
                     ? html`
                           <div class="submission-deadline">
@@ -6165,7 +6165,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <div class="header-top">
-                <div class="submission-dates-wrapper">${this.renderSubmissionDates()}</div>
+                <div class="submission-info-wrapper">${this.renderSubmissionInfo()}</div>
                 <div class="tag-management">${this.renderHeaderTags()}</div>
             </div>
             <div class="buttons-wrapper">
