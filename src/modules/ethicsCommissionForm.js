@@ -6021,6 +6021,7 @@ class FormalizeFormElement extends BaseFormElement {
                         display-mode="tags"
                         layout-type="inline"
                         multiple
+                        .tagPlaceholder=${{en: 'Select tags', de: 'Wähle Tags'}}
                         .value=${Object.values(this.selectedTags)}
                         .items=${this.allowedTags}></dbp-form-enum-element>
                 `;
