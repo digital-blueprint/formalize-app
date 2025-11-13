@@ -307,6 +307,8 @@
         "header-settings": "Tabellenkonfiguration",
         "id": "ID",
         "modal-close": "Dialog schließen",
+        "move-column-down": "Feld nach unten verschieben",
+        "move-column-up": "Feld nach oben verschieben",
         "name": "Name",
         "next-entry-btn-title": "Nächster",
         "open-detailed-view-form": "Detaillierte Formularansicht öffnen",

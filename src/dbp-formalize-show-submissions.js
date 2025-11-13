@@ -78,10 +78,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: [],
             submitted: [],
         };
-        this.tableSettingsInitialized = {
-            draft: false,
-            submitted: false,
-        };
         this.navigateBetweenDetailedSubmissionsHandler =
             this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeFormName = '';
@@ -94,6 +90,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.isPrevEnabled = false;
         this.isNextEnabled = false;
+        // @TODO: remove unused property
         this.storeSession = true;
         this.loadingFormsTable = false;
         this.loadingSubmissionTables = false;
@@ -157,6 +154,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.iconNameVisible = 'source_icons_eye-empty';
         this.iconNameHidden = 'source_icons_eye-off';
         this.createSubmissionUrl = '';
+        this.schemaVisibilitySet = false;
     }
 
     static get scopedElements() {
@@ -203,6 +201,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isActionAvailable: {type: Object, attribute: false},
             noSubmissionAvailable: {type: Object, attribute: false},
             createSubmissionUrl: {type: String, attribute: false},
+            schemaVisibilitySet: {type: Boolean, attribute: false},
 
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
@@ -280,44 +279,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        let lang_submissions = {
-            en: {
-                columns: {},
-            },
-            de: {
-                columns: {},
-            },
-        };
-
-        const options_submissions = {
-            langs: lang_submissions,
-            autoColumns: true, //'full',
-            rowHeight: 64,
-            layout: 'fitData',
-            layoutColumnsOnNewData: true,
-            selectableRows: 'highlight',
-            rowHeader: {
-                formatter: 'rowSelection',
-                titleFormatter: 'rowSelection',
-                titleFormatterParams: {
-                    rowRange: 'visible', // only toggle the visible rows
-                },
-                headerSort: false,
-                resizable: false,
-                frozen: true,
-                headerHozAlign: 'center',
-                hozAlign: 'center',
-            },
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-            placeholder: 'No Submission data available',
-        };
-
-        this.options_submissions.submitted = {...options_submissions};
-        this.options_submissions.draft = {...options_submissions};
+        this.setSubmissionFormOptions('draft');
+        this.setSubmissionFormOptions('submitted');
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
@@ -335,10 +298,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (e.detail.id) {
                         const state = this.getTableState(e.detail.id);
                         if (state) {
-                            this.getSubmissionTableSettings(state);
-                            // this.setInitialSubmissionTableOrder(state);
-                            this.defineSettings(state);
-                            this.updateSubmissionTable(state);
+                            console.log(`this.submissions`, this.submissions);
+                            // Set visibility and name localization of columns based on form schema
+                            this.setDefaultSubmissionTableOrder(state);
+
+                            // Get settings from localStorage.
+                            const columnsLoadedFromLocalStorage =
+                                this.restoreSubmissionTableSettings(state);
+                            if (!columnsLoadedFromLocalStorage) {
+                                // If no saved settings found, use schema settings
+                                this.submissionTables[state].setColumns(
+                                    this.submissionsColumnsInitial[state],
+                                );
+                            }
+
                             this.setIsActionAvailable(state);
                         }
                     }
@@ -357,13 +330,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        this.options_submissions[state] = {
+        const options_submissions = {
             langs: lang_submissions,
-            autoColumns: true, //'full',
+            autoColumns: 'full', //'true',
             rowHeight: 64,
             layout: 'fitData',
             layoutColumnsOnNewData: true,
             selectableRows: 'highlight',
+            // Checkbox selection
             rowHeader: {
                 formatter: 'rowSelection',
                 titleFormatter: 'rowSelection',
@@ -384,33 +358,38 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             placeholder: 'No Submission data available',
         };
 
-        this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
-            definitions.forEach((column) => {
-                if (column.field === 'htmlButtons') {
-                    column.formatter = 'html';
-                    column.hozAlign = 'center';
-                    column.vertAlign = 'middle';
-                    column.headerSort = false;
-                    column.minWidth = 64;
-                    column.frozen = true;
-                    column.headerHozAlign = 'right';
-                    // Add column settings button
-                    column.titleFormatter = (cell, formatterParams, onRendered) => {
+        options_submissions.autoColumnsDefinitions = (definitions) => {
+            definitions.forEach((columnDefinition) => {
+                if (columnDefinition.field === 'submissionId') {
+                    columnDefinition.visible = false;
+                }
+                if (columnDefinition.field === 'dateCreated') {
+                    columnDefinition.visible = true;
+                }
+                if (columnDefinition.field === 'htmlButtons') {
+                    columnDefinition.formatter = 'html';
+                    columnDefinition.hozAlign = 'center';
+                    columnDefinition.vertAlign = 'middle';
+                    columnDefinition.headerSort = false;
+                    columnDefinition.minWidth = 64;
+                    columnDefinition.frozen = true;
+                    columnDefinition.headerHozAlign = 'right';
+                    // Add open columnSettings modal button
+                    columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
                         let columnSettingsButton = this.submissionTables[state].createScopedElement(
                             'dbp-formalize-column-settings-button',
                         );
                         columnSettingsButton.setAttribute('subscribe', 'lang');
                         columnSettingsButton.addEventListener('click', () => {
-                            this.defineSettings(state);
                             this.openColumnOptionsModal(state);
                         });
                         return columnSettingsButton;
                     };
                 } else {
-                    column.sorter = 'string';
+                    columnDefinition.sorter = 'string';
                 }
-                if (column.field.includes('date')) {
-                    column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                if (columnDefinition.field.includes('date')) {
+                    columnDefinition.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
                         const timeStampA = this.dateToTimestamp(a);
                         const timeStampB = this.dateToTimestamp(b);
                         return timeStampA - timeStampB;
@@ -431,11 +410,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     hozAlign: 'center',
                     headerHozAlign: 'center',
                     headerSort: false,
-                    width: 50,
+                    frozen: true,
+                    width: 30,
                 },
                 ...definitions, // rest of the auto-generated columns
             ];
         };
+
+        this.options_submissions[state] = {...options_submissions};
     }
 
     enableCheckboxSelection(state) {
@@ -666,9 +648,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {object} form - form object
      */
     switchToSubmissionTable(form) {
-        if (this.activeFormName) {
-            this.deleteSettings();
-        }
         this.activeFormName = form.formName;
         this.activeFormId = form.formId;
         this.showFormsTable = false;
@@ -680,9 +659,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 ? getFormRenderUrl(activeFormSlug, this.lang)
                 : '';
 
+            // For tabulatorTable 'draft' and 'submitted'
             for (const state of Object.keys(this.submissionTables)) {
                 if (this.submissionTables[state]) {
-                    this.options_submissions[state].data = this.submissions[state];
+                    // We already set this in `getAllFormSubmissions()`
+                    // this.options_submissions[state].data = this.submissions[state];
 
                     if (this.submissions[state].length === 0) {
                         // There is no submission data
@@ -692,18 +673,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.disableCheckboxSelection(state);
                         this.disablePagination(state);
 
-                        this.submissionTables[state].clearData();
+                        // Reset data
+                        this.options_submissions[state].data = [];
+                        // this.submissionTables[state].clearData();
                         this.submissionTables[state].buildTable();
                     } else {
                         this.enableCheckboxSelection(state);
                         this.enablePagination(state);
 
+                        // Destroy table if language changed
                         this.submissionTables[state].buildTable();
-                        // Get table settings from localstorage
-                        this.getSubmissionTableSettings(state);
-                        // this.setInitialSubmissionTableOrder(state);
-                        this.defineSettings(state);
-                        this.updateSubmissionTable(state);
 
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true;
@@ -785,6 +764,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     // const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
                     const formGrantedActions = entry['grantedActions'];
                     const allowedSubmissionStates = entry['allowedSubmissionStates'];
+                    const dataFeedSchema = entry['dataFeedSchema'];
 
                     this.forms.set(formId, {
                         ...this.forms.get(formId),
@@ -792,6 +772,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         formId,
                         allowedSubmissionStates,
                         formGrantedActions,
+                        dataFeedSchema,
                     });
 
                     let btn = this.formsTable.createScopedElement(
@@ -879,10 +860,32 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return response;
         }
 
-        let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
-        firstDataFeedElement = JSON.parse(firstDataFeedElement);
-        let columns = Object.keys(firstDataFeedElement);
-        columns.unshift('dateCreated');
+        // @TODO: Check if changing autoColumns: true => 'full'
+        // let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
+
+        // data['hydra:member'].forEach((submission) => {
+        //     const dataFeedElement = JSON.parse(submission.dataFeedElement);
+        //     console.log(`___ dataFeedElement length`, Object.keys(dataFeedElement).length);
+        // });
+
+        // firstDataFeedElement = JSON.parse(firstDataFeedElement);
+        // let columns = Object.keys(firstDataFeedElement);
+
+        // console.log(`___ columns`, columns);
+
+        // columns.unshift('dateCreated');
+
+        // const activeForm = this.forms.get(formId);
+        // let formSchemaFields = {};
+        // try {
+        //     formSchemaFields = JSON.parse(activeForm.dataFeedSchema);
+        //     formSchemaFields.files.forEach((fileField) => {
+        //         this.allowedFileUploadCount[fileField.name] = fileField.maxNumber;
+        //     });
+        // } catch (e) {
+        //     console.log('Failed parsing json data', e);
+        // }
+        // console.log(`formSchemaFields`, formSchemaFields);
 
         const submissions = {};
         submissions.submitted = data['hydra:member'].filter((submission) => {
@@ -901,20 +904,31 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             let submissions_list = [];
+            // Add additional columns to the table
+            // dateCreated, submisisonId, attachments, action Buttons
             for (let [x, submission] of submissions[state].entries()) {
                 let dateCreated = submission['dateCreated'];
                 dateCreated = this.humanReadableDate(dateCreated);
                 let dataFeedElement = submission['dataFeedElement'];
                 dataFeedElement = JSON.parse(dataFeedElement);
                 let submissionId = submission['identifier'];
-                // Iterate trough dataFeedElement to find array fields and convert them strings
+
+                // Iterate trough dataFeedElement to find array fields and convert them to strings
                 for (const [key, value] of Object.entries(dataFeedElement)) {
                     if (Array.isArray(value)) {
                         dataFeedElement[key] = value.join(', ');
                     }
                 }
 
+                const id = x + 1;
+                let cols = {
+                    dateCreated: dateCreated,
+                    ...dataFeedElement,
+                    submissionId: submissionId,
+                };
+
                 // Get attachments
+                // @TODO: separate attachments and voting files
                 const submittedFilesBasicResponse = submission['submittedFiles'];
                 let allAttachmentDetails = '';
                 if (
@@ -938,19 +952,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         allAttachmentDetails += `${attachment.fileName} `;
                     }
                 }
-
-                const id = x + 1;
-                const cols = {
-                    dateCreated: dateCreated,
-                    ...dataFeedElement,
-                    attachments: allAttachmentDetails,
-                    submissionId: submissionId,
-                };
+                cols.attachments = allAttachmentDetails;
 
                 let actionButtonsDiv = this.createScopedElement('div');
                 const activeForm = this.forms.get(formId);
 
-                // Add show submission as form link
+                // Add link to show submission in render form view
                 // @TODO: only for forms that we are rendering ourselves and have readonly view
                 if (activeForm.formName === 'Ethikkommission') {
                     const submissionDetailsFormButton = this.submissionTables[
@@ -976,7 +983,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     actionButtonsDiv.appendChild(submissionDetailsFormButton);
                 }
 
-                // Add show submission in modal button
+                // Add button to show submission details in a modal
                 const submissionDetailsButton = this.submissionTables[state].createScopedElement(
                     'dbp-formalize-get-details-button',
                 );
@@ -1004,49 +1011,52 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 actionButtonsDiv.appendChild(submissionDetailsButton);
                 actionButtonsDiv.classList.add('actions-buttons');
 
-                let entry = {
-                    dateCreated: dateCreated,
-                    ...dataFeedElement,
-                    submissionId: submissionId,
-                    attachments: allAttachmentDetails,
-                    htmlButtons: actionButtonsDiv,
-                };
-
-                submissions_list.push(entry);
+                cols.htmlButtons = actionButtonsDiv;
+                submissions_list.push(cols);
             }
+
+            // Remove attachments if all empty
+            const noAttachments = submissions_list.every(
+                (submission) => submission.attachments === '',
+            );
+            submissions_list = noAttachments
+                ? submissions_list.map(({attachments, ...rest}) => rest)
+                : submissions_list;
 
             this.submissions[state] = submissions_list;
 
             this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
-                definitions.forEach((column) => {
-                    if (column.field === 'submissionId') {
-                        column.visible = false;
+                definitions.forEach((columnDefinition) => {
+                    if (columnDefinition.field === 'submissionId') {
+                        columnDefinition.visible = true;
                     }
-                    if (column.field === 'htmlButtons') {
-                        column.formatter = 'html';
-                        column.hozAlign = 'center';
-                        column.vertAlign = 'middle';
-                        column.headerSort = false;
-                        column.minWidth = 64;
-                        column.frozen = true;
-                        column.headerHozAlign = 'right';
-                        // Add column settings button
-                        column.titleFormatter = (cell, formatterParams, onRendered) => {
+                    if (columnDefinition.field === 'dateCreated') {
+                        columnDefinition.visible = true;
+                    }
+                    if (columnDefinition.field === 'htmlButtons') {
+                        columnDefinition.formatter = 'html';
+                        columnDefinition.hozAlign = 'center';
+                        columnDefinition.vertAlign = 'middle';
+                        columnDefinition.headerSort = false;
+                        columnDefinition.minWidth = 64;
+                        columnDefinition.frozen = true;
+                        columnDefinition.headerHozAlign = 'right';
+                        // Add open columnSettings modal button
+                        columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
                             let columnSettingsButton = this.submissionTables[
                                 state
                             ].createScopedElement('dbp-formalize-column-settings-button');
                             columnSettingsButton.setAttribute('subscribe', 'lang');
                             columnSettingsButton.addEventListener('click', () => {
-                                this.defineSettings(state);
                                 this.openColumnOptionsModal(state);
                             });
                             return columnSettingsButton;
                         };
                     } else {
-                        column.sorter = 'string';
+                        columnDefinition.sorter = 'string';
                     }
-                    if (column.field.includes('date')) {
-                        column.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
+                    if (columnDefinition.field.includes('date')) {
+                        columnDefinition.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
                             const timeStampA = this.dateToTimestamp(a);
                             const timeStampB = this.dateToTimestamp(b);
                             return timeStampA - timeStampB;
@@ -1067,11 +1077,15 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         hozAlign: 'center',
                         headerHozAlign: 'center',
                         headerSort: false,
-                        width: 50,
+                        frozen: true,
+                        width: 30,
                     },
                     ...definitions, // rest of the auto-generated columns
                 ];
             };
+
+            // this.setSubmissionFormOptions(state);
+            console.log(`*** this.options_submissions[${state}]`, this.options_submissions[state]);
 
             // Set tabulator table data
             this.options_submissions[state].data = this.submissions[state];
@@ -1134,180 +1148,119 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Sets the initial order of the submission table columns.
+     * Sets the initial visibility [/order] of the submission table columns from the schema.
      * @param {string} state - The state of the submission table ('draft' or 'submitted').
      */
-    // @TODO: should be renamed set to DefaultSubmissionTableOrder.
-    // Get the default field visibility form the schema.
-    // setInitialSubmissionTableOrder(state) {
-    //     console.log('*** [setInitialSubmissionTableOrder] CALLED');
-    //     const submissionsTable = this.submissionTables[state];
+    setDefaultSubmissionTableOrder(state) {
+        const activeForm = this.forms.get(this.activeFormId);
+        console.log(`*** activeForm`, activeForm);
+        if (!activeForm) return;
 
-    //     if (!submissionsTable) return;
-    //     let columns = submissionsTable.getColumns();
-    //     if (columns) {
-    //         columns.forEach((col) => {
-    //             let name = col.getDefinition().title;
-    //             let field = col.getDefinition().field;
-
-    //             const savedVisibility = this.submissionsColumns[state].filter(savedField => {
-    //                 return savedField.field === field;
-    //             });
-
-    //             let visibility;
-    //             if (savedVisibility.length === 1) {
-    //                 visibility = savedVisibility[0].visible;
-    //             } else {
-    //                 visibility = col.isVisible();
-    //             }
-
-    //             if (field && !field.includes('no_display') && field !== 'id' && field !== 'id_') {
-    //                 this.submissionsColumnsInitial[state].push({
-    //                     title: name,
-    //                     field: field,
-    //                     visible: visibility,
-    //                 });
-    //             }
-    //         });
-    //         submissionsTable.setColumns(this.submissionsColumnsInitial[state]);
-    //     }
-    // }
-
-    /**
-     * Defines the editable settings based on the current submissions tabulator columns.
-     * @param {string} state - The state of the submission table ('draft' or 'submitted').
-     */
-    defineSettings(state) {
-        const table = this.submissionTables[state];
-
-        let settingsModal = this._(`#submission-modal-content-${state}`);
-        // Reset modal content
-        while (settingsModal.childElementCount > 0) {
-            settingsModal.removeChild(settingsModal.firstChild);
+        let formSchemaFields = {};
+        try {
+            formSchemaFields = JSON.parse(activeForm.dataFeedSchema);
+        } catch (e) {
+            console.log('Failed parsing json data', e);
         }
 
-        let list = document.createElement('ul');
-        list.classList.add('headers');
+        // Exit if no form schema found
+        if (Object.keys(formSchemaFields).length === 0) return;
+        // Exit if the form schema is the catch-all schema
+        if (Object.keys(formSchemaFields.properties).length === 0) return;
 
-        let columns = table.getColumns();
-        if (!columns || columns.length === 0) {
-            return;
+        const submissionsTable = this.submissionTables[state];
+        if (!submissionsTable) return;
+
+        // Get the auto generated field list (autoColumns + autoColumnsDefinitions)
+        let columnComponents = submissionsTable.getColumns();
+        if (!columnComponents || columnComponents.length === 0) return;
+
+        const schemaColumnDefinitions = [];
+
+        console.log(`formSchemaFields.properties`, formSchemaFields.properties);
+
+        // Add ID, dateCreated columns first
+        const columnRowIndex = columnComponents.find((columnComponent) => {
+            const definition = columnComponent.getDefinition();
+            return definition.title === 'ID';
+        });
+        if (columnRowIndex) {
+            schemaColumnDefinitions.push(
+                this.cloneColumnDefinition(columnRowIndex.getDefinition()),
+            );
         }
 
-        // Remove field that user should not change the position
-        // Selection checkboxes (rowSelection), rowID (title=ID), submissionID and actionButtons (frozen).
-        columns = columns.filter((column) => {
-            const fieldDefinition = column.getDefinition();
-
-            if (fieldDefinition.titleFormatter === 'rowSelection') return false;
-            if (fieldDefinition.title === 'ID') return false;
-            if (fieldDefinition.frozen) return false;
-
-            return true;
+        const columnDateCreated = columnComponents.find((columnComponent) => {
+            const definition = columnComponent.getDefinition();
+            return definition.field === 'dateCreated';
         });
-
-        columns.map((column, index) => {
-            const fieldName = column.getField();
-            let li = document.createElement('li');
-            li.classList.add('header-fields');
-            li.classList.add(fieldName);
-            li.setAttribute('data-index', index.toString());
-
-            let headerField = document.createElement('div');
-            headerField.classList.add('header-field');
-
-            let header_order = document.createElement('span');
-            header_order.textContent = index + 1;
-            header_order.classList.add('header-button');
-            header_order.classList.add('header-order');
-            headerField.appendChild(header_order);
-
-            let header_title = document.createElement('span');
-            header_title.innerHTML = `<strong>${fieldName}</strong>`;
-            header_title.classList.add('header-title');
-            headerField.appendChild(header_title);
-
-            let visibilityIcon = /** @type {IconButton} */ (
-                this.createScopedElement('dbp-icon-button')
+        if (columnDateCreated) {
+            schemaColumnDefinitions.push(
+                this.cloneColumnDefinition(columnDateCreated.getDefinition()),
             );
+        }
 
-            const savedField = this.submissionsColumns[state].filter((field) => {
-                return field.field === fieldName;
-            });
-
-            if (savedField.length === 1 && savedField[0].visible === false) {
-                visibilityIcon.iconName = this.iconNameHidden;
-                visibilityIcon.setAttribute('data-visibility', 'hidden');
-            } else {
-                visibilityIcon.iconName = this.iconNameVisible;
-                visibilityIcon.setAttribute('data-visibility', 'visible');
+        Object.keys(formSchemaFields.properties).forEach((field) => {
+            if (formSchemaFields.properties[field].tableViewVisibleDefault !== undefined) {
+                this.schemaVisibilitySet = true;
             }
 
-            visibilityIcon.classList.add('header-visibility-icon');
+            const definition = {field: field};
 
-            visibilityIcon.addEventListener('click', (event) => {
-                if (visibilityIcon.getAttribute('data-visibility') === 'hidden') {
-                    visibilityIcon.iconName = this.iconNameVisible;
-                    visibilityIcon.setAttribute('data-visibility', 'visible');
-                } else {
-                    visibilityIcon.iconName = this.iconNameHidden;
-                    visibilityIcon.setAttribute('data-visibility', 'hidden');
-                }
-            });
-            headerField.appendChild(visibilityIcon);
+            const schemaField = formSchemaFields.properties[field];
 
-            let header_move = document.createElement('span');
-            header_move.classList.add('header-move');
-            let arrow_up = /** @type {IconButton} */ (this.createScopedElement('dbp-icon-button'));
-            arrow_up.iconName = 'arrow-up';
+            let schemaVisibility =
+                schemaField?.tableViewVisibleDefault !== undefined
+                    ? schemaField?.tableViewVisibleDefault
+                    : true;
+            let schemaLocalizedName = schemaField?.localizedName?.[this.lang] || field;
 
-            if (index === 0) {
-                arrow_up.classList.add('first-arrow-up');
-            }
-            arrow_up.addEventListener('click', (event) => {
-                if (index !== 0) {
-                    this.moveHeaderUp(column);
-                }
-            });
+            // Set visibility and localized field titles
+            definition.visible = schemaVisibility;
+            definition.title = schemaLocalizedName;
 
-            header_move.appendChild(arrow_up);
-            let arrow_down = /** @type {IconButton} */ (
-                this.createScopedElement('dbp-icon-button')
+            schemaColumnDefinitions.push(definition);
+        });
+
+        // Add submissionId, attachments and htmlButtons.
+        const columnSubmissionId = columnComponents.find((columnComponent) => {
+            const definition = columnComponent.getDefinition();
+            return definition.field === 'submissionId';
+        });
+        if (columnSubmissionId) {
+            schemaColumnDefinitions.push(
+                this.cloneColumnDefinition(columnSubmissionId.getDefinition()),
             );
-            arrow_down.iconName = 'arrow-down';
+        }
 
-            if (index === columns.length - 1) {
-                arrow_down.classList.add('last-arrow-down');
-            }
-
-            arrow_down.addEventListener('click', (event) => {
-                if (index !== columns.length - 1) {
-                    this.moveHeaderDown(column);
-                }
-            });
-            header_move.appendChild(arrow_down);
-            headerField.appendChild(header_move);
-
-            li.appendChild(headerField);
-            list.appendChild(li);
+        const columnAttachments = columnComponents.find((columnComponent) => {
+            const definition = columnComponent.getDefinition();
+            return definition.field === 'attachments';
         });
+        if (columnAttachments) {
+            schemaColumnDefinitions.push(
+                this.cloneColumnDefinition(columnAttachments.getDefinition()),
+            );
+        }
 
-        settingsModal.appendChild(list);
-    }
-
-    /**
-     * Removes settings that correspond to a former submissions tabulator
-     *
-     */
-    deleteSettings() {
-        let settings = this._a('.submission-modal-content');
-
-        settings.forEach((setting) => {
-            let list = setting.children[0];
-            if (list) {
-                setting.removeChild(list);
-            }
+        const columnActionButton = columnComponents.find((columnComponent) => {
+            const definition = columnComponent.getDefinition();
+            return definition.field === 'htmlButtons';
         });
+        if (columnActionButton) {
+            schemaColumnDefinitions.push(
+                this.cloneColumnDefinition(columnActionButton.getDefinition()),
+            );
+        }
+
+        this.submissionsColumnsInitial[state] =
+            this.cloneColumnDefinitions(schemaColumnDefinitions);
+
+        this.submissionsColumns[state] = this.cloneColumnDefinitions(
+            this.submissionsColumnsInitial[state],
+        );
+
+        // submissionsTable.setColumns(this.submissionsColumnsInitial[state]);
     }
 
     /**
@@ -1315,29 +1268,41 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state - The state of the submission table ('draft' or 'submitted').
      */
     resetSettings(state) {
-        let list = this._(`#column-options-modal-${state} .headers`);
-        const listChildren = list.childNodes;
-        const columns = this.submissionsColumns[state];
-        // Skip show detail button column
-        columns.splice(-1, 1);
+        this.submissionsColumns[state] = this.cloneColumnDefinitions(
+            this.submissionsColumnsInitial[state],
+        );
+    }
 
-        // Restore initial column order
-        [...listChildren].forEach((element, index) => {
-            let headerField = element.children[0];
-            // Reset title
-            headerField.children[1].innerHTML = '<strong>' + columns[index].title + '</strong>';
-            // Reset visibility
-            let visibilityIcon = headerField.children[2];
-            if (columns[index].visible) {
-                visibilityIcon.iconName = this.iconNameVisible;
-                visibilityIcon.setAttribute('data-visibility', 'visible');
-            } else if (!columns[index].visible) {
-                visibilityIcon.iconName = this.iconNameHidden;
-                visibilityIcon.setAttribute('data-visibility', 'hidden');
-            }
-            // Delete previous settings from localstorage
-            this.deleteSubmissionTableSettings(state);
-        });
+    /**
+     * Clone an array of column definitions so mutations don't affect the source.
+     * @param {object[]} definitions
+     * @returns {object[]}
+     */
+    cloneColumnDefinitions(definitions) {
+        if (!Array.isArray(definitions)) {
+            return [];
+        }
+
+        return definitions.map((definition) => this.cloneColumnDefinition(definition));
+    }
+
+    /**
+     * Clone a single column definition, including nested column groups.
+     * @param {object} definition
+     * @returns {object}
+     */
+    cloneColumnDefinition(definition) {
+        if (!definition || typeof definition !== 'object') {
+            return definition;
+        }
+
+        const clone = {...definition};
+
+        if (Array.isArray(definition.columns)) {
+            clone.columns = this.cloneColumnDefinitions(definition.columns);
+        }
+
+        return clone;
     }
 
     /**
@@ -1346,19 +1311,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} action - 'hide' or 'show'
      */
     toggleAllColumns(state, action) {
-        let headerFields = this._a(`#column-options-modal-${state} .header-field`);
-
-        // Restore initial column order
-        [...headerFields].forEach((headerField, index) => {
-            const visibilityIcon = headerField.querySelector('dbp-icon-button');
-            if (action == 'hide') {
-                visibilityIcon.iconName = this.iconNameHidden;
-                visibilityIcon.setAttribute('data-visibility', 'hidden');
-            } else {
-                visibilityIcon.iconName = this.iconNameVisible;
-                visibilityIcon.setAttribute('data-visibility', 'visible');
-            }
+        // let columnDefinitions = [];
+        this.submissionsColumns[state].forEach((column) => {
+            if (column.frozen) return; // skip frozen columns (ID, htmlButtons)
+            column.visible = action === 'hide' ? false : true;
         });
+        this.requestUpdate();
     }
 
     /**
@@ -1804,49 +1762,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state - 'draft' or 'submitted'
      */
     updateSubmissionTable(state) {
-        let list = this._(`#column-options-modal-${state} .headers`);
-        if (!list) return;
-
-        list = list.childNodes;
         const table = this.submissionTables[state];
-
-        let newColumns = [];
-        [...list].forEach((element, index) => {
-            let headerField = element.children[0];
-            let currentTitle = headerField.children[1].innerText;
-            let visibilityIcon = headerField.children[2];
-            let visibility;
-            if (visibilityIcon.getAttribute('data-visibility') === 'hidden') {
-                visibility = false;
-            } else {
-                visibility = true;
-            }
-            let newColumn = {title: currentTitle, field: currentTitle, visible: visibility};
-            newColumns.push(newColumn);
-        });
-
-        let columns = table.getColumns();
-        // Put the Row-index column at the first place
-        const columnRowIndex = columns.find((column) => {
-            const definition = column.getDefinition();
-            return definition.title === 'ID';
-        });
-        if (columnRowIndex) {
-            newColumns.unshift(columnRowIndex.getDefinition());
-        }
-
-        // Put the htmlButtons at the end of the columns
-        const columnActionButton = columns.find((column) => {
-            const definition = column.getDefinition();
-            return definition.field === 'htmlButtons';
-        });
-        if (columnActionButton) {
-            newColumns.push(columnActionButton.getDefinition());
-        }
-
-        table.setColumns(newColumns);
-        this.submissionsColumns[state] = newColumns;
-        this.requestUpdate();
+        table.setColumns(this.submissionsColumns[state]);
     }
 
     /**
@@ -1854,35 +1771,55 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state - 'draft' or 'submitted'
      * @returns {boolean} success
      */
-    getSubmissionTableSettings(state) {
+    restoreSubmissionTableSettings(state) {
         if (this.storeSession && this.isLoggedIn()) {
-            this.tableSettingsInitialized[state] = true;
-
             let optionsString = localStorage.getItem(
-                'dbp-formalize-tableoptions-' +
-                    this.activeFormName +
-                    '-' +
-                    state +
-                    '-' +
-                    this.auth['user-id'],
+                `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${this.auth['user-id']}`,
             );
-            if (!optionsString) {
-                this.submissionsColumns[state] = [];
-                return false;
-            }
 
             try {
                 let options = JSON.parse(optionsString);
-                if (options) {
-                    this.submissionsColumns[state] = [...options];
+                if (!options) return false;
+
+                console.log(`localStorage restore options`, options);
+
+                const table = this.submissionTables[state];
+                let columns = table.getColumns();
+
+                let reconstructedColumns = [];
+
+                /* Collect left frozen columns (ID) and right frozen columns (htmlButtons) */
+                const columnRowIndex = columns.find((column) => {
+                    const definition = column.getDefinition();
+                    return definition.title === 'ID';
+                });
+                const columnActionButton = table.tabulatorTable.getColumn('htmlButtons');
+
+                // Add ID column at the beginning
+                if (columnRowIndex) {
+                    reconstructedColumns.push(columnRowIndex.getDefinition());
                 }
+
+                // Add saved columns
+                reconstructedColumns.push(...options);
+
+                // Add htmlButtons column at the end
+                if (columnActionButton) {
+                    reconstructedColumns.push(columnActionButton.getDefinition());
+                }
+
+                this.submissionsColumns[state] = reconstructedColumns;
+
+                console.log(`reconstructedColumns`, reconstructedColumns);
+
+                table.setColumns(reconstructedColumns);
             } catch (e) {
+                console.error('Failed parsing stored table options', e);
                 this.sendErrorAnalyticsEvent(
-                    '[getSubmissionTableSettings] getSubmissionTableSettings',
+                    '[restoreSubmissionTableSettings]',
                     'WrongResponse',
                     e,
                 );
-                this.submissionsColumns[state] = [];
                 return false;
             }
             return true;
@@ -1894,12 +1831,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Stores submission Table settings in localStorage
      * @param {string} state - 'draft' or 'submitted'
      */
-    setSubmissionTableSettings(state) {
+    storeSubmissionTableSettings(state) {
         if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['user-id'];
+            // Filter out columns with non-serializable properties (like titleFormatter)
+            // These columns (htmlButtons, ID) are frozen and auto-generated, so we don't need to store them
+            const serializableColumns = this.submissionsColumns[state].filter((column) => {
+                return column.frozen !== true;
+            });
+
             localStorage.setItem(
-                'dbp-formalize-tableoptions-' + this.activeFormName + '-' + state + '-' + publicId,
-                JSON.stringify(this.submissionsColumns[state]),
+                `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${publicId}`,
+                JSON.stringify(serializableColumns),
             );
         }
     }
@@ -1912,72 +1855,40 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['user-id'];
             localStorage.removeItem(
-                'dbp-formalize-tableoptions-' + this.activeFormName + '-' + state + '-' + publicId,
+                `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${publicId}`,
             );
         }
     }
 
-    /**
-     * Moves a header in this.submissionColumns Array and in DOM up
-     *
-     * @param {object} column
-     */
-    moveHeaderUp(column) {
-        let list = this._('.headers');
-        list = list.childNodes;
-        [...list].forEach((item, index) => {
-            if (item.classList.contains(column.getField())) {
-                let element = item;
-                let swapElem = list[index - 1];
-                this.swapHeader(element, swapElem);
+    toggleVisibility(column, state) {
+        const fieldName = column.field;
+        this.submissionsColumns[state].map((col) => {
+            if (col.field === fieldName) {
+                col.visible = !col.visible;
             }
         });
+        this.requestUpdate();
     }
 
     /**
      * Moves a header in this.submissionColumns Array and in DOM up
      *
-     * @param {object} column
+     * @param {object} column - tabulator table column component
+     * @param {string} state - draft or submitted
+     * @param {string} direction - up or down
      */
-    moveHeaderDown(column) {
-        let list = this._('.headers');
-        list = list.childNodes;
-        [...list].forEach((item, index) => {
-            if (item.classList.contains(column.getField())) {
-                let element = item;
-                let swapElem = list[index + 1];
-                this.swapHeader(element, swapElem);
-            }
-        });
-    }
+    moveHeader(column, state, direction) {
+        // Swap the two elements in  this.submissionsColumns
+        const fieldName = column.field;
+        const index = this.submissionsColumns[state].findIndex((col) => col.field === fieldName);
+        const originalColumn = this.submissionsColumns[state][index];
 
-    /**
-     * Swaps two elements in this.submissionColumns Array and in DOM
-     *
-     * @param {object} elem
-     * @param {number} swapElem
-     */
-    swapHeader(elem, swapElem) {
-        let div_1 = elem.children[0];
-        let span_1 = div_1.children[1];
-        let aux = span_1.innerHTML;
+        const delta = direction === 'up' ? -1 : 1;
 
-        let div_2 = swapElem.children[0];
-        let span_2 = div_2.children[1];
-        span_1.innerHTML = span_2.innerHTML;
-        span_2.innerHTML = aux;
+        this.submissionsColumns[state][index] = this.submissionsColumns[state][index + delta];
+        this.submissionsColumns[state][index + delta] = originalColumn;
 
-        function removeClass() {
-            swapElem.classList.remove('move-up');
-        }
-
-        function addClass() {
-            swapElem.classList.add('move-up');
-        }
-
-        setTimeout(addClass.bind(swapElem), 0);
-
-        setTimeout(removeClass.bind(swapElem), 400);
+        this.requestUpdate();
     }
 
     /**
@@ -2657,28 +2568,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     color: var(--dbp-content);
                 }
 
-                .header-button {
-                    justify-content: center;
-                    display: flex;
-                    align-items: center;
-                    height: 50px;
-                    width: 50px;
-                    min-width: 50px;
-                    flex-grow: 0;
-                    cursor: pointer;
-                }
-
-                .header-button dbp-icon {
-                    font-size: 1.3em;
-                    top: 0;
-                }
-
                 .header-button.hidden,
                 .extended-menu.hidden {
                     display: none !important;
                 }
 
                 .header-title {
+                    font-weight: 400;
                     flex-grow: 2;
                     text-overflow: ellipsis;
                     overflow: hidden;
@@ -2687,6 +2583,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 .header-order {
+                    justify-content: center;
+                    display: flex;
+                    align-items: center;
+                    height: 50px;
+                    width: 50px;
+                    min-width: 50px;
+                    flex-grow: 0;
                     background-color: var(--dbp-muted-surface);
                     color: var(--dbp-on-muted-surface);
                     font-weight: bold;
@@ -2700,16 +2603,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     display: flex;
                 }
 
-                .first-header .header-move .header-button:first-child,
-                .last-header .header-move .header-button:last-child {
+                .header-fields:first-child .arrow-up,
+                .header-fields:last-child .arrow-down {
                     opacity: 0.4;
                     cursor: default;
+                    pointer-events: none;
                 }
 
                 .first-arrow-up,
                 .last-arrow-down {
                     opacity: 0.4;
                     cursor: default;
+                    pointer-events: none;
                 }
 
                 @keyframes added {
@@ -2981,6 +2886,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     renderSubmissionDetailsModal(state) {
         const i18n = this._i18n;
+
         return html`
             <div
                 class="modal micromodal-slide"
@@ -3093,6 +2999,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     renderColumnSettingsModal(state) {
         const i18n = this._i18n;
+
+        // console.log(`this.submissionsColumns[${state}]`, this.submissionsColumns[state]);
+
+        // Remove columns that we don't want to show in the settings modal (frozen columns)
+        const columns = this.submissionsColumns[state].filter((column) => {
+            return column?.frozen !== true;
+        });
+
         return html`
             <div
                 class="modal micromodal-slide"
@@ -3121,7 +3035,61 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </header>
                         <main
                             class="modal-content submission-modal-content"
-                            id="submission-modal-content-${state}"></main>
+                            id="submission-modal-content-${state}">
+                            <ul class="headers">
+                                ${columns.map(
+                                    (column, index) => html`
+                                        <li
+                                            class="header-field"
+                                            data-index="${index}"
+                                            data-fieldname="${column.fieldName}">
+                                            <div class="header-order">${index + 1}</div>
+                                            <div class="header-title">${column.title}</div>
+                                            <dbp-icon-button
+                                                data-visibility="visible"
+                                                icon-name=${column.visible
+                                                    ? this.iconNameVisible
+                                                    : this.iconNameHidden}
+                                                @click="${() => {
+                                                    this.toggleVisibility(column, state);
+                                                }}"
+                                                class="header-visibility-icon"></dbp-icon-button>
+
+                                            <div class="button-wrapper">
+                                                <div class="header-move">
+                                                    <dbp-icon-button
+                                                        class="arrow-up ${classMap({
+                                                            'first-arrow-up': index === 0,
+                                                        })}"
+                                                        icon-name="arrow-up"
+                                                        title="${i18n.t(
+                                                            'show-submissions.move-column-up',
+                                                        )}"
+                                                        @click="${() => {
+                                                            this.moveHeader(column, state, 'up');
+                                                        }}"></dbp-icon-button>
+                                                    <dbp-icon-button
+                                                        class="header-button arrow-down ${classMap({
+                                                            'last-arrow-down':
+                                                                index ===
+                                                                this.submissionsColumns[state]
+                                                                    .length -
+                                                                    1,
+                                                        })}"
+                                                        icon-name="arrow-down"
+                                                        title="${i18n.t(
+                                                            'show-submissions.move-column-down',
+                                                        )}"
+                                                        @click="${() => {
+                                                            this.moveHeader(column, state, 'down');
+                                                        }}"></dbp-icon-button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    `,
+                                )}
+                            </ul>
+                        </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
                                 <div>
@@ -3137,7 +3105,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 <div>
                                     <button
                                         title="${i18n.t('show-submissions.reset-filter')}"
-                                        class="check-btn button is-secondary"
+                                        class="check-btn button button--reset is-secondary"
+                                        .disabled="${!this.schemaVisibilitySet}"
                                         @click="${() => {
                                             this.resetSettings(state);
                                         }}">
@@ -3145,7 +3114,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     </button>
                                     <button
                                         title="${i18n.t('show-submissions.all-filters-hide')}"
-                                        class="check-btn button is-secondary"
+                                        class="check-btn button button--hide-all is-secondary"
                                         @click="${() => {
                                             this.toggleAllColumns(state, 'hide');
                                         }}">
@@ -3153,7 +3122,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     </button>
                                     <button
                                         title="${i18n.t('show-submissions.all-filters-show')}"
-                                        class="check-btn button is-secondary"
+                                        class="check-btn button button--show-all is-secondary"
                                         @click="${() => {
                                             this.toggleAllColumns(state, 'show');
                                         }}">
@@ -3161,12 +3130,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     </button>
                                 </div>
                                 <button
-                                    class="check-btn button is-primary"
+                                    class="check-btn button button--saveis-primary"
                                     id="check"
                                     @click="${() => {
                                         this.updateSubmissionTable(state);
+                                        this.storeSubmissionTableSettings(state);
                                         this.closeColumnOptionsModal(state);
-                                        this.setSubmissionTableSettings(state);
                                     }}">
                                     ${i18n.t('show-submissions.save-columns')}
                                 </button>
@@ -3373,8 +3342,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
 
         this.isEditSubmissionPermissionEnabled[state] =
-            this.selectedRowCount[state] === 1 &&
-            formGrantedActions.includes(FORM_PERMISSIONS.MANAGE);
+            (this.selectedRowCount[state] === 1 &&
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE)) ||
+            this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE);
 
         this.requestUpdate();
     }

@@ -307,6 +307,8 @@
         "header-settings": "Table configuration",
         "id": "ID",
         "modal-close": "Close dialog",
+        "move-column-down": "Move down",
+        "move-column-up": "Move up",
         "name": "Name",
         "next-entry-btn-title": "Next entry",
         "open-detailed-view-form": "Open detailed form view",
