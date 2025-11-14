@@ -918,6 +918,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (Array.isArray(value)) {
                         dataFeedElement[key] = value.join(', ');
                     }
+                    if (key === 'identifier' && value) {
+                        try {
+                            const response = await this.apiGetUserDetails(value);
+                            const userObject = await response.json();
+                            dataFeedElement[key] =
+                                `${userObject['givenName']} ${userObject['familyName']}`;
+                        } catch (e) {
+                            console.error(e);
+                            dataFeedElement[key] = value;
+                        }
+                    }
                 }
 
                 const id = x + 1;

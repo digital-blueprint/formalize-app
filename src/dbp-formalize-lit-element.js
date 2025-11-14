@@ -145,4 +145,23 @@ export default class DBPFormalizeLitElement extends LangMixin(
             name: JSON.stringify(data),
         });
     }
+
+    /**
+     * Gets user details from API
+     * @param {string} userIdentifier
+     * @returns {Promise<object>} response
+     */
+    async apiGetUserDetails(userIdentifier) {
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+        return await this.httpGetAsync(
+            this.entryPointUrl + `/base/people/${userIdentifier}`,
+            options,
+        );
+    }
 }

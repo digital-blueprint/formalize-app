@@ -17,11 +17,11 @@ import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {
     getFormRenderUrl,
     formatDate,
-    httpGetAsync,
     arrayToObject,
     getDeletionConfirmation,
     handleDeletionConfirm,
     handleDeletionCancel,
+    httpGetAsync,
 } from '../utils.js';
 import {
     getTagsCSS,
@@ -954,9 +954,9 @@ class FormalizeFormElement extends BaseFormElement {
             isExistingDraft = true;
         }
 
-        // Include unique identifier for person who first submitted the form (creator)
+        // Include unique identifier for person who last modified the form
         data.formData.identifier = isExistingDraft
-            ? this.submissionCreatorId
+            ? this.lastModifiedCreatorId
             : this.auth['user-id'];
         const formData = new FormData();
 
@@ -1092,7 +1092,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Include unique identifier for person who first submitted the form (creator)
         data.formData.identifier = isExistingDraft
-            ? this.submissionCreatorId
+            ? this.lastModifiedCreatorId
             : this.auth['user-id'];
 
         const formData = new FormData();
@@ -1282,7 +1282,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         const data = event.detail;
         // Include unique identifier for person who is submitting
-        data.formData.identifier = this.submissionCreatorId;
+        data.formData.identifier = this.lastModifiedCreatorId;
         const formData = new FormData();
 
         // Set attachment files to upload
