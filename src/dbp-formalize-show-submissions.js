@@ -154,6 +154,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.iconNameHidden = 'source_icons_eye-off';
         this.createSubmissionUrl = '';
         this.schemaVisibilitySet = false;
+        this.downloadFolderNamePattern = '';
     }
 
     static get scopedElements() {
@@ -1163,9 +1164,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         // Exit if no form schema found
-        if (Object.keys(formSchemaFields).length === 0) return;
+        if (Object.keys(formSchemaFields).length === 0) {
+            this.schemaVisibilitySet = false;
+            return;
+        }
+
+        // Set download folder name pattern
+        this.downloadFolderNamePattern =
+            formSchemaFields?.submissionExport?.downloadFolderPattern || '';
+
         // Exit if the form schema is the catch-all schema
-        if (Object.keys(formSchemaFields.properties).length === 0) return;
+        if (Object.keys(formSchemaFields.properties).length === 0) {
+            this.schemaVisibilitySet = false;
+            return;
+        }
 
         const submissionsTable = this.submissionTables[state];
         if (!submissionsTable) return;
@@ -1175,8 +1187,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!columnComponents || columnComponents.length === 0) return;
 
         const schemaColumnDefinitions = [];
-
-        console.log(`formSchemaFields.properties`, formSchemaFields.properties);
 
         // Add ID, dateCreated columns first
         const columnRowIndex = columnComponents.find((columnComponent) => {
@@ -1411,47 +1421,38 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const selectedRowsObjects =
                 this.submissionTables[state].tabulatorTable.getSelectedRows();
             let rowsToExport = [];
-            let selectedRowsSubmissionData = [];
+            let selectedRowsSubmissionIds = [];
             if (selectedRowsObjects && selectedRowsObjects.length > 0) {
                 rowsToExport = selectedRowsObjects;
             } else {
                 rowsToExport = this.submissionTables[state].tabulatorTable.getRows();
             }
+
+            // Get submissionIds of selected rows
             rowsToExport.forEach((row) => {
                 const data = row.getData();
-                selectedRowsSubmissionData.push({
-                    submissionId: data.submissionId,
-                    dateCreated: data.dateCreated.replace(/ /, 'T'),
-                    userId: data.identifier,
-                });
+                selectedRowsSubmissionIds.push(data.submissionId);
             });
-
-            console.log(`selectedRowsSubmissionData`, selectedRowsSubmissionData);
 
             for (const [submissionId, attachments] of this.submittedFileDetails[state]) {
                 // If there are selected rows, only download the attachments of the selected rows
                 if (
-                    selectedRowsSubmissionData.length > 0 &&
-                    !selectedRowsSubmissionData.some((row) => row.submissionId === submissionId)
+                    selectedRowsSubmissionIds.length > 0 &&
+                    !selectedRowsSubmissionIds.some((row) => row === submissionId)
                 ) {
                     continue;
                 }
                 if (!attachments || attachments.length === 0) continue;
 
                 attachments.forEach((attachment) => {
-                    const data = selectedRowsSubmissionData.find(
-                        (row) => row.submissionId === submissionId,
-                    );
-                    if (!data) return;
-
+                    // Add folder name from the schema if available, fallback to submissionId
+                    const downloadFolderName = this.getDownloadFolderName(submissionId, state);
                     downloadFiles.push({
-                        name: `attachments-${data.dateCreated}-${data.userId || 'unknown_author'}-${data.submissionId}/${attachment.fileName}`,
+                        name: `${downloadFolderName}/${attachment.fileName}`,
                         url: attachment.downloadUrl,
                     });
                 });
             }
-
-            console.log(`downloadFiles`, downloadFiles);
             this._('#file-sink').files = downloadFiles;
         } else {
             const table = this.submissionTables[state];
@@ -1459,6 +1460,40 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         exportInput.value = '-';
+    }
+
+    getDownloadFolderName(submissionId, state) {
+        let patternMatchingFailed = false;
+        const submissionData = this.submissions[state].find((submission) => {
+            return submission.submissionId === submissionId;
+        });
+
+        // Fallback to submissionId if no pattern is set
+        if (!this.downloadFolderNamePattern || this.downloadFolderNamePattern === '') {
+            return submissionData['submissionId'];
+        }
+
+        // ${applicant}_${userTitleShort}
+        let patternFields = this.downloadFolderNamePattern.split('_');
+        let folderNameParts = [];
+        for (const fieldPattern of patternFields) {
+            // Remove ${ and } to get the field name
+            const fieldName = fieldPattern.replace(/\${([a-zA-Z]+)}/, '$1');
+            if (!submissionData[fieldName]) {
+                patternMatchingFailed = true;
+            } else {
+                // Get field value and replace spaces with dashes
+                folderNameParts.push(submissionData[fieldName].replace(/\s+/g, '-'));
+            }
+        }
+
+        // Fallback to submissionId if pattern matching failed (no field data available)
+        if (patternMatchingFailed) {
+            return submissionData['submissionId'];
+        }
+
+        const folderName = folderNameParts.join('_');
+        return folderName;
     }
 
     /**
