@@ -573,7 +573,7 @@ export function getEthicsCommissionFormCSS() {
             }
         }
 
-        @container form (width < 540px) {
+        @container form (width < 640px) {
             .header-top {
                 flex-direction: column;
                 gap: 1em;
@@ -606,9 +606,21 @@ export function getEthicsCommissionFormCSS() {
             gap: 1em;
         }
 
+        .file-upload-title-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+
         .attachments-title {
             margin: 0;
             font-size: 24px;
+            display: inline;
+        }
+
+        .file-upload-limit-warning {
+            color: var(--dbp-muted);
+            font-size: 0.9em;
         }
 
         .uploaded-files {
@@ -840,11 +852,11 @@ export function getEthicsCommissionFormCSS() {
         }
 
         /* animations */
-        :is(.button, dbp-button) dbp-icon {
+        :is(.button, dbp-button):not([disabled]) dbp-icon {
             transition: transform 0.1s ease-in;
         }
 
-        :is(.button, dbp-button):hover dbp-icon {
+        :is(.button, dbp-button):not([disabled]):hover dbp-icon {
             transform: scale(1.25);
         }
 

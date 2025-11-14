@@ -128,6 +128,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.filesToSubmit = new Map();
         this.filesToRemove = new Map();
         this.fileUploadError = false;
+        this.fileUploadCounts = {};
+        this.allowedFileUploadCounts = {};
         // Voting files
         this.uploadToVoting = false;
         this.votingFile = new Map();
@@ -245,6 +247,10 @@ class FormalizeFormElement extends BaseFormElement {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
                 this.formGrantedActions = this.formProperties.grantedActions;
                 this.allowedTags = arrayToObject(this.formProperties.availableTags);
+                this.allowedFileUploadCounts = this.getAllowedFileUploadCount(
+                    this.formProperties.dataFeedSchema,
+                );
+
                 this.isAdmin = this.formGrantedActions.some(
                     (grant) =>
                         grant === FORM_PERMISSIONS.MANAGE ||
@@ -383,15 +389,24 @@ class FormalizeFormElement extends BaseFormElement {
             this.submissionGrantedActions = this.data.grantedActions;
             this.selectedTags = arrayToObject(this.data.tags);
             // Attachments
-            const submittedFilesObject = this.data.submittedFiles.filter((file) => {
-                return file.fileAttributeName === 'attachments';
-            });
-            const votingFileObject = this.data.submittedFiles.filter((file) => {
-                return file.fileAttributeName === 'voting';
-            });
+            const submittedFiles = {};
+            for (const file of this.data.submittedFiles) {
+                if (!submittedFiles[file.fileAttributeName]) {
+                    submittedFiles[file.fileAttributeName] = [];
+                }
+                submittedFiles[file.fileAttributeName].push(file);
+            }
 
-            this.submittedFiles = await this.transformApiResponseToFile(submittedFilesObject);
-            this.votingFile = await this.transformApiResponseToFile(votingFileObject);
+            this.fileUploadCounts = {};
+            for (const [attachmentType, files] of Object.entries(submittedFiles)) {
+                this.fileUploadCounts[attachmentType] = files.length;
+                if (attachmentType === 'attachments') {
+                    this.submittedFiles = await this.transformApiResponseToFile(files);
+                }
+                if (attachmentType === 'voting') {
+                    this.votingFile = await this.transformApiResponseToFile(files);
+                }
+            }
 
             switch (Number(this.submissionBinaryState)) {
                 case 1:
@@ -5875,18 +5890,28 @@ class FormalizeFormElement extends BaseFormElement {
                     </div>
 
                     <div class="file-upload-container">
-                        <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
+                        <div class="file-upload-title-container">
+                            <h4 class="attachments-title">
+                                ${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}
+                            </h4>
+                            <span class="file-upload-limit-warning">
+                                ${i18n.t('render-form.forms.ethics-commission-form.file-upload-limit-warning', {count: this.allowedFileUploadCounts['attachments']})}
+                            </span>
+                        </div>
 
                         <div class="uploaded-files">
                             ${this.renderAttachedFilesHtml('attachments')}
                         </div>
 
-                        <button @click="${(event) => {
-                            this.uploadToVoting = false;
-                            this.openFilePicker(event);
-                        }}" class="button is-secondary upload-button upload-button--attachment">
+                        <button
+                            class="button is-secondary upload-button upload-button--attachment"
+                            .disabled=${this.fileUploadCounts['attachments'] >= this.allowedFileUploadCounts['attachments']}
+                            @click="${(event) => {
+                                this.uploadToVoting = false;
+                                this.openFilePicker(event);
+                            }}">
                             <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
-                            ${i18n.t('render-form.forms.ethics-commission-form.upload-attachment-button-label')}
+                            ${i18n.t('render-form.forms.ethics-commission-form.upload-file-button-label', {count: this.allowedFileUploadCounts['attachments']})}
                         </button>
                     </div>
 
@@ -5916,25 +5941,36 @@ class FormalizeFormElement extends BaseFormElement {
                                   </div>
 
                                   <div class="file-upload-container">
-                                      <h4 class="attachments-title">
-                                          ${i18n.t(
-                                              'render-form.forms.ethics-commission-form.admin-voting-results-title',
-                                          )}
-                                      </h4>
+                                      <div class="file-upload-title-container">
+                                          <h4 class="attachments-title">
+                                              ${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.admin-voting-results-title',
+                                              )}
+                                          </h4>
+                                          <span class="file-upload-limit-warning">
+                                              ${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.file-upload-limit-warning',
+                                                  {count: this.allowedFileUploadCounts['voting']},
+                                              )}
+                                          </span>
+                                      </div>
 
                                       <div class="uploaded-files">
                                           ${this.renderAttachedFilesHtml('voting')}
                                       </div>
 
                                       <button
+                                          class="button is-secondary upload-button upload-button--voting"
+                                          .disabled=${this.fileUploadCounts['voting'] >=
+                                          this.allowedFileUploadCounts['voting']}
                                           @click="${(event) => {
                                               this.uploadToVoting = true;
                                               this.openFilePicker(event);
-                                          }}"
-                                          class="button is-secondary upload-button upload-button--voting">
+                                          }}">
                                           <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
                                           ${i18n.t(
-                                              'render-form.forms.ethics-commission-form.upload-voting-button-label',
+                                              'render-form.forms.ethics-commission-form.upload-file-button-label',
+                                              {count: this.allowedFileUploadCounts['voting']},
                                           )}
                                       </button>
                                   </div>
@@ -6079,6 +6115,23 @@ class FormalizeFormElement extends BaseFormElement {
             }
         }
         this.selectedTags = selectedTags;
+    }
+
+    getAllowedFileUploadCount(dataFeedSchema) {
+        if (!dataFeedSchema) return;
+
+        let formSchemaFields = {};
+        let allowedFileUploadCount = {};
+        try {
+            formSchemaFields = JSON.parse(dataFeedSchema);
+            for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
+                allowedFileUploadCount[type] = fileField.maxNumber;
+            }
+            console.log(`allowedFileUploadCount`, allowedFileUploadCount);
+            return allowedFileUploadCount;
+        } catch (e) {
+            console.log('Failed parsing json data', e);
+        }
     }
 
     /**
@@ -6302,222 +6355,6 @@ class FormalizeFormElement extends BaseFormElement {
                               </dbp-button>
                           `
                         : ''}
-
-                    <!-- ${this.isPrintButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-print-pdf-button"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  @click=${() => this.generatePDF(true)}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                                  )}">
-                                  <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''} -->
-
-                    <!--
-                    ${this.isDeleteSubmissionButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-delete-submission-button"
-                                  type="is-secondary"
-                                  @click=${this.sendDeleteSubmission}
-                                  no-spinner-on-click
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.delete-submission-button-text-aria',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.delete-submission-button-text-aria',
-                                  )}">
-                                  <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${this.currentState === SUBMISSION_STATES.DRAFT
-                                          ? i18n.t(
-                                                'render-form.forms.ethics-commission-form.discard-draft-button-text-label',
-                                            )
-                                          : i18n.t(
-                                                'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
-                                            )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isViewModeButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  id="toggle-edit-mode"
-                                  class="toggle-edit-mode"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.toggle-edit-submission-button-title',
-                                  )}"
-                                  @click="${() => {
-                                      if (this.readOnly) {
-                                          this.redirectToEditForm();
-                                          return;
-                                      }
-
-                                      const confirmed = confirm(
-                                          this._i18n.t('render-form.form-exit-warning-message'),
-                                      );
-                                      if (confirmed) {
-                                          const form = this.shadowRoot.querySelector('form');
-                                          const data = gatherFormDataFromElement(form);
-                                          if (Object.keys(data).length) {
-                                              this.formData = data;
-                                          }
-
-                                          this.disableLeavePageWarning();
-                                          this.redirectToReadonlyForm();
-                                          this.readOnly = !this.readOnly;
-                                          return;
-                                      } else {
-                                          // Do nothing if cancel was clicked
-                                          return;
-                                      }
-                                  }}">
-                                  ${this.readOnly
-                                      ? html`
-                                            <dbp-icon name="pencil"></dbp-icon>
-                                            <span class="button-label">
-                                                ${i18n.t(
-                                                    'render-form.forms.ethics-commission-form.edit-mode',
-                                                )}
-                                            </span>
-                                        `
-                                      : html`
-                                            <dbp-icon name="close"></dbp-icon>
-                                            <span class="button-label">
-                                                ${i18n.t(
-                                                    'render-form.forms.ethics-commission-form.view-mode',
-                                                )}
-                                            </span>
-                                        `}
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isPrintButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-print-pdf-button"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  @click=${() => this.generatePDF(true)}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                                  )}">
-                                  <dbp-icon name="printer" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.print-pdf-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isDownloadButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-download-files-button"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  @click=${this.downloadAllFiles}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.download-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.download-button-text',
-                                  )}">
-                                  <dbp-icon name="download" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.download-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isDraftButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-save-draft-button"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  @click=${this.sendSaveDraft}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
-                                  )}">
-                                  <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.save-draft-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isSubmitButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-submit-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${this.validateAndSendSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submit-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submit-button-text',
-                                  )}">
-                                  <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.submit-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isSaveButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-save-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${this.sendSaveSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-button-text',
-                                  )}">
-                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.save-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''} -->
                 </div>
             </div>
         `;
