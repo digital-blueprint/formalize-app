@@ -298,7 +298,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (e.detail.id) {
                         const state = this.getTableState(e.detail.id);
                         if (state) {
-                            console.log(`this.submissions`, this.submissions);
+                            // console.log(`this.submissions`, this.submissions);
                             // Set visibility and name localization of columns based on form schema
                             this.setDefaultSubmissionTableOrder(state);
 
@@ -860,33 +860,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return response;
         }
 
-        // @TODO: Check if changing autoColumns: true => 'full'
-        // let firstDataFeedElement = data['hydra:member'][0]['dataFeedElement'];
-
-        // data['hydra:member'].forEach((submission) => {
-        //     const dataFeedElement = JSON.parse(submission.dataFeedElement);
-        //     console.log(`___ dataFeedElement length`, Object.keys(dataFeedElement).length);
-        // });
-
-        // firstDataFeedElement = JSON.parse(firstDataFeedElement);
-        // let columns = Object.keys(firstDataFeedElement);
-
-        // console.log(`___ columns`, columns);
-
-        // columns.unshift('dateCreated');
-
-        // const activeForm = this.forms.get(formId);
-        // let formSchemaFields = {};
-        // try {
-        //     formSchemaFields = JSON.parse(activeForm.dataFeedSchema);
-        //     formSchemaFields.files.forEach((fileField) => {
-        //         this.allowedFileUploadCount[fileField.name] = fileField.maxNumber;
-        //     });
-        // } catch (e) {
-        //     console.log('Failed parsing json data', e);
-        // }
-        // console.log(`formSchemaFields`, formSchemaFields);
-
         const submissions = {};
         submissions.submitted = data['hydra:member'].filter((submission) => {
             return submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED;
@@ -1096,7 +1069,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             };
 
             // this.setSubmissionFormOptions(state);
-            console.log(`*** this.options_submissions[${state}]`, this.options_submissions[state]);
+            // console.log(`*** this.options_submissions[${state}]`, this.options_submissions[state]);
 
             // Set tabulator table data
             this.options_submissions[state].data = this.submissions[state];
@@ -1164,7 +1137,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     setDefaultSubmissionTableOrder(state) {
         const activeForm = this.forms.get(this.activeFormId);
-        console.log(`*** activeForm`, activeForm);
         if (!activeForm) return;
 
         let formSchemaFields = {};
@@ -1220,6 +1192,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
         }
 
+        // Get form schema fields localized names and their visibility
         Object.keys(formSchemaFields.properties).forEach((field) => {
             if (formSchemaFields.properties[field].tableViewVisibleDefault !== undefined) {
                 this.schemaVisibilitySet = true;
@@ -1253,6 +1226,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
         }
 
+        // Add attachments column
         const columnAttachments = columnComponents.find((columnComponent) => {
             const definition = columnComponent.getDefinition();
             return definition.field === 'attachments';
@@ -1263,6 +1237,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
         }
 
+        // Add htmlButtons column
         const columnActionButton = columnComponents.find((columnComponent) => {
             const definition = columnComponent.getDefinition();
             return definition.field === 'htmlButtons';
@@ -1273,14 +1248,13 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
         }
 
+        // Set initial column definitions
         this.submissionsColumnsInitial[state] =
             this.cloneColumnDefinitions(schemaColumnDefinitions);
 
         this.submissionsColumns[state] = this.cloneColumnDefinitions(
             this.submissionsColumnsInitial[state],
         );
-
-        // submissionsTable.setColumns(this.submissionsColumnsInitial[state]);
     }
 
     /**
@@ -1826,8 +1800,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 let options = JSON.parse(optionsString);
                 if (!options) return false;
 
-                console.log(`localStorage restore options`, options);
-
                 const table = this.submissionTables[state];
                 let columns = table.getColumns();
 
@@ -1854,8 +1826,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 this.submissionsColumns[state] = reconstructedColumns;
-
-                console.log(`reconstructedColumns`, reconstructedColumns);
 
                 table.setColumns(reconstructedColumns);
             } catch (e) {
