@@ -2127,11 +2127,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         <li
                                             class="header-field"
                                             data-index="${index}"
-                                            data-fieldname="${column.fieldName}">
+                                            data-fieldname="${column.field}">
                                             <div class="header-order">${index + 1}</div>
                                             <div class="header-title">${column.title}</div>
                                             <dbp-icon-button
-                                                data-visibility="visible"
+                                                data-visibility="${column.visible}"
                                                 icon-name=${column.visible
                                                     ? this.iconNameVisible
                                                     : this.iconNameHidden}
@@ -2215,7 +2215,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     </button>
                                 </div>
                                 <button
-                                    class="check-btn button button--saveis-primary"
+                                    class="check-btn button button--save is-primary"
                                     id="check"
                                     @click="${() => {
                                         this.updateSubmissionTable(state);
