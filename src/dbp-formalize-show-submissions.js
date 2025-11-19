@@ -1800,6 +1800,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Get column definitions from the current table
                 const table = this.submissionTables[state];
                 let columns = table.getColumns();
+                if (columns.length === 0) return false;
+
                 const columnDefinitions = columns.map((column) => {
                     return column.getDefinition();
                 });
@@ -2107,8 +2109,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // Remove columns that we don't want to show in the settings modal (frozen columns)
         const columns = this.submissionsColumns[state].filter((column) => {
-            return column?.frozen !== true;
+            return column && column.frozen !== true;
         });
+
+        if (columns.length === 0) {
+            return;
+        }
 
         return html`
             <div
