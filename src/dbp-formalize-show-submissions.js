@@ -158,6 +158,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: true,
         };
         this.downloadFolderNamePattern = '';
+        this.userNameCache = new Map();
     }
 
     static get scopedElements() {
@@ -665,7 +666,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // For tabulatorTable 'draft' and 'submitted'
             for (const state of Object.keys(this.submissionTables)) {
                 if (this.submissionTables[state]) {
-
                     if (this.submissions[state].length === 0) {
                         // There is no submission data
                         this.loadingSubmissionTables = false;
@@ -898,14 +898,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                     // Convert user identifier to user full name
                     if (key === 'identifier' && value) {
-                        try {
-                            const response = await this.apiGetUserDetails(value);
-                            const userObject = await response.json();
-                            dataFeedElement[key] =
-                                `${userObject['givenName']} ${userObject['familyName']}`;
-                        } catch (e) {
-                            console.error(e);
-                            dataFeedElement[key] = value;
+                        if (!this.userNameCache.has(value)) {
+                            try {
+                                const response = await this.apiGetUserDetails(value);
+                                const userObject = await response.json();
+                                const fullName = `${userObject['givenName']} ${userObject['familyName']}`;
+                                dataFeedElement[key] = fullName;
+                                this.userNameCache.set(value, fullName);
+                            } catch (e) {
+                                console.error(e);
+                                dataFeedElement[key] = value;
+                            }
+                        } else {
+                            dataFeedElement[key] = this.userNameCache.get(value);
                         }
                     }
                 }
