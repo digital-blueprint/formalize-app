@@ -923,9 +923,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 };
 
                 // Get attachments
-                // @TODO: separate attachments and voting files
                 const submittedFilesBasicResponse = submission['submittedFiles'];
-                let allAttachmentDetails = '';
+                const allAttachmentDetails = {};
                 if (
                     submittedFilesBasicResponse &&
                     Array.isArray(submittedFilesBasicResponse) &&
@@ -942,12 +941,23 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         console.error(e);
                     }
 
-                    // Display file names in the table cell
+                    // Separate attachments and voting files
                     for (const attachment of this.submittedFileDetails[state].get(submissionId)) {
-                        allAttachmentDetails += `${attachment.fileName} `;
+                        const fieldName = `form_files-${attachment.fileAttributeName}`;
+                        if (allAttachmentDetails[fieldName] === undefined) {
+                            allAttachmentDetails[fieldName] = [];
+                        }
+                        allAttachmentDetails[fieldName].push(attachment.fileName);
                     }
                 }
-                cols.attachments = allAttachmentDetails;
+
+                for (const fieldName of Object.keys(allAttachmentDetails)) {
+                    if (allAttachmentDetails[fieldName]) {
+                        cols[fieldName] = Array.isArray(allAttachmentDetails[fieldName])
+                            ? allAttachmentDetails[fieldName].join(', ')
+                            : allAttachmentDetails[fieldName];
+                    }
+                }
 
                 let actionButtonsDiv = this.createScopedElement('div');
                 const activeForm = this.forms.get(formId);
@@ -1231,11 +1241,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             schemaColumnDefinitions.push(definition);
         });
 
+        // Add attachment fields from the schema files property
+        Object.keys(formSchemaFields.files).forEach((attachmentType) => {
+            schemaColumnDefinitions.push({
+                field: `form_files-${attachmentType}`,
+                title: attachmentType,
+                visible: true,
+            });
+        });
+
         // Append fields also not present in the schema but needed in the table
         const postFieldDefinitions = columnDefinitions.filter((columnDefinition) => {
+            if (columnDefinition.field === undefined) return false;
             return (
                 columnDefinition.field === 'submissionId' ||
-                columnDefinition.field === 'attachments' ||
                 columnDefinition.field === 'htmlButtons'
             );
         });
