@@ -318,6 +318,7 @@ export function getShowSubmissionCSS() {
             color: var(--dbp-on-primary-surface);
             padding: 0 20px 12px 40px;
             text-align: right;
+            white-space: nowrap;
         }
 
         .element-right {

@@ -159,6 +159,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.downloadFolderNamePattern = '';
         this.userNameCache = new Map();
+        this.isRequestDetailedView = false;
+        this.submissionIdToOpen = null;
     }
 
     static get scopedElements() {
@@ -315,8 +317,27 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.submissionsColumnsInitial[state],
                                 );
                             }
-
                             this.setIsActionAvailable(state);
+
+                            // Open detailed view modal if /details/[uuid] is in the URL
+                            if (this.isRequestDetailedView) {
+                                // Get the selected submission
+                                const selectedIndex = this.submissions[state].findIndex(
+                                    (submission) =>
+                                        submission.submissionId === this.submissionIdToOpen,
+                                );
+                                const selectedSubmission =
+                                    selectedIndex !== -1
+                                        ? this.submissions[state][selectedIndex]
+                                        : null;
+
+                                if (selectedSubmission) {
+                                    const cols = selectedSubmission;
+                                    const id = selectedIndex + 1;
+                                    // Open details modal
+                                    this.requestDetailedSubmission(state, cols, id);
+                                }
+                            }
                         }
                     }
                 },
@@ -682,9 +703,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.enableCheckboxSelection(state);
                         this.enablePagination(state);
 
-                        // Destroy table if language changed
-                        this.submissionTables[state].buildTable();
-
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true;
                         this.showFormsTable = false;
@@ -692,31 +710,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         // Open submission details modal if /details/[uuid] is in the URL
                         // this.handleOpenDetailedSubmissionFromUrl()
                         const routingData = this.getRoutingData();
-                        const submissionId =
+                        this.submissionIdToOpen =
                             routingData.pathSegments[2] &&
                             routingData.pathSegments[2].match(/[0-9a-f-]+/)
                                 ? routingData.pathSegments[2]
                                 : null;
                         const isRequestDetailedView =
-                            routingData.pathSegments[1] === 'details' && submissionId;
+                            routingData.pathSegments[1] === 'details' && this.submissionIdToOpen;
 
-                        if (isRequestDetailedView) {
-                            // Get the selected submission
-                            const selectedIndex = this.submissions[state].findIndex(
-                                (submission) => submission.submissionId === submissionId,
-                            );
-                            const selectedSubmission =
-                                selectedIndex !== -1
-                                    ? this.submissions[state][selectedIndex]
-                                    : null;
+                        this.submissionTables[state].buildTable();
 
-                            if (selectedSubmission) {
-                                const cols = selectedSubmission;
-                                const id = selectedIndex + 1;
-                                // Open details modal
-                                this.requestDetailedSubmission(state, cols, id);
-                            }
-                        }
+                        // Open modal from the `dbp-tabulator-table-built` event listener
+                        this.isRequestDetailedView = isRequestDetailedView;
                     }
                 }
             }
@@ -1339,8 +1344,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (
             !this._(`#detailed-submission-modal-${state} .content-wrapper`) ||
             !this._(`#apply-col-settings-${state}`)
-        )
+        ) {
             return;
+        }
 
         // Reset modal content
         this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML = '';
@@ -1348,8 +1354,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.submissionsColumns[state].length !== 0) {
             for (let current_column of this.submissionsColumns[state]) {
                 if (current_column.field && current_column.field !== 'htmlButtons') {
+                    const labelText = current_column.title
+                        ? xss(current_column.title)
+                        : xss(current_column.field);
                     this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                        `<div class='element-left'>` + xss(current_column.field) + `:</div>`;
+                        `<div class='element-left'>` + labelText + `:</div>`;
 
                     if (current_column.field === 'dateCreated') {
                         this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
@@ -1366,8 +1375,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         } else {
             for (const [key, value] of Object.entries(entry)) {
                 // Skip the action buttons column and empty keys
-                if (key === 'htmlButtons') continue;
-                if (!key) continue;
+                if (!key || key === 'htmlButtons' || key === 'rowIndex') continue;
 
                 this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
                     `<div class='element-left'>` + xss(key) + `:</div>`;
