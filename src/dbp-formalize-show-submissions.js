@@ -969,28 +969,33 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 // Add link to show submission in render form view
                 // @TODO: only for forms that we are rendering ourselves and have readonly view
+                // activeForm.formSlug && hasReadonlyView(activeForm);
                 if (activeForm.formName === 'Ethikkommission') {
                     const submissionDetailsFormButton = this.submissionTables[
                         state
                     ].createScopedElement('dbp-formalize-get-submission-link');
                     // Set submission URL
-                    const activeFormSlug = activeForm ? activeForm.formSlug : null;
-                    let formSubmissionUrl =
-                        getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}/readonly`;
-                    /*
-                        t('show-submissions.open-detailed-view-form')
-                    */
-                    submissionDetailsFormButton.ariaLabel =
-                        'show-submissions.open-detailed-view-form';
-                    submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
-                    submissionDetailsFormButton.iconName = 'open-new-window';
-                    submissionDetailsFormButton.title = 'show-submissions.open-detailed-view-form';
-                    submissionDetailsFormButton.id = id.toString();
-                    submissionDetailsFormButton.setAttribute('subscribe', 'lang');
-                    submissionDetailsFormButton.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                    });
-                    actionButtonsDiv.appendChild(submissionDetailsFormButton);
+                    const activeFormSlug = activeForm.formSlug ? activeForm.formSlug : null;
+                    if (activeFormSlug) {
+                        let formSubmissionUrl =
+                            getFormRenderUrl(activeFormSlug, this.lang) +
+                            `/${submissionId}/readonly`;
+                        /*
+                            t('show-submissions.open-detailed-view-form')
+                        */
+                        submissionDetailsFormButton.ariaLabel =
+                            'show-submissions.open-detailed-view-form';
+                        submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
+                        submissionDetailsFormButton.iconName = 'open-new-window';
+                        submissionDetailsFormButton.title =
+                            'show-submissions.open-detailed-view-form';
+                        submissionDetailsFormButton.id = id.toString();
+                        submissionDetailsFormButton.setAttribute('subscribe', 'lang');
+                        submissionDetailsFormButton.addEventListener('click', (event) => {
+                            event.stopPropagation();
+                        });
+                        actionButtonsDiv.appendChild(submissionDetailsFormButton);
+                    }
                 }
 
                 // Add button to show submission details in a modal
