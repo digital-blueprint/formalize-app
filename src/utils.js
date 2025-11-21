@@ -44,6 +44,13 @@ export const FORM_PERMISSIONS = Object.freeze({
     MANAGE: 'manage',
 });
 
+export const TAG_PERMISSIONS = Object.freeze({
+    NONE: 0,
+    READ: 1,
+    READ_ADD: 2,
+    READ_ADD_REMOVE: 3,
+});
+
 export const SUBMISSION_PERMISSIONS = Object.freeze({
     READ: 'read',
     UPDATE: 'update',
@@ -101,7 +108,9 @@ export const arrayToObject = (array) => {
     if (!Array.isArray(array) || array.length < 1) return {};
 
     const result = Object.create(null);
-    for (const value of array) {
+
+    for (const item of array) {
+        const value = item.identifier;
         result[value] = value;
     }
     return result;

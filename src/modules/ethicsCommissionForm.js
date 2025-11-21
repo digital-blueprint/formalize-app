@@ -44,6 +44,7 @@ import {
     SUBMISSION_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
+    TAG_PERMISSIONS,
 } from '../utils.js';
 import {
     gatherFormDataFromElement /*, validateRequiredFields*/,
@@ -387,7 +388,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.formData = JSON.parse(this.data.dataFeedElement);
             this.submissionBinaryState = this.data.submissionState;
             this.submissionGrantedActions = this.data.grantedActions;
-            this.selectedTags = arrayToObject(this.data.tags);
+            this.selectedTags = this.data.tags;
             // Attachments
             const submittedFiles = {};
             for (const file of this.data.submittedFiles) {
@@ -6029,20 +6030,36 @@ class FormalizeFormElement extends BaseFormElement {
             return html``;
         }
 
+        if (
+            this.formProperties.tagPermissionsForSubmitters === TAG_PERMISSIONS.NONE &&
+            !this.isAdmin
+        ) {
+            return html``;
+        }
+
         if (this.readOnly) {
-            return Object.values(this.selectedTags).length > 0
-                ? html`
-                      <dbp-form-enum-view
-                          subscribe="lang"
-                          name="formTags"
-                          display-mode="tags"
-                          layout-type="inline"
-                          label="Tags:"
-                          .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
-                  `
-                : html``;
+            if (
+                this.formProperties.tagPermissionsForSubmitters >= TAG_PERMISSIONS.READ ||
+                this.isAdmin
+            ) {
+                return Object.values(this.selectedTags).length > 0
+                    ? html`
+                          <dbp-form-enum-view
+                              subscribe="lang"
+                              name="formTags"
+                              display-mode="tags"
+                              layout-type="inline"
+                              label="Tags:"
+                              .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
+                      `
+                    : html``;
+            }
         } else {
-            if (this.isAdmin) {
+            // Edit mode
+            if (
+                this.isAdmin ||
+                this.formProperties.tagPermissionsForSubmitters >= TAG_PERMISSIONS.READ_ADD
+            ) {
                 return html`
                     <dbp-form-enum-element
                         id="form-tags"
@@ -6062,15 +6079,20 @@ class FormalizeFormElement extends BaseFormElement {
                         .items=${this.allowedTags}></dbp-form-enum-element>
                 `;
             } else {
-                return html`
-                    <dbp-form-enum-view
-                        subscribe="lang"
-                        name="formTags"
-                        display-mode="tags"
-                        layout-type="inline"
-                        label="Tags:"
-                        .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
-                `;
+                if (
+                    this.formProperties.tagPermissionsForSubmitters >= TAG_PERMISSIONS.READ &&
+                    Object.values(this.selectedTags).length > 0
+                ) {
+                    return html`
+                        <dbp-form-enum-view
+                            subscribe="lang"
+                            name="formTags"
+                            display-mode="tags"
+                            layout-type="inline"
+                            label="Tags:"
+                            .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
+                    `;
+                }
             }
         }
     }

@@ -768,7 +768,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const id = x + 1;
                     const formName = entry['name'];
                     const formId = entry['identifier'];
-                    // const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
+                    const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
+                    const tagPermissionsForSubmitters = entry['tagPermissionsForSubmitters'];
                     const formGrantedActions = entry['grantedActions'];
                     const allowedSubmissionStates = entry['allowedSubmissionStates'];
                     const dataFeedSchema = entry['dataFeedSchema'];
@@ -778,8 +779,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         formName,
                         formId,
                         allowedSubmissionStates,
+                        allowedActionsWhenSubmitted,
                         formGrantedActions,
                         dataFeedSchema,
+                        tagPermissionsForSubmitters,
                     });
 
                     let btn = this.formsTable.createScopedElement(
@@ -894,6 +897,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 let dataFeedElement = submission['dataFeedElement'];
                 dataFeedElement = JSON.parse(dataFeedElement);
                 let submissionId = submission['identifier'];
+                // const grantedActions = submission['grantedActions'];
 
                 // Iterate trough dataFeedElement
                 for (const [key, value] of Object.entries(dataFeedElement)) {
@@ -916,6 +920,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             }
                         } else {
                             dataFeedElement[key] = this.userNameCache.get(value);
+                        }
+                    }
+                    // Remove formTags if no permission to view
+                    if (key === 'formTags') {
+                        const currentForm = this.forms.get(formId);
+                        const tagPermissions = currentForm?.tagPermissionsForSubmitters;
+                        const isAdmin = currentForm.formGrantedActions.some((grant) => {
+                            return (
+                                grant === FORM_PERMISSIONS.MANAGE ||
+                                grant === FORM_PERMISSIONS.UPDATE_SUBMISSIONS
+                            );
+                        });
+                        if (tagPermissions < 1 && !isAdmin) {
+                            delete dataFeedElement[key];
                         }
                     }
                 }
