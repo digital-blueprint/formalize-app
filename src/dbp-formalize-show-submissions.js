@@ -108,7 +108,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.formsTable = null;
 
-        this.submissionsHasAttachment = false;
+        this.submissionsHasAttachment = {
+            draft: false,
+            submitted: false,
+        };
         this.submittedFileDetails = {
             draft: new Map(),
             submitted: new Map(),
@@ -953,7 +956,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     Array.isArray(submittedFilesBasicResponse) &&
                     submittedFilesBasicResponse.length > 0
                 ) {
-                    this.submissionsHasAttachment = true;
+                    this.submissionsHasAttachment[state] = true;
                     // Extract file names from the submittedFiles array
                     try {
                         this.submittedFileDetails[state].set(
@@ -2329,7 +2332,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <option value="csv">CSV (${exportCount})</option>
                     <option value="xlsx">Excel (${exportCount})</option>
                     <option value="pdf">PDF (${exportCount})</option>
-                    ${this.submissionsHasAttachment
+                    ${this.submissionsHasAttachment[state]
                         ? html`
                               <option value="attachments">
                                   ${i18n.t('show-submissions.export-attachments-label', {
