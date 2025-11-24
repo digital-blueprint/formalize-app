@@ -61,7 +61,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.forms = new Map();
 
         this.rawSubmissions = [];
-        this.submissionGrantedActions = [];
+        this.submissionsGrantedActions = new Map();
         this.submissions = {
             draft: [],
             submitted: [],
@@ -861,9 +861,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.rawSubmissions = data['hydra:member'];
-        this.submissionGrantedActions = [
-            ...new Set(this.rawSubmissions.flatMap((item) => item.grantedActions)),
-        ];
+
+        this.submissionsGrantedActions = new Map();
+
+        this.rawSubmissions.forEach((submission) => {
+            this.submissionsGrantedActions.set(submission.identifier, submission.grantedActions);
+        });
 
         if (data['hydra:member'].length === 0) {
             this.noSubmissionAvailable = {
@@ -2484,29 +2487,45 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const activeForm = this.forms.get(this.activeFormId);
         const formGrantedActions = activeForm.formGrantedActions;
 
+        let selectedSubmissionsGrants = [];
+        for (const row of selectedRows) {
+            const submissionId = row.getData().submissionId;
+            selectedSubmissionsGrants.push(...this.submissionsGrantedActions.get(submissionId));
+        }
+        // console.log(`selectedSubmissionsGrants`, selectedSubmissionsGrants);
+
+        let allSubmissionsGrants = [];
+        for (const row of allRows) {
+            const submissionId = row.getData().submissionId;
+            allSubmissionsGrants.push(...this.submissionsGrantedActions.get(submissionId));
+        }
+        // console.log(`allSubmissionsGrants`, allSubmissionsGrants);
+
         // Set row counts
         this.selectedRowCount[state] = selectedRows.length;
         this.allRowCount[state] = allRows.length;
 
         this.isDeleteSelectedSubmissionEnabled[state] =
             this.selectedRowCount[state] > 0 &&
-            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
+            // If we can delete any of the selected submissions
+            (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isDeleteAllSubmissionEnabled[state] =
             this.selectedRowCount[state] === 0 &&
-            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE));
+            // If we can delete any of the submissions
+            (allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isEditSubmissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
-            (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+            (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.UPDATE));
 
         this.isEditSubmissionPermissionEnabled[state] =
-            (this.selectedRowCount[state] === 1 &&
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE)) ||
-            this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE);
+            this.selectedRowCount[state] === 1 &&
+            (formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE));
 
         this.requestUpdate();
     }
@@ -2549,7 +2568,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const tabulatorTableComponent = root.host;
             const state = this.getTableState(tabulatorTableComponent.id);
             this.selectedRowCount[state] = selectedRows.length;
-            this.setActionButtonsStates(state);
+
+            this.setIsActionAvailable(state);
         }
     }
 
