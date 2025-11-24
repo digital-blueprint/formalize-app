@@ -235,7 +235,6 @@ class FormalizeFormElement extends BaseFormElement {
             }
             if (this.formIdentifier) {
                 await this.getUsersGrants();
-                this.setButtonStates();
             }
 
             this.updateComplete.then(async () => {
@@ -349,6 +348,12 @@ class FormalizeFormElement extends BaseFormElement {
         this.isDownloadButtonAllowed = false;
         this.isSaveButtonEnabled = false;
 
+        // Dropdown actions
+        this.isUserAllowedToEditSubmission = false;
+        this.isUserAllowedToEditPermission = false;
+        this.isUserAllowedToDeleteSubmission = false;
+        this.isUserAllowedToDownloadPdf = false;
+
         // No state
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed = isDraftStateEnabled(this.allowedSubmissionStates);
@@ -362,6 +367,12 @@ class FormalizeFormElement extends BaseFormElement {
                 // edit mode
                 this.isDraftButtonAllowed = true;
                 this.isViewModeButtonAllowed = true;
+            } else {
+                // view mode
+                // Everyone is manager of their own draft
+                this.isUserAllowedToEditSubmission = true;
+                this.isUserAllowedToEditPermission = true;
+                this.isUserAllowedToDeleteSubmission = true;
             }
         }
 
@@ -374,12 +385,26 @@ class FormalizeFormElement extends BaseFormElement {
                     this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
+            } else {
+                // view mode
+                this.isUserAllowedToEditSubmission =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
+
+                this.isUserAllowedToEditPermission =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE);
+
+                this.isUserAllowedToDeleteSubmission =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
             }
         }
     }
 
     async processFormData() {
-        // console.log(`[update: data] processFormData`, this.data);
         try {
             this.currentSubmission = this.data;
 
@@ -913,8 +938,6 @@ class FormalizeFormElement extends BaseFormElement {
                 ...this.conditionalFields,
                 [fieldName]: isConditionMet,
             };
-
-            console.log(`this.conditionalFields`, this.conditionalFields);
         }
     }
 
@@ -1031,7 +1054,6 @@ class FormalizeFormElement extends BaseFormElement {
 
                 // Add new submission to the list
                 this.userAllDraftSubmissions.push(responseBody);
-                this.userAllSubmissions.push(responseBody);
 
                 // Update URL with the submission ID
                 const newSubmissionUrl =
@@ -1163,8 +1185,7 @@ class FormalizeFormElement extends BaseFormElement {
                 this.votingFileToRemove = new Map();
 
                 // Add new submission to the list
-                this.userAllDraftSubmissions.push(responseBody);
-                this.userAllSubmissions.push(responseBody);
+                this.userAllSubmittedSubmissions.push(responseBody);
 
                 // Hide form after successful submission
                 this.hideForm = true;
@@ -6165,78 +6186,46 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.formActions = [];
 
-        // DRAFT
-        if (this.currentState === SUBMISSION_STATES.DRAFT) {
-            if (this.readOnly) {
-                this.formActions = [
-                    {
-                        name: 'cancel',
-                        label: this.readOnly
-                            ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
-                            : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
-                        iconName: this.readOnly ? 'pencil' : 'close',
-                    },
-                    {
-                        name: 'edit-permissions',
-                        label: i18n.t(
-                            'render-form.forms.ethics-commission-form.edit-permission-button-text',
-                        ),
-                        iconName: 'edit-permission',
-                        disabled: !this.isAdmin && !this.isFormManager,
-                    },
-                    {
-                        name: 'download',
-                        label: i18n.t(
-                            'render-form.forms.ethics-commission-form.download-button-text',
-                        ),
-                        iconName: 'download',
-                    },
-                    {
-                        name: 'delete',
-                        label: i18n.t(
-                            'render-form.forms.ethics-commission-form.discard-draft-button-text-label',
-                        ),
-                        iconName: 'trash',
-                    },
-                ];
-            }
+        if (this.isUserAllowedToEditSubmission) {
+            this.formActions.push({
+                name: 'cancel',
+                label: this.readOnly
+                    ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
+                    : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
+                iconName: this.readOnly ? 'pencil' : 'close',
+            });
+        }
+        if (this.isUserAllowedToEditPermission) {
+            this.formActions.push({
+                name: 'edit-permissions',
+                label: i18n.t(
+                    'render-form.forms.ethics-commission-form.edit-permission-button-text',
+                ),
+                iconName: 'edit-permission',
+            });
         }
 
-        // SUBMITTED
-        if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
-            if (this.readOnly) {
-                this.formActions = [
-                    {
-                        name: 'cancel',
-                        label: this.readOnly
-                            ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
-                            : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
-                        iconName: this.readOnly ? 'pencil' : 'close',
-                    },
-                    {
-                        name: 'edit-permissions',
-                        label: i18n.t(
-                            'render-form.forms.ethics-commission-form.edit-permission-button-text',
-                        ),
-                        iconName: 'edit-permission',
-                        disabled: !this.isAdmin && !this.isFormManager,
-                    },
-                    {
-                        name: 'download',
-                        label: i18n.t(
-                            'render-form.forms.ethics-commission-form.download-button-text',
-                        ),
-                        iconName: 'download',
-                    },
-                    {
-                        name: 'delete',
-                        label: i18n.t(
-                            'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
-                        ),
-                        iconName: 'trash',
-                    },
-                ];
-            }
+        if (this.isUserAllowedToEditSubmission) {
+            this.formActions.push({
+                name: 'download',
+                label: i18n.t('render-form.forms.ethics-commission-form.download-button-text'),
+                iconName: 'download',
+            });
+        }
+
+        if (this.isUserAllowedToDeleteSubmission) {
+            this.formActions.push({
+                name: 'delete',
+                label:
+                    this.currentState === SUBMISSION_STATES.SUBMITTED
+                        ? i18n.t(
+                              'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
+                          )
+                        : i18n.t(
+                              'render-form.forms.ethics-commission-form.discard-draft-button-text-label',
+                          ),
+                iconName: 'trash',
+            });
         }
 
         return html`
