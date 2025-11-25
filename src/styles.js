@@ -849,6 +849,10 @@ export function getShowSubmissionCSS() {
             background-color: #fff0; /* transparent */
         }
 
+        .modal-close {
+            font-size: 1.25em;
+        }
+
         .headers {
             max-width: 100%;
             margin: 0;

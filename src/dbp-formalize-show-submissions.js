@@ -2064,19 +2064,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         aria-modal="true"
                         aria-labelledby="detailed-submission-modal-title">
                         <header class="modal-header">
-                            <button
+                            <dbp-icon-button
                                 title="${i18n.t('show-submissions.modal-close')}"
-                                class="modal-close"
                                 aria-label="${i18n.t('show-submissions.modal-close')}"
+                                class="modal-close"
+                                icon-name="close"
                                 @click="${() => {
                                     this.closeDetailModal(state);
-                                }}">
-                                <dbp-icon
-                                    title="${i18n.t('show-submissions.modal-close')}"
-                                    aria-hidden="true"
-                                    name="close"
-                                    class="close-icon"></dbp-icon>
-                            </button>
+                                }}"></dbp-icon-button>
                             <h3
                                 id="detailed-submission-modal-title-${state}"
                                 class="detailed-submission-modal-title">
