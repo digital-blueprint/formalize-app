@@ -66,6 +66,7 @@
             "ethics-commission-form": {
                 "acquisition-of-test-subjects-label": "Akquise der Proband*innen",
                 "acquisition-of-test-subjects-placeholder": "Bitte beschreiben Sie, wie Sie Proband*innen für Ihre Studie akquirieren und fügen Sie etwaiges Informationsmaterial, Aushänge, Rekrutierungstexte für Mails etc. an.",
+                "actions-dropdown-label": "Aktionen",
                 "adequate-safety-measures-label": "Have adequate safety measures been taken to reduce the risk to participants and researchers?",
                 "admin-voting-file-upload": "Votum",
                 "admin-voting-results-title": "Ergebnis des Votums",

@@ -66,6 +66,7 @@
             "ethics-commission-form": {
                 "acquisition-of-test-subjects-label": "Acquisition of the participants",
                 "acquisition-of-test-subjects-placeholder": "Please describe how you recruit participants for your study and attach any information material, notices, recruitment texts for emails, etc.",
+                "actions-dropdown-label": "Actions",
                 "adequate-safety-measures-label": "Have adequate safety measures been taken to reduce the risk to participants and researchers?",
                 "admin-voting-file-upload": "Voting file upload",
                 "admin-voting-results-title": "Voting result",

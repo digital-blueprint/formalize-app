@@ -6248,7 +6248,9 @@ class FormalizeFormElement extends BaseFormElement {
                         ? html`
                               <dbp-select
                                   id="action-dropdown"
-                                  label="Actions"
+                                  label="${i18n.t(
+                                      'render-form.forms.ethics-commission-form.actions-dropdown-label',
+                                  )}"
                                   .options="${this.formActions}"></dbp-select>
                           `
                         : ''}
