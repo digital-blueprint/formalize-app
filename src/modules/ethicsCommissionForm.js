@@ -106,9 +106,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.lastModifiedCreatorName = null;
         this.newSubmissionId = null;
 
-        this.userAllDraftSubmissions = [];
-        this.userAllSubmittedSubmissions = [];
-
         // Grants
         this.formGrantedActions = [];
         this.isAdmin = false;
@@ -282,12 +279,6 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         if (changedProperties.has('userAllSubmissions')) {
-            this.userAllSubmittedSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED,
-            );
-            this.userAllDraftSubmissions = this.userAllSubmissions.filter(
-                (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.DRAFT,
-            );
             this.setButtonStates();
         }
 
@@ -1075,9 +1066,6 @@ class FormalizeFormElement extends BaseFormElement {
                 this.votingFileToSubmit = new Map();
                 this.votingFileToRemove = new Map();
 
-                // Add new submission to the list
-                this.userAllDraftSubmissions.push(responseBody);
-
                 // Update URL with the submission ID
                 const newSubmissionUrl =
                     getFormRenderUrl(this.formUrlSlug, this.lang) + `/${this.newSubmissionId}`;
@@ -1206,9 +1194,6 @@ class FormalizeFormElement extends BaseFormElement {
 
                 this.votingFileToSubmit = new Map();
                 this.votingFileToRemove = new Map();
-
-                // Add new submission to the list
-                this.userAllSubmittedSubmissions.push(responseBody);
 
                 // Hide form after successful submission
                 this.hideForm = true;
@@ -1988,83 +1973,6 @@ class FormalizeFormElement extends BaseFormElement {
             </div>
         `;
     }
-
-    /**
-     * Render submission details, list of grants and share grants button
-     * @returns {import('lit').TemplateResult} The HTML template result
-     */
-    /*
-    renderSubmissionPermissions() {
-        const i18n = this._i18n;
-
-        // If current user has manage right for the submission
-        // OR has form level manage right
-        if (
-            this.submissionGrantedActions.some(
-                (grant) => grant === SUBMISSION_PERMISSIONS.MANAGE,
-            ) ||
-            this.isFormManager
-        ) {
-            return html`
-                <div class="form-details">
-                    <div class="submission-details">
-                        <div id="submission-permissions" class="submission-permissions">
-                            <div class="permissions-header">
-                                <button
-                                    class="user-permissions-title"
-                                    .disabled=${this.allUsersSubmissionGrants.length === 0}
-                                    @click="${(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        this._('#submission-permissions').classList.toggle('open');
-                                    }}">
-                                    <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
-                                    ${i18n.t(
-                                        'render-form.forms.ethics-commission-form.user-permissions-title',
-                                    )}
-                                    (${this.allUsersSubmissionGrants.length
-                                        ? this.allUsersSubmissionGrants.length
-                                        : 0})
-                                </button>
-                                <dbp-button
-                                    class="edit-permissions"
-                                    no-spinner-on-click
-                                    type="is-secondary"
-                                    @click=${() => this._('#grant-permission-dialog').open()}>
-                                    <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                                    <span class="button-text">
-                                        ${i18n.t(
-                                            'render-form.forms.ethics-commission-form.edit-permission-button-text',
-                                        )}
-                                    </span>
-                                </dbp-button>
-                            </div>
-                            <div class="users-permissions">
-                                ${this.allUsersSubmissionGrants.map(
-                                    (userEntry) => html`
-                                        <div class="user-entry">
-                                            <span class="person-name">${userEntry.userName}:</span>
-                                            <span class="person-permissions">
-                                                ${userEntry.actions.map(
-                                                    (action) => html`
-                                                        <span class="person-permission">
-                                                            ${action}
-                                                        </span>
-                                                    `,
-                                                )}
-                                            </span>
-                                        </div>
-                                    `,
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            return html``;
-        }
-    }*/
 
     /**
      * Renders the form in read-only mode.
