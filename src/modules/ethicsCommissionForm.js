@@ -47,7 +47,8 @@ import {
     TAG_PERMISSIONS,
 } from '../utils.js';
 import {
-    gatherFormDataFromElement /*, validateRequiredFields*/,
+    gatherFormDataFromElement,
+    validateRequiredFields,
 } from '@dbp-toolkit/form-elements/src/utils.js';
 import html2pdf from 'html2pdf.js';
 
@@ -123,6 +124,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.isPrintButtonAllowed = false;
         this.isDownloadButtonAllowed = false;
         this.isSaveButtonEnabled = false;
+
+        this.needValidationOnLoad = false;
 
         // Attachments
         this.submittedFiles = new Map();
@@ -239,6 +242,15 @@ class FormalizeFormElement extends BaseFormElement {
 
             this.updateComplete.then(async () => {
                 await this.processConditionalFields();
+                // If query parameter 'validate' is set to true, validate required fields
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('validate') === 'true') {
+                    const formElement = this.shadowRoot.querySelector('form');
+                    const isValid = await validateRequiredFields(formElement);
+                    if (!isValid) {
+                        this.scrollToFirstInvalidField(formElement);
+                    }
+                }
             });
         }
 
@@ -766,6 +778,12 @@ class FormalizeFormElement extends BaseFormElement {
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
 
+            // Event listener for toggle submission state
+            this.addEventListener(
+                'DbpFormalizeFormToggleSubmissionState',
+                this.handleToggleSubmissionState,
+            );
+
             // Event listener for delete submission
             this.addEventListener(
                 'DbpFormalizeFormDeleteSubmission',
@@ -793,6 +811,11 @@ class FormalizeFormElement extends BaseFormElement {
         );
 
         this.removeEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
+
+        this.removeEventListener(
+            'DbpFormalizeFormToggleSubmissionState',
+            this.handleToggleSubmissionState,
+        );
 
         this.removeEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
 
@@ -1215,6 +1238,82 @@ class FormalizeFormElement extends BaseFormElement {
             // Put back files that we did not delete?
             this.submittedFiles = submittedFilesBackup;
 
+            console.error(error.message);
+            sendNotification({
+                summary: 'Error',
+                body: error.message,
+                type: 'danger',
+                timeout: 0,
+            });
+        }
+    }
+
+    async handleToggleSubmissionState(event) {
+        const data = event.detail;
+        const submissionId = data.submissionId;
+        const formData = new FormData();
+
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
+
+        const method = 'PATCH';
+        const options = this._buildRequestOptions(formData, method);
+        const url = this._buildSubmissionUrl(submissionId);
+
+        try {
+            const response = await fetch(url, options);
+            let responseBody = await response.json();
+            if (!response.ok) {
+                this.submissionError = true;
+                if (
+                    responseBody['relay:errorId'] ===
+                    'formalize:submission-data-feed-invalid-schema'
+                ) {
+                    sendNotification({
+                        summary: 'Error',
+                        body: `Validation of the data failed. You need to edit your submission before submitting.`,
+                        type: 'danger',
+                        timeout: 0,
+                    });
+                    // Trigger validation on page load
+                    this.needValidationOnLoad = true;
+                } else {
+                    sendNotification({
+                        summary: 'Error',
+                        body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
+                        type: 'danger',
+                        timeout: 0,
+                    });
+                }
+            } else {
+                this.currentState = SUBMISSION_STATES.SUBMITTED;
+                this.submitted = true;
+
+                // Add new submission to the list
+                this.userAllSubmittedSubmissions.push(responseBody);
+
+                // Hide form after successful submission
+                this.hideForm = true;
+                this.disableLeavePageWarning();
+
+                sendNotification({
+                    summary: 'Success',
+                    body: 'Form submitted successfully',
+                    type: 'success',
+                    timeout: 5,
+                });
+
+                // formDataUpdated event to notify parent component
+                this.dispatchEvent(
+                    new CustomEvent('dbpFormDataUpdated', {
+                        detail: {
+                            needUpdate: true,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
+            }
+        } catch (error) {
             console.error(error.message);
             sendNotification({
                 summary: 'Error',
@@ -1985,7 +2084,7 @@ class FormalizeFormElement extends BaseFormElement {
                 }
             </style>
 
-            <form id="ethics-commission-form" aria-labelledby="form-title">
+            <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({hidden: this.hideForm})}">
 
                 <div class="scroller-container">
                     <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
@@ -6350,7 +6449,11 @@ class FormalizeFormElement extends BaseFormElement {
                                   class="form-submit-button"
                                   type="is-primary"
                                   no-spinner-on-click
-                                  @click=${this.validateAndSendSubmission}
+                                  @click=${(event) => {
+                                      this.readOnly
+                                          ? this.toggleSubmissionState(event)
+                                          : this.validateAndSendSubmission(event);
+                                  }}
                                   title="${i18n.t(
                                       'render-form.forms.ethics-commission-form.submit-button-text',
                                   )}"
@@ -6394,6 +6497,12 @@ class FormalizeFormElement extends BaseFormElement {
             // Remove '/readonly' from the pathname
             const readOnlyPath = url.pathname.replace(/\/readonly$/, '');
             url.pathname = readOnlyPath;
+
+            if (this.needValidationOnLoad) {
+                // Append 'validate=true' query parameter
+                url.searchParams.set('validate', 'true');
+            }
+
             window.history.pushState({}, '', url);
             // Redirect to the new URL
             window.location.href = url.toString();

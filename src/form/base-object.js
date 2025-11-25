@@ -70,11 +70,24 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             const invalidElement = element.shadowRoot.querySelector('.validation-errors');
             if (invalidElement) {
                 const invalidFieldLabel = invalidElement.closest('fieldset').querySelector('label');
-                invalidFieldLabel.style.scrollMarginTop = '70px';
-                invalidFieldLabel.scrollIntoView({behavior: 'smooth'});
+                invalidFieldLabel.style.scrollMarginTop = '100px';
+                invalidFieldLabel.scrollIntoView({behavior: 'smooth', block: 'start'});
                 break;
             }
         }
+    }
+
+    async toggleSubmissionState(event) {
+        const data = {
+            submissionId: this.submissionId,
+        };
+
+        const customEvent = new CustomEvent('DbpFormalizeFormToggleSubmissionState', {
+            detail: data,
+            bubbles: true,
+            composed: true,
+        });
+        this.dispatchEvent(customEvent);
     }
 
     /**
@@ -248,7 +261,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                     class="button is-primary"
                     type="submit"
                     ?disabled=${!this.saveButtonEnabled}
-                    @click=${this.validateAndSendSubmission}>
+                    @click=${(event) => this.validateAndSendSubmission(event)}>
                     ${i18n.t('render-form.button-row.submit')}
                     <dbp-mini-spinner
                         class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
