@@ -4111,7 +4111,8 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.ethics-commission-form.short-description-placeholder',
                         )}"
                         value=${data.shortDescription || ''}
-                        rows="5"></dbp-form-string-element>
+                        rows="5"
+                        required></dbp-form-string-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
@@ -4123,7 +4124,8 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.ethics-commission-form.data-source-placeholder',
                         )}"
                         value=${data.dataSource || ''}
-                        rows="5"></dbp-form-string-element>
+                        rows="5"
+                        required></dbp-form-string-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
