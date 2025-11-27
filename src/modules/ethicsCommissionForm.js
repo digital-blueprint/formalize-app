@@ -343,6 +343,9 @@ class FormalizeFormElement extends BaseFormElement {
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
+        console.log(`this.formGrantedActions`, this.formGrantedActions);
+        console.log(`this.submissionGrantedActions`, this.submissionGrantedActions);
+
         this.isViewModeButtonAllowed = false;
         this.isDraftButtonAllowed = false;
         this.isDeleteSubmissionButtonAllowed = false;
@@ -359,23 +362,50 @@ class FormalizeFormElement extends BaseFormElement {
 
         // No state
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
-            this.isDraftButtonAllowed = isDraftStateEnabled(this.allowedSubmissionStates);
-            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
+            this.isDraftButtonAllowed =
+                isDraftStateEnabled(this.allowedSubmissionStates) &&
+                (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+            this.isSubmitButtonEnabled =
+                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
+                (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.formGrantedActions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
         }
 
         // DRAFT
         if (this.currentState === SUBMISSION_STATES.DRAFT) {
-            this.isSubmitButtonEnabled = isSubmittedStateEnabled(this.allowedSubmissionStates);
+            this.isSubmitButtonEnabled =
+                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
+                (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
             if (!this.readOnly) {
                 // edit mode
-                this.isDraftButtonAllowed = true;
                 this.isViewModeButtonAllowed = true;
+                this.isDraftButtonAllowed =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
             } else {
                 // view mode
-                // Everyone is manager of their own draft
-                this.isUserAllowedToEditSubmission = true;
-                this.isUserAllowedToEditPermission = true;
-                this.isUserAllowedToDeleteSubmission = true;
+                this.isUserAllowedToDownloadPdf = true;
+
+                this.isUserAllowedToEditSubmission =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
+                this.isUserAllowedToEditPermission =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE);
+                this.isUserAllowedToDeleteSubmission =
+                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
             }
         }
 
@@ -390,6 +420,8 @@ class FormalizeFormElement extends BaseFormElement {
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
             } else {
                 // view mode
+                this.isUserAllowedToDownloadPdf = true;
+
                 this.isUserAllowedToEditSubmission =
                     this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
@@ -6214,7 +6246,7 @@ class FormalizeFormElement extends BaseFormElement {
             });
         }
 
-        if (this.isUserAllowedToEditSubmission) {
+        if (this.isUserAllowedToDownloadPdf) {
             this.formActions.push({
                 name: 'download',
                 label: i18n.t('render-form.forms.ethics-commission-form.download-button-text'),

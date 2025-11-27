@@ -42,13 +42,9 @@ export const FORM_PERMISSIONS = Object.freeze({
     UPDATE_SUBMISSIONS: 'update_submissions',
     DELETE_SUBMISSIONS: 'delete_submissions',
     MANAGE: 'manage',
-});
-
-export const TAG_PERMISSIONS = Object.freeze({
-    NONE: 0,
-    READ: 1,
-    READ_ADD: 2,
-    READ_ADD_REMOVE: 3,
+    READ_TAGS: 'read_tags',
+    READ_ADD_TAGS: 'read_add_tags',
+    READ_ADD_REMOVE_TAGS: 'read_add_remove_tags',
 });
 
 export const SUBMISSION_PERMISSIONS = Object.freeze({
@@ -56,6 +52,13 @@ export const SUBMISSION_PERMISSIONS = Object.freeze({
     UPDATE: 'update',
     DELETE: 'delete',
     MANAGE: 'manage',
+});
+
+export const TAG_PERMISSIONS = Object.freeze({
+    NONE: 0,
+    READ: 1,
+    READ_ADD: 2,
+    READ_ADD_REMOVE: 3,
 });
 
 export function isDraftStateEnabled(allowedSubmissionStates) {

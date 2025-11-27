@@ -163,9 +163,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.formProperties = data;
 
         // Check if the user has the permission to manage the form or create submissions
+        // @todo: IS A USER WITH READ PERMISSION ALLOWED TO VIEW THE READONLY FORM?
         return (
             Array.isArray(data.grantedActions) &&
             (data.grantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                data.grantedActions.includes(FORM_PERMISSIONS.READ) ||
                 data.grantedActions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS))
         );
     }

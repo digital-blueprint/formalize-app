@@ -2541,23 +2541,26 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.selectedRowCount[state] > 0 &&
             // If we can delete any of the selected submissions
             (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE) ||
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
         this.isDeleteAllSubmissionEnabled[state] =
             this.selectedRowCount[state] === 0 &&
             // If we can delete any of the submissions
             (allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
+                allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE) ||
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
         this.isEditSubmissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
             (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.UPDATE));
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
         this.isEditSubmissionPermissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
-            (formGrantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE));
+            (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
 
         this.requestUpdate();
     }
