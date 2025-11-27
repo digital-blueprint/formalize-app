@@ -1275,13 +1275,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
 
         // Add attachment fields from the schema files property
-        Object.keys(formSchemaFields.files).forEach((attachmentType) => {
-            schemaColumnDefinitions.push({
-                field: `form_files-${attachmentType}`,
-                title: attachmentType,
-                visible: true,
+        if (formSchemaFields.files && typeof formSchemaFields.files === 'object') {
+            Object.keys(formSchemaFields.files).forEach((attachmentType) => {
+                schemaColumnDefinitions.push({
+                    field: `form_files-${attachmentType}`,
+                    title: attachmentType,
+                    visible: true,
+                });
             });
-        });
+        }
+
 
         // Append fields also not present in the schema but needed in the table
         const postFieldDefinitions = columnDefinitions.filter((columnDefinition) => {
