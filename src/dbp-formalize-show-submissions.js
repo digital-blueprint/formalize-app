@@ -12,7 +12,6 @@ import {
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
-import {Activity} from './activity.js';
 import {CustomTabulatorTable} from './table-components.js';
 import MicroModal from './micromodal.es.js';
 import {FileSink} from '@dbp-toolkit/file-handling';
@@ -40,7 +39,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.allForms = [];
-        this.activity = new Activity(metadata);
         this.boundKeyEventHandler = this.handleKeyEvents.bind(this);
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
@@ -2925,12 +2923,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 class="${classMap({
                     hidden: !this.isLoggedIn() || this.isAuthPending(),
                 })}">
-                <h2>${this.activity.getUrlSlug(this.lang)}</h2>
-
                 <div>
-                    <p class="subheadline">
-                        <slot name="description">${this.activity.getDescription(this.lang)}</slot>
-                    </p>
                     <slot name="additional-information"></slot>
                 </div>
 

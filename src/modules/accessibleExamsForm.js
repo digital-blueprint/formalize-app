@@ -1,5 +1,5 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
-import {html} from 'lit';
+import {html, css} from 'lit';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -199,6 +199,17 @@ class FormalizeFormElement extends BaseFormElement {
         const name = nameAndMail.slice(0, -1).join(' ');
         const mail = nameAndMail[nameAndMail.length - 1];
         return [name, mail];
+    }
+
+    static get styles() {
+        return [
+            super.styles,
+            css`
+                #title {
+                    margin-top: 0;
+                }
+            `,
+        ];
     }
 
     render() {
