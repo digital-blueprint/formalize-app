@@ -900,6 +900,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             for (let [x, submission] of submissions[state].entries()) {
                 let dateCreated = submission['dateCreated'];
                 dateCreated = this.humanReadableDate(dateCreated);
+
                 let dataFeedElement = submission['dataFeedElement'];
                 dataFeedElement = JSON.parse(dataFeedElement);
                 let submissionId = submission['identifier'];
@@ -1500,38 +1501,74 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         exportInput.value = '-';
     }
 
+    /**
+     * Return the download folder name based on the pattern set in the form schema
+     * @param {string} submissionId - identifier of the submission
+     * @param {string} state - submission state (draft/submitted)
+     * @returns {string} - the folder name for downloading attachments
+     */
     getDownloadFolderName(submissionId, state) {
+        const SCHEMA_FIELD_PREFIX = 'schemaField/';
+        const SYSTEM_ATTRIBUTE_PREFIX = 'systemAttribute/';
         let patternMatchingFailed = false;
         const submissionData = this.submissions[state].find((submission) => {
             return submission.submissionId === submissionId;
         });
 
-        // Fallback to submissionId if no pattern is set
-        if (!this.downloadFolderNamePattern || this.downloadFolderNamePattern === '') {
+        if (!submissionData || !submissionData['submissionId']) {
+            throw new Error('Submission data not found for submissionId: ' + submissionId);
+        }
+
+        // Fallback to submissionId if no pattern is set or no submission data found
+        if (
+            !this.downloadFolderNamePattern ||
+            this.downloadFolderNamePattern === '' ||
+            !submissionData
+        ) {
             return submissionData['submissionId'];
         }
 
-        // ${applicant}_${userTitleShort}
-        let patternFields = this.downloadFolderNamePattern.split('_');
+        // ${SCHEMA_FIELD_PREFIX/applicant}_${SYSTEM_ATTRIBUTE_PREFIX/lastModifiedDate}_${SCHEMA_FIELD_PREFIX/userTitleShort}
+        let fieldPatterns = this.downloadFolderNamePattern.split('_');
         let folderNameParts = [];
-        for (const fieldPattern of patternFields) {
+
+        for (const fieldPattern of fieldPatterns) {
             // Remove ${ and } to get the field name
-            const fieldName = fieldPattern.replace(/\${([a-zA-Z]+)}/, '$1');
-            if (!submissionData[fieldName]) {
-                patternMatchingFailed = true;
-            } else {
-                // Get field value and replace spaces with dashes
-                folderNameParts.push(submissionData[fieldName].replace(/\s+/g, '-'));
+            const fieldName = fieldPattern.replace(/\${([a-zA-Z/]+)}/, '$1');
+
+            // System attributes
+            if (fieldName && fieldName.startsWith(SYSTEM_ATTRIBUTE_PREFIX)) {
+                const systemAttribute = fieldName.replace(SYSTEM_ATTRIBUTE_PREFIX, '');
+                const submission = this.rawSubmissions.find((submission) => {
+                    return submission.identifier === submissionId;
+                });
+                if (submission && submission[systemAttribute]) {
+                    folderNameParts.push(submission[systemAttribute].replace(/\s+/g, '-'));
+                } else {
+                    patternMatchingFailed = true;
+                }
+            }
+
+            // Schema fields
+            if (fieldName && fieldName.startsWith(SCHEMA_FIELD_PREFIX)) {
+                const schemaField = fieldName.replace(SCHEMA_FIELD_PREFIX, '');
+                if (!submissionData[schemaField]) {
+                    patternMatchingFailed = true;
+                } else {
+                    // Get field value and replace spaces with dashes
+                    folderNameParts.push(`${submissionData[schemaField]}`.replace(/\s+/g, '-'));
+                }
             }
         }
 
         // Fallback to submissionId if pattern matching failed (no field data available)
-        if (patternMatchingFailed) {
+        if (patternMatchingFailed || folderNameParts.length === 0) {
             return submissionData['submissionId'];
         }
 
         const folderName = folderNameParts.join('_');
-        return folderName;
+        // Cut to max 230 characters to avoid issues with long file paths
+        return folderName.substring(0, 230);
     }
 
     /**
