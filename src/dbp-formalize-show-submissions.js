@@ -1285,7 +1285,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             });
         }
 
-
         // Append fields also not present in the schema but needed in the table
         const postFieldDefinitions = columnDefinitions.filter((columnDefinition) => {
             if (columnDefinition.field === undefined) return false;
