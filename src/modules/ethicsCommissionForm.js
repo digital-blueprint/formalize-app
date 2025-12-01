@@ -40,7 +40,7 @@ import {
 import {
     SUBMISSION_STATES,
     SUBMISSION_STATES_BINARY,
-    FORM_PERMISSIONS,
+    SUBMISSION_COLLECTION_PERMISSIONS,
     SUBMISSION_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
@@ -107,9 +107,8 @@ class FormalizeFormElement extends BaseFormElement {
         this.newSubmissionId = null;
 
         // Grants
-        this.formGrantedActions = [];
+        this.formGrantedSubmissionCollectionActions = [];
         this.isAdmin = false;
-        this.isFormManager = false;
         this.submissionGrantedActions = [];
         this.allUsersSubmissionGrants = [];
 
@@ -254,19 +253,17 @@ class FormalizeFormElement extends BaseFormElement {
         if (changedProperties.has('formProperties')) {
             if (Object.keys(this.formProperties).length > 0) {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
-                this.formGrantedActions = this.formProperties.grantedActions;
+                this.formGrantedSubmissionCollectionActions =
+                    this.formProperties.grantedSubmissionCollectionActions;
                 this.allowedTags = arrayToObject(this.formProperties.availableTags);
                 this.allowedFileUploadCounts = this.getAllowedFileUploadCount(
                     this.formProperties.dataFeedSchema,
                 );
 
-                this.isAdmin = this.formGrantedActions.some(
+                this.isAdmin = this.formGrantedSubmissionCollectionActions.some(
                     (grant) =>
-                        grant === FORM_PERMISSIONS.MANAGE ||
-                        grant === FORM_PERMISSIONS.UPDATE_SUBMISSIONS,
-                );
-                this.isFormManager = this.formGrantedActions.some(
-                    (grant) => grant === FORM_PERMISSIONS.MANAGE,
+                        grant === SUBMISSION_COLLECTION_PERMISSIONS.MANAGE ||
+                        grant === SUBMISSION_COLLECTION_PERMISSIONS.UPDATE,
                 );
                 this.setButtonStates();
             }
@@ -343,7 +340,10 @@ class FormalizeFormElement extends BaseFormElement {
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
-        console.log(`this.formGrantedActions`, this.formGrantedActions);
+        console.log(
+            `this.formGrantedSubmissionCollectionActions`,
+            this.formGrantedSubmissionCollectionActions,
+        );
         console.log(`this.submissionGrantedActions`, this.submissionGrantedActions);
 
         this.isViewModeButtonAllowed = false;
@@ -364,31 +364,33 @@ class FormalizeFormElement extends BaseFormElement {
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed =
                 isDraftStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+                (this.formGrantedSubmissionCollectionActions?.includes(
+                    SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
+                ) ||
+                    this.formGrantedSubmissionCollectionActions?.includes(
+                        SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
+                    ));
+
             this.isSubmitButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.formGrantedActions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
+                (this.formGrantedSubmissionCollectionActions?.includes(
+                    SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
+                ) ||
+                    this.formGrantedSubmissionCollectionActions.includes(
+                        SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
+                    ));
         }
 
         // DRAFT
         if (this.currentState === SUBMISSION_STATES.DRAFT) {
             this.isSubmitButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
+                (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
             if (!this.readOnly) {
                 // edit mode
                 this.isViewModeButtonAllowed = true;
                 this.isDraftButtonAllowed =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
             } else {
@@ -396,14 +398,12 @@ class FormalizeFormElement extends BaseFormElement {
                 this.isUserAllowedToDownloadPdf = true;
 
                 this.isUserAllowedToEditSubmission =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
-                this.isUserAllowedToEditPermission =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE);
+                this.isUserAllowedToEditPermission = this.submissionGrantedActions.includes(
+                    SUBMISSION_PERMISSIONS.MANAGE,
+                );
                 this.isUserAllowedToDeleteSubmission =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
             }
@@ -415,7 +415,6 @@ class FormalizeFormElement extends BaseFormElement {
                 // edit mode
                 this.isViewModeButtonAllowed = true;
                 this.isSaveButtonEnabled =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
             } else {
@@ -423,16 +422,14 @@ class FormalizeFormElement extends BaseFormElement {
                 this.isUserAllowedToDownloadPdf = true;
 
                 this.isUserAllowedToEditSubmission =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
 
-                this.isUserAllowedToEditPermission =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE);
+                this.isUserAllowedToEditPermission = this.submissionGrantedActions.includes(
+                    SUBMISSION_PERMISSIONS.MANAGE,
+                );
 
                 this.isUserAllowedToDeleteSubmission =
-                    this.formGrantedActions?.includes(FORM_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
                     this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
             }
@@ -1861,7 +1858,6 @@ class FormalizeFormElement extends BaseFormElement {
                 };
                 const response = await fetch(apiFile.downloadUrl, options);
                 if (!response.ok) {
-                    // this.handleErrorResponse(response);
                     sendNotification({
                         summary: this._i18n.t('errors.other-title'),
                         body: this._i18n.t('errors.other-body'),

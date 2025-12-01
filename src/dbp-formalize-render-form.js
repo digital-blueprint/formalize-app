@@ -4,12 +4,7 @@ import {ScopedElementsMixin, sendNotification} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
-import {
-    pascalToKebab,
-    getFormRenderUrl,
-    getFormShowSubmissionsUrl,
-    FORM_PERMISSIONS,
-} from './utils.js';
+import {pascalToKebab, getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
@@ -161,15 +156,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         this.formProperties = data;
-
-        // Check if the user has the permission to manage the form or create submissions
-        // @todo: IS A USER WITH READ PERMISSION ALLOWED TO VIEW THE READONLY FORM?
-        return (
-            Array.isArray(data.grantedActions) &&
-            (data.grantedActions.includes(FORM_PERMISSIONS.MANAGE) ||
-                data.grantedActions.includes(FORM_PERMISSIONS.READ) ||
-                data.grantedActions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS))
-        );
+        // If the user has READ permission we can allow to view the form in read-only mode
+        // Without READ permission `response.ok` is false and we return before
+        return true;
     }
 
     async loadModules() {
@@ -416,10 +405,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (maxNumberOfSubmissionsPerUser === 1) {
                 let submissionUrl = '';
                 // User can read the submission or manage the form show read-only form
-                if (
-                    this.grantedActions.includes(FORM_PERMISSIONS.READ_SUBMISSIONS) ||
-                    this.grantedActions.includes(FORM_PERMISSIONS.MANAGE)
-                ) {
+                // We have READ permission if we can see previous submissions
+                if (this.userAllSubmissions.length > 0) {
                     const oldSubmissionId = this.userAllSubmissions[0].identifier;
                     submissionUrl = `${getFormRenderUrl(this.formUrlSlug, this.lang)}/${oldSubmissionId}/readonly`;
                 }
@@ -489,12 +476,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         let formAlreadySubmittedWarning = html``;
-        if (
-            this.usersSubmissionCount > 0 &&
-            (this.grantedActions.includes(FORM_PERMISSIONS.READ_SUBMISSIONS) ||
-                this.grantedActions.includes(FORM_PERMISSIONS.MANAGE))
-            // this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE))
-        ) {
+        if (this.userAllSubmissions.length > 0) {
             // An empty form is shown with the message that the user already submitted the form
             // and show a link to the submissions in the show-submissions page
             formAlreadySubmittedWarning = html`

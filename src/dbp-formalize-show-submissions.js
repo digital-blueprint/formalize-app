@@ -17,7 +17,6 @@ import MicroModal from './micromodal.es.js';
 import {FileSink} from '@dbp-toolkit/file-handling';
 import {
     SUBMISSION_STATES,
-    FORM_PERMISSIONS,
     getFormRenderUrl,
     getFormShowSubmissionsUrl,
     SUBMISSION_PERMISSIONS,
@@ -771,7 +770,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const formId = entry['identifier'];
                     const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
                     const tagPermissionsForSubmitters = entry['tagPermissionsForSubmitters'];
-                    const formGrantedActions = entry['grantedActions'];
+                    // const formGrantedActions = entry['grantedActions'];
                     const allowedSubmissionStates = entry['allowedSubmissionStates'];
                     const dataFeedSchema = entry['dataFeedSchema'];
 
@@ -781,7 +780,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         formId,
                         allowedSubmissionStates,
                         allowedActionsWhenSubmitted,
-                        formGrantedActions,
+                        // formGrantedActions,
                         dataFeedSchema,
                         tagPermissionsForSubmitters,
                     });
@@ -928,19 +927,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         }
                     }
                     // Remove formTags if no permission to view
-                    if (key === 'formTags') {
-                        const currentForm = this.forms.get(formId);
-                        const tagPermissions = currentForm?.tagPermissionsForSubmitters;
-                        const isAdmin = currentForm.formGrantedActions.some((grant) => {
-                            return (
-                                grant === FORM_PERMISSIONS.MANAGE ||
-                                grant === FORM_PERMISSIONS.UPDATE_SUBMISSIONS
-                            );
-                        });
-                        if (tagPermissions < 1 && !isAdmin) {
-                            delete dataFeedElement[key];
-                        }
-                    }
+                    // if (key === 'formTags') {
+                    //     const currentForm = this.forms.get(formId);
+                    //     const tagPermissions = currentForm?.tagPermissionsForSubmitters;
+                    //     const isAdmin = currentForm.formGrantedActions.some((grant) => {
+                    //         return (
+                    //             grant === SUBMISSION_COLLECTION_PERMISSIONS.MANAGE ||
+                    //             grant === SUBMISSION_COLLECTION_PERMISSIONS.UPDATE_SUBMISSIONS
+                    //         );
+                    //     });
+                    //     if (tagPermissions < 1 && !isAdmin) {
+                    //         delete dataFeedElement[key];
+                    //     }
+                    // }
                 }
 
                 const id = x + 1;
@@ -2516,8 +2515,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     setActionButtonsStates(state) {
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
         const allRows = this.submissionTables[state].tabulatorTable.getRows('all');
-        const activeForm = this.forms.get(this.activeFormId);
-        const formGrantedActions = activeForm.formGrantedActions;
+        // const activeForm = this.forms.get(this.activeFormId);
+        // const formGrantedActions = activeForm.formGrantedActions;
 
         let selectedSubmissionsGrants = [];
         for (const row of selectedRows) {
@@ -2541,26 +2540,22 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.selectedRowCount[state] > 0 &&
             // If we can delete any of the selected submissions
             (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE) ||
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isDeleteAllSubmissionEnabled[state] =
             this.selectedRowCount[state] === 0 &&
             // If we can delete any of the submissions
             (allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE) ||
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
+                allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isEditSubmissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
             (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.UPDATE) ||
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
+                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.UPDATE));
 
         this.isEditSubmissionPermissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
-            (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                formGrantedActions.includes(FORM_PERMISSIONS.MANAGE));
+            selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE);
 
         this.requestUpdate();
     }

@@ -33,18 +33,10 @@ export const SUBMISSION_STATES_BINARY = Object.freeze({
     SUBMITTED: SUBMISSION_STATE_SUBMITTED,
 });
 
-export const FORM_PERMISSIONS = Object.freeze({
-    READ: 'read',
-    UPDATE: 'update',
-    DELETE: 'delete',
+export const SUBMISSION_COLLECTION_PERMISSIONS = Object.freeze({
     CREATE_SUBMISSIONS: 'create_submissions',
-    READ_SUBMISSIONS: 'read_submissions',
-    UPDATE_SUBMISSIONS: 'update_submissions',
-    DELETE_SUBMISSIONS: 'delete_submissions',
     MANAGE: 'manage',
-    READ_TAGS: 'read_tags',
-    READ_ADD_TAGS: 'read_add_tags',
-    READ_ADD_REMOVE_TAGS: 'read_add_remove_tags',
+    UPDATE: 'update',
 });
 
 export const SUBMISSION_PERMISSIONS = Object.freeze({
@@ -52,6 +44,9 @@ export const SUBMISSION_PERMISSIONS = Object.freeze({
     UPDATE: 'update',
     DELETE: 'delete',
     MANAGE: 'manage',
+    READ_TAGS: 'read_tags',
+    READ_ADD_TAGS: 'read_add_tags',
+    READ_ADD_REMOVE_TAGS: 'read_add_remove_tags',
 });
 
 export const TAG_PERMISSIONS = Object.freeze({
