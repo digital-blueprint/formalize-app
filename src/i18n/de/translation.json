@@ -2,6 +2,19 @@
     "error-login-message": "Sie müssen eingeloggt sein, um diese Funktion nutzen zu können!",
     "errors": {
         "error-title": "Fehler",
+        "failed-to-delete-submission-message": "Das Löschen der Übermittlung ist fehlgeschlagen. Antwortmeldung: {{message}}",
+        "failed-to-delete-submission-status": "Das Löschen der Übermittlung ist fehlgeschlagen. Antwortstatus: {{status}}",
+        "failed-to-get-last-modifier-details": "Details zum letzten Bearbeiter konnten nicht abgerufen werden",
+        "failed-to-get-permission-details": "Details zur Berechtigung konnten nicht abgerufen werden",
+        "failed-to-process-user-permissions": "Benutzerberechtigungen konnten nicht verarbeitet werden",
+        "failed-to-save-draft": "Speichern des Entwurfs fehlgeschlagen",
+        "failed-to-submit-form": "Senden des Formulars fehlgeschlagen",
+        "feature-not-implemented": "Funktion noch nicht implementiert",
+        "form-save-failed": "Speichern des Formulars fehlgeschlagen. Fehler: {{message}}",
+        "form-submission-failed": "Formular konnte nicht gespeichert werden. Antwortstatus: {{status}}<br>{{details}}",
+        "form-validation-errors-fix-them": "Das Formular enthält Validierungsfehler. Beheben Sie diese, bevor Sie das Formular absenden",
+        "invalid-submission-data": "Ungültige Absendedaten",
+        "no-submission-id-provided": "Keine Absendungs-ID angegeben",
         "no-submission-selected": "Keine Formulareinträge ausgewählt",
         "notfound-body": "Die angeforderte Ressource wurde nicht gefunden.",
         "notfound-title": "Ressource nicht gefunden",
@@ -13,6 +26,7 @@
         "unauthorized-title": "Keine Berechtigung",
         "unprocessable_entity-body": "Die Anmeldedaten sind ungültig oder unvollständig.",
         "unprocessable_entity-title": "Anmeldedaten ungültig",
+        "validation-failed": "",
         "warning-title": "Achtung"
     },
     "loading-message": "Lädt...",
@@ -340,8 +354,12 @@
         "submission-table-submitted-title": "Eingereicht"
     },
     "success": {
+        "draft-saved-successfully": "Formularentwurf erfolgreich gespeichert",
+        "form-saved-successfully": "Formularübermittlung erfolgreich gespeichert",
+        "form-submission-deleted-successfully": "Formularübermittlung erfolgreich gelöscht",
+        "form-submitted-successfully": "Das Formular wurde erfolgreich übermittelt",
         "submissions-processed_one": "{{count}} Einreichung wurde erfolgreich verarbeitet",
         "submissions-processed_other": "{{count}} Einreichungen wurden erfolgreich verarbeitet",
-        "success-title": ""
+        "success-title": "Erfolgreich"
     }
 }

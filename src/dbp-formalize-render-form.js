@@ -451,8 +451,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 data = this.loadedSubmission;
             } else {
                 sendNotification({
-                    summary: 'Error',
-                    body: 'Invalid submission data',
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.invalid-submission-data'),
                     type: 'danger',
                     timeout: 0,
                 });

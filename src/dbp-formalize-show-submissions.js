@@ -2645,8 +2645,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         } else {
             sendNotification({
-                summary: 'Warning',
-                body: 'This feature is not yet implemented for this form.',
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('errors.feature-not-implemented'), // 'This feature is not yet implemented for this form.',
                 type: 'warning',
                 timeout: 10,
             });
@@ -2727,8 +2727,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async apiDeleteSubmissions(submissionId) {
         if (!submissionId) {
             sendNotification({
-                summary: 'Error',
-                body: `No submission id provided`,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.no-submission-id-provided'),
                 type: 'danger',
                 timeout: 0,
             });

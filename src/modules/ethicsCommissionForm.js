@@ -488,8 +488,10 @@ class FormalizeFormElement extends BaseFormElement {
                     );
                     if (!lastModifierDetailsResponse.ok) {
                         sendNotification({
-                            summary: 'Error',
-                            body: `Failed to get last modifier details. Response status: ${lastModifierDetailsResponse.status}`,
+                            summary: this._i18n.t('errors.error-title'),
+                            body: this._i18n.t('errors.failed-to-get-last-modifier-details', {
+                                status: lastModifierDetailsResponse.status,
+                            }),
                             type: 'danger',
                             timeout: 0,
                         });
@@ -500,8 +502,8 @@ class FormalizeFormElement extends BaseFormElement {
                 } catch (e) {
                     console.log(e);
                     sendNotification({
-                        summary: 'Error',
-                        body: `Failed to get last modifier details`,
+                        summary: this._i18n.t('errors.error-title'),
+                        body: this._i18n.t('errors.failed-to-get-last-modifier-details'),
                         type: 'danger',
                         timeout: 0,
                     });
@@ -522,8 +524,10 @@ class FormalizeFormElement extends BaseFormElement {
             const resourceActionsResponse = await this.apiGetResourceActionGrants();
             if (!resourceActionsResponse.ok) {
                 sendNotification({
-                    summary: 'Error',
-                    body: `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.failed-to-get-permission-details', {
+                        status: resourceActionsResponse.status,
+                    }), // `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -539,8 +543,10 @@ class FormalizeFormElement extends BaseFormElement {
                         );
                         if (!userDetailsResponse.ok) {
                             sendNotification({
-                                summary: 'Error',
-                                body: `Failed to get user details. Response status: ${userDetailsResponse.status}`,
+                                summary: this._i18n.t('errors.error-title'),
+                                body: this._i18n.t('errors.failed-to-get-permission-details', {
+                                    status: userDetailsResponse.status,
+                                }), // `Failed to get user details. Response status: ${userDetailsResponse.status}`,
                                 type: 'danger',
                                 timeout: 0,
                             });
@@ -570,8 +576,8 @@ class FormalizeFormElement extends BaseFormElement {
         } catch (e) {
             console.log(e);
             sendNotification({
-                summary: 'Error',
-                body: `Failed to process user permissions`,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.failed-to-process-user-permissions'), //`Failed to process user permissions`,
                 type: 'danger',
                 timeout: 0,
             });
@@ -1011,8 +1017,8 @@ class FormalizeFormElement extends BaseFormElement {
             // Scroll to first invalid field if validation failed
             this.scrollToFirstInvalidField(formElement);
             sendNotification({
-                summary: 'Warning',
-                body: `The form has validation error. Fix them before submitting the form`,
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('errors.form-validation-errors-fix-them'),
                 type: 'warning',
                 timeout: 10,
             });
@@ -1078,8 +1084,11 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (!response.ok) {
                 sendNotification({
-                    summary: 'Error',
-                    body: `Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}`,
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.failed-to-save-draft', {
+                        status: response.status,
+                        detail: responseBody.detail,
+                    }), //`Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1103,8 +1112,8 @@ class FormalizeFormElement extends BaseFormElement {
                     getFormRenderUrl(this.formUrlSlug, this.lang) + `/${this.newSubmissionId}`;
                 window.history.pushState({}, '', newSubmissionUrl.toString());
                 sendNotification({
-                    summary: 'Success',
-                    body: 'Draft saved successfully',
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.draft-saved-successfully'), // 'Form DRAFT saved successfully',
                     type: 'success',
                     timeout: 5,
                 });
@@ -1132,8 +1141,8 @@ class FormalizeFormElement extends BaseFormElement {
 
             console.error(error);
             sendNotification({
-                summary: 'Error',
-                body: `Failed to save form DRAFT. Error: ${error.message}`,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.failed-to-save-draft', {message: error.message}), //`Failed to save form DRAFT. Error: ${error.message}`,
                 type: 'danger',
                 timeout: 0,
             });
@@ -1210,8 +1219,11 @@ class FormalizeFormElement extends BaseFormElement {
             if (!response.ok) {
                 this.submissionError = true;
                 sendNotification({
-                    summary: 'Error',
-                    body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.failed-to-submit-form', {
+                        status: response.status,
+                        details: responseBody.detail,
+                    }), //`Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1231,8 +1243,8 @@ class FormalizeFormElement extends BaseFormElement {
                 this.hideForm = true;
                 this.disableLeavePageWarning();
                 sendNotification({
-                    summary: 'Success',
-                    body: 'Form submitted successfully',
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.form-submitted-successfully'), //'Form submitted successfully',
                     type: 'success',
                     timeout: 5,
                 });
@@ -1257,8 +1269,8 @@ class FormalizeFormElement extends BaseFormElement {
 
             console.error(error.message);
             sendNotification({
-                summary: 'Error',
-                body: error.message,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.form-submission-failed', {message: error.message}), // error.message,
                 type: 'danger',
                 timeout: 0,
             });
@@ -1286,8 +1298,8 @@ class FormalizeFormElement extends BaseFormElement {
                     'formalize:submission-data-feed-invalid-schema'
                 ) {
                     sendNotification({
-                        summary: 'Error',
-                        body: `Validation of the data failed. You need to edit your submission before submitting.`,
+                        summary: this._i18n.t('errors.error-title'),
+                        body: this._i18n.t('errors.validation-failed'), // `Validation of the data failed. You need to edit your submission before submitting.`,
                         type: 'danger',
                         timeout: 0,
                     });
@@ -1295,8 +1307,11 @@ class FormalizeFormElement extends BaseFormElement {
                     this.needValidationOnLoad = true;
                 } else {
                     sendNotification({
-                        summary: 'Error',
-                        body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
+                        summary: this._i18n.t('errors.error-title'),
+                        body: this._i18n.t('errors.failed-to-submit-form', {
+                            status: response.status,
+                            details: responseBody.detail,
+                        }), // `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
                         type: 'danger',
                         timeout: 0,
                     });
@@ -1313,8 +1328,8 @@ class FormalizeFormElement extends BaseFormElement {
                 this.disableLeavePageWarning();
 
                 sendNotification({
-                    summary: 'Success',
-                    body: 'Form submitted successfully',
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.form-submitted-successfully'), //'Form submitted successfully',
                     type: 'success',
                     timeout: 5,
                 });
@@ -1333,8 +1348,8 @@ class FormalizeFormElement extends BaseFormElement {
         } catch (error) {
             console.error(error.message);
             sendNotification({
-                summary: 'Error',
-                body: error.message,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.form-submission-failed', {message: error.message}),
                 type: 'danger',
                 timeout: 0,
             });
@@ -1351,8 +1366,8 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (!submissionId) {
             sendNotification({
-                summary: 'Error',
-                body: `No submission id provided`,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.no-submission-id-provided'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -1376,8 +1391,10 @@ class FormalizeFormElement extends BaseFormElement {
             if (!response.ok) {
                 this.deleteSubmissionError = true;
                 sendNotification({
-                    summary: 'Error',
-                    body: `Failed to delete submission. Response status: ${response.status}`,
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.failed-to-delete-submission-status', {
+                        status: response.status,
+                    }), // `Failed to delete submission. Response status: ${response.status}`,
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1388,16 +1405,18 @@ class FormalizeFormElement extends BaseFormElement {
         } catch (error) {
             console.error(error.message);
             sendNotification({
-                summary: 'Error',
-                body: error.message,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.failed-to-delete-submission-message', {
+                    message: error.message,
+                }),
                 type: 'danger',
                 timeout: 0,
             });
         } finally {
             if (this.wasDeleteSubmissionSuccessful) {
                 sendNotification({
-                    summary: 'Success',
-                    body: 'Form submission deleted successfully.',
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.form-submission-deleted-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -1468,7 +1487,10 @@ class FormalizeFormElement extends BaseFormElement {
             if (!response.ok) {
                 sendNotification({
                     summary: `${responseBody['hydra:title']}`,
-                    body: `Failed to save form. Response status: ${response.status}<br>${responseBody.detail}`,
+                    body: this._i18n.t('errors.form-submission-failed', {
+                        status: response.status,
+                        details: responseBody.detail,
+                    }),
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1495,8 +1517,8 @@ class FormalizeFormElement extends BaseFormElement {
                 );
 
                 sendNotification({
-                    summary: 'Success',
-                    body: 'Form saved successfully',
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.form-saved-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -1512,8 +1534,8 @@ class FormalizeFormElement extends BaseFormElement {
 
             console.error(error.message);
             sendNotification({
-                summary: 'Error',
-                body: error.message,
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.form-save-failed', {message: error.message}), //`Failed to save form. Error: ${error.message}`,
                 type: 'danger',
                 timeout: 0,
             });
