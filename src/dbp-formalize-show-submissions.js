@@ -992,7 +992,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Add link to show submission in render form view
                 // @TODO: only for forms that we are rendering ourselves and have readonly view
                 // activeForm.formSlug && hasReadonlyView(activeForm);
-                if (activeForm.formName === 'Ethikkommission') {
+                if (activeForm.formName === 'Ethikantrag') {
                     const submissionDetailsFormButton = this.submissionTables[
                         state
                     ].createScopedElement('dbp-formalize-get-submission-link');
@@ -2624,7 +2624,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // @TODO: LunchLottery don't have a slug
         // other forms don't have read-only view
-        if (activeForm.formName === 'Ethikkommission') {
+        if (activeForm.formName === 'Ethikantrag') {
             // Go to the readonly view of the form submission
             let formSubmissionUrl =
                 getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
