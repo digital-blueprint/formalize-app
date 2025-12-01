@@ -54,7 +54,7 @@ import html2pdf from 'html2pdf.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
-        return 'ethics-commission';
+        return 'ethics-proposal';
     }
 
     /**
