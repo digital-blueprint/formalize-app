@@ -71,16 +71,9 @@ export default class extends BaseObject {
     }
 }
 
-const SCROLLER_ICONS = {
-    UP: 'chevron-up',
-    DOWN: 'chevron-down',
-};
-
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-
-        const i18n = this._i18n;
 
         this.currentState = null;
         this.submissionBinaryState = SUBMISSION_STATES_BINARY.NONE;
@@ -89,14 +82,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.submissionError = false;
         this.scrollTimeout = null;
         this.hideForm = false;
-
-        this.scrollerIconName = SCROLLER_ICONS.DOWN;
-        this.scrollerIconTitle = i18n.t(
-            'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
-        );
-        this.scrollerIconScreenReaderText = i18n.t(
-            'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
-        );
 
         this.currentSubmission = {};
         // Tags
@@ -141,7 +126,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
         this.handleFormSaveSubmission = this.handleFormSaveSubmission.bind(this);
-        this.handleScrollToTopBottom = this.handleScrollToTopBottom.bind(this);
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
         this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
         this.handleSelect2Close = this.handleSelect2Close.bind(this);
@@ -183,9 +167,6 @@ class FormalizeFormElement extends BaseFormElement {
             allUsersSubmissionGrants: {type: Array, attribute: false},
 
             resourceActions: {type: Object, attribute: false},
-            scrollerIconName: {type: String, attribute: false},
-            scrollerIconTitle: {type: String, attribute: false},
-            scrollerIconScreenReaderText: {type: String, attribute: false},
 
             // Buttons
             isViewModeButtonAllowed: {type: Boolean, attribute: false},
@@ -223,8 +204,6 @@ class FormalizeFormElement extends BaseFormElement {
 
     async update(changedProperties) {
         super.update(changedProperties);
-
-        const i18n = this._i18n;
 
         // console.log('changedProperties', changedProperties);
 
@@ -277,26 +256,6 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (changedProperties.has('userAllSubmissions')) {
             this.setButtonStates();
-        }
-
-        if (changedProperties.has('scrollerIconName') || changedProperties.has('lang')) {
-            if (this.scrollerIconName === SCROLLER_ICONS.UP) {
-                this.scrollerIconTitle = i18n.t(
-                    'render-form.forms.ethics-commission-form.scroll-to-top-text',
-                );
-                this.scrollerIconScreenReaderText = i18n.t(
-                    'render-form.forms.ethics-commission-form.scroll-to-top-text',
-                );
-            }
-
-            if (this.scrollerIconName === SCROLLER_ICONS.DOWN) {
-                this.scrollerIconTitle = i18n.t(
-                    'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
-                );
-                this.scrollerIconScreenReaderText = i18n.t(
-                    'render-form.forms.ethics-commission-form.scroll-to-bottom-text',
-                );
-            }
         }
     }
 
@@ -790,9 +749,6 @@ class FormalizeFormElement extends BaseFormElement {
         super.connectedCallback();
 
         this.updateComplete.then(() => {
-            // Handle scroller icon changes
-            window.addEventListener('scroll', this.handleScrollToTopBottom);
-
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
@@ -849,8 +805,6 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.removeEventListener('change', this.handleFieldChanges);
 
-        window.removeEventListener('scroll', this.handleScrollToTopBottom);
-
         window.removeEventListener('click', this.handleSelect2Close);
 
         if (this._formHeaderObserver) {
@@ -864,21 +818,6 @@ class FormalizeFormElement extends BaseFormElement {
         if (event.detail.id && event.detail.id === 'grant-permission-modal') {
             this.getUsersGrants();
         }
-    }
-
-    handleScrollToTopBottom() {
-        clearTimeout(this.scrollTimeout);
-        this.scrollTimeout = setTimeout(() => {
-            // Update scroller icon based on scroll position
-            const html = document.documentElement;
-            const form = this._('#ethics-commission-form');
-
-            if (html.scrollTop < form.scrollHeight / 2) {
-                this.scrollerIconName = SCROLLER_ICONS.DOWN;
-            } else {
-                this.scrollerIconName = SCROLLER_ICONS.UP;
-            }
-        }, 150);
     }
 
     handleSelect2Close(event) {
@@ -1805,28 +1744,6 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Handles scrolling up and down the form.
-     * @param {object} event - The click event object.
-     */
-    handleScroller(event) {
-        event.preventDefault();
-        const html = document.documentElement;
-        const form = this._('#ethics-commission-form');
-
-        if (html.scrollTop < form.scrollHeight / 2) {
-            html.scrollTo({top: form.scrollHeight, behavior: 'smooth'});
-            setTimeout(() => {
-                this.scrollerIconName = SCROLLER_ICONS.UP;
-            }, 1500);
-        } else {
-            html.scrollTo({top: 0, behavior: 'smooth'});
-            setTimeout(() => {
-                this.scrollerIconName = SCROLLER_ICONS.DOWN;
-            }, 1500);
-        }
-    }
-
-    /**
      * @typedef {object} AttachmentApiFile
      * @property {string} fileName - name of the file
      * @property {string} downloadUrl - blob download URL
@@ -2043,17 +1960,6 @@ class FormalizeFormElement extends BaseFormElement {
             </style>
 
             <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({hidden: this.hideForm})}">
-
-                <div class="scroller-container">
-                    <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
-                        <dbp-icon
-                            name=${this.scrollerIconName}
-                            title=${this.scrollerIconTitle}></dbp-icon>
-                        <span class="visually-hidden">
-                            ${this.scrollerIconScreenReaderText}
-                        </span>
-                    </button>
-                </div>
 
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
@@ -3880,17 +3786,6 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
 
             <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({hidden: this.hideForm})}">
-
-                <div class="scroller-container">
-                    <button id="form-scroller" class="scroller" @click=${this.handleScroller}>
-                        <dbp-icon
-                            name=${this.scrollerIconName}
-                            title=${this.scrollerIconTitle}></dbp-icon>
-                        <span class="visually-hidden">
-                            ${this.scrollerIconScreenReaderText}
-                        </span>
-                    </button>
-                </div>
 
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
