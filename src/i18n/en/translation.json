@@ -47,6 +47,16 @@
         "form-not-found": "No form is selected to be filled out. Please start the process through the corresponding website.",
         "form-with-slug-not-found": "Form with slug '{{slug}}' not found!",
         "forms": {
+            "accessible-courses-form": {
+                "description-text": "This is the description",
+                "field-example-label": "This is an example field label",
+                "form-field-example-placeholder": "Write something here...",
+                "submission-error": "Submission error",
+                "submission-error-notification": "Submission error",
+                "submission-result-notification": "Good job.",
+                "submission-result-thanks": "Thank you!",
+                "title": "Accessible Courses"
+            },
             "accessible-exams-form": {
                 "additional-examiner": "Additional examiner",
                 "begin-time": "Begin time of exam",

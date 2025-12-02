@@ -47,6 +47,16 @@
         "form-not-found": "Es ist kein Formular zum Ausfüllen gewählt. Bitte starten Sie den Prozess über die entsprechende Webseite.",
         "form-with-slug-not-found": "Formular mit Slug '{{slug}}' nicht gefunden!",
         "forms": {
+            "accessible-courses-form": {
+                "description-text": "Dies ist die Beschreibung.",
+                "field-example-label": "Dies ist ein Beispiel für eine Feldbeschriftung.",
+                "form-field-example-placeholder": "ESchreiben Sie hier etwas...",
+                "submission-error": "Fehler beim Absenden",
+                "submission-error-notification": "Fehler beim Absenden",
+                "submission-result-notification": "Gut gemacht!",
+                "submission-result-thanks": "Danke!",
+                "title": "Barrierefreie Lehrveranstaltungen"
+            },
             "accessible-exams-form": {
                 "additional-examiner": "Weiterer Prüfer*Weitere Prüferin",
                 "begin-time": "Beginnzeit der Prüfung",

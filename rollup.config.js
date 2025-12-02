@@ -127,6 +127,7 @@ let input = [
     'src/modules/demoForm.js',
     'src/modules/accessibleExamsForm.js',
     'src/modules/ethicsCommissionForm.js',
+    'src/modules/accessibleCoursesForm.js',
 ];
 
 export default (async () => {
