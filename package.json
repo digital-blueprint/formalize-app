@@ -62,7 +62,7 @@
         "@tugraz/web-components": "^0.3.6",
         "@webcomponents/scoped-custom-element-registry": "^0.0.10",
         "html2pdf.js": "^0.12.0",
-        "i18next": "^23.0.0",
+        "i18next": "^25.0.0",
         "lit": "^2.7.0 || ^3.0.0",
         "tabulator-tables": "^6.0.0",
         "xss": "^1.0.11"
