@@ -1235,7 +1235,7 @@ class FormalizeFormElement extends BaseFormElement {
                 ) {
                     sendNotification({
                         summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.validation-failed'), // `Validation of the data failed. You need to edit your submission before submitting.`,
+                        body: this._i18n.t('errors.validation-failed'),
                         type: 'danger',
                         timeout: 0,
                     });

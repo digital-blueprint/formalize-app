@@ -26,7 +26,7 @@
         "unauthorized-title": "Unauthorized",
         "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
         "unprocessable_entity-title": "Registration data invalid",
-        "validation-failed": "errors.validation-failed",
+        "validation-failed": "Validation of the data failed. You need to edit your submission before submitting.",
         "warning-title": "Warning"
     },
     "loading-message": "Loading...",

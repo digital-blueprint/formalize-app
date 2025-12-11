@@ -26,7 +26,7 @@
         "unauthorized-title": "Keine Berechtigung",
         "unprocessable_entity-body": "Die Anmeldedaten sind ungültig oder unvollständig.",
         "unprocessable_entity-title": "Anmeldedaten ungültig",
-        "validation-failed": "",
+        "validation-failed": "Die Validierung der Daten ist fehlgeschlagen. Sie müssen Ihre Eingabe vor dem Absenden bearbeiten.",
         "warning-title": "Achtung"
     },
     "loading-message": "Lädt...",
