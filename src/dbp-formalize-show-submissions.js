@@ -38,6 +38,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.allForms = [];
+        this.isLoadingModules = false;
         this.boundKeyEventHandler = this.handleKeyEvents.bind(this);
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
@@ -644,6 +645,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Load form modules and create ID -> slug mapping
      */
     async loadModules() {
+        if (this.isLoadingModules) return;
+        this.isLoadingModules = true;
+
         try {
             // Fetch the JSON file containing module paths
             const response = await fetch(this.basePath + 'modules.json');
@@ -665,6 +669,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         } catch (error) {
             console.error('Error loading modules:', error);
+        } finally {
+            this.isLoadingModules = false;
         }
     }
 
