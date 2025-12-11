@@ -158,6 +158,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: true,
             submitted: true,
         };
+        this.useSubFoldersForExports = true;
         this.downloadFolderNamePattern = '';
         this.userNameCache = new Map();
         this.isRequestDetailedView = false;
@@ -1227,6 +1228,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Set download folder name pattern
         this.downloadFolderNamePattern =
             formSchemaFields?.submissionExport?.downloadFolderPattern || '';
+        this.useSubFoldersForExports = formSchemaFields?.submissionExport?.subfolders ?? true;
 
         // Exit if the form schema is the catch-all schema
         if (Object.keys(formSchemaFields.properties).length === 0) {
@@ -1516,6 +1518,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const SCHEMA_FIELD_PREFIX = 'schemaField/';
         const SYSTEM_ATTRIBUTE_PREFIX = 'systemAttribute/';
         let patternMatchingFailed = false;
+
+        if (this.useSubFoldersForExports === false) {
+            return 'exported-files';
+        }
+
         const submissionData = this.submissions[state].find((submission) => {
             return submission.submissionId === submissionId;
         });
