@@ -124,7 +124,7 @@ export async function getDeletionConfirmation(host) {
         host._deletionConfirmationResolve = resolve;
 
         // Show the confirmation modal
-        const modal = host._('#deletion-confirmation-modal');
+        const modal = host._('#deletion-confirmation-modal--formalize');
         if (modal) {
             modal.open();
         }
@@ -135,7 +135,7 @@ export async function getDeletionConfirmation(host) {
  * Handles the confirmation button click
  */
 export function handleDeletionConfirm(host) {
-    const modal = host._('#deletion-confirmation-modal');
+    const modal = host._('#deletion-confirmation-modal--formalize');
     if (modal) {
         modal.close();
     }
@@ -149,7 +149,7 @@ export function handleDeletionConfirm(host) {
  * Handles the cancel button click
  */
 export function handleDeletionCancel(host) {
-    const modal = host._('#deletion-confirmation-modal');
+    const modal = host._('#deletion-confirmation-modal--formalize');
     if (modal) {
         modal.close();
     }

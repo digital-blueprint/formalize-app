@@ -3747,7 +3747,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             <!-- Deletion Confirmation Modal -->
             <dbp-modal
-                id="deletion-confirmation-modal"
+                id="deletion-confirmation-modal--formalize"
                 class="modal modal--confirmation"
                 modal-id="deletion-confirmation-modal"
                 title="${i18n.t('show-submissions.delete-confirmation-title')}"
