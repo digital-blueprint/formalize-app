@@ -38,7 +38,9 @@
         "check-previous-submissions-warning": "Hier können Sie Ihre früheren Einreichungen überprüfen.",
         "course-select": {
             "login-required": "Anmeldung erforderlich",
-            "placeholder": "Bitte wählen Sie einen Kurs aus"
+            "placeholder": "Bitte wählen Sie einen Kurs aus",
+            "summer-term": "Sommersemester {{year}}",
+            "winter-term": "Wintersemester {{year}}/{{nextYear}}"
         },
         "form-already-submitted-n-times-warning": "Sie haben dieses Formular bereits {{n}} Mal abgeschickt. Sie können es nicht noch einmal abschicken",
         "form-already-submitted-warning": "Sie haben dieses Formular bereits abgeschickt!",

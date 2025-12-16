@@ -238,10 +238,29 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
         let courseName = course['name'];
         let courseType = course['localData']['type'];
         let courseTerm = course['localData']['teachingTerm'];
-        let courseString = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
 
-        let text = courseString ?? '';
-        return text;
+        // the CO Public REST API returns teaching terms like "2025W" or "2026S"
+        const courseTermParts = this.parseTeachingTerm(courseTerm);
+        if (courseTermParts) {
+            courseTerm =
+                courseTermParts.term === 'W'
+                    ? this._i18n.t('render-form.course-select.winter-term', {
+                          year: courseTermParts.year,
+                          nextYear: courseTermParts.year + 1,
+                      })
+                    : this._i18n.t('render-form.course-select.summer-term', {
+                          year: courseTermParts.year,
+                      });
+        }
+
+        return `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+    }
+
+    parseTeachingTerm(teachingTerm) {
+        if (typeof teachingTerm !== 'string') return null;
+        const m = teachingTerm.match(/^(\d{4})([WS])$/i);
+        if (!m) return null;
+        return {year: Number(m[1]), term: m[2].toUpperCase()};
     }
 
     update(changedProperties) {

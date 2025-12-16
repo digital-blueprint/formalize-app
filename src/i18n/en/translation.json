@@ -38,7 +38,9 @@
         "check-previous-submissions-warning": "You can check your previous submissions here.",
         "course-select": {
             "login-required": "Login required",
-            "placeholder": "Please select a course"
+            "placeholder": "Please select a course",
+            "winter-term": "Winter Term {{year}}/{{nextYear}}",
+            "summer-term": "Summer Term {{year}}"
         },
         "form-already-submitted-n-times-warning": "You already submitted this form {{n}} times. You can't submit it again.",
         "form-already-submitted-warning": "You already submitted this form!",
