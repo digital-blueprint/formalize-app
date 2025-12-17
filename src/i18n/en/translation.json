@@ -26,7 +26,7 @@
         "unauthorized-title": "Unauthorized",
         "unprocessable_entity-body": "The registration data is invalid oder incomplete.",
         "unprocessable_entity-title": "Registration data invalid",
-        "validation-failed": "Validation of the data failed. You need to edit your submission before submitting.",
+        "validation-failed": "Validation of the data failed. You need to edit your submission before submitting.\n {{details}}",
         "warning-title": "Warning"
     },
     "loading-message": "Loading...",
@@ -39,8 +39,8 @@
         "course-select": {
             "login-required": "Login required",
             "placeholder": "Please select a course",
-            "winter-term": "Winter Term {{year}}/{{nextYear}}",
-            "summer-term": "Summer Term {{year}}"
+            "summer-term": "Summer Term {{year}}",
+            "winter-term": "Winter Term {{year}}/{{nextYear}}"
         },
         "form-already-submitted-n-times-warning": "You already submitted this form {{n}} times. You can't submit it again.",
         "form-already-submitted-warning": "You already submitted this form!",

@@ -1233,9 +1233,22 @@ class FormalizeFormElement extends BaseFormElement {
                     responseBody['relay:errorId'] ===
                     'formalize:submission-data-feed-invalid-schema'
                 ) {
+                    const errorDetails = responseBody['relay:errorDetails'];
+                    // Loop through errorDetails object keys and format messages
+                    let errorDetailsMessages = [];
+                    Object.keys(errorDetails).forEach((fieldName) => {
+                        const fieldErrors = errorDetails[fieldName];
+                        fieldErrors.forEach((errorMessage) => {
+                            fieldName = fieldName.replace(/^\//, '');
+                            errorDetailsMessages.push(`${fieldName}: ${errorMessage}`);
+                        });
+                    });
+                    console.log(`errorDetails`, errorDetailsMessages);
                     sendNotification({
                         summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.validation-failed'),
+                        body: this._i18n.t('errors.validation-failed', {
+                            details: errorDetailsMessages.join('; '),
+                        }),
                         type: 'danger',
                         timeout: 0,
                     });
