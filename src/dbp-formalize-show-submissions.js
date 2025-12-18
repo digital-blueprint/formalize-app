@@ -1490,15 +1490,26 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 if (!attachments || attachments.length === 0) continue;
 
+                // Add folder name from the schema if available, fallback to submissionId
+                const downloadFolderName = this.getDownloadFolderName(submissionId, state);
+
                 attachments.forEach((attachment) => {
-                    // Add folder name from the schema if available, fallback to submissionId
-                    const downloadFolderName = this.getDownloadFolderName(submissionId, state);
-                    downloadFiles.push({
-                        name: `${downloadFolderName}/${attachment.fileName}`,
-                        url: attachment.downloadUrl,
-                    });
+                    // No subfolders, just download all files into one folder
+                    if (this.useSubFoldersForExports === false) {
+                        downloadFiles.push({
+                            name: attachment.fileName,
+                            url: attachment.downloadUrl,
+                        });
+                    } else {
+                        // Use subfolder for each submission
+                        downloadFiles.push({
+                            name: `${downloadFolderName}/${attachment.fileName}`,
+                            url: attachment.downloadUrl,
+                        });
+                    }
                 });
             }
+
             this._('#file-sink').files = downloadFiles;
         } else {
             const table = this.submissionTables[state];
@@ -1520,7 +1531,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let patternMatchingFailed = false;
 
         if (this.useSubFoldersForExports === false) {
-            return 'exported-files';
+            return '';
         }
 
         const submissionData = this.submissions[state].find((submission) => {
