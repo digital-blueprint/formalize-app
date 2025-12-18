@@ -3831,6 +3831,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="userTitle"
+                        maxlength="1000"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.user-title')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.user-title')}"
                         required
@@ -3840,6 +3841,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="userTitleShort"
+                        maxlength="1000"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.user-title-short')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.user-title-short')}"
                         required
@@ -3849,6 +3851,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="applicant"
+                        maxlength="1000"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.applicant-placeholder')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.applicant-label')}"
                         required
@@ -3860,6 +3863,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="contactDetails"
+                        maxlength="1000"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.contact-details-placeholder')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.contact-details-label')}"
                         required
@@ -3869,6 +3873,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="jobPosition"
+                        maxlength="1000"
                         required
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.job-position-placeholder')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.job-position-label')}"
@@ -3878,6 +3883,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="coApplicants"
+                        maxlength="1000"
                         required
                         rows="3"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-placeholder')}"
@@ -3936,6 +3942,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="applicationReferenceNumber"
+                                      maxlength="1000"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.application-reference-number-label',
                                       )}"
@@ -3975,6 +3982,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="namesOfSupervisingPersons"
+                                      maxlength="1000"
                                       rows="4"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.names-of-supervising-persons-label',
@@ -4009,6 +4017,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-string-element
                                           subscribe="lang"
                                           name="studyDescription"
+                                          maxlength="1000"
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.study-description-label',
                                           )}"
@@ -4061,10 +4070,10 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="shortDescription"
+                        maxlength="2500"
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.short-description-label',
                         )}"
-                        word-count-limit="300"
                         placeholder="${i18n.t(
                             'render-form.forms.ethics-commission-form.short-description-placeholder',
                         )}"
@@ -4075,6 +4084,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="dataSource"
+                        maxlength="1500"
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.data-source-label',
                         )}"
@@ -4088,6 +4098,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="numberOfTestPersons"
+                        maxlength="100"
                         label="${i18n.t('render-form.forms.ethics-commission-form.number-of-test-persons-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.number-of-test-persons-placeholder')}"
                         value=${data.numberOfTestPersons || ''}
@@ -4097,6 +4108,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="acquisitionOfTestSubjects"
+                        maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.acquisition-of-test-subjects-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.acquisition-of-test-subjects-placeholder')}"
                         value=${data.acquisitionOfTestSubjects || ''}
@@ -4107,6 +4119,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="volunteersCompensation"
+                        maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-placeholder')}"
                         value=${data.volunteersCompensation || ''}
@@ -4119,6 +4132,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="volunteersCompensationEarlyEnd"
+                        maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-early-end-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-early-end-placeholder')}"
                         value=${data.volunteersCompensationEarlyEnd || ''}
@@ -4129,6 +4143,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="participationCriteria"
+                        maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.participation-criteria-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.participation-criteria-placeholder')}"
                         value=${data.participationCriteria || ''}
@@ -4139,6 +4154,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="subjectsDependencies"
+                        maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-placeholder')}"
                         value=${data.subjectsDependencies || ''}
@@ -4151,6 +4167,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="founding"
+                        maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.founding-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.founding-placeholder')}"
                         value=${data.founding || ''}
@@ -4169,6 +4186,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="projectDuration"
+                        maxlength="100"
                         label="${i18n.t('render-form.forms.ethics-commission-form.project-duration-label')}"
                         value=${data.projectDuration || ''}
                         required>
@@ -4178,6 +4196,7 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         rows="5"
                         name="reasonOfSubmission"
+                        maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.reason-of-submission-label')}"
                         value=${data.reasonOfSubmission || ''}
                         required>
@@ -4198,10 +4217,10 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="researchProjectDescription"
+                        maxlength="10000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.research-project-description-label')}"
                         value=${data.researchProjectDescription || ''}
                         rows="10"
-                        maxlength="6000"
                         required>
                     </dbp-form-string-element>
                 </article>
@@ -4531,6 +4550,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     })}"
                                                     subscribe="lang"
                                                     name="testSubjectsTorturedExamples"
+                                                    maxlength="1000"
                                                     rows="3"
                                                     label="1.2.3.1 ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
@@ -4891,6 +4911,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                         })}"
                                                         subscribe="lang"
                                                         name="tissueOrCellsSource"
+                                                        maxlength="1000"
                                                         rows="3"
                                                         label="1.5.5.1 ${i18n.t(
                                                             'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
@@ -5200,6 +5221,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           })}"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
+                                          maxlength="1000"
                                           label="3.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
@@ -5461,6 +5483,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           })}"
                                           subscribe="lang"
                                           name="ethicalIssuesList"
+                                          maxlength="1000"
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.ethical-issues-list-label',
                                           )}"
@@ -5474,6 +5497,7 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-form-string-element
                             subscribe="lang"
                             name="otherCommentsOnInformationProcessing"
+                            maxlength="1000"
                             label="${i18n.t('render-form.forms.ethics-commission-form.other-comments-on-information-processing-label')}"
                             placeholder=""
                             value=${data.otherCommentsOnInformationProcessing || ''}
@@ -5508,6 +5532,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="conflictOfInterestList"
+                                      maxlength="1000"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-of-interest-list-label',
                                       )}"
@@ -5542,6 +5567,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="natureOfBlocking"
+                                      maxlength="1000"
                                       label="6.2.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.nature-of-blocking-label',
                                       )}"
@@ -5556,6 +5582,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="reasonOfBlocking"
+                                      maxlength="1000"
                                       label="6.2.2. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.reason-of-blocking-label',
                                       )}"
@@ -5570,6 +5597,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="consequencesOfBlocking"
+                                      maxlength="1000"
                                       label="6.2.3. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.consequences-of-blocking-label',
                                       )}"
@@ -5584,6 +5612,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="canBeDoneDespiteRestrictions"
+                                      maxlength="1000"
                                       label="6.2.4. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.can-be-done-despite-restrictions-label',
                                       )}"
@@ -5619,6 +5648,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="conflictInContentControlList"
+                                      maxlength="1000"
                                       label="6.3.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-in-content-control-list-label',
                                       )}"
@@ -5748,6 +5778,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="diversityAspectsExamples"
+                                      maxlength="1000"
                                       label="7.4.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.diversity-aspects-examples-label',
                                       )}"
@@ -5837,6 +5868,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="risksReasons"
+                                      maxlength="1000"
                                       label="8.5.1 ${i18n.t(
                                           'render-form.forms.ethics-commission-form.risks-reasons-label',
                                       )}"
