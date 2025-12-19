@@ -1024,7 +1024,7 @@ class FormalizeFormElement extends BaseFormElement {
                     body: this._i18n.t('errors.failed-to-save-draft', {
                         status: response.status,
                         detail: responseBody.detail,
-                    }), //`Failed to save form DRAFT. Response status: ${response.status}<br>${responseBody.detail}`,
+                    }),
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1078,7 +1078,7 @@ class FormalizeFormElement extends BaseFormElement {
             console.error(error);
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.failed-to-save-draft', {message: error.message}), //`Failed to save form DRAFT. Error: ${error.message}`,
+                body: this._i18n.t('errors.unknown-error-on-save-draft'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -1162,7 +1162,7 @@ class FormalizeFormElement extends BaseFormElement {
                 } else {
                     sendNotification({
                         summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.failed-to-submit-form', {
+                        body: this._i18n.t('errors.form-submission-failed', {
                             status: response.status,
                             details: responseBody.detail,
                         }),
@@ -1187,7 +1187,7 @@ class FormalizeFormElement extends BaseFormElement {
                 this.disableLeavePageWarning();
                 sendNotification({
                     summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.form-submitted-successfully'), //'Form submitted successfully',
+                    body: this._i18n.t('success.form-submitted-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -1210,10 +1210,10 @@ class FormalizeFormElement extends BaseFormElement {
             // Put back files that we did not delete?
             this.submittedFiles = submittedFilesBackup;
 
-            console.error(error.message);
+            console.error(error);
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.form-submission-failed', {message: error.message}), // error.message,
+                body: this._i18n.t('errors.unknown-error-on-form-submission'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -1244,10 +1244,10 @@ class FormalizeFormElement extends BaseFormElement {
                 } else {
                     sendNotification({
                         summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.failed-to-submit-form', {
+                        body: this._i18n.t('errors.form-submission-failed', {
                             status: response.status,
                             details: responseBody.detail,
-                        }), // `Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
+                        }),
                         type: 'danger',
                         timeout: 0,
                     });
@@ -1256,16 +1256,13 @@ class FormalizeFormElement extends BaseFormElement {
                 this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.submitted = true;
 
-                // Add new submission to the list
-                this.userAllSubmittedSubmissions.push(responseBody);
-
                 // Hide form after successful submission
                 this.hideForm = true;
                 this.disableLeavePageWarning();
 
                 sendNotification({
                     summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.form-submitted-successfully'), //'Form submitted successfully',
+                    body: this._i18n.t('success.form-submitted-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -1282,10 +1279,10 @@ class FormalizeFormElement extends BaseFormElement {
                 );
             }
         } catch (error) {
-            console.error(error.message);
+            console.error(error);
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.form-submission-failed', {message: error.message}),
+                body: this._i18n.t('errors.unknown-error-on-form-submission'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -1330,7 +1327,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: this._i18n.t('errors.error-title'),
                     body: this._i18n.t('errors.failed-to-delete-submission-status', {
                         status: response.status,
-                    }), // `Failed to delete submission. Response status: ${response.status}`,
+                    }),
                     type: 'danger',
                     timeout: 0,
                 });
@@ -1339,12 +1336,10 @@ class FormalizeFormElement extends BaseFormElement {
                 this.deleteSubmissionError = false;
             }
         } catch (error) {
-            console.error(error.message);
+            console.error(error);
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.failed-to-delete-submission-message', {
-                    message: error.message,
-                }),
+                body: this._i18n.t('errors.unknown-error-on-delete-submission'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -1475,10 +1470,10 @@ class FormalizeFormElement extends BaseFormElement {
 
             this.requestUpdate();
 
-            console.error(error.message);
+            console.error(error);
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.form-save-failed', {message: error.message}), //`Failed to save form. Error: ${error.message}`,
+                body: this._i18n.t('errors.unknown-error-on-save-submission'),
                 type: 'danger',
                 timeout: 0,
             });
