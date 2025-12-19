@@ -1154,15 +1154,22 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
             if (!response.ok) {
                 this.submissionError = true;
-                sendNotification({
-                    summary: this._i18n.t('errors.error-title'),
-                    body: this._i18n.t('errors.failed-to-submit-form', {
-                        status: response.status,
-                        details: responseBody.detail,
-                    }), //`Failed to submit form. Response status: ${response.status}<br>${responseBody.detail}`,
-                    type: 'danger',
-                    timeout: 0,
-                });
+                if (
+                    responseBody['relay:errorId'] ===
+                    'formalize:submission-data-feed-invalid-schema'
+                ) {
+                    this.displayValidationErrors(responseBody);
+                } else {
+                    sendNotification({
+                        summary: this._i18n.t('errors.error-title'),
+                        body: this._i18n.t('errors.failed-to-submit-form', {
+                            status: response.status,
+                            details: responseBody.detail,
+                        }),
+                        type: 'danger',
+                        timeout: 0,
+                    });
+                }
             } else {
                 this.submissionError = false;
                 this.currentState = SUBMISSION_STATES.SUBMITTED;
@@ -1233,27 +1240,7 @@ class FormalizeFormElement extends BaseFormElement {
                     responseBody['relay:errorId'] ===
                     'formalize:submission-data-feed-invalid-schema'
                 ) {
-                    const errorDetails = responseBody['relay:errorDetails'];
-                    // Loop through errorDetails object keys and format messages
-                    let errorDetailsMessages = [];
-                    Object.keys(errorDetails).forEach((fieldName) => {
-                        const fieldErrors = errorDetails[fieldName];
-                        fieldErrors.forEach((errorMessage) => {
-                            fieldName = fieldName.replace(/^\//, '');
-                            errorDetailsMessages.push(`${fieldName}: ${errorMessage}`);
-                        });
-                    });
-                    console.log(`errorDetails`, errorDetailsMessages);
-                    sendNotification({
-                        summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.validation-failed', {
-                            details: errorDetailsMessages.join('; '),
-                        }),
-                        type: 'danger',
-                        timeout: 0,
-                    });
-                    // Trigger validation on page load
-                    this.needValidationOnLoad = true;
+                    this.displayValidationErrors(responseBody);
                 } else {
                     sendNotification({
                         summary: this._i18n.t('errors.error-title'),
@@ -1434,15 +1421,22 @@ class FormalizeFormElement extends BaseFormElement {
             let responseBody = await response.json();
 
             if (!response.ok) {
-                sendNotification({
-                    summary: `${responseBody['hydra:title']}`,
-                    body: this._i18n.t('errors.form-submission-failed', {
-                        status: response.status,
-                        details: responseBody.detail,
-                    }),
-                    type: 'danger',
-                    timeout: 0,
-                });
+                if (
+                    responseBody['relay:errorId'] ===
+                    'formalize:submission-data-feed-invalid-schema'
+                ) {
+                    this.displayValidationErrors(responseBody);
+                } else {
+                    sendNotification({
+                        summary: `${responseBody['hydra:title']}`,
+                        body: this._i18n.t('errors.form-submission-failed', {
+                            status: response.status,
+                            details: responseBody.detail,
+                        }),
+                        type: 'danger',
+                        timeout: 0,
+                    });
+                }
             } else {
                 this.submittedFiles = await this.transformApiResponseToFile(
                     responseBody.submittedFiles,
@@ -1489,6 +1483,29 @@ class FormalizeFormElement extends BaseFormElement {
                 timeout: 0,
             });
         }
+    }
+
+    displayValidationErrors(responseBody) {
+        // Loop through errorDetails object keys and format messages
+        const errorDetails = responseBody['relay:errorDetails'];
+        let errorDetailsMessages = [];
+        Object.keys(errorDetails).forEach((fieldName) => {
+            const fieldErrors = errorDetails[fieldName];
+            fieldErrors.forEach((errorMessage) => {
+                fieldName = fieldName.replace(/^\//, '');
+                errorDetailsMessages.push(`${fieldName}: ${errorMessage}`);
+            });
+        });
+        sendNotification({
+            summary: this._i18n.t('errors.error-title'),
+            body: this._i18n.t('errors.validation-failed', {
+                details: errorDetailsMessages.join('; '),
+            }),
+            type: 'danger',
+            timeout: 0,
+        });
+        // Trigger validation on page load
+        this.needValidationOnLoad = true;
     }
 
     /**
