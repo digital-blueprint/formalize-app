@@ -214,6 +214,7 @@ class FormalizeFormElement extends BaseFormElement {
             if (this.formIdentifier) {
                 await this.getUsersGrants();
             }
+            this.setButtonStates();
 
             this.updateComplete.then(async () => {
                 await this.processConditionalFields();
