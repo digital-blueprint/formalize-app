@@ -4,7 +4,12 @@ import {ScopedElementsMixin, sendNotification} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
-import {pascalToKebab, getFormRenderUrl, getFormShowSubmissionsUrl} from './utils.js';
+import {
+    SUBMISSION_STATES_BINARY,
+    pascalToKebab,
+    getFormRenderUrl,
+    getFormShowSubmissionsUrl,
+} from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
@@ -19,7 +24,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionId = '';
         this.loadedSubmission = {};
         this.userAllSubmissions = [];
-        this.usersSubmissionCount = null;
+        this.usersSubmittedSubmissionCount = null;
         this.formProperties = {};
         this.authTokenExists = false;
         this.submissionAllowed = false;
@@ -395,12 +400,17 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const maxNumberOfSubmissionsPerUser = this.formProperties.maxNumSubmissionsPerCreator;
         // const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
         this.grantedActions = this.formProperties.grantedActions;
-        this.usersSubmissionCount = this.formProperties.numSubmissionsByCurrentUser;
+
+        // this.usersSubmissionCount = this.formProperties.numSubmissionsByCurrentUser;
+        // Only count SUBMITTED state submissions
+        this.usersSubmittedSubmissionCount = this.userAllSubmissions.filter((submission) => {
+            return submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED;
+        }).length;
 
         // Don't display the form before setting usersSubmissionCount.
-        if (this.usersSubmissionCount === null) return;
+        if (this.usersSubmittedSubmissionCount === null) return;
 
-        if (this.usersSubmissionCount > 0) {
+        if (this.usersSubmittedSubmissionCount > 0) {
             // Form already submitted, can't submit again
             if (maxNumberOfSubmissionsPerUser === 1) {
                 let submissionUrl = '';
@@ -455,14 +465,14 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `;
         }
 
-        if (this.usersSubmissionCount >= maxNumberOfSubmissionsPerUser) {
+        if (this.usersSubmittedSubmissionCount >= maxNumberOfSubmissionsPerUser) {
             // User can't submit the form again
             // A message is shown that the user already submitted the form
             // and show a link to the submissions in the show-submissions page
             return html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
-                        n: this.usersSubmissionCount,
+                        n: this.usersSubmittedSubmissionCount,
                     })}
                     <a
                         href="${getFormShowSubmissionsUrl(
@@ -476,7 +486,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         let formAlreadySubmittedWarning = html``;
-        if (this.userAllSubmissions.length > 0) {
+        if (this.usersSubmittedSubmissionCount > 0) {
             // An empty form is shown with the message that the user already submitted the form
             // and show a link to the submissions in the show-submissions page
             formAlreadySubmittedWarning = html`
