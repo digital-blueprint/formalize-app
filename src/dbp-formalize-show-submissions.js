@@ -2665,7 +2665,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         } else {
             sendNotification({
                 summary: this._i18n.t('errors.warning-title'),
-                body: this._i18n.t('errors.feature-not-implemented'), // 'This feature is not yet implemented for this form.',
+                body: this._i18n.t('errors.feature-not-implemented'),
                 type: 'warning',
                 timeout: 10,
             });

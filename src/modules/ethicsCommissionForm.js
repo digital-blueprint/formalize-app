@@ -484,7 +484,7 @@ class FormalizeFormElement extends BaseFormElement {
                     summary: this._i18n.t('errors.error-title'),
                     body: this._i18n.t('errors.failed-to-get-permission-details', {
                         status: resourceActionsResponse.status,
-                    }), // `Failed to get permission details. Response status: ${resourceActionsResponse.status}`,
+                    }),
                     type: 'danger',
                     timeout: 0,
                 });
@@ -503,7 +503,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 summary: this._i18n.t('errors.error-title'),
                                 body: this._i18n.t('errors.failed-to-get-permission-details', {
                                     status: userDetailsResponse.status,
-                                }), // `Failed to get user details. Response status: ${userDetailsResponse.status}`,
+                                }),
                                 type: 'danger',
                                 timeout: 0,
                             });
@@ -1050,7 +1050,7 @@ class FormalizeFormElement extends BaseFormElement {
                 window.history.pushState({}, '', newSubmissionUrl.toString());
                 sendNotification({
                     summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.draft-saved-successfully'), // 'Form DRAFT saved successfully',
+                    body: this._i18n.t('success.draft-saved-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
