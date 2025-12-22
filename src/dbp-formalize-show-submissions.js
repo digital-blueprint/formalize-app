@@ -2993,6 +2993,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 this.closeAllSearchWidgets();
                                 this.loadingFormsTable = false;
                                 this.showFormsTable = true;
+                                this.activeFormId = null;
                                 this.sendSetPropertyEvent('routing-url', '/', true);
                             }}"
                             title="${i18n.t('show-submissions.back-text')}">
