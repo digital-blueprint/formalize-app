@@ -135,7 +135,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Conditional fields
         this.conditionalFields = {
             isNewSubmission: false,
-            qualificationWork: true,
+            isResearchProject: true,
             testSubjects: false,
             testSubjectsTortured: false,
             deadBodies: false,
@@ -2105,27 +2105,41 @@ class FormalizeFormElement extends BaseFormElement {
                             : ''
                     }
 
+
                     <dbp-form-enum-view
                         subscribe="lang"
-                        name="qualificationWork"
-                        data-condition="!no"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.qualification-work-label')}"
+                        name="isResearchProject"
+                        data-condition="yes"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.is-research-project-label')}"
                         .items=${{
-                            no: i18n.t('render-form.forms.ethics-commission-form.no-label'),
-                            bachelor: i18n.t(
-                                'render-form.forms.ethics-commission-form.bachelor-label',
-                            ),
-                            master: i18n.t('render-form.forms.ethics-commission-form.master-label'),
-                            doctorat: i18n.t(
-                                'render-form.forms.ethics-commission-form.doctorat-label',
-                            ),
+                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
-                        .value=${data.qualificationWork || ''}>
+                        .value=${data.isResearchProject || ''}>
                     </dbp-form-enum-view>
 
                     ${
-                        this.conditionalFields.qualificationWork
+                        this.conditionalFields.isResearchProject
                             ? html`
+                                  <dbp-form-enum-view
+                                      subscribe="lang"
+                                      name="qualificationWork"
+                                      label="${i18n.t(
+                                          'render-form.forms.ethics-commission-form.qualification-work-label',
+                                      )}"
+                                      .items=${{
+                                          bachelor: i18n.t(
+                                              'render-form.forms.ethics-commission-form.bachelor-label',
+                                          ),
+                                          master: i18n.t(
+                                              'render-form.forms.ethics-commission-form.master-label',
+                                          ),
+                                          doctorat: i18n.t(
+                                              'render-form.forms.ethics-commission-form.doctorat-label',
+                                          ),
+                                      }}
+                                      .value=${data.qualificationWork || ''}></dbp-form-enum-view>
+
                                   <dbp-form-string-view
                                       subscribe="lang"
                                       name="namesOfSupervisingPersons"
@@ -3967,31 +3981,50 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-enum-element
                         subscribe="lang"
-                        name="qualificationWork"
-                        data-condition="!no"
+                        name="isResearchProject"
+                        data-condition="yes"
                         display-mode="list"
                         required
-                        label="${i18n.t('render-form.forms.ethics-commission-form.qualification-work-label')}"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.is-research-project-label')}"
                         .items=${{
-                            no: i18n.t('render-form.forms.ethics-commission-form.no-label'),
-                            bachelor: i18n.t(
-                                'render-form.forms.ethics-commission-form.bachelor-label',
-                            ),
-                            master: i18n.t('render-form.forms.ethics-commission-form.master-label'),
-                            doctorat: i18n.t(
-                                'render-form.forms.ethics-commission-form.doctorat-label',
-                            ),
+                            yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
+                            no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
-                        multiple
-                        .value=${data.qualificationWork || ''}>
+                        .value=${data.isResearchProject || ''}>
                     </dbp-form-enum-element>
 
                     ${
-                        this.conditionalFields.qualificationWork
+                        this.conditionalFields.isResearchProject
                             ? html`
+                                  <dbp-form-enum-element
+                                      class="${classMap({
+                                          'fade-in': this.conditionalFields.isResearchProject,
+                                      })}"
+                                      subscribe="lang"
+                                      name="qualificationWork"
+                                      display-mode="list"
+                                      required
+                                      label="${i18n.t(
+                                          'render-form.forms.ethics-commission-form.qualification-work-label',
+                                      )}"
+                                      .items=${{
+                                          bachelor: i18n.t(
+                                              'render-form.forms.ethics-commission-form.bachelor-label',
+                                          ),
+                                          master: i18n.t(
+                                              'render-form.forms.ethics-commission-form.master-label',
+                                          ),
+                                          doctorat: i18n.t(
+                                              'render-form.forms.ethics-commission-form.doctorat-label',
+                                          ),
+                                      }}
+                                      multiple
+                                      .value=${data.qualificationWork ||
+                                      ''}></dbp-form-enum-element>
+
                                   <dbp-form-string-element
                                       class="${classMap({
-                                          'fade-in': this.conditionalFields.qualificationWork,
+                                          'fade-in': this.conditionalFields.isResearchProject,
                                       })}"
                                       subscribe="lang"
                                       name="namesOfSupervisingPersons"
