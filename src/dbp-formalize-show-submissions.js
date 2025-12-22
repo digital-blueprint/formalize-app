@@ -186,6 +186,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             allForms: {type: Array, attribute: false},
             form: {type: String},
             name: {type: String},
+            activeFormName: {type: String, attribute: false},
             forms: {type: Object, attribute: false},
             submissions: {type: Object, attribute: false},
             emptyCoursesTable: {type: Boolean, attribute: true},
@@ -538,8 +539,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.formsTable = /** @type {CustomTabulatorTable} */ (
                         this._('#tabulator-table-forms')
                     );
-                    if (this.formsTable && !this.formsTable.tableReady) {
-                        this._('#tabulator-table-forms').buildTable();
+                    if (this.formsTable) {
+                        this.formsTable.buildTable();
                         this.loadingFormsTable = false;
                         this.showFormsTable = true;
                         this.showSubmissionTables = false;
@@ -619,13 +620,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('lang')) {
+            await this.getListOfAllForms();
+
             const activeForm = this.forms.get(this.activeFormId);
-            const activeFormSlug = activeForm ? activeForm.formSlug : null;
-            this.createSubmissionUrl = activeFormSlug
-                ? getFormRenderUrl(activeFormSlug, this.lang)
-                : '';
-            // To re-create get-submission-links with the new language
-            this.switchToSubmissionTable(activeForm);
+            if (activeForm) {
+                const activeFormSlug = activeForm ? activeForm.formSlug : null;
+                this.createSubmissionUrl = activeFormSlug
+                    ? getFormRenderUrl(activeFormSlug, this.lang)
+                    : '';
+                // To re-create get-submission-links with the new language
+                this.switchToSubmissionTable(activeForm);
+            }
         }
 
         super.updated(changedProperties);
@@ -773,7 +778,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 for (let x = 0; x < data['hydra:member'].length; x++) {
                     const entry = data['hydra:member'][x];
                     const id = x + 1;
-                    const formName = entry['name'];
+                    let localizedFormName = entry['localizedNames'].find((localizedName) => {
+                        return localizedName.languageTag === this.lang;
+                    });
+                    const formName = localizedFormName ? localizedFormName.name : entry['name'];
                     const formId = entry['identifier'];
                     const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
                     const tagPermissionsForSubmitters = entry['tagPermissionsForSubmitters'];
@@ -999,7 +1007,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Add link to show submission in render form view
                 // @TODO: only for forms that we are rendering ourselves and have readonly view
                 // activeForm.formSlug && hasReadonlyView(activeForm);
-                if (activeForm.formName === 'Ethikantrag') {
+                if (
+                    activeForm.formName === 'Ethikantrag' ||
+                    activeForm.formName === 'Ethics Proposal'
+                ) {
                     const submissionDetailsFormButton = this.submissionTables[
                         state
                     ].createScopedElement('dbp-formalize-get-submission-link');
@@ -1311,8 +1322,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionsColumns[state] = this.cloneColumnDefinitions(
             this.submissionsColumnsInitial[state],
         );
-
-        console.log(`this.submissionsColumns[${state}]`, this.submissionsColumns[state]);
     }
 
     /**
@@ -2648,7 +2657,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // @TODO: LunchLottery don't have a slug
         // other forms don't have read-only view
-        if (activeForm.formName === 'Ethikantrag') {
+        if (activeForm.formName === 'Ethikantrag' || activeForm.formName === 'Ethics Proposal') {
             // Go to the readonly view of the form submission
             let formSubmissionUrl =
                 getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
