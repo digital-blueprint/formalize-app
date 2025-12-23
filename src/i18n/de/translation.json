@@ -4,8 +4,6 @@
         "error-title": "Fehler",
         "failed-to-delete-submission-status": "Das Löschen der Übermittlung ist fehlgeschlagen. Antwortstatus: {{status}}",
         "failed-to-get-last-modifier-details": "Details zum letzten Bearbeiter konnten nicht abgerufen werden",
-        "failed-to-get-permission-details": "Details zur Berechtigung konnten nicht abgerufen werden",
-        "failed-to-process-user-permissions": "Benutzerberechtigungen konnten nicht verarbeitet werden",
         "failed-to-save-draft": "Speichern des Entwurfs fehlgeschlagen",
         "feature-not-implemented": "Funktion noch nicht implementiert",
         "form-submission-failed": "Formular konnte nicht gespeichert werden. Antwortstatus: {{status}}\n{{details}}",

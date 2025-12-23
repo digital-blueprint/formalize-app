@@ -4,8 +4,6 @@
         "error-title": "Error",
         "failed-to-delete-submission-status": "Failed to delete submission. Response status: {{status}}",
         "failed-to-get-last-modifier-details": "Failed to get last modifier details",
-        "failed-to-get-permission-details": "Failed to get permission details",
-        "failed-to-process-user-permissions": "Failed to process user permissions",
         "failed-to-save-draft": "Failed to save draft",
         "feature-not-implemented": "Feature not yet implemented",
         "form-submission-failed": "Failed to save form. Response status: {{status}}\n{{details}}",

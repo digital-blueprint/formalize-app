@@ -95,7 +95,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.formGrantedSubmissionCollectionActions = [];
         this.isAdmin = false;
         this.submissionGrantedActions = [];
-        this.allUsersSubmissionGrants = [];
 
         // Button
         this.isViewModeButtonAllowed = false;
@@ -164,7 +163,6 @@ class FormalizeFormElement extends BaseFormElement {
             submitted: {type: Boolean, attribute: false},
             submissionError: {type: Boolean, attribute: false},
             hideForm: {type: Boolean, attribute: false},
-            allUsersSubmissionGrants: {type: Array, attribute: false},
 
             resourceActions: {type: Object, attribute: false},
 
@@ -211,9 +209,6 @@ class FormalizeFormElement extends BaseFormElement {
             if (Object.keys(this.data).length > 0) {
                 await this.processFormData();
             }
-            if (this.formIdentifier) {
-                await this.getUsersGrants();
-            }
             this.setButtonStates();
 
             this.updateComplete.then(async () => {
@@ -246,12 +241,6 @@ class FormalizeFormElement extends BaseFormElement {
                         grant === SUBMISSION_COLLECTION_PERMISSIONS.UPDATE,
                 );
                 this.setButtonStates();
-            }
-        }
-
-        if (changedProperties.has('formIdentifier')) {
-            if (this.formIdentifier) {
-                await this.getUsersGrants();
             }
         }
 
@@ -468,76 +457,6 @@ class FormalizeFormElement extends BaseFormElement {
             }
         } catch (e) {
             console.error('Error parsing submission data:', e);
-        }
-    }
-
-    /**
-     * Get all submission level grants for the current submission
-     * Set this.allUsersSubmissionGrants used in share permission header
-     */
-    async getUsersGrants() {
-        try {
-            // Get user permissions for the form
-            const resourceActionsResponse = await this.apiGetResourceActionGrants();
-            if (!resourceActionsResponse.ok) {
-                sendNotification({
-                    summary: this._i18n.t('errors.error-title'),
-                    body: this._i18n.t('errors.failed-to-get-permission-details', {
-                        status: resourceActionsResponse.status,
-                    }),
-                    type: 'danger',
-                    timeout: 0,
-                });
-            }
-            const resourceActionsBody = await resourceActionsResponse.json();
-            let resourceActions = [];
-            if (resourceActionsBody['hydra:member'].length > 0) {
-                for (const resourceAction of resourceActionsBody['hydra:member']) {
-                    // Only process user grant, skip group permissions
-                    if (resourceAction.userIdentifier) {
-                        const userDetailsResponse = await this.apiGetUserDetails(
-                            resourceAction.userIdentifier,
-                        );
-                        if (!userDetailsResponse.ok) {
-                            sendNotification({
-                                summary: this._i18n.t('errors.error-title'),
-                                body: this._i18n.t('errors.failed-to-get-permission-details', {
-                                    status: userDetailsResponse.status,
-                                }),
-                                type: 'danger',
-                                timeout: 0,
-                            });
-                        }
-                        const userDetails = await userDetailsResponse.json();
-                        const userFullName = `${userDetails.givenName} ${userDetails.familyName}`;
-
-                        // Group permissions by user id
-                        let userEntry = resourceActions.find(
-                            (entry) => entry.userId === resourceAction.userIdentifier,
-                        );
-                        if (!userEntry) {
-                            userEntry = {
-                                userId: resourceAction.userIdentifier,
-                                userName: userFullName,
-                                actions: [],
-                            };
-                            resourceActions.push(userEntry);
-                        }
-                        userEntry.actions.push(resourceAction.action);
-                    }
-                }
-                this.allUsersSubmissionGrants = resourceActions;
-            } else {
-                this.allUsersSubmissionGrants = [];
-            }
-        } catch (e) {
-            console.log(e);
-            sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.failed-to-process-user-permissions'), //`Failed to process user permissions`,
-                type: 'danger',
-                timeout: 0,
-            });
         }
     }
 
@@ -816,9 +735,8 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     permissionModalClosedHandler(event) {
-        if (event.detail.id && event.detail.id === 'grant-permission-modal') {
-            this.getUsersGrants();
-        }
+        // if (event.detail.id && event.detail.id === 'grant-permission-modal') {
+        // }
     }
 
     handleSelect2Close(event) {
