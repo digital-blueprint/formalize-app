@@ -582,6 +582,8 @@ export function getShowSubmissionCSS() {
 
         .reset-search {
             cursor: pointer;
+            background: none;
+            border: 0 none;
             padding: 5px;
             transform: translateX(5px);
         }

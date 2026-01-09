@@ -2926,6 +2926,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <button
                                 class="button search-toggle-filters-button"
                                 id="search-toggle-filters-button--${state}"
+                                aria-expanded="${this.searchWidgetIsOpen[state]}"
+                                aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
                                 @click="${() => {
                                     this.toggleSearchFilters(state);
                                 }}">
@@ -2935,11 +2937,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     aria-label="${i18n.t(
                                         'show-submissions.filter-toggle-button',
                                     )}"></dbp-icon>
-                                <span class="visually-hidden">Open search filters</span>
+                                <span class="visually-hidden">
+                                    ${this.searchWidgetIsOpen[state]
+                                        ? i18n.t('show-submissions.close-search-filters')
+                                        : i18n.t('show-submissions.open-search-filters')}
+                                </span>
                             </button>
                         </div>
 
                         <div
+                            id="search-filter-columns--${state}"
+                            role="region"
+                            aria-label="${i18n.t('show-submissions.search-filters-region')}"
                             class="search-filter-columns ${classMap({
                                 open: this.searchWidgetIsOpen[state],
                             })}">
@@ -2964,6 +2973,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </div>
 
                         <div
+                            id="search-filter-operator--${state}"
+                            role="region"
+                            aria-label="${i18n.t('show-submissions.search-operator')}"
                             class="search-filter-operator ${classMap({
                                 open: this.searchWidgetIsOpen[state],
                             })}">
@@ -2987,7 +2999,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 )}"></dbp-icon>
                         </div>
                     </div>
-                    <div class="statusbar">
+                    <div class="statusbar" role="status" aria-live="polite" aria-atomic="true">
                         <span class="selection-info">
                             ${i18n.t('show-submissions.n-items-shown-label', {
                                 n: this.visibleRowCount[state],
@@ -3000,19 +3012,19 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                   `
                                 : ''}
                         </span>
-                        <span
+                        <button
                             class="reset-search"
                             @click="${() => {
                                 this.clearAllFilters();
                             }}">
                             <dbp-icon
                                 name="spinner-arrow"
-                                title="${i18n.t('show-submissions.filter-toggle-button')}"
+                                title="${i18n.t('show-submissions.reset-search-label')}"
                                 aria-label="${i18n.t(
-                                    'show-submissions.filter-toggle-button',
+                                    'show-submissions.reset-search-label',
                                 )}"></dbp-icon>
                             ${i18n.t('show-submissions.reset-search-label')}
-                        </span>
+                        </button>
                     </div>
                 </div>
             </div>
