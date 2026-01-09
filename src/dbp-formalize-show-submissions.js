@@ -1696,7 +1696,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Creates options for a select box of
      * this.submissionColumns Array (all possible cols of active table)
      *
-     * @returns {Array<html>} options
+     * @param {string} state - The state of the submission table ('draft' or 'submitted')
+     * @returns {import('lit').TemplateResult[]} Array of option template results
      */
     getTableHeaderOptions(state) {
         const i18n = this._i18n;
@@ -1716,10 +1717,24 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             let cols = Object.keys(submissions[0]);
 
+            let schemaFields = null;
+            if (this.activeFormId) {
+                const activeForm = this.forms.get(this.activeFormId);
+                try {
+                    const formSchema = JSON.parse(activeForm.dataFeedSchema);
+                    schemaFields = formSchema?.properties;
+                } catch (e) {
+                    console.log('Failed parsing json data', e);
+                }
+            }
+
             for (let col of cols) {
                 if (col && col !== 'htmlButtons') {
+                    // Get localized name from the schema if available
+                    const localizedName = schemaFields?.[col]?.localizedName?.[this.lang];
+                    const displayName = localizedName || col;
                     options.push(html`
-                        <option value="${col}">${col}</option>
+                        <option value="${col}">${displayName}</option>
                     `);
                 }
             }
