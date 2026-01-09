@@ -396,16 +396,17 @@ export function getShowSubmissionCSS() {
 
         .table-buttons {
             display: grid;
-            grid-template-columns: auto 1fr auto;
+            grid-template-columns: 1fr;
             gap: 1em;
             position: relative;
 
             container: table-buttons / inline-size;
         }
 
-        .table-buttons :where(select, input[type='text'], button) {
+        .table-buttons select {
             box-sizing: border-box;
-            height: 34px;
+            height: 32px;
+            width: 100%;
             padding-block: 0;
             color: var(--dbp-content);
             background-color: var(--dbp-background);
@@ -420,6 +421,11 @@ export function getShowSubmissionCSS() {
         }
 
         /* actions */
+
+        .action-buttons-container {
+            display: flex;
+            justify-content: space-between;
+        }
 
         .actions-container {
             position: relative;
@@ -483,47 +489,71 @@ export function getShowSubmissionCSS() {
 
         /* search bar */
 
-        .search-container {
-            overflow: hidden;
-            height: 36px;
-        }
-
-        .extendable-searchbar {
-            box-sizing: border-box;
-            display: grid;
-            grid-template-columns: 40px 1fr 40px;
-            border-bottom: 1px solid transparent;
-            transform: translateX(calc(100% - 2em));
-            transition:
-                transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
-                border-color 250ms ease-in 50ms;
-        }
-
-        .extendable-searchbar.open {
-            transform: translateX(0);
-            border-color: var(--dbp-content);
-        }
-
-        .extendable-searchbar.closing {
-            border-color: transparent;
-            transform: translateX(calc(100% - 2.5em));
-            transition:
-                transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 0ms,
-                border-color 30ms ease-in 0ms;
-        }
-
         .extended-menu {
             display: grid;
-            grid-template-columns: 1fr 40px 1fr 40px 1fr 40px;
-            justify-items: center;
-            height: 34px;
+            grid-template-areas: 'top top left right';
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5em;
         }
 
-        .extended-menu :is(input[type='text'], select) {
+        .search-input {
+            grid-area: top;
+            display: flex;
+            position: relative;
+        }
+
+        .searchbar,
+        .search-button,
+        .search-toggle-filters-button {
+            height: 32px;
+            box-sizing: border-box;
+        }
+
+        .searchbar dbp-icon,
+        .search-button dbp-icon,
+        .search-toggle-filters-button dbp-icon {
+            transition: transform 250ms ease-in;
+        }
+
+        .extended-menu.open .search-toggle-filters-button dbp-icon {
+            transform: rotate(180deg);
+            transform-origin: center;
+        }
+
+        .searchbar {
+            flex-grow: 1;
+            padding: 0 0.5em;
+            border: 1px solid var(--dbp-content);
+        }
+
+        .search-filter-columns {
+            grid-area: left;
+            position: relative;
+        }
+
+        .search-filter-operator {
+            grid-area: right;
+            position: relative;
+        }
+
+        .search-filter-columns dbp-icon,
+        .search-filter-operator dbp-icon {
+            position: absolute;
+            right: 9px;
+            top: 9px;
+            pointer-events: none;
+        }
+
+        .search-button {
             border: 0 none;
-            text-align: left;
-            padding-left: 10px;
-            width: 100%;
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            background-color: transparent;
+        }
+
+        .search-toggle-filters-button {
+            display: none;
         }
 
         .extended-menu label {
@@ -537,12 +567,70 @@ export function getShowSubmissionCSS() {
         }
 
         .extended-menu > :focus-visible {
-            box-shadow: none !important;
             background-color: light-dark(#f7f7f7, #333333);
         }
 
+        .statusbar {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 0.5em;
+        }
+
+        .selection-info {
+            padding-top: 5px;
+        }
+
+        .reset-search {
+            cursor: pointer;
+            padding: 5px;
+            transform: translateX(5px);
+        }
+
         @container table-buttons (width < 1040px) {
-            .search-container {
+            .extended-menu {
+                display: grid;
+                grid-template-areas:
+                    'top top'
+                    'left right';
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5em;
+                height: 75px;
+            }
+
+            .statusbar {
+                transform: translateY(-35px);
+                padding-top: 0;
+            }
+
+            .open .statusbar {
+                transform: translateY(0);
+            }
+
+            .searchbar {
+                border-right: 0 none;
+            }
+
+            .search-button {
+                right: 42px;
+            }
+
+            .search-toggle-filters-button {
+                display: block;
+            }
+
+            .search-filter-columns {
+                height: 0;
+                overflow: hidden;
+            }
+
+            .search-filter-operator {
+                height: 0;
+                overflow: hidden;
+            }
+
+            .search-filter-operator.open,
+            .search-filter-columns.open {
+                height: auto;
                 overflow: visible;
             }
 
@@ -550,199 +638,9 @@ export function getShowSubmissionCSS() {
                 position: relative;
                 z-index: 10;
             }
-
-            .extendable-searchbar {
-                display: block;
-                position: relative;
-                border: 1px solid transparent;
-                clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-                transition:
-                    transform 500ms cubic-bezier(0, 0.014, 0, 0.986),
-                    border-color 250ms ease-in 250ms,
-                    clip-path 250ms ease-in 500ms;
-            }
-
-            .extendable-searchbar :is(input, select, .search-close-button, label) {
-                opacity: 0;
-                transition: opacity 250ms ease-in 250ms;
-            }
-
-            .extendable-searchbar input,
-            .extendable-searchbar select {
-                width: 100%;
-                padding: 0 1em;
-                max-width: 100%;
-                border: var(--dbp-border);
-                margin-bottom: 1em;
-                height: 40px;
-            }
-
-            .extendable-searchbar .searchbar {
-                padding-left: 3em !important;
-                padding-right: 1em;
-                width: 100%;
-                background-color: var(--dbp-background);
-            }
-
-            .extendable-searchbar.open {
-                border-color: var(--dbp-content);
-                z-index: 15;
-                background: var(--dbp-background);
-                box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.1);
-                clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-            }
-
-            .extendable-searchbar.open .searchbar {
-                border: 0 none;
-                border-bottom: var(--dbp-border);
-            }
-
-            .extendable-searchbar.open button.search-button {
-                top: 0.6em;
-                left: 1em;
-            }
-
-            .extendable-searchbar.open :is(.search-close-button, label, input, select) {
-                opacity: 1;
-            }
-
-            .extendable-searchbar.closing {
-                transform: translateX(calc(100% - 2em));
-                border-color: transparent;
-                clip-path: polygon(0 0, 100% 0, 100% 18%, 0 18%);
-                transition:
-                    transform 500ms cubic-bezier(0, 0.014, 0, 0.986) 250ms,
-                    border-color 250ms ease-in 0ms,
-                    clip-path 250ms ease-in 0ms;
-            }
-
-            .extendable-searchbar.closing .searchbar {
-                border: 0 none;
-            }
-
-            .extendable-searchbar.closing button.search-button {
-                top: 0;
-                left: 0;
-            }
-
-            .extendable-searchbar.closing :is(input, select, .search-close-button) {
-                opacity: 0;
-                transition: opacity 100ms ease-in 0ms;
-            }
-
-            button.search-button {
-                position: absolute;
-                top: 0;
-                left: 0;
-                z-index: 5;
-            }
-
-            .search-close-button {
-                position: absolute;
-                top: 0.8em;
-                right: 1em;
-                z-index: 5;
-            }
-
-            .extended-menu {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 1em;
-                /*min-width: 300px;*/
-                height: auto;
-            }
-
-            .spacer {
-                display: none;
-            }
-
-            .extended-menu label {
-                clip: initial;
-                clip-path: initial;
-                height: auto;
-                overflow: visible;
-                position: static;
-                white-space: initial;
-                width: auto;
-            }
         }
 
         @container table-buttons (width < 565px) {
-            .extendable-searchbar {
-                width: 40px;
-                transform: none;
-                transition:
-                    /*opacity 2500ms ease-in,*/ clip-path 250ms ease-in
-                    500ms;
-                clip-path: polygon(0% 0, 100% 0, 100% 18%, 0% 18%);
-            }
-
-            .extendable-searchbar.open {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                width: 100%;
-                transform: none;
-                clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
-            }
-
-            .extendable-searchbar.closing {
-                transform: none;
-                transition:
-                    width 250ms ease-in,
-                    opacity 250ms ease-in 500ms,
-                    clip-path 250ms ease-in;
-                border-color: var(--dbp-content);
-                opacity: 1;
-                clip-path: polygon(0% 0, 100% 0, 100% 18%, 0% 18%);
-            }
-
-            .extendable-searchbar.closing button.search-close-button {
-                opacity: 0;
-            }
-
-            .extendable-searchbar.closing :is(input, select, .search-close-button, label) {
-                opacity: 1;
-                transition: none;
-            }
-        }
-
-        button.search-button {
-            width: 34px;
-            border: 0 none;
-            padding: 0;
-            border-radius: 100%;
-            font-size: 20px;
-            background-color: transparent;
-        }
-
-        button.search-button:hover {
-            background-color: light-dark(#f7f7f7, #333333);
-        }
-
-        button.search-button:focus-visible {
-            box-shadow: none !important;
-            background-color: light-dark(#f7f7f7, #333333);
-        }
-
-        button.search-close-button {
-            width: 34px;
-            border: 0 none;
-            padding: 0;
-            border-radius: 100%;
-            font-size: 16px;
-            background-color: transparent;
-        }
-
-        button.search-close-button:hover {
-            background-color: light-dark(#f7f7f7, #333333);
-        }
-
-        button.search-close-button:focus-visible {
-            box-shadow: none !important;
-            background-color: light-dark(#f7f7f7, #333333);
         }
 
         .create-submission-button {
@@ -755,11 +653,6 @@ export function getShowSubmissionCSS() {
             align-items: center;
             padding: 0 1em;
             margin-bottom: 3em;
-        }
-
-        .spacer {
-            color: #999999;
-            font-size: 24px;
         }
 
         /* export button */
