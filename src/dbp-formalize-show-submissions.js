@@ -500,7 +500,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     getTableState(tableId) {
         for (const state of Object.keys(this.submissionTables)) {
-            if (this.submissionTables[state] && tableId === this.submissionTables[state].id) {
+            if (
+                this.submissionTables[state] &&
+                tableId === this.submissionTables[state].identifier
+            ) {
                 return state;
             }
         }
@@ -1920,12 +1923,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     handleTablePaginationPageLoaded(event) {
         const tableId = event.detail.tableId;
+        const state = this.getTableState(tableId);
 
-        // @TODO: find a better way to get the state from the tableId
-        const state = tableId.includes(SUBMISSION_STATES.DRAFT)
-            ? SUBMISSION_STATES.DRAFT
-            : SUBMISSION_STATES.SUBMITTED;
-        if (!tableId || !state) return;
+        if (!state) return;
 
         this.visibleRowCount = {
             ...this.visibleRowCount,
@@ -2704,7 +2704,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const root = activeTable.element.getRootNode();
         if (root instanceof ShadowRoot) {
             const tabulatorTableComponent = root.host;
-            const state = this.getTableState(tabulatorTableComponent.id);
+            const state = this.getTableState(tabulatorTableComponent.identifier);
             this.selectedRowCount[state] = selectedRows.length;
 
             this.setIsActionAvailable(state);
