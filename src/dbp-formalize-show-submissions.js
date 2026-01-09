@@ -1679,14 +1679,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     clearAllFilters() {
         for (const state of Object.keys(this.submissionTables)) {
-            let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
-            let search = /** @type {HTMLSelectElement} */ (this._(`#search-select--${state}`));
+            let searchInput = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
+            let searchColumn = /** @type {HTMLSelectElement} */ (
+                this._(`#search-select--${state}`)
+            );
+            let searchOperator = /** @type {HTMLSelectElement} */ (
+                this._(`#search-operator--${state}`)
+            );
             const table = this.submissionTables[state];
 
-            if (!filter || !search || !table) return;
+            if (!table || !searchInput || !searchColumn || !searchOperator) return;
 
-            filter.value = '';
-            search.value = 'all';
+            searchInput.value = '';
+            searchColumn.value = 'all';
+            searchOperator.value = 'like';
             table.clearFilter();
         }
     }
@@ -1892,21 +1898,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 event.preventDefault();
                 const state = activeElement.getAttribute('data-state');
                 this.filterTable(state);
-                // close search widget
-                this.searchWidgetIsOpen = {
-                    ...this.searchWidgetIsOpen,
-                    [state]: false,
-                };
-            }
-
-            // ESC
-            if (event.keyCode === 27) {
-                const state = activeElement.getAttribute('data-state');
-                // close search widget
-                this.searchWidgetIsOpen = {
-                    ...this.searchWidgetIsOpen,
-                    [state]: false,
-                };
             }
         }
     }
