@@ -128,7 +128,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
         this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
         this.handleSelect2Close = this.handleSelect2Close.bind(this);
-        this.handleFieldChanges = this.handleFieldChanges.bind(this);
+        this.handleChangeEvents = this.handleChangeEvents.bind(this);
         this._deletionConfirmationResolve = null;
 
         // Conditional fields
@@ -698,7 +698,7 @@ class FormalizeFormElement extends BaseFormElement {
             window.addEventListener('click', this.handleSelect2Close);
 
             // Event listener for form element changes
-            this.addEventListener('change', this.handleFieldChanges);
+            this.addEventListener('change', this.handleChangeEvents);
         });
     }
 
@@ -723,7 +723,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
-        this.removeEventListener('change', this.handleFieldChanges);
+        this.removeEventListener('change', this.handleChangeEvents);
 
         window.removeEventListener('click', this.handleSelect2Close);
 
@@ -761,13 +761,13 @@ class FormalizeFormElement extends BaseFormElement {
      * Update formData if field value changes
      * @param {CustomEvent} event
      */
-    handleFieldChanges(event) {
+    handleChangeEvents(event) {
         // Action dropdown buttons
         if (event.detail && event.detail.option && event.detail.value) {
             const option = event.detail.option;
             const value = event.detail.value;
 
-            if (option.name === 'cancel' && value === 'cancel') {
+            if (option.value === 'cancel' && value === 'cancel') {
                 if (this.readOnly) {
                     this.redirectToEditForm();
                     return;
@@ -790,22 +790,22 @@ class FormalizeFormElement extends BaseFormElement {
                 }
             }
 
-            if (option.name === 'download' && value === 'download') {
+            if (option.value === 'download' && value === 'download') {
                 this.downloadAllFiles();
                 return;
             }
 
-            if (option.name === 'delete' && value === 'delete') {
+            if (option.value === 'delete' && value === 'delete') {
                 this.sendDeleteSubmission();
                 return;
             }
 
-            if (option.name === 'save' && value === 'save') {
+            if (option.value === 'save' && value === 'save') {
                 this.sendSaveSubmission();
                 return;
             }
 
-            if (option.name === 'edit-permissions' && value === 'edit-permissions') {
+            if (option.value === 'edit-permissions' && value === 'edit-permissions') {
                 this._('#grant-permission-dialog').open();
                 return;
             }
@@ -6151,7 +6151,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (this.isUserAllowedToEditSubmission) {
             this.formActions.push({
-                name: 'cancel',
+                value: 'cancel',
                 label: this.readOnly
                     ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
                     : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
@@ -6160,7 +6160,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
         if (this.isUserAllowedToEditPermission) {
             this.formActions.push({
-                name: 'edit-permissions',
+                value: 'edit-permissions',
                 label: i18n.t(
                     'render-form.forms.ethics-commission-form.edit-permission-button-text',
                 ),
@@ -6170,7 +6170,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (this.isUserAllowedToDownloadPdf) {
             this.formActions.push({
-                name: 'download',
+                value: 'download',
                 label: i18n.t('render-form.forms.ethics-commission-form.download-button-text'),
                 iconName: 'download',
             });
@@ -6178,7 +6178,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (this.isUserAllowedToDeleteSubmission) {
             this.formActions.push({
-                name: 'delete',
+                value: 'delete',
                 label:
                     this.currentState === SUBMISSION_STATES.SUBMITTED
                         ? i18n.t(
