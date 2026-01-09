@@ -340,7 +340,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 this.submissionTables[state].tabulatorTable.getRows(
                                     'visible',
                                 ).length;
-                            console.log(`visible RowCount[${state}]`, this.visibleRowCount[state]);
 
                             // Open detailed view modal if /details/[uuid] is in the URL
                             if (this.isRequestDetailedView) {
@@ -1936,9 +1935,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ? SUBMISSION_STATES.DRAFT
             : SUBMISSION_STATES.SUBMITTED;
         if (!tableId || !state) return;
-
-        // console.log(`*** ${state} visible`, this.submissionTables[state].tabulatorTable.getRows("visible").length);
-        // console.log(`*** ${state} active`, this.submissionTables[state].tabulatorTable.getRows("active").length);
 
         this.visibleRowCount = {
             ...this.visibleRowCount,

@@ -640,9 +640,6 @@ export function getShowSubmissionCSS() {
             }
         }
 
-        @container table-buttons (width < 565px) {
-        }
-
         .create-submission-button {
             background-color: var(--dbp-primary-surface);
             border-color: var(--dbp-primary-surface-border-color);
