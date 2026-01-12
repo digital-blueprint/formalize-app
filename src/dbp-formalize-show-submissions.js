@@ -2949,7 +2949,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <select
                                 id="search-select--${state}"
                                 class="button dropdown-menu search-select"
-                                title="${i18n.t('show-submissions.search-in-column')}">
+                                title="${i18n.t('show-submissions.search-in-column')}"
+                                @change="${(e) => {
+                                    this.filterTable(state);
+                                }}">
                                 <optgroup label="${i18n.t('show-submissions.search-in-column')}">
                                     <legend>${i18n.t('show-submissions.search-in-column')}:</legend>
                                     ${this.getTableHeaderOptions(state)}
@@ -2976,7 +2979,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <select
                                 id="search-operator--${state}"
                                 title="${i18n.t('show-submissions.search-operator')}"
-                                class="button dropdown-menu search-operator">
+                                class="button dropdown-menu search-operator"
+                                @change="${(e) => {
+                                    this.filterTable(state);
+                                }}">
                                 <optgroup label="${i18n.t('show-submissions.search-operator')}">
                                     <legend>${i18n.t('show-submissions.search-operator')}:</legend>
                                     ${this.getTableFilterOptions()}
