@@ -930,7 +930,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             let submissions_list = [];
             // Add additional columns to the table
-            // dateCreated, submisisonId, attachments, action Buttons
+            // dateCreated, submissionId, attachments, action Buttons
             for (let [x, submission] of submissions[state].entries()) {
                 let dateCreated = submission['dateCreated'];
                 dateCreated = this.humanReadableDate(dateCreated);
