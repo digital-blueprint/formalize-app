@@ -510,9 +510,12 @@ export function getShowSubmissionCSS() {
         }
 
         .searchbar dbp-icon,
-        .search-button dbp-icon,
         .search-toggle-filters-button dbp-icon {
             transition: transform 250ms ease-in;
+        }
+
+        .search-button dbp-icon {
+            transition: transform 100ms ease-in;
         }
 
         .extended-menu.open .search-toggle-filters-button dbp-icon {
@@ -552,6 +555,10 @@ export function getShowSubmissionCSS() {
             background-color: transparent;
         }
 
+        .search-button:hover dbp-icon {
+            transform: scale(1.25);
+        }
+
         .search-toggle-filters-button {
             display: none;
         }
@@ -586,6 +593,14 @@ export function getShowSubmissionCSS() {
             border: 0 none;
             padding: 5px;
             transform: translateX(5px);
+        }
+
+        .reset-search dbp-icon {
+            transition: transform 250ms ease-in;
+        }
+
+        .reset-search:hover dbp-icon {
+            transform: rotate(360deg);
         }
 
         @container table-buttons (width < 1040px) {
