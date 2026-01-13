@@ -5880,7 +5880,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 ${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}
                             </h4>
                             <span class="file-upload-limit-warning">
-                                ${i18n.t('render-form.forms.ethics-commission-form.file-upload-limit-warning', {count: this.allowedFileUploadCounts['attachments']})}
+                                ${i18n.t('render-form.forms.ethics-commission-form.file-upload-limit-warning', {count: this.allowedFileUploadCounts?.attachments})}
                             </span>
                         </div>
 
@@ -5890,13 +5890,13 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <button
                             class="button is-secondary upload-button upload-button--attachment"
-                            .disabled=${this.fileUploadCounts['attachments'] >= this.allowedFileUploadCounts['attachments']}
+                            .disabled=${this.fileUploadCounts['attachments'] >= this.allowedFileUploadCounts?.attachments}
                             @click="${(event) => {
                                 this.uploadToVoting = false;
                                 this.openFilePicker(event);
                             }}">
                             <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
-                            ${i18n.t('render-form.forms.ethics-commission-form.upload-file-button-label', {count: this.allowedFileUploadCounts['attachments']})}
+                            ${i18n.t('render-form.forms.ethics-commission-form.upload-file-button-label', {count: this.allowedFileUploadCounts?.attachments})}
                         </button>
                     </div>
 
@@ -5935,7 +5935,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           <span class="file-upload-limit-warning">
                                               ${i18n.t(
                                                   'render-form.forms.ethics-commission-form.file-upload-limit-warning',
-                                                  {count: this.allowedFileUploadCounts['voting']},
+                                                  {count: this.allowedFileUploadCounts?.voting},
                                               )}
                                           </span>
                                       </div>
@@ -5947,7 +5947,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <button
                                           class="button is-secondary upload-button upload-button--voting"
                                           .disabled=${this.fileUploadCounts['voting'] >=
-                                          this.allowedFileUploadCounts['voting']}
+                                          this.allowedFileUploadCounts?.voting}
                                           @click="${(event) => {
                                               this.uploadToVoting = true;
                                               this.openFilePicker(event);
@@ -5955,7 +5955,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.upload-file-button-label',
-                                              {count: this.allowedFileUploadCounts['voting']},
+                                              {count: this.allowedFileUploadCounts?.voting},
                                           )}
                                       </button>
                                   </div>
