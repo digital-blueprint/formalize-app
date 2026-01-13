@@ -1245,104 +1245,156 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const activeForm = this.forms.get(this.activeFormId);
         if (!activeForm) return;
 
-        let formSchemaFields = {};
-        try {
-            formSchemaFields = JSON.parse(activeForm.dataFeedSchema);
-        } catch (e) {
-            console.log('Failed parsing json data', e);
-        }
+        const formSchemaFields = this._getFormSchema(activeForm);
 
-        // Exit if no form schema found
-        if (Object.keys(formSchemaFields).length === 0) {
-            this.isResetButtonDisabled[state] = true;
-            return;
-        }
+        this.isResetButtonDisabled[state] = true;
 
-        // Set download folder name pattern
+        // Set download folder name pattern from schema
         this.downloadFolderNamePattern =
             formSchemaFields?.submissionExport?.downloadFolderPattern || '';
         this.useSubFoldersForExports = formSchemaFields?.submissionExport?.subfolders ?? true;
 
-        // Exit if the form schema is the catch-all schema
-        if (Object.keys(formSchemaFields.properties).length === 0) {
-            this.isResetButtonDisabled[state] = true;
-            return;
-        }
-
         const submissionsTable = this.submissionTables[state];
         if (!submissionsTable) return;
 
-        // Get the auto generated field list (autoColumns + autoColumnsDefinitions)
+        const initialColumnDefinitions = this._getInitialColumnDefinitions(submissionsTable);
+        if (initialColumnDefinitions.length === 0) return;
 
-        let columnComponents = submissionsTable.getColumns();
-        if (!columnComponents || columnComponents.length === 0) return;
+        const isCatchAll = this._isCatchAllSchema(formSchemaFields);
 
-        const columnDefinitions = columnComponents.map((column) => {
-            return column.getDefinition();
-        });
+        const schemaFields = this._getSchemaFields(
+            formSchemaFields,
+            isCatchAll,
+            initialColumnDefinitions,
+            state,
+        );
+        const attachmentFields = this._getAttachmentFields(formSchemaFields);
+        const systemFields = this._getSystemFields(initialColumnDefinitions);
 
-        const schemaColumnDefinitions = [];
+        const schemaColumnDefinitions = [...schemaFields, ...attachmentFields, ...systemFields];
 
-        // Fields not in the schema but needed in the table
-        const preFieldDefinitions = columnDefinitions.filter((columnDefinition) => {
-            return columnDefinition.title === 'ID' || columnDefinition.field === 'dateCreated';
-        });
-        preFieldDefinitions.forEach((columnDefinition) => {
-            schemaColumnDefinitions.push(columnDefinition);
-        });
+        this.submissionsColumnsInitial[state] =
+            this.cloneColumnDefinitions(schemaColumnDefinitions);
+        this.submissionsColumns[state] = this.cloneColumnDefinitions(
+            this.submissionsColumnsInitial[state],
+        );
+    }
 
-        // Get form schema fields: set localized names and visibility
-        Object.keys(formSchemaFields.properties).forEach((field) => {
-            if (formSchemaFields.properties[field].tableViewVisibleDefault !== undefined) {
-                this.isResetButtonDisabled[state] = false;
-            }
+    /**
+     * Check if the form schema is a catch-all schema.
+     * @param {object} formSchemaFields - The parsed form schema.
+     * @returns {boolean} - True if it's a catch-all schema, false otherwise.
+     */
+    _isCatchAllSchema(formSchemaFields) {
+        return (
+            !formSchemaFields?.properties || Object.keys(formSchemaFields?.properties).length === 0
+        );
+    }
 
-            const definition = {field: field};
+    /**
+     * Get the parsed form schema from the active form.
+     * @param {object} activeForm - The active form object.
+     * @returns {object|null} - The parsed form schema or null if parsing fails.
+     */
+    _getFormSchema(activeForm) {
+        try {
+            return JSON.parse(activeForm.dataFeedSchema);
+        } catch (e) {
+            console.log('Failed parsing json data', e);
+            return null;
+        }
+    }
 
-            const schemaField = formSchemaFields.properties[field];
+    /**
+     * Get the initial column definitions from the submissions table.
+     * @param {object} submissionsTable - The submissions table instance.
+     * @returns {Array} - An array of column definitions.
+     */
+    _getInitialColumnDefinitions(submissionsTable) {
+        const columnComponents = submissionsTable.getColumns();
+        if (!columnComponents || columnComponents.length === 0) return [];
+        return columnComponents.map((column) => column.getDefinition());
+    }
 
-            let schemaVisibility =
-                schemaField?.tableViewVisibleDefault !== undefined
-                    ? schemaField?.tableViewVisibleDefault
-                    : true;
-            let schemaLocalizedName = schemaField?.localizedName?.[this.lang] || field;
+    /**
+     * Get schema fields, handling visibility and localization.
+     * @param {object} formSchemaFields - The parsed form schema.
+     * @param {boolean} isCatchAll - Whether the schema is a catch-all schema.
+     * @param {Array} initialColumnDefinitions - The initial column definitions.
+     * @param {string} state - The state of the submission table ('draft' or 'submitted').
+     * @returns {Array} - An array of schema field definitions.
+     */
+    _getSchemaFields(formSchemaFields, isCatchAll, initialColumnDefinitions, state) {
+        const schemaFields = [];
 
-            // Set visibility and localized field titles
-            definition.visible = schemaVisibility;
-            definition.title = schemaLocalizedName;
+        // Always include dateCreated at the beginning
+        const dateCreatedDef = initialColumnDefinitions.find((def) => def.field === 'dateCreated');
+        if (dateCreatedDef) {
+            schemaFields.push(dateCreatedDef);
+        }
 
-            schemaColumnDefinitions.push(definition);
-        });
+        if (isCatchAll) {
+            initialColumnDefinitions.forEach((def) => {
+                if (
+                    def.field &&
+                    def.field !== 'rowIndex' &&
+                    def.field !== 'dateCreated' &&
+                    def.field !== 'identifier' &&
+                    def.field !== 'submissionId' &&
+                    def.field !== 'htmlButtons'
+                ) {
+                    def.visible = true;
+                    schemaFields.push(def);
+                }
+            });
+        } else {
+            Object.keys(formSchemaFields.properties).forEach((field) => {
+                const schemaField = formSchemaFields.properties[field];
+                if (schemaField.tableViewVisibleDefault !== undefined) {
+                    this.isResetButtonDisabled[state] = false;
+                }
 
-        // Add attachment fields from the schema files property
+                const definition = {
+                    field: field,
+                    visible: schemaField?.tableViewVisibleDefault ?? true,
+                    title: schemaField?.localizedName?.[this.lang] || field,
+                };
+                schemaFields.push(definition);
+            });
+        }
+        return schemaFields;
+    }
+
+    /**
+     * Get attachment fields from the form schema.
+     * @param {object} formSchemaFields - The parsed form schema.
+     * @returns {Array} - An array of attachment field definitions.
+     */
+    _getAttachmentFields(formSchemaFields) {
+        const attachmentFields = [];
         if (formSchemaFields.files && typeof formSchemaFields.files === 'object') {
             Object.keys(formSchemaFields.files).forEach((attachmentType) => {
-                schemaColumnDefinitions.push({
+                attachmentFields.push({
                     field: `form_files-${attachmentType}`,
                     title: attachmentType,
                     visible: true,
                 });
             });
         }
+        return attachmentFields;
+    }
 
-        // Append fields also not present in the schema but needed in the table
-        const postFieldDefinitions = columnDefinitions.filter((columnDefinition) => {
-            if (columnDefinition.field === undefined) return false;
-            return (
-                columnDefinition.field === 'submissionId' ||
-                columnDefinition.field === 'htmlButtons'
-            );
-        });
-        postFieldDefinitions.forEach((columnDefinition) => {
-            schemaColumnDefinitions.push(columnDefinition);
-        });
-
-        // Set initial column definitions
-        this.submissionsColumnsInitial[state] =
-            this.cloneColumnDefinitions(schemaColumnDefinitions);
-
-        this.submissionsColumns[state] = this.cloneColumnDefinitions(
-            this.submissionsColumnsInitial[state],
+    /**
+     * Get system fields that should always be present.
+     * @param {Array} initialColumnDefinitions - The initial column definitions.
+     * @returns {Array} - An array of system field definitions.
+     */
+    _getSystemFields(initialColumnDefinitions) {
+        return initialColumnDefinitions.filter(
+            (def) =>
+                def.field === 'identifier' ||
+                def.field === 'submissionId' ||
+                def.field === 'htmlButtons',
         );
     }
 
