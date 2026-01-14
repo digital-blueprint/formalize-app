@@ -1821,7 +1821,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Render submission details
-     * submission date, last modified, last modified by.
+     * Creation date, last modified, last modified by.
      * @returns {import('lit').TemplateResult} The HTML template result
      */
     renderSubmissionInfo() {
@@ -1850,7 +1850,7 @@ class FormalizeFormElement extends BaseFormElement {
                           <div class="submission-date">
                               <span class="label">
                                   ${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submission-date-label',
+                                      'render-form.forms.ethics-commission-form.submission-creation-date-label',
                                   )}:
                               </span>
                               <span class="value">${dateCreated}</span>

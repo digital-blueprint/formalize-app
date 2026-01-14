@@ -2523,9 +2523,21 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <option value="-" disabled selected>
                         ${i18n.t('show-submissions.default-export-select')}
                     </option>
-                    <option value="csv">CSV (${exportCount})</option>
-                    <option value="xlsx">Excel (${exportCount})</option>
-                    <option value="pdf">PDF (${exportCount})</option>
+                    <option value="csv">
+                        ${i18n.t('show-submissions.export-csv-label', {
+                            n: exportCount,
+                        })}
+                    </option>
+                    <option value="xlsx">
+                        ${i18n.t('show-submissions.export-xlsx-label', {
+                            n: exportCount,
+                        })}
+                    </option>
+                    <option value="pdf">
+                        ${i18n.t('show-submissions.export-pdf-label', {
+                            n: exportCount,
+                        })}
+                    </option>
                     ${this.submissionsHasAttachment[state]
                         ? html`
                               <option value="attachments">
