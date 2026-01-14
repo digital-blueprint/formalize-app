@@ -3241,6 +3241,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <dbp-grant-permission-dialog
                 id="grant-permission-dialog"
                 lang="${this.lang}"
+                modal-title="${i18n.t('show-submissions.edit-permission-modal-title')}"
                 subscribe="auth"
                 entry-point-url="${this.entryPointUrl}"
                 resource-identifier="${this.submissionId}"
