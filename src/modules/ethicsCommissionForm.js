@@ -263,8 +263,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Reset submission / state related fields end emit dbpFormReset event.
+     */
     resetForm() {
-        // Reset submission / state related fields
         this.currentSubmission = {};
         this.formData = {};
         this.data = {};
@@ -612,6 +614,13 @@ class FormalizeFormElement extends BaseFormElement {
         return results;
     }
 
+    /**
+     * Renders a single file block with action buttons.
+     * @param {object} file - The file object
+     * @param {string} identifier - Unique identifier for the file
+     * @param {string} fileGroup - The group of files ('attachments' or 'voting')
+     * @returns {import('lit').TemplateResult} The rendered file block template.
+     */
     addFileBlock(file, identifier, fileGroup = 'attachments') {
         return html`
             <div class="file-block">
@@ -739,6 +748,10 @@ class FormalizeFormElement extends BaseFormElement {
         // }
     }
 
+    /**
+     * Handle closing select2 dropdown when clicking outside of it
+     * @param {CustomEvent} event
+     */
     handleSelect2Close(event) {
         const path = event.composedPath();
         const openSelect2 = this._('dbp-form-enum-element[display-mode="tags"]');
@@ -1139,6 +1152,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Handle submitting draft from read-only view.
+     * @param {object} event - The event object containing the form data.
+     */
     async handleToggleSubmissionState(event) {
         const data = event.detail;
         const submissionId = data.submissionId;
@@ -1399,8 +1416,11 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Loop through errorDetails object keys and format messages
+     * @param {object} responseBody
+     */
     displayValidationErrors(responseBody) {
-        // Loop through errorDetails object keys and format messages
         const errorDetails = responseBody['relay:errorDetails'];
         let errorDetailsMessages = [];
         Object.keys(errorDetails).forEach((fieldName) => {
@@ -6010,6 +6030,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Render form tag management in the header.
+     * @returns {import('lit').TemplateResult} - HTML for the tag management section in the header.
+     */
     renderHeaderTags() {
         if (Object.keys(this.allowedTags).length === 0) {
             return html``;
@@ -6082,6 +6106,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Render status tags for the form.
+     * @returns {import('lit').TemplateResult} - HTML for the status tags.
+     */
     renderStatusTags() {
         const stateTag = this.currentState;
         const tagTranslations = {
@@ -6110,6 +6138,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Set the current selected tags from the event.
+     * @param {CustomEvent} event - The change event containing selected tags.
+     */
     setCurrentTags(event) {
         if (Object.keys(this.allowedTags).length === 0) return;
 
@@ -6124,6 +6156,11 @@ class FormalizeFormElement extends BaseFormElement {
         this.selectedTags = selectedTags;
     }
 
+    /**
+     * Get allowed file upload counts from the data feed schema.
+     * @param {string} dataFeedSchema
+     * @returns {object} - An object mapping file types to their allowed upload counts.
+     */
     getAllowedFileUploadCount(dataFeedSchema) {
         if (!dataFeedSchema) return;
 
