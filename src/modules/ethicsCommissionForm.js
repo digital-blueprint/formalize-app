@@ -6063,6 +6063,7 @@ class FormalizeFormElement extends BaseFormElement {
                       `
                     : html``;
             }
+            return html``;
         } else {
             // Edit mode
             if (
@@ -6102,6 +6103,7 @@ class FormalizeFormElement extends BaseFormElement {
                             .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
                     `;
                 }
+                return html``;
             }
         }
     }
@@ -6162,7 +6164,7 @@ class FormalizeFormElement extends BaseFormElement {
      * @returns {object} - An object mapping file types to their allowed upload counts.
      */
     getAllowedFileUploadCount(dataFeedSchema) {
-        if (!dataFeedSchema) return;
+        if (!dataFeedSchema) return {};
 
         let formSchemaFields = {};
         let allowedFileUploadCount = {};
@@ -6171,10 +6173,10 @@ class FormalizeFormElement extends BaseFormElement {
             for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
                 allowedFileUploadCount[type] = fileField.maxNumber;
             }
-            console.log(`allowedFileUploadCount`, allowedFileUploadCount);
             return allowedFileUploadCount;
         } catch (e) {
             console.log('Failed parsing json data', e);
+            return {};
         }
     }
 
