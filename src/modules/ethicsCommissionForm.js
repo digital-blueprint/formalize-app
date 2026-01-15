@@ -506,7 +506,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Run again to handle conditional fields inside other conditional fields just rendered
         const newConditionalFieldsCount = this._a('[data-condition]').length;
         if (newConditionalFieldsCount > conditionalFieldsCount) {
-            this.processConditionalFields();
+            await this.processConditionalFields();
         }
     }
 
