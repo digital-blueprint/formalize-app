@@ -38,7 +38,8 @@ let deploymentPath = '../';
 // set whitelabel bool according to used environment
 if (
     (appEnv.length > 6 && appEnv.substring(appEnv.length - 6) == 'Custom') ||
-    appEnv == 'production'
+    appEnv == 'production' ||
+    appEnv == 'staging'
 ) {
     whitelabel = false;
 } else {

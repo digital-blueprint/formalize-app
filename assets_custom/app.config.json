@@ -86,6 +86,19 @@
         "nextcloudBaseURL": "https://cloud-demo.tugraz.at",
         "nextcloudName": "dbp cloud"
     },
+    "staging": {
+        "basePath": "/",
+        "entryPointURL": "https://api-test.tugraz.at",
+        "keyCloakBaseURL": "https://auth-test.tugraz.at/auth",
+        "keyCloakRealm": "tugraz",
+        "keyCloakClientId": "formulare-test_tugraz_at",
+        "matomoUrl": "https://analytics.tugraz.at/",
+        "matomoSiteId": "131",
+        "universityShortName": "TU Graz",
+        "universityFullName": "Technische Universität Graz",
+        "nextcloudBaseURL": "https://cloud.tugraz.at",
+        "nextcloudName": "TU Graz cloud"
+    },
     "production": {
         "basePath": "/",
         "entryPointURL": "https://api.tugraz.at",
