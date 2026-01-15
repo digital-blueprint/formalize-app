@@ -2333,7 +2333,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-title">3. ${i18n.t('render-form.forms.ethics-commission-form.section-iii-title')}</h3>
+                    <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-iii-title')}</h3>
 
                     <div class="description">
                         <p>${i18n.t('render-form.forms.ethics-commission-form.section-iii-description')}</p>
