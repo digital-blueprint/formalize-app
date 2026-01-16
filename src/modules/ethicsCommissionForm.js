@@ -12,6 +12,7 @@ import {
 } from '@dbp-toolkit/common';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
+import {ButtonTooltip} from '@dbp-toolkit/tooltip';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {
@@ -84,6 +85,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.hideForm = false;
 
         this.currentSubmission = {};
+        this.isFormValid = null;
         // Tags
         this.selectedTags = {};
         this.allowedTags = {};
@@ -120,15 +122,20 @@ class FormalizeFormElement extends BaseFormElement {
         this.votingFileToSubmit = new Map();
         this.votingFileToRemove = new Map();
 
+        // Responsive layout
+        this.tagIsInline = 'inline';
+        this.mediaQuery = null;
+
         // Event handlers
+        this.handleResize = this.handleResize.bind(this);
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
         this.handleFormSaveSubmission = this.handleFormSaveSubmission.bind(this);
-        this.permissionModalClosedHandler = this.permissionModalClosedHandler.bind(this);
         this.handleFilesToSubmit = this.handleFilesToSubmit.bind(this);
         this.handleSelect2Close = this.handleSelect2Close.bind(this);
         this.handleChangeEvents = this.handleChangeEvents.bind(this);
+        this.handleValidationOnFocusOut = this.handleValidationOnFocusOut.bind(this);
         this._deletionConfirmationResolve = null;
 
         // Conditional fields
@@ -163,6 +170,7 @@ class FormalizeFormElement extends BaseFormElement {
             submitted: {type: Boolean, attribute: false},
             submissionError: {type: Boolean, attribute: false},
             hideForm: {type: Boolean, attribute: false},
+            isFormValid: {type: Boolean, attribute: false},
 
             resourceActions: {type: Object, attribute: false},
 
@@ -175,6 +183,7 @@ class FormalizeFormElement extends BaseFormElement {
             isDownloadButtonAllowed: {type: Boolean, attribute: false},
 
             conditionalFields: {type: Object, attribute: false},
+            tagIsInline: {type: String, attribute: false},
         };
     }
 
@@ -197,6 +206,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
             'dbp-select': DBPSelect,
+            'dbp-button-tooltip': ButtonTooltip,
         };
     }
 
@@ -215,11 +225,11 @@ class FormalizeFormElement extends BaseFormElement {
                 await this.processConditionalFields();
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('validate') === 'true') {
+                if (this.readOnly === false && urlParams.get('validate') === 'true') {
                     const formElement = this.shadowRoot.querySelector('form');
-                    const isValid = await validateRequiredFields(formElement);
-                    if (!isValid) {
-                        this.scrollToFirstInvalidField(formElement);
+                    this.isFormValid = await validateRequiredFields(formElement);
+                    if (!this.isFormValid) {
+                        this.scrollToFirstInvalidField(formElement, true);
                     }
                 }
             });
@@ -677,11 +687,14 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
+        // Set up matchMedia for responsive layout
+        this.mediaQuery = window.matchMedia('(min-width: 350px)');
+        this.handleResize();
+        this.mediaQuery.addEventListener('change', this.handleResize);
+
         this.updateComplete.then(() => {
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
-
-            this.addEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
 
             // Event listener for saving draft
             this.addEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
@@ -708,11 +721,38 @@ class FormalizeFormElement extends BaseFormElement {
 
             // Event listener for form element changes
             this.addEventListener('change', this.handleChangeEvents);
+
+            // Handle field validation on focus out
+            this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
+                capture: true,
+            });
         });
+    }
+
+    /**
+     * Handle responsive layout based on viewport width
+     */
+    handleResize() {
+        this.tagIsInline = this.mediaQuery?.matches ? 'inline' : '';
+    }
+
+    /**
+     * Run validation on focus out of form elements and set isFormValid property
+     * @param {Event} event
+     */
+    async handleValidationOnFocusOut(event) {
+        const formElement = this.shadowRoot.querySelector('form');
+        this.isFormValid = await validateRequiredFields(formElement);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
+
+        // Clean up matchMedia listener
+        if (this.mediaQuery) {
+            this.mediaQuery.removeEventListener('change', this.handleResize);
+            this.mediaQuery = null;
+        }
 
         this.removeEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
         this.removeEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
@@ -728,8 +768,6 @@ class FormalizeFormElement extends BaseFormElement {
             this.handleToggleSubmissionState,
         );
 
-        this.removeEventListener('dbp-modal-closed', this.permissionModalClosedHandler);
-
         this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
         this.removeEventListener('change', this.handleChangeEvents);
@@ -741,11 +779,6 @@ class FormalizeFormElement extends BaseFormElement {
             this._formHeaderObserver = null;
         }
         this._formHeaderObserved = false;
-    }
-
-    permissionModalClosedHandler(event) {
-        // if (event.detail.id && event.detail.id === 'grant-permission-modal') {
-        // }
     }
 
     /**
@@ -780,9 +813,10 @@ class FormalizeFormElement extends BaseFormElement {
             const option = event.detail.option;
             const value = event.detail.value;
 
+            // Toggle readOnly / edit mode
             if (option.value === 'cancel' && value === 'cancel') {
                 if (this.readOnly) {
-                    this.redirectToEditForm();
+                    this.redirectToEditForm(true);
                     return;
                 }
                 const confirmed = confirm(this._i18n.t('render-form.form-exit-warning-message'));
@@ -861,6 +895,10 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    /**
+     * Handle files to submit event from file source component.
+     * @param {CustomEvent} event - The event object containing the file data.
+     */
     handleFilesToSubmit(event) {
         if (this.uploadToVoting) {
             this.votingFileToSubmit.set(event.detail.file.name, event.detail.file);
@@ -878,19 +916,7 @@ class FormalizeFormElement extends BaseFormElement {
     async handleSaveDraft(event) {
         // Access the data from the event detail
         const data = event.detail;
-        const validationResult = data.validationResult;
-
-        if (validationResult === false) {
-            const formElement = this._('form');
-            // Scroll to first invalid field if validation failed
-            this.scrollToFirstInvalidField(formElement);
-            sendNotification({
-                summary: this._i18n.t('errors.warning-title'),
-                body: this._i18n.t('errors.form-validation-errors-fix-them'),
-                type: 'warning',
-                timeout: 10,
-            });
-        }
+        // const validationResult = data.validationResult;
 
         // POST or PATCH
         let isExistingDraft = false;
@@ -979,12 +1005,9 @@ class FormalizeFormElement extends BaseFormElement {
                 const newSubmissionUrl =
                     getFormRenderUrl(this.formUrlSlug, this.lang) + `/${this.newSubmissionId}`;
                 window.history.pushState({}, '', newSubmissionUrl.toString());
-                sendNotification({
-                    summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.draft-saved-successfully'),
-                    type: 'success',
-                    timeout: 5,
-                });
+
+                this.disableLeavePageWarning();
+                this.redirectToReadonlyForm();
 
                 // formDataUpdated event to notify parent component
                 this.dispatchEvent(
@@ -1438,8 +1461,6 @@ class FormalizeFormElement extends BaseFormElement {
             type: 'danger',
             timeout: 0,
         });
-        // Trigger validation on page load
-        this.needValidationOnLoad = true;
     }
 
     /**
@@ -1923,7 +1944,10 @@ class FormalizeFormElement extends BaseFormElement {
                 }
             </style>
 
-            <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({hidden: this.hideForm})}">
+            <form
+                id="ethics-commission-form"
+                aria-labelledby="form-title"
+                class=${classMap({hidden: this.hideForm, 'readonly-mode': this.readOnly, 'edit-mode': !this.readOnly})}>
 
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
@@ -2020,7 +2044,7 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         name="isNewSubmission"
                         data-condition="no"
-                        layout-type="inline"
+                        layout-type="${this.tagIsInline}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.is-new-submission-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -3764,7 +3788,11 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
 
-            <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({hidden: this.hideForm})}">
+            <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({
+                hidden: this.hideForm,
+                'readonly-mode': this.readOnly,
+                'edit-mode': !this.readOnly,
+            })}">
 
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
@@ -6082,7 +6110,7 @@ class FormalizeFormElement extends BaseFormElement {
                             }
                         }}"
                         display-mode="tags"
-                        layout-type="inline"
+                        layout-type="${this.tagIsInline}"
                         multiple
                         .tagPlaceholder=${{en: 'Select tags', de: 'Wähle Tags'}}
                         .value=${Object.values(this.selectedTags)}
@@ -6138,6 +6166,44 @@ class FormalizeFormElement extends BaseFormElement {
                     : ''}
             </div>
         `;
+    }
+
+    renderFormValidityIndicator() {
+        if (this.isFormValid) {
+            return html`
+                <div class="form-validity-indicator valid">
+                    <span class="validity-indicator valid"></span>
+                    <span class="validity-text">
+                        ${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.form-validity-valid-text',
+                        )}
+                    </span>
+                    <dbp-button-tooltip
+                        text-content="${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.form-validity-valid-tooltip',
+                        )}"
+                        button-text=" "
+                        icon-name="question-circle"></dbp-button-tooltip>
+                </div>
+            `;
+        } else {
+            return html`
+                <div class="form-validity-indicator invalid">
+                    <span class="validity-indicator invalid"></span>
+                    <span class="validity-text">
+                        ${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.form-validity-invalid-text',
+                        )}
+                    </span>
+                    <dbp-button-tooltip
+                        text-content="${this._i18n.t(
+                            'render-form.forms.ethics-commission-form.form-validity-invalid-tooltip',
+                        )}"
+                        button-text=" "
+                        icon-name="question-circle"></dbp-button-tooltip>
+                </div>
+            `;
+        }
     }
 
     /**
@@ -6237,7 +6303,10 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="tag-management">${this.renderHeaderTags()}</div>
             </div>
             <div class="buttons-wrapper">
-                ${this.renderStatusTags()}
+                <div class="status-tags-wrapper">
+                    ${this.renderStatusTags()}
+                    ${this.readOnly ? '' : this.renderFormValidityIndicator()}
+                </div>
 
                 <div class="action-buttons">
                     ${this.formActions.length > 0
@@ -6262,7 +6331,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   )}"
                                   @click="${() => {
                                       if (this.readOnly) {
-                                          this.redirectToEditForm();
+                                          this.redirectToEditForm(true);
                                           return;
                                       }
 
@@ -6388,6 +6457,9 @@ class FormalizeFormElement extends BaseFormElement {
         const url = new URL(currentUrl);
         const pathname = url.pathname.replace(/\/+$/, '');
         url.pathname = !pathname.match(/\/readonly$/) ? pathname + '/readonly' : pathname;
+
+        url.searchParams.delete('validate');
+
         window.history.pushState({}, '', url);
         // Redirect to the new URL
         window.location.href = url.toString();
@@ -6396,7 +6468,7 @@ class FormalizeFormElement extends BaseFormElement {
     /**
      * Redirects to the edit form by removing '/readonly' from the current URL.
      */
-    redirectToEditForm() {
+    redirectToEditForm(requireValidation = false) {
         const currentUrl = window.location.href;
         const url = new URL(currentUrl);
         if (url.pathname.endsWith('/readonly')) {
@@ -6404,7 +6476,7 @@ class FormalizeFormElement extends BaseFormElement {
             const readOnlyPath = url.pathname.replace(/\/readonly$/, '');
             url.pathname = readOnlyPath;
 
-            if (this.needValidationOnLoad) {
+            if (requireValidation) {
                 // Append 'validate=true' query parameter
                 url.searchParams.set('validate', 'true');
             }

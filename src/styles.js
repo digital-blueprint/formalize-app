@@ -236,6 +236,7 @@ export function getTagsCSS() {
         .tag.tag--mode {
             background-color: #f2f2f2;
             color: #121212;
+            white-space: nowrap;
         }
 
         .tag.tag--state {
@@ -1096,6 +1097,7 @@ export function getEthicsCommissionFormCSS() {
     return css`
         #ethics-commission-form {
             position: relative;
+            min-width: 270px;
 
             container-type: inline-size;
             container-name: form;
@@ -1329,13 +1331,8 @@ export function getEthicsCommissionFormCSS() {
             justify-content: space-between;
             flex-direction: column;
             gap: 1em;
-
             position: sticky;
-            /* formHeaderHeight - buttonWrapper - 2 * padding - 2 * border */
-            /* 170px - 33px - 2 * 16px - 2 * 1px = 103px */
-            top: -103px;
             z-index: 9;
-
             right: 0;
             left: 0;
             background: var(--dbp-background);
@@ -1343,6 +1340,12 @@ export function getEthicsCommissionFormCSS() {
             border: 1px solid var(--dbp-content);
             min-width: 250px;
             min-height: 130px;
+        }
+
+        .form-header.is-pinned {
+            transform: translateY(calc(-100% + 64px));
+            top: 0;
+            box-shadow: 0px 4px 8px 2px rgba(0, 0, 0, 0.2);
         }
 
         .form-header .button-label {
@@ -1387,6 +1390,48 @@ export function getEthicsCommissionFormCSS() {
         .tag-container {
             display: flex;
             gap: 0.3em;
+        }
+
+        .status-tags-wrapper {
+            display: flex;
+            gap: 1em;
+            align-items: center;
+        }
+
+        .form-validity-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25em;
+            --dbp-tooltip-box-font-weight: bold;
+            --dbp-tooltip-button-background-color: transparent;
+            --dbp-tooltip-button-border: 0 none;
+        }
+
+        .form-validity-indicator.valid {
+            --dbp-tooltip-arrow-color: var(--dbp-success-surface);
+            --dbp-tooltip-box-bg-color: var(--dbp-success-surface);
+            --dbp-tooltip-box-font-color: var(--dbp-background);
+        }
+
+        .form-validity-indicator.invalid {
+            --dbp-tooltip-arrow-color: var(--dbp-danger-surface);
+            --dbp-tooltip-box-bg-color: var(--dbp-danger-surface);
+            --dbp-tooltip-box-font-color: var(--dbp-background);
+        }
+
+        .validity-indicator {
+            display: inline-block;
+            height: 1em;
+            width: 1em;
+            border-radius: 50%;
+        }
+
+        .validity-indicator.valid {
+            background-color: var(--dbp-success-surface);
+        }
+
+        .validity-indicator.invalid {
+            background-color: var(--dbp-danger-surface);
         }
 
         .form-delete-submission-button {
@@ -1644,10 +1689,9 @@ export function getEthicsCommissionFormCSS() {
             }
         }
 
-        @media only screen and (max-width: 768px) {
-            .form-header {
-                /* fix this => .tag-management [-180px?] */
-                top: -60px;
+        @media only screen and (max-width: 683px) {
+            .edit-mode .form-header.is-pinned:has(.tag-management > dbp-form-enum-element) {
+                transform: translateY(calc(-100% + 63px));
             }
         }
 
@@ -1658,6 +1702,12 @@ export function getEthicsCommissionFormCSS() {
                 ol {
                     padding-left: 1em;
                 }
+            }
+        }
+
+        @media only screen and (max-width: 350px) {
+            .edit-mode .header-top {
+                gap: 0;
             }
         }
 

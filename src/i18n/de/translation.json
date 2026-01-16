@@ -7,7 +7,6 @@
         "failed-to-save-draft": "Speichern des Entwurfs fehlgeschlagen",
         "feature-not-implemented": "Funktion noch nicht implementiert",
         "form-submission-failed": "Formular konnte nicht gespeichert werden. Antwortstatus: {{status}}\n{{details}}",
-        "form-validation-errors-fix-them": "Das Formular enthält Validierungsfehler. Beheben Sie diese, bevor Sie das Formular absenden",
         "invalid-submission-data": "Ungültige Absendedaten",
         "no-submission-id-provided": "Keine Absendungs-ID angegeben",
         "no-submission-selected": "Keine Formulareinträge ausgewählt",
@@ -148,6 +147,10 @@
                 "file-upload-limit-warning_one": "(max. 1 Datei)",
                 "file-upload-limit-warning_other": "(maximal {{count}} Dateien)",
                 "filled-by-admins-warning": "Dieses Feld wird von der Geschäftsstelle ausgefüllt.",
+                "form-validity-invalid-text": "Invalid",
+                "form-validity-invalid-tooltip": "[de] The form contains validation errors. Please fix them before submitting the form.",
+                "form-validity-valid-text": "Valid",
+                "form-validity-valid-tooltip": "[de] The form is validated, you can submit it now.",
                 "founding-label": "Finanzierung",
                 "founding-placeholder": "1) Angaben zur Art der Finanzierung (z.B.: Drittmittel, …)\n2) Angaben zum Fördergeber (z.B.: FWF, FFG)\n3) Angaben zum Projektvolumen bzw. zur Höhe der Finanzierung",
                 "genetically-modified-animals-label": "Sind diese Tiere genetisch verändert?",
@@ -374,7 +377,6 @@
         "submission-table-submitted-title": "Eingereicht"
     },
     "success": {
-        "draft-saved-successfully": "Formularentwurf erfolgreich gespeichert",
         "form-saved-successfully": "Formularübermittlung erfolgreich gespeichert",
         "form-submission-deleted-successfully": "Formularübermittlung erfolgreich gelöscht",
         "form-submitted-successfully": "Das Formular wurde erfolgreich übermittelt",
