@@ -61,10 +61,10 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Scroll to the first invalid field in the form
+     * Scroll to the first invalid field in the form and set the focus on it.
      * @param {HTMLFormElement} formElement
      */
-    scrollToFirstInvalidField(formElement) {
+    scrollToFirstInvalidField(formElement, setFocus = false) {
         const elementWebComponents = getElementWebComponents(formElement);
         for (const element of elementWebComponents) {
             const invalidElement = element.shadowRoot.querySelector('.validation-errors');
@@ -72,6 +72,12 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 const invalidFieldLabel = invalidElement.closest('fieldset').querySelector('label');
                 invalidFieldLabel.style.scrollMarginTop = '100px';
                 invalidFieldLabel.scrollIntoView({behavior: 'smooth', block: 'start'});
+                if (setFocus) {
+                    const invalidFieldInput = invalidElement
+                        .closest('fieldset')
+                        .querySelector('input, textarea');
+                    invalidFieldInput.focus();
+                }
                 break;
             }
         }
