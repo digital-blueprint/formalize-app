@@ -1710,6 +1710,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
             }
             table.setFilter([listOfFilters]);
+
+            this.setVisibleRowCount(state);
         }
     }
 
@@ -1749,6 +1751,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             searchColumn.value = 'all';
             searchOperator.value = 'like';
             table.clearFilter();
+            this.setVisibleRowCount(state);
         }
     }
 
@@ -1979,6 +1982,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (!state) return;
 
+        this.setVisibleRowCount(state);
+    }
+
+    setVisibleRowCount(state) {
         this.visibleRowCount = {
             ...this.visibleRowCount,
             [state]: this.submissionTables[state].tabulatorTable.getRows('visible').length,
