@@ -491,11 +491,14 @@ export function getShowSubmissionCSS() {
         /* search bar */
 
         .extended-menu {
-            display: grid;
-            grid-template-areas: 'top top left right';
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5em;
-        }
+                display: grid;
+                grid-template-areas:
+                    'top top'
+                    'left right';
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5em;
+                height: 75px;
+            }
 
         .search-input {
             grid-area: top;
@@ -530,16 +533,6 @@ export function getShowSubmissionCSS() {
             border: 1px solid var(--dbp-content);
         }
 
-        .search-filter-columns {
-            grid-area: left;
-            position: relative;
-        }
-
-        .search-filter-operator {
-            grid-area: right;
-            position: relative;
-        }
-
         .search-filter-columns dbp-icon,
         .search-filter-operator dbp-icon {
             position: absolute;
@@ -551,7 +544,7 @@ export function getShowSubmissionCSS() {
         .search-button {
             border: 0 none;
             position: absolute;
-            right: 1px;
+            right: 42px;
             top: 1px;
             background-color: transparent;
         }
@@ -560,8 +553,20 @@ export function getShowSubmissionCSS() {
             transform: scale(1.25);
         }
 
-        .search-toggle-filters-button {
-            display: none;
+        .search-filter-columns {
+            height: 0;
+            overflow: hidden;
+        }
+
+        .search-filter-operator {
+            height: 0;
+            overflow: hidden;
+        }
+
+        .search-filter-operator.open,
+        .search-filter-columns.open {
+            height: auto;
+            overflow: visible;
         }
 
         .extended-menu label {
@@ -605,16 +610,6 @@ export function getShowSubmissionCSS() {
         }
 
         @container table-buttons (width < 1040px) {
-            .extended-menu {
-                display: grid;
-                grid-template-areas:
-                    'top top'
-                    'left right';
-                grid-template-columns: 1fr 1fr;
-                gap: 0.5em;
-                height: 75px;
-            }
-
             .statusbar {
                 transform: translateY(-35px);
                 padding-top: 0;
@@ -626,30 +621,6 @@ export function getShowSubmissionCSS() {
 
             .searchbar {
                 border-right: 0 none;
-            }
-
-            .search-button {
-                right: 42px;
-            }
-
-            .search-toggle-filters-button {
-                display: block;
-            }
-
-            .search-filter-columns {
-                height: 0;
-                overflow: hidden;
-            }
-
-            .search-filter-operator {
-                height: 0;
-                overflow: hidden;
-            }
-
-            .search-filter-operator.open,
-            .search-filter-columns.open {
-                height: auto;
-                overflow: visible;
             }
 
             .export-container .dropdown-menu {
