@@ -381,7 +381,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             langs: lang_submissions,
             autoColumns: 'full', //'true',
             rowHeight: 64,
-            layout: 'fitData',
+            layout: 'fitDataStretch',
             layoutColumnsOnNewData: true,
             selectableRows: 'highlight',
             // Checkbox selection
@@ -415,7 +415,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 if (columnDefinition.field === 'htmlButtons') {
                     columnDefinition.formatter = 'html';
-                    columnDefinition.hozAlign = 'center';
+                    columnDefinition.hozAlign = 'right';
                     columnDefinition.vertAlign = 'middle';
                     columnDefinition.headerSort = false;
                     columnDefinition.minWidth = 64;
@@ -1112,7 +1112,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                     if (columnDefinition.field === 'htmlButtons') {
                         columnDefinition.formatter = 'html';
-                        columnDefinition.hozAlign = 'center';
+                        columnDefinition.hozAlign = 'right';
                         columnDefinition.vertAlign = 'middle';
                         columnDefinition.headerSort = false;
                         columnDefinition.minWidth = 64;
