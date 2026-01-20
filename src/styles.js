@@ -491,14 +491,14 @@ export function getShowSubmissionCSS() {
         /* search bar */
 
         .extended-menu {
-                display: grid;
-                grid-template-areas:
-                    'top top'
-                    'left right';
-                grid-template-columns: 1fr 1fr;
-                gap: 0.5em;
-                height: 75px;
-            }
+            display: grid;
+            grid-template-areas:
+                'top top'
+                'left right';
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5em;
+            height: 75px;
+        }
 
         .search-input {
             grid-area: top;
