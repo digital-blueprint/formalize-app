@@ -34,6 +34,9 @@ import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 
+/**
+ * @augments {DBPFormalizeLitElement}
+ */
 class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
@@ -55,6 +58,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.visibleRowCount = {
             draft: 0,
             submitted: 0,
+        };
+        this.searchIsActive = {
+            draft: false,
+            submitted: false,
         };
         this.options_submissions = {
             draft: {},
@@ -224,6 +231,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             selectedRowCount: {type: Object, attribute: false},
             allRowCount: {type: Object, attribute: false},
             visibleRowCount: {type: Object, attribute: false},
+            searchIsActive: {type: Object, attribute: false},
         };
     }
 
@@ -1712,6 +1720,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             table.setFilter([listOfFilters]);
 
             this.setVisibleRowCount(state);
+            this.searchIsActive[state] = true;
         }
     }
 
@@ -1751,6 +1760,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             searchColumn.value = 'all';
             searchOperator.value = 'like';
             table.clearFilter();
+            this.searchIsActive[state] = false;
             this.setVisibleRowCount(state);
         }
     }
@@ -2939,162 +2949,157 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
     }
 
-    closeSearchWidget(state) {
-        const extendableSearchbar = this._(`#extendable-searchbar--${state}`);
-        extendableSearchbar.classList.add('closing');
-
-        setTimeout(() => {
-            this.searchWidgetIsOpen = {...this.searchWidgetIsOpen, [state]: false};
-            extendableSearchbar.classList.remove('closing');
-        }, 250);
-    }
-
     renderSearchWidget(state) {
         const i18n = this._i18n;
 
         return html`
-            <div class="search-container">
-                <div
-                    id="extendable-searchbar--${state}"
-                    class="extendable-searchbar ${classMap({
-                        open: this.searchWidgetIsOpen[state],
-                    })}">
-                    <div
-                        class="extended-menu ${classMap({open: this.searchWidgetIsOpen[state]})}"
-                        id="searchbar-menu--${state}">
-                        <div class="search-input">
-                            <label for="searchbar--${state}">
-                                ${i18n.t('show-submissions.search-input-label')}:
-                            </label>
+            <div class="search-input">
+                <label for="searchbar--${state}">
+                    ${i18n.t('show-submissions.search-input-label')}:
+                </label>
 
-                            <input
-                                type="text"
-                                id="searchbar--${state}"
-                                data-state="${state}"
-                                class="searchbar"
-                                placeholder="${i18n.t('show-submissions.searchbar-placeholder')}" />
+                <input
+                    type="text"
+                    id="searchbar--${state}"
+                    data-state="${state}"
+                    class="searchbar"
+                    placeholder="${i18n.t('show-submissions.searchbar-placeholder')}" />
 
-                            <button
-                                class="button search-button"
-                                id="search-button--${state}"
-                                @click="${() => {
-                                    this.filterTable(state);
-                                }}">
-                                <dbp-icon
-                                    title="${i18n.t('show-submissions.search-button')}"
-                                    aria-label="${i18n.t('show-submissions.search-button')}"
-                                    name="search"></dbp-icon>
-                            </button>
-                            <button
-                                class="button search-toggle-filters-button"
-                                id="search-toggle-filters-button--${state}"
-                                aria-expanded="${this.searchWidgetIsOpen[state]}"
-                                aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
-                                @click="${() => {
-                                    this.toggleSearchFilters(state);
-                                }}">
-                                <dbp-icon
-                                    name="chevron-down"
-                                    title="${i18n.t('show-submissions.filter-toggle-button')}"
-                                    aria-label="${i18n.t(
-                                        'show-submissions.filter-toggle-button',
-                                    )}"></dbp-icon>
-                                <span class="visually-hidden">
-                                    ${this.searchWidgetIsOpen[state]
-                                        ? i18n.t('show-submissions.close-search-filters')
-                                        : i18n.t('show-submissions.open-search-filters')}
-                                </span>
-                            </button>
-                        </div>
+                <button
+                    class="button search-button"
+                    id="search-button--${state}"
+                    @click="${() => {
+                        this.filterTable(state);
+                    }}">
+                    <dbp-icon
+                        title="${i18n.t('show-submissions.search-button')}"
+                        aria-label="${i18n.t('show-submissions.search-button')}"
+                        name="search"></dbp-icon>
+                </button>
 
-                        <div
-                            id="search-filter-columns--${state}"
-                            role="region"
-                            aria-label="${i18n.t('show-submissions.search-filters-region')}"
-                            class="search-filter-columns ${classMap({
-                                open: this.searchWidgetIsOpen[state],
-                            })}">
-                            <label for="search-select-${state}">
-                                ${i18n.t('show-submissions.search-in')}:
-                            </label>
-                            <select
-                                id="search-select--${state}"
-                                class="button dropdown-menu search-select"
-                                title="${i18n.t('show-submissions.search-in-column')}"
-                                @change="${(e) => {
-                                    this.filterTable(state);
-                                }}">
-                                <optgroup label="${i18n.t('show-submissions.search-in-column')}">
-                                    <legend>${i18n.t('show-submissions.search-in-column')}:</legend>
-                                    ${this.getTableHeaderOptions(state)}
-                                </optgroup>
-                            </select>
-                            <dbp-icon
-                                name="chevron-down"
-                                title="${i18n.t('show-submissions.filter-toggle-button')}"
-                                aria-label="${i18n.t(
-                                    'show-submissions.filter-toggle-button',
-                                )}"></dbp-icon>
-                        </div>
+                <button
+                    class="button search-toggle-filters-button"
+                    id="search-toggle-filters-button--${state}"
+                    aria-expanded="${this.searchWidgetIsOpen[state]}"
+                    aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
+                    @click="${() => {
+                        this.toggleSearchFilters(state);
+                    }}">
+                    <dbp-icon
+                        name="chevron-down"
+                        title="${i18n.t('show-submissions.filter-toggle-button')}"
+                        aria-label="${i18n.t('show-submissions.filter-toggle-button')}"></dbp-icon>
+                    <span class="visually-hidden">
+                        ${this.searchWidgetIsOpen[state]
+                            ? i18n.t('show-submissions.close-search-filters')
+                            : i18n.t('show-submissions.open-search-filters')}
+                    </span>
+                </button>
+            </div>
 
-                        <div
-                            id="search-filter-operator--${state}"
-                            role="region"
-                            aria-label="${i18n.t('show-submissions.search-operator')}"
-                            class="search-filter-operator ${classMap({
-                                open: this.searchWidgetIsOpen[state],
-                            })}">
-                            <label for="search-operator--${state}">
-                                ${i18n.t('show-submissions.search-operator')}:
-                            </label>
-                            <select
-                                id="search-operator--${state}"
-                                title="${i18n.t('show-submissions.search-operator')}"
-                                class="button dropdown-menu search-operator"
-                                @change="${(e) => {
-                                    this.filterTable(state);
-                                }}">
-                                <optgroup label="${i18n.t('show-submissions.search-operator')}">
-                                    <legend>${i18n.t('show-submissions.search-operator')}:</legend>
-                                    ${this.getTableFilterOptions()}
-                                </optgroup>
-                            </select>
-                            <dbp-icon
-                                name="chevron-down"
-                                title="${i18n.t('show-submissions.filter-toggle-button')}"
-                                aria-label="${i18n.t(
-                                    'show-submissions.filter-toggle-button',
-                                )}"></dbp-icon>
-                        </div>
-                    </div>
-                    <div class="statusbar" role="status" aria-live="polite" aria-atomic="true">
-                        <span class="selection-info">
-                            ${i18n.t('show-submissions.n-items-shown-label', {
-                                n: this.visibleRowCount[state],
-                            })}${this.selectedRowCount[state] > 0
-                                ? html`
-                                      ,
-                                      ${i18n.t('show-submissions.n-items-selected-label', {
-                                          n: this.selectedRowCount[state],
-                                      })}
-                                  `
-                                : ''}
-                        </span>
-                        <button
-                            class="reset-search"
-                            @click="${() => {
-                                this.clearAllFilters();
-                            }}">
-                            <dbp-icon
-                                name="spinner-arrow"
-                                title="${i18n.t('show-submissions.reset-search-label')}"
-                                aria-label="${i18n.t(
-                                    'show-submissions.reset-search-label',
-                                )}"></dbp-icon>
-                            ${i18n.t('show-submissions.reset-search-label')}
-                        </button>
-                    </div>
-                </div>
+            <div
+                id="search-filter-columns--${state}"
+                role="region"
+                aria-label="${i18n.t('show-submissions.search-filters-region')}"
+                class="search-filter-columns ${classMap({
+                    open: this.searchWidgetIsOpen[state],
+                })}">
+                <label for="search-select-${state}">${i18n.t('show-submissions.search-in')}:</label>
+                <select
+                    id="search-select--${state}"
+                    class="button dropdown-menu search-select"
+                    title="${i18n.t('show-submissions.search-in-column')}"
+                    @change="${(e) => {
+                        this.filterTable(state);
+                    }}">
+                    <optgroup label="${i18n.t('show-submissions.search-in-column')}">
+                        <legend>${i18n.t('show-submissions.search-in-column')}:</legend>
+                        ${this.getTableHeaderOptions(state)}
+                    </optgroup>
+                </select>
+                <dbp-icon
+                    name="chevron-down"
+                    title="${i18n.t('show-submissions.filter-toggle-button')}"
+                    aria-label="${i18n.t('show-submissions.filter-toggle-button')}"></dbp-icon>
+            </div>
+
+            <div
+                id="search-filter-operator--${state}"
+                role="region"
+                aria-label="${i18n.t('show-submissions.search-operator')}"
+                class="search-filter-operator ${classMap({
+                    open: this.searchWidgetIsOpen[state],
+                })}">
+                <label for="search-operator--${state}">
+                    ${i18n.t('show-submissions.search-operator')}:
+                </label>
+                <select
+                    id="search-operator--${state}"
+                    title="${i18n.t('show-submissions.search-operator')}"
+                    class="button dropdown-menu search-operator"
+                    @change="${(e) => {
+                        this.filterTable(state);
+                    }}">
+                    <optgroup label="${i18n.t('show-submissions.search-operator')}">
+                        <legend>${i18n.t('show-submissions.search-operator')}:</legend>
+                        ${this.getTableFilterOptions()}
+                    </optgroup>
+                </select>
+                <dbp-icon
+                    name="chevron-down"
+                    title="${i18n.t('show-submissions.filter-toggle-button')}"
+                    aria-label="${i18n.t('show-submissions.filter-toggle-button')}"></dbp-icon>
+            </div>
+            <button
+                class="button search-toggle-filters-button"
+                id="search-toggle-filters-button--${state}"
+                aria-expanded="${this.searchWidgetIsOpen[state]}"
+                aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
+                @click="${() => {
+                    this.toggleSearchFilters(state);
+                }}">
+                <dbp-icon
+                    name="chevron-down"
+                    title="${i18n.t('show-submissions.filter-toggle-button')}"
+                    aria-label="${i18n.t('show-submissions.filter-toggle-button')}"></dbp-icon>
+                <span class="visually-hidden">
+                    ${this.searchWidgetIsOpen[state]
+                        ? i18n.t('show-submissions.close-search-filters')
+                        : i18n.t('show-submissions.open-search-filters')}
+                </span>
+            </button>
+        `;
+    }
+
+    renderStatusBar(state) {
+        const i18n = this._i18n;
+
+        return html`
+            <div class="statusbar" role="status" aria-live="polite" aria-atomic="true">
+                <span class="selection-info">
+                    ${i18n.t('show-submissions.n-items-shown-label', {
+                        n: this.visibleRowCount[state],
+                    })}${this.selectedRowCount[state] > 0
+                        ? html`
+                              ,
+                              ${i18n.t('show-submissions.n-items-selected-label', {
+                                  n: this.selectedRowCount[state],
+                              })}
+                          `
+                        : ''}
+                </span>
+                <button
+                    class="reset-search"
+                    ?disabled="${this.searchIsActive[state] === false}"
+                    @click="${() => {
+                        this.clearAllFilters();
+                    }}">
+                    <dbp-icon
+                        name="spinner-arrow"
+                        title="${i18n.t('show-submissions.reset-search-label')}"
+                        aria-label="${i18n.t('show-submissions.reset-search-label')}"></dbp-icon>
+                    ${i18n.t('show-submissions.reset-search-label')}
+                </button>
             </div>
         `;
     }
@@ -3216,19 +3221,21 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             })}">
                             <h3 class="table-title">${submissionTableTitle[state]}</h3>
 
-                            <div class="table-buttons table-buttons--${state}">
+                            <div
+                                class="${classMap({
+                                    open: this.searchWidgetIsOpen[state],
+                                    'table-action-header': true,
+                                    [`table-action-header--${state}`]: true,
+                                })}">
                                 ${this.noSubmissionAvailable[state] === true
                                     ? ''
                                     : html`
-                                          <div class="action-buttons-container">
-                                              ${this.renderActionsWidget(state)}
-                                              ${this.renderExportWidget(state)}
-                                          </div>
-                                          <div class="search-bar-container">
-                                              ${this.renderSearchWidget(state)}
-                                          </div>
+                                          ${this.renderActionsWidget(state)}
+                                          ${this.renderSearchWidget(state)}
+                                          ${this.renderExportWidget(state)}
                                       `}
                             </div>
+                            ${this.renderStatusBar(state)}
 
                             <dbp-tabulator-table
                                 lang="${this.lang}"

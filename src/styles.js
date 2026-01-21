@@ -360,6 +360,10 @@ export function getShowSubmissionCSS() {
             container-name: table-wrapper;
         }
 
+        .container.submissions-table {
+            container: table-container / inline-size;
+        }
+
         .table-wrapper h3 {
             margin-top: 0.5em;
             margin-bottom: 1em;
@@ -385,7 +389,6 @@ export function getShowSubmissionCSS() {
             border-color: var(--dbp-secondary-surface-border-color);
             cursor: pointer;
             box-sizing: content-box;
-            background: none;
         }
 
         .table-title {
@@ -393,27 +396,40 @@ export function getShowSubmissionCSS() {
             padding-left: 0.5em;
         }
 
-        /* TABLE BUTTON HEADER */
+        /* TABLE HEADER - action buttons and search bar */
 
-        .table-buttons {
+        .table-action-header {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 1em;
+            grid-template-areas: 'actions search search search button export';
+            grid-template-columns: 200px 1fr 1fr 1fr 42px 160px;
+            /*grid-template-columns: 1fr;*/
+            gap: 0 1em;
             position: relative;
-
-            container: table-buttons / inline-size;
         }
 
-        .table-buttons select {
+        .table-action-header.open {
+            grid-template-areas: 'actions search filter-col filter-op button export';
+            grid-template-columns: 200px auto auto auto 42px 160px;
+            gap: 0 1em;
+            position: relative;
+        }
+
+        .table-action-header select {
             box-sizing: border-box;
             height: 32px;
             width: 100%;
+            text-align: left;
+            padding-left: 1em;
             padding-block: 0;
             color: var(--dbp-content);
             background-color: var(--dbp-background);
         }
 
-        .table-buttons .action-button {
+        .table-action-header .export-container select {
+            background-image: none;
+        }
+
+        .table-action-header .action-button {
             border: 0 none;
             height: 2.625em;
             background-color: transparent;
@@ -423,13 +439,16 @@ export function getShowSubmissionCSS() {
 
         /* actions */
 
-        .action-buttons-container {
-            display: flex;
-            justify-content: space-between;
+        .actions-container {
+            grid-area: actions;
+            position: relative;
+            width: 175px;
         }
 
-        .actions-container {
+        .open-actions-button {
+            width: 100%;
             position: relative;
+            text-align: left;
         }
 
         .actions-container.open .actions-dropdown {
@@ -441,7 +460,9 @@ export function getShowSubmissionCSS() {
 
         .icon-chevron {
             transition: transform 250ms ease-in;
-            margin-left: 0.5em;
+            position: absolute;
+            right: 0.5em;
+            top: 0.5em;
         }
 
         .actions-dropdown {
@@ -490,20 +511,27 @@ export function getShowSubmissionCSS() {
 
         /* search bar */
 
-        .extended-menu {
-            display: grid;
-            grid-template-areas:
-                'top top'
-                'left right';
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5em;
-            height: 75px;
+        .search-input {
+            grid-area: search;
+            display: flex;
+            flex-basis: 100%;
+            position: relative;
         }
 
-        .search-input {
-            grid-area: top;
-            display: flex;
-            position: relative;
+        .search-filter-columns {
+            grid-area: filter-col;
+        }
+
+        .search-filter-operator {
+            grid-area: filter-op;
+        }
+
+        .search-toggle-filters-button {
+            grid-area: button;
+        }
+
+        .search-input .search-toggle-filters-button {
+            display: none;
         }
 
         .searchbar,
@@ -511,6 +539,10 @@ export function getShowSubmissionCSS() {
         .search-toggle-filters-button {
             height: 32px;
             box-sizing: border-box;
+        }
+
+        .search-toggle-filters-button {
+            width: 42px;
         }
 
         .searchbar dbp-icon,
@@ -522,8 +554,12 @@ export function getShowSubmissionCSS() {
             transition: transform 100ms ease-in;
         }
 
-        .extended-menu.open .search-toggle-filters-button dbp-icon {
-            transform: rotate(180deg);
+        .search-toggle-filters-button dbp-icon {
+            transform: rotate(90deg);
+        }
+
+        .open .search-toggle-filters-button dbp-icon {
+            transform: rotate(-90deg);
             transform-origin: center;
         }
 
@@ -544,8 +580,8 @@ export function getShowSubmissionCSS() {
         .search-button {
             border: 0 none;
             position: absolute;
-            right: 42px;
-            top: 1px;
+            right: 0;
+            top: 0;
             background-color: transparent;
         }
 
@@ -553,23 +589,17 @@ export function getShowSubmissionCSS() {
             transform: scale(1.25);
         }
 
-        .search-filter-columns {
-            height: 0;
-            overflow: hidden;
-        }
-
+        .search-filter-columns,
         .search-filter-operator {
-            height: 0;
-            overflow: hidden;
+            display: none;
         }
 
         .search-filter-operator.open,
         .search-filter-columns.open {
-            height: auto;
-            overflow: visible;
+            display: inline-block;
         }
 
-        .extended-menu label {
+        .table-action-header label {
             clip: rect(0 0 0 0);
             clip-path: inset(50%);
             height: 1px;
@@ -579,7 +609,7 @@ export function getShowSubmissionCSS() {
             width: 1px;
         }
 
-        .extended-menu > :focus-visible {
+        .table-action-header > :focus-visible {
             background-color: light-dark(#f7f7f7, #333333);
         }
 
@@ -601,31 +631,102 @@ export function getShowSubmissionCSS() {
             transform: translateX(5px);
         }
 
+        .reset-search:disabled {
+            cursor: not-allowed;
+        }
+
         .reset-search dbp-icon {
             transition: transform 250ms ease-in;
         }
 
-        .reset-search:hover dbp-icon {
+        .reset-search:hover:not(:disabled) dbp-icon {
             transform: rotate(360deg);
         }
 
-        @container table-buttons (width < 1040px) {
-            .statusbar {
-                transform: translateY(-35px);
-                padding-top: 0;
+        @container table-container (width < 1040px) {
+            .table-action-header:not(.open) {
+                grid-template-areas:
+                    'actions . . export export'
+                    'search search search search button'
+                    'filter-col filter-col . filter-op filter-op';
+                grid-template-columns: 115px 1fr 1fr 118px 42px;
+                gap: 1em 0;
             }
 
-            .open .statusbar {
-                transform: translateY(0);
+            .table-action-header.open {
+                grid-template-areas:
+                    'actions . . export export'
+                    'search search search search button'
+                    'filter-col filter-col filter-op filter-op filter-op';
+                grid-template-columns: 115px 1fr 1fr 118px 42px;
+                gap: 1em 0;
+            }
+
+            .search-input {
+                grid-area: search;
             }
 
             .searchbar {
                 border-right: 0 none;
             }
 
+            .search-toggle-filters-button dbp-icon {
+                transform: rotate(0);
+            }
+
+            .open .search-toggle-filters-button dbp-icon {
+                transform: rotate(180deg);
+                transform-origin: center;
+            }
+
+            .search-toggle-filters-button {
+                grid-area: button;
+            }
+
+            .search-filter-columns {
+                grid-area: filter-col;
+            }
+
+            .search-filter-operator {
+                grid-area: filter-op;
+                margin-left: 1em;
+            }
+
+            .statusbar {
+                padding-top: 0;
+            }
+
+            .open .statusbar {
+                transform: translateY(35px);
+            }
+
             .export-container .dropdown-menu {
                 position: relative;
                 z-index: 10;
+            }
+        }
+
+        @container table-container (width < 390px) {
+            .table-action-header:not(.open) {
+                grid-template-areas:
+                    'actions actions . export export'
+                    'search search search search button'
+                    'filter-col filter-col . filter-op filter-op';
+                grid-template-columns: 115px 1fr 1fr 68px 42px;
+                gap: 1em 0;
+            }
+
+            .table-action-header.open {
+                grid-template-areas:
+                    'actions actions . export export'
+                    'search search search search button'
+                    'filter-col filter-col filter-op filter-op filter-op';
+                grid-template-columns: 115px 1fr 1fr 68px 42px;
+                gap: 1em 0;
+            }
+
+            .actions-container {
+                width: 100px;
             }
         }
 
@@ -644,11 +745,13 @@ export function getShowSubmissionCSS() {
         /* export button */
 
         .export-container {
+            grid-area: export;
             position: relative;
         }
 
         .export-container .dropdown-menu {
             padding: 0rem 2rem 0rem 0.5rem;
+            background-image: none !important;
         }
 
         .export-container dbp-icon[name='chevron-down'] {
@@ -750,8 +853,7 @@ export function getShowSubmissionCSS() {
             color: var(--dbp-content);
         }
 
-        .header-button.hidden,
-        .extended-menu.hidden {
+        .header-button.hidden {
             display: none !important;
         }
 
@@ -993,14 +1095,14 @@ export function getShowSubmissionCSS() {
                 padding-top: 0;
             }
 
-            .table-header {
+            /*.table-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }
+            }*/
 
             .table-wrapper h3,
-            .table-buttons {
+            .table-action-header {
                 margin-bottom: 0.5em;
             }
 
