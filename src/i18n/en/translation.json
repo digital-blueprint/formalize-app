@@ -7,6 +7,7 @@
         "failed-to-save-draft": "Failed to save draft",
         "feature-not-implemented": "Feature not yet implemented",
         "form-submission-failed": "Failed to save form. Response status: {{status}}\n{{details}}",
+        "form-validation-warning-notification-body": "The form is not valid, please fix before submitting",
         "invalid-submission-data": "Invalid submission data",
         "no-submission-id-provided": "No submission ID is provided",
         "no-submission-selected": "No submission selected",

@@ -230,6 +230,13 @@ class FormalizeFormElement extends BaseFormElement {
                     this.isFormValid = await validateRequiredFields(formElement);
                     if (!this.isFormValid) {
                         this.scrollToFirstInvalidField(formElement, true);
+                        // Show notification
+                        sendNotification({
+                            summary: this._i18n.t('errors.warning-title'),
+                            body: this._i18n.t('errors.form-validation-warning-notification-body'),
+                            type: 'warning',
+                            timeout: 5,
+                        });
                     }
                 }
             });
@@ -6172,7 +6179,8 @@ class FormalizeFormElement extends BaseFormElement {
         if (this.isFormValid) {
             return html`
                 <div class="form-validity-indicator valid">
-                    <span class="validity-indicator valid"></span>
+                    <!-- <span class="validity-indicator valid"></span> -->
+                    <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
                     <span class="validity-text">
                         ${this._i18n.t(
                             'render-form.forms.ethics-commission-form.form-validity-valid-text',
@@ -6189,7 +6197,8 @@ class FormalizeFormElement extends BaseFormElement {
         } else {
             return html`
                 <div class="form-validity-indicator invalid">
-                    <span class="validity-indicator invalid"></span>
+                    <!-- <span class="validity-indicator invalid"></span> -->
+                    <dbp-icon name="cross-circle" aria-hidden="true"></dbp-icon>
                     <span class="validity-text">
                         ${this._i18n.t(
                             'render-form.forms.ethics-commission-form.form-validity-invalid-text',

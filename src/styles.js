@@ -1390,6 +1390,19 @@ export function getEthicsCommissionFormCSS() {
             --dbp-tooltip-box-font-color: var(--dbp-background);
         }
 
+        .form-validity-indicator dbp-icon {
+            font-size: 16px;
+            top: inherit;
+        }
+
+        .form-validity-indicator.valid dbp-icon {
+            color: var(--dbp-success);
+        }
+
+        .form-validity-indicator.invalid dbp-icon {
+            color: var(--dbp-warning);
+        }
+
         .validity-indicator {
             display: inline-block;
             height: 1em;
