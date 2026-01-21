@@ -129,6 +129,7 @@ let input = [
     'src/modules/accessibleExamsForm.js',
     'src/modules/ethicsCommissionForm.js',
     'src/modules/accessibleCoursesForm.js',
+    'src/modules/mediaTransparencyForm.js',
 ];
 
 export default (async () => {

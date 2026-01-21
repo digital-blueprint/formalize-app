@@ -2002,3 +2002,10 @@ export function getEthicsCommissionFormPrintCSS() {
         }
     `;
 }
+
+export function getMediaTransparencyFormCSS() {
+    // language=css
+    return css`
+        /* Add any specific styles for the media transparency form here */
+    `;
+}

@@ -3,6 +3,7 @@
         "demo-form": "./demoForm.js",
         "accessible-exams-form": "./accessibleExamsForm.js",
         "ethics-commission-form": "./ethicsCommissionForm.js",
-        "accessible-courses-form": "./accessibleCoursesForm.js"
+        "accessible-courses-form": "./accessibleCoursesForm.js",
+        "media-transparency-form": "./mediaTransparencyForm.js"
     }
 }
