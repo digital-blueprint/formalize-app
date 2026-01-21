@@ -49,14 +49,23 @@
         "form-with-slug-not-found": "Formular mit Slug '{{slug}}' nicht gefunden!",
         "forms": {
             "accessible-courses-form": {
-                "description-text": "Dies ist die Beschreibung.",
-                "field-example-label": "Dies ist ein Beispiel für eine Feldbeschriftung.",
-                "form-field-example-placeholder": "ESchreiben Sie hier etwas...",
+                "comment": "Anmerkung",
+                "course-data": "Lehrveranstaltungsdaten",
+                "course-information": "Bitte beachten Sie, dass die Anmeldung mindestens 14 Tage im Voraus erfolgen muss.",
+                "course-name": "Lehrveranstaltung",
+                "email": "E-Mail-Adresse",
+                "family-name": "Nachname",
+                "given-name": "Vorname",
+                "lecturer": "Vortragende Person(en)",
+                "lecturer-email": "E-Mail-Adresse(n) der Lehrperson(en)",
+                "mandatory-fields": "Bitte füllen Sie alle Pflichtfelder aus.",
+                "matriculation-number": "Matrikelnummer",
+                "personal-data": "Persönliche Daten (vorausgefüllt)",
                 "submission-error": "Fehler beim Absenden",
                 "submission-error-notification": "Fehler beim Absenden",
                 "submission-result-notification": "Gut gemacht!",
                 "submission-result-thanks": "Danke!",
-                "title": "Barrierefreie Lehrveranstaltungen"
+                "title": "Barrierefreie Lehrveranstaltungsteilnahme"
             },
             "accessible-exams-form": {
                 "additional-examiner": "Weiterer Prüfer*Weitere Prüferin",

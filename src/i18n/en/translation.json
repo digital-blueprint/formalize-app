@@ -49,14 +49,23 @@
         "form-with-slug-not-found": "Form with slug '{{slug}}' not found!",
         "forms": {
             "accessible-courses-form": {
-                "description-text": "This is the description",
-                "field-example-label": "This is an example field label",
-                "form-field-example-placeholder": "Write something here...",
-                "submission-error": "Submission error",
-                "submission-error-notification": "Submission error",
-                "submission-result-notification": "Good job.",
-                "submission-result-thanks": "Thank you!",
-                "title": "Accessible Courses"
+                "comment": "Comment",
+                "course-data": "Course details",
+                "course-information": "Please note that registration must be submitted at least 14 days in advance.",
+                "course-name": "Course",
+                "email": "E-mail address",
+                "family-name": "Last name",
+                "given-name": "First name",
+                "lecturer": "Lecturer(s)",
+                "lecturer-email": "Lecturer e-mail address(es)",
+                "mandatory-fields": "Please fill out all required fields.",
+                "matriculation-number": "Matriculation number",
+                "personal-data": "Personal data (prefilled)",
+                "submission-error": "Something went wrong.",
+                "submission-error-notification": "Your data could not be submitted. Please try again later.",
+                "submission-result-notification": "You have registered for an accessible course. You will receive a confirmation by e-mail.",
+                "submission-result-thanks": "Thank you for your registration!",
+                "title": "Accessible Course Registration"
             },
             "accessible-exams-form": {
                 "additional-examiner": "Additional examiner",

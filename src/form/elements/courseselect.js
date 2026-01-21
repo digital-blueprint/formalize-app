@@ -45,6 +45,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
     async handleInputValue(e) {
         let courseDataObject = JSON.parse(e.target.getAttribute('data-object'));
+        const originalCourseObject = courseDataObject;
 
         // Specify the value to be included in the form submission
         if (courseDataObject != null) {
@@ -65,6 +66,13 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
             let courseName = courseDataObject['name'];
             this.value = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
         }
+        this.dispatchEvent(
+            new CustomEvent('dbp-course-changed', {
+                detail: {course: originalCourseObject},
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     renderInput() {
@@ -74,7 +82,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                     id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang,auth,entry-point-url"
-                    @change="${this.handleInputValue}"></dbp-course-select>
+                    @change="${(e) => this.handleInputValue(e)}"></dbp-course-select>
             </div>
         `;
     }

@@ -150,21 +150,29 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
+    async fetchUser(id) {
+        return await fetch(
+            this.entryPointUrl + '/base/people/' + id + '?includeLocal=email,matriculationNumber',
+            {
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: 'Bearer ' + this.auth.token,
+                },
+            },
+        );
+    }
+
+    async getLecturer(id) {
+        let response = await this.fetchUser(id);
+        if (!response.ok) {
+            throw new Error(response);
+        }
+        this.formData.examiner = response.firstname;
+    }
     async fetchUserData() {
         console.log('Fetching user data ...');
         try {
-            let response = await fetch(
-                this.entryPointUrl +
-                    '/base/people/' +
-                    this.auth['user-id'] +
-                    '?includeLocal=email,matriculationNumber',
-                {
-                    headers: {
-                        'Content-Type': 'application/ld+json',
-                        Authorization: 'Bearer ' + this.auth.token,
-                    },
-                },
-            );
+            let response = await this.fetchUser(this.auth['user-id']);
             if (!response.ok) {
                 throw new Error(response);
             }
