@@ -3,7 +3,14 @@ import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {getMediaTransparencyFormCSS} from '../styles.js';
-import {Button, Icon, IconButton, DBPSelect, sendNotification} from '@dbp-toolkit/common';
+import {
+    Button,
+    Icon,
+    IconButton,
+    DBPSelect,
+    Translated,
+    sendNotification,
+} from '@dbp-toolkit/common';
 // import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {
     DbpStringElement,
@@ -72,6 +79,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
             'dbp-select': DBPSelect,
+            'dbp-translated': Translated,
         };
     }
 
@@ -233,6 +241,7 @@ class FormalizeFormElement extends BaseFormElement {
                 aria-labelledby="form-title"
                 class="${classMap({
                     hidden: this.hideForm,
+                    'media-transparency-form': true,
                 })}">
                 <div class="form-header">${this.getButtonRowHtml()}</div>
 
@@ -274,7 +283,6 @@ class FormalizeFormElement extends BaseFormElement {
                     .items=${{
                         // If Kategorie is Online: Website, App, Video, Soziales Netzwerk, Text, Audio, Sonstiges;
                         // If Kategorie is Out of Home: Plakat, Verkehrsmittel, Digitaler Screen, Bande, Flächengebende Ausstattung, Kino, Sonstiges
-                        // @TODO: What if the category is Print, Radio or Television?
                         website: i18n.t('render-form.forms.media-transparency-form.website'),
                         app: i18n.t('render-form.forms.media-transparency-form.app'),
                         video: i18n.t('render-form.forms.media-transparency-form.video'),
@@ -291,16 +299,49 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-media-name-label',
                     )}"
-                    display-mode="list"
+                    display-mode="dropdown"
                     .items=${{
-                        facebook: 'Facebook [demo name]',
-                        google: 'Google [demo name]',
-                        instagram: 'Instagram [demo name]',
-                        youtube: 'YouTube [demo name]',
-                        tiktok: 'TikTok [demo name]',
+                        facebook: 'Facebook',
+                        instagram: 'Instagram',
+                        youtube: 'LinkedIn',
+                        google: 'Google',
+                    }}
+                    @change=${(e) => {
+                        const selectedValue = e.currentTarget.value;
+                        const otherMediumOwnersNameElement = this.renderRoot.querySelector(
+                            'dbp-form-string-element[name="otherMediumOwnersName"]',
+                        );
+                        if (selectedValue === 'else') {
+                            otherMediumOwnersNameElement.disabled = false;
+                        } else {
+                            otherMediumOwnersNameElement.disabled = true;
+                            otherMediumOwnersNameElement.value = '';
+                        }
                     }}
                     .value=${data.mediaName || ''}
                     required></dbp-form-enum-element>
+
+                <dbp-translated subscribe="lang">
+                    <div slot="de">
+                        <p class="field-note">
+                            Bitte zuerst schauen, ob das Medium in der 2024_TU Graz Medienliste
+                            (siehe eigenes Tabellenblatt) vorkommt und sich genau an die
+                            Schreibweise und die Kombination Medium/Medieninhaber zu halten. Finden
+                            Sie den Namen des Mediums nicht in der Liste, wählen Sie in dieser
+                            Spalte "Sonstiges" aus und tragen den neuen Namen bei „Name anderes
+                            Medium“ ein.
+                        </p>
+                    </div>
+                    <div slot="en">
+                        <p class="field-note">
+                            First, please check whether the medium appears in 2024_TU Graz
+                            Medienliste (see separate spreadsheet) and adhere strictly to the
+                            spelling and combination of medium/media owner. If you cannot find the
+                            name of the medium in the list, select ‘Sonstiges’ in this column and
+                            enter the new name under ‘Other medium's name’.
+                        </p>
+                    </div>
+                </dbp-translated>
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -310,21 +351,35 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.otherMediumName || ''}></dbp-form-string-element>
 
-                <dbp-form-enum-element
+                <dbp-form-string-element
                     subscribe="lang"
-                    name="MediumOwnersName"
+                    name="mediumOwnersName"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-media-owners-name-label',
                     )}"
-                    display-mode="list"
-                    .items=${{
-                        facebook: 'Facebook [demo name]',
-                        google: 'Google [demo name]',
-                        instagram: 'Instagram [demo name]',
-                        youtube: 'YouTube [demo name]',
-                        tiktok: 'TikTok [demo name]',
-                    }}
-                    .value=${data.MediumOwnersName || ''}></dbp-form-enum-element>
+                    disabled
+                    .value=${data.mediumOwnersName || ''}></dbp-form-string-element>
+
+                <dbp-translated subscribe="lang">
+                    <div slot="de">
+                        <p class="field-note">
+                            Bitte zuerst schauen, ob der Name des Medieninhabers in der 2024_TU Graz
+                            Medienliste (siehe eigenes Tabellenblatt) vorkommt. Finden Sie den Namen
+                            des Medieninhabers nicht in der Liste, wählen Sie in dieser Spalte
+                            "Sonstiger" aus und tragen den neuen Namen bei „Name anderer
+                            Medieninhaber" ein.
+                        </p>
+                    </div>
+                    <div slot="en">
+                        <p class="field-note">
+                            First, please check whether the medium appears in 2024_TU Graz
+                            Medienliste (see separate spreadsheet) and adhere strictly to the
+                            spelling and combination of medium/media owner. If you cannot find the
+                            name of the medium in the list, select ‘Sonstiges’ in this column and
+                            enter the new name under ‘Other medium owner's name’.
+                        </p>
+                    </div>
+                </dbp-translated>
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -333,6 +388,7 @@ class FormalizeFormElement extends BaseFormElement {
                         'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                     )}"
                     .value=${data.otherMediumOwnersName || ''}
+                    disabled
                     required></dbp-form-string-element>
 
                 <dbp-form-string-element
@@ -341,8 +397,31 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-amount-in-euro-label',
                     )}"
+                    .customValidator=${(value) => {
+                        const re = /^\d+(?:,\d{1,2})?$/;
+                        return re.test(value)
+                            ? null
+                            : i18n.t(
+                                  'render-form.forms.media-transparency-form.validation-amount-in-euro-label',
+                              );
+                    }}
                     .value=${data.amountInEuro || ''}
                     required></dbp-form-string-element>
+
+                <dbp-translated subscribe="lang">
+                    <div slot="de">
+                        <p class="field-note">
+                            Betrag: in Euro – Nettoentgelt vor Werbeabgabe und Ust. Der Betrag darf
+                            maximal 2 Nachkommastellen enthalten und kein Eurozeichen.
+                        </p>
+                    </div>
+                    <div slot="en">
+                        <p class="field-note">
+                            Amount: in euros – net remuneration before advertising tax and VAT. The
+                            amount may contain a maximum of two decimal places and no euro sign.
+                        </p>
+                    </div>
+                </dbp-translated>
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -363,6 +442,23 @@ class FormalizeFormElement extends BaseFormElement {
                     .value=${data.sujetFileName || ''}
                     required></dbp-form-string-element>
 
+                <dbp-translated subscribe="lang">
+                    <div slot="de">
+                        <p class="field-note">
+                            Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer der
+                            Durchnummerierung. Siehe folgende Datei:
+                            MT_2025_Sujets_Bezeichnungslogik-all.pdf
+                        </p>
+                    </div>
+                    <div slot="en">
+                        <p class="field-note">
+                            Subject name (short!) – no other numbers in the subject name except for
+                            sequential numbering. See the following file:
+                            MT_2025_Sujets_Bezeichnungslogik-all.pdf
+                        </p>
+                    </div>
+                </dbp-translated>
+
                 <!-- Sujet notes -->
                 <dbp-form-string-element
                     subscribe="lang"
@@ -375,25 +471,25 @@ class FormalizeFormElement extends BaseFormElement {
                 <!-- Notes -->
                 <dbp-form-string-element
                     subscribe="lang"
-                    name="Notes"
+                    name="notes"
                     label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
-                    .value=${data.Notes || ''}></dbp-form-string-element>
+                    .value=${data.notes || ''}></dbp-form-string-element>
 
                 <!-- at/from -->
-                <dbp-form-string-element
+                <dbp-form-date-element
                     subscribe="lang"
                     name="atFrom"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-at-from-label',
                     )}"
-                    .value=${data.atFrom || ''}></dbp-form-string-element>
+                    .value=${data.atFrom || ''}></dbp-form-date-element>
 
                 <!-- to -->
-                <dbp-form-string-element
+                <dbp-form-date-element
                     subscribe="lang"
                     name="to"
                     label="${i18n.t('render-form.forms.media-transparency-form.field-to-label')}"
-                    .value=${data.to || ''}></dbp-form-string-element>
+                    .value=${data.to || ''}></dbp-form-date-element>
 
                 <!-- SAP order number -->
                 <dbp-form-string-element

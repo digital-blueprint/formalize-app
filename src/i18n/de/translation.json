@@ -327,6 +327,7 @@
                 "television": "Fernsehen",
                 "text": "Text",
                 "title": "Medientransparenz",
+                "validation-amount-in-euro-label": "Der Betrag darf maximal 2 Nachkommastellen enthalten und kein Eurozeichen.",
                 "video": "Video",
                 "website": "Website"
             }

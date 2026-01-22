@@ -2006,6 +2006,16 @@ export function getEthicsCommissionFormPrintCSS() {
 export function getMediaTransparencyFormCSS() {
     // language=css
     return css`
-        /* Add any specific styles for the media transparency form here */
+        .media-transparency-form {
+            --dbp-form-font-size: 16px;
+            --dbp-form-line-height: 24px;
+        }
+
+        .field-note {
+            font-size: 0.8em;
+            font-style: italic;
+            margin: -0.5em 0 2em;
+            line-height: var(--dbp-form-line-height);
+        }
     `;
 }

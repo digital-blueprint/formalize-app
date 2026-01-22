@@ -302,7 +302,7 @@
             "media-transparency-form": {
                 "app": "App",
                 "audio": "Audio",
-                "else": "Else",
+                "else": "Other",
                 "field-advertisement-subcategory-label": "Advertisement subcategory",
                 "field-amount-in-euro-label": "Amount in euro",
                 "field-at-from-label": "at / from",
@@ -327,6 +327,7 @@
                 "television": "Television",
                 "text": "Text",
                 "title": "Media transparency",
+                "validation-amount-in-euro-label": "The amount may contain a maximum of two decimal places and no euro sign.",
                 "video": "Video",
                 "website": "Website"
             }
