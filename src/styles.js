@@ -2017,5 +2017,18 @@ export function getMediaTransparencyFormCSS() {
             margin: -0.5em 0 2em;
             line-height: var(--dbp-form-line-height);
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
     `;
 }

@@ -57,6 +57,9 @@ class FormalizeFormElement extends BaseFormElement {
         this.submissionId = null;
         this.submissionError = false;
         this.submitted = false;
+        this.advertisementSubcategoryItems = {};
+        this.selectedCategory = null;
+        this.otherMediumNameEnabled = false;
 
         // Event handlers
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
@@ -65,6 +68,15 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
+            hideForm: {type: Boolean, attribute: false},
+            currentSubmission: {type: Object, attribute: false},
+            submissionId: {type: String, attribute: false},
+            submissionError: {type: Boolean, attribute: false},
+            submitted: {type: Boolean, attribute: false},
+
+            advertisementSubcategoryItems: {type: Object, attribute: false},
+            selectedCategory: {type: String, attribute: false},
+            otherMediumNameEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -223,6 +235,45 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    setSubcategoryItems(e) {
+        const i18n = this._i18n;
+        const selectedValue = e.currentTarget.value;
+        console.log(`selectedValue`, selectedValue);
+        this.selectedCategory = selectedValue;
+
+        // Update subcategory options based on selected category
+        if (selectedValue === 'online') {
+            this.advertisementSubcategoryItems = {
+                website: i18n.t('render-form.forms.media-transparency-form.sub-categories-website'),
+                app: i18n.t('render-form.forms.media-transparency-form.sub-categories-app'),
+                video: i18n.t('render-form.forms.media-transparency-form.sub-categories-video'),
+                text: i18n.t('render-form.forms.media-transparency-form.sub-categories-text'),
+                audio: i18n.t('render-form.forms.media-transparency-form.sub-categories-audio'),
+                else: i18n.t('render-form.forms.media-transparency-form.sub-categories-else'),
+            };
+        } else if (selectedValue === 'outOfHome') {
+            this.advertisementSubcategoryItems = {
+                poster: i18n.t('render-form.forms.media-transparency-form.sub-categories-poster'),
+                transportation: i18n.t(
+                    'render-form.forms.media-transparency-form.sub-categories-transportation',
+                ),
+                digitalScreen: i18n.t(
+                    'render-form.forms.media-transparency-form.sub-categories-digitalScreen',
+                ),
+                billboard: i18n.t(
+                    'render-form.forms.media-transparency-form.sub-categories-billboard',
+                ),
+                outdoorAdvertising: i18n.t(
+                    'render-form.forms.media-transparency-form.sub-categories-outdoorAdvertising',
+                ),
+                cinema: i18n.t('render-form.forms.media-transparency-form.sub-categories-cinema'),
+                else: i18n.t('render-form.forms.media-transparency-form.sub-categories-else'),
+            };
+        } else {
+            this.advertisementSubcategoryItems = {};
+        }
+    }
+
     render() {
         return html`
             ${this.renderFormElements()}
@@ -264,34 +315,43 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     display-mode="list"
                     .items=${{
-                        online: i18n.t('render-form.forms.media-transparency-form.online'),
-                        print: i18n.t('render-form.forms.media-transparency-form.print'),
-                        outOfHome: i18n.t('render-form.forms.media-transparency-form.out-of-home'),
-                        radio: i18n.t('render-form.forms.media-transparency-form.radio'),
-                        television: i18n.t('render-form.forms.media-transparency-form.television'),
+                        online: i18n.t(
+                            'render-form.forms.media-transparency-form.categories-online',
+                        ),
+                        print: i18n.t('render-form.forms.media-transparency-form.categories-print'),
+                        outOfHome: i18n.t(
+                            'render-form.forms.media-transparency-form.categories-out-of-home',
+                        ),
+                        radio: i18n.t('render-form.forms.media-transparency-form.categories-radio'),
+                        television: i18n.t(
+                            'render-form.forms.media-transparency-form.categories-television',
+                        ),
+                    }}
+                    @change=${(e) => {
+                        this.setSubcategoryItems(e);
                     }}
                     .value=${data.category || ''}
                     required></dbp-form-enum-element>
 
-                <dbp-form-enum-element
-                    subscribe="lang"
-                    name="advertisementSubcategory"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
-                    )}"
-                    display-mode="list"
-                    .items=${{
-                        // If Kategorie is Online: Website, App, Video, Soziales Netzwerk, Text, Audio, Sonstiges;
-                        // If Kategorie is Out of Home: Plakat, Verkehrsmittel, Digitaler Screen, Bande, Flächengebende Ausstattung, Kino, Sonstiges
-                        website: i18n.t('render-form.forms.media-transparency-form.website'),
-                        app: i18n.t('render-form.forms.media-transparency-form.app'),
-                        video: i18n.t('render-form.forms.media-transparency-form.video'),
-                        text: i18n.t('render-form.forms.media-transparency-form.text'),
-                        audio: i18n.t('render-form.forms.media-transparency-form.audio'),
-                        else: i18n.t('render-form.forms.media-transparency-form.else'),
-                    }}
-                    .value=${data.advertisementSubcategory || ''}
-                    required></dbp-form-enum-element>
+                ${this.advertisementSubcategoryItems &&
+                Object.keys(this.advertisementSubcategoryItems).length > 0
+                    ? html`
+                          <dbp-form-enum-element
+                              class="${classMap({
+                                  'fade-in':
+                                      Object.keys(this.advertisementSubcategoryItems).length > 0,
+                              })}"
+                              subscribe="lang"
+                              name="advertisementSubcategory"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
+                              )}"
+                              display-mode="list"
+                              .items=${this.advertisementSubcategoryItems || {}}
+                              .value=${data.advertisementSubcategory || ''}
+                              required></dbp-form-enum-element>
+                      `
+                    : ''}
 
                 <dbp-form-enum-element
                     subscribe="lang"
@@ -301,22 +361,33 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     display-mode="dropdown"
                     .items=${{
+                        notSelected: i18n.t(
+                            'render-form.forms.media-transparency-form.please-select-media',
+                        ),
                         facebook: 'Facebook',
                         instagram: 'Instagram',
-                        youtube: 'LinkedIn',
-                        google: 'Google',
+                        linkedin: 'LinkedIn',
+                        other: 'Other',
                     }}
                     @change=${(e) => {
                         const selectedValue = e.currentTarget.value;
-                        const otherMediumOwnersNameElement = this.renderRoot.querySelector(
-                            'dbp-form-string-element[name="otherMediumOwnersName"]',
-                        );
-                        if (selectedValue === 'else') {
-                            otherMediumOwnersNameElement.disabled = false;
-                        } else {
-                            otherMediumOwnersNameElement.disabled = true;
-                            otherMediumOwnersNameElement.value = '';
+                        console.log(`selectedValue`, selectedValue);
+                        switch (selectedValue) {
+                            case 'facebook':
+                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
+                                break;
+                            case 'instagram':
+                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
+                                break;
+                            case 'linkedin':
+                                data.mediumOwnersName = 'LinkedIn Ireland Unlimited Company';
+                                break;
+                            case 'other':
+                                data.mediumOwnersName = '';
+                                this.otherMediumNameEnabled = true;
+                                break;
                         }
+                        this.requestUpdate();
                     }}
                     .value=${data.mediaName || ''}
                     required></dbp-form-enum-element>
@@ -343,53 +414,57 @@ class FormalizeFormElement extends BaseFormElement {
                     </div>
                 </dbp-translated>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="otherMediumName"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-other-medium-name-label',
-                    )}"
-                    .value=${data.otherMediumName || ''}></dbp-form-string-element>
+                ${this.otherMediumNameEnabled
+                    ? html`
+                          <dbp-form-string-element
+                              subscribe="lang"
+                              name="otherMediumName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                              )}"
+                              .value=${data.otherMediumName || ''}></dbp-form-string-element>
 
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="mediumOwnersName"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-media-owners-name-label',
-                    )}"
-                    disabled
-                    .value=${data.mediumOwnersName || ''}></dbp-form-string-element>
+                          <dbp-form-string-element
+                              subscribe="lang"
+                              name="otherMediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                              )}"
+                              .value=${data.otherMediumOwnersName || ''}
+                              required></dbp-form-string-element>
+                      `
+                    : html`
+                          <dbp-form-string-element
+                              subscribe="lang"
+                              name="mediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                              )}"
+                              disabled
+                              .value=${data.mediumOwnersName || ''}></dbp-form-string-element>
 
-                <dbp-translated subscribe="lang">
-                    <div slot="de">
-                        <p class="field-note">
-                            Bitte zuerst schauen, ob der Name des Medieninhabers in der 2024_TU Graz
-                            Medienliste (siehe eigenes Tabellenblatt) vorkommt. Finden Sie den Namen
-                            des Medieninhabers nicht in der Liste, wählen Sie in dieser Spalte
-                            "Sonstiger" aus und tragen den neuen Namen bei „Name anderer
-                            Medieninhaber" ein.
-                        </p>
-                    </div>
-                    <div slot="en">
-                        <p class="field-note">
-                            First, please check whether the medium appears in 2024_TU Graz
-                            Medienliste (see separate spreadsheet) and adhere strictly to the
-                            spelling and combination of medium/media owner. If you cannot find the
-                            name of the medium in the list, select ‘Sonstiges’ in this column and
-                            enter the new name under ‘Other medium owner's name’.
-                        </p>
-                    </div>
-                </dbp-translated>
-
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="otherMediumOwnersName"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
-                    )}"
-                    .value=${data.otherMediumOwnersName || ''}
-                    disabled
-                    required></dbp-form-string-element>
+                          <dbp-translated subscribe="lang">
+                              <div slot="de">
+                                  <p class="field-note">
+                                      Bitte zuerst schauen, ob der Name des Medieninhabers in der
+                                      2024_TU Graz Medienliste (siehe eigenes Tabellenblatt)
+                                      vorkommt. Finden Sie den Namen des Medieninhabers nicht in der
+                                      Liste, wählen Sie in dieser Spalte "Sonstiger" aus und tragen
+                                      den neuen Namen bei „Name anderer Medieninhaber" ein.
+                                  </p>
+                              </div>
+                              <div slot="en">
+                                  <p class="field-note">
+                                      First, please check whether the medium appears in 2024_TU Graz
+                                      Medienliste (see separate spreadsheet) and adhere strictly to
+                                      the spelling and combination of medium/media owner. If you
+                                      cannot find the name of the medium in the list, select
+                                      ‘Sonstiges’ in this column and enter the new name under ‘Other
+                                      medium owner's name’.
+                                  </p>
+                              </div>
+                          </dbp-translated>
+                      `}
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -439,7 +514,8 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-sujet-file-name-label',
                     )}"
-                    .value=${data.sujetFileName || ''}
+                    .value=${data.sujetFileName || 'MT_2025_Sujets_Bezeichnungslogik-all.pdf '}
+                    disabled
                     required></dbp-form-string-element>
 
                 <dbp-translated subscribe="lang">
@@ -459,37 +535,49 @@ class FormalizeFormElement extends BaseFormElement {
                     </div>
                 </dbp-translated>
 
-                <!-- Sujet notes -->
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="sujetNotes"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-sujet-notes-label',
-                    )}"
-                    .value=${data.sujetNotes || ''}></dbp-form-string-element>
+                ${this.selectedCategory === 'online'
+                    ? html`
+                          <!-- Sujet notes -->
+                          <dbp-form-string-element
+                              subscribe="lang"
+                              name="sujetNotes"
+                              rows="5"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-sujet-notes-label',
+                              )}"
+                              .value=${data.sujetNotes || ''}></dbp-form-string-element>
+                      `
+                    : ''}
 
                 <!-- Notes -->
                 <dbp-form-string-element
                     subscribe="lang"
                     name="notes"
+                    rows="5"
                     label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
                     .value=${data.notes || ''}></dbp-form-string-element>
 
-                <!-- at/from -->
-                <dbp-form-date-element
-                    subscribe="lang"
-                    name="atFrom"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-at-from-label',
-                    )}"
-                    .value=${data.atFrom || ''}></dbp-form-date-element>
+                ${this.selectedCategory === 'online'
+                    ? html`
+                          <!-- at/from -->
+                          <dbp-form-date-element
+                              subscribe="lang"
+                              name="atFrom"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-at-from-label',
+                              )}"
+                              .value=${data.atFrom || ''}></dbp-form-date-element>
 
-                <!-- to -->
-                <dbp-form-date-element
-                    subscribe="lang"
-                    name="to"
-                    label="${i18n.t('render-form.forms.media-transparency-form.field-to-label')}"
-                    .value=${data.to || ''}></dbp-form-date-element>
+                          <!-- to -->
+                          <dbp-form-date-element
+                              subscribe="lang"
+                              name="to"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-to-label',
+                              )}"
+                              .value=${data.to || ''}></dbp-form-date-element>
+                      `
+                    : ''}
 
                 <!-- SAP order number -->
                 <dbp-form-string-element
@@ -509,6 +597,8 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.reportingDeadline || ''}></dbp-form-date-element>
             </form>
+
+            ${this.renderResult(this.submitted)}
         `;
     }
 
