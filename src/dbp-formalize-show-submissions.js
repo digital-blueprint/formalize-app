@@ -3235,7 +3235,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                           ${this.renderExportWidget(state)}
                                       `}
                             </div>
-                            ${this.renderStatusBar(state)}
+                            ${this.noSubmissionAvailable[state] === true
+                                ? ''
+                                : html`
+                                      ${this.renderStatusBar(state)}
+                                  `}
 
                             <dbp-tabulator-table
                                 lang="${this.lang}"
