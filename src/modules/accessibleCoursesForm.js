@@ -199,7 +199,7 @@ class FormalizeFormElement extends BaseFormElement {
         return [
             super.styles,
             css`
-                #title {
+                .title {
                     margin-top: 0;
                 }
             `,
@@ -216,8 +216,8 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.formData || {};
 
         return html`
-            <h2 id="title">${i18n.t('render-form.forms.accessible-courses-form.title')}</h2>
-            <p id="description">
+            <h2 class="title">${i18n.t('render-form.forms.accessible-courses-form.title')}</h2>
+            <p class="description">
                 ${i18n.t('render-form.forms.accessible-courses-form.mandatory-fields')}
                 <br />
                 ${i18n.t('render-form.forms.accessible-courses-form.course-information')}
@@ -236,20 +236,6 @@ class FormalizeFormElement extends BaseFormElement {
                         required
                         @dbp-course-changed="${(e) =>
                             this.handleCourseChange(e)}"></dbp-course-select-element>
-
-                    <!--<dbp-form-string-element
-                        subscribe="lang"
-                        name="lecturerNameDisplay"
-                        label=${i18n.t('render-form.forms.accessible-courses-form.lecturer')}
-                        value=${this.formData?.lecturerName || ''}
-                        disabled></dbp-form-string-element>
-
-                    <dbp-form-string-element
-                        subscribe="lang"
-                        name="lecturerEmailDisplay"
-                        label=${i18n.t('render-form.forms.accessible-courses-form.lecturer-email')}
-                        value=${this.formData?.lecturerEmail || ''}
-                        disabled></dbp-form-string-element>-->
 
                     <dbp-form-string-element
                         subscribe="lang"

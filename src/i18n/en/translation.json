@@ -56,8 +56,6 @@
                 "email": "E-mail address",
                 "family-name": "Last name",
                 "given-name": "First name",
-                "lecturer": "Lecturer(s)",
-                "lecturer-email": "Lecturer e-mail address(es)",
                 "mandatory-fields": "Please fill out all required fields.",
                 "matriculation-number": "Matriculation number",
                 "personal-data": "Personal data (prefilled)",

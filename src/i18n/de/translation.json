@@ -56,8 +56,6 @@
                 "email": "E-Mail-Adresse",
                 "family-name": "Nachname",
                 "given-name": "Vorname",
-                "lecturer": "Vortragende Person(en)",
-                "lecturer-email": "E-Mail-Adresse(n) der Lehrperson(en)",
                 "mandatory-fields": "Bitte füllen Sie alle Pflichtfelder aus.",
                 "matriculation-number": "Matrikelnummer",
                 "personal-data": "Persönliche Daten (vorausgefüllt)",
