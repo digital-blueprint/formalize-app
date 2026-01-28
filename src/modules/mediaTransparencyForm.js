@@ -11,25 +11,25 @@ import {
     Translated,
     sendNotification,
 } from '@dbp-toolkit/common';
-// import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
+import {Modal} from '@dbp-toolkit/common/src/modal.js';
+import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {
     DbpStringElement,
     DbpDateElement,
     DbpBooleanElement,
     DbpEnumElement,
     DbpStringView,
+    DbpDateView,
 } from '@dbp-toolkit/form-elements';
-// import {
-//     gatherFormDataFromElement,
-//     validateRequiredFields,
-// } from '@dbp-toolkit/form-elements/src/utils.js';
 import {
-    // SUBMISSION_STATES,
+    getFormRenderUrl,
+    getDeletionConfirmation,
+    handleDeletionConfirm,
+    handleDeletionCancel,
+    SUBMISSION_STATES,
     SUBMISSION_STATES_BINARY,
-    // isDraftStateEnabled,
-    // isSubmittedStateEnabled,
 } from '../utils.js';
-
+import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 export default class extends BaseObject {
     getUrlSlug() {
         return 'media-transparency';
@@ -52,27 +52,32 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.hideForm = false;
-        this.currentSubmission = null;
-        this.submissionId = null;
-        this.submissionError = false;
-        this.submitted = false;
+
+        // Advertisement category related
         this.advertisementSubcategoryItems = {};
         this.selectedCategory = null;
         this.otherMediumNameEnabled = false;
 
+        // Attachments
+        this.submittedFiles = new Map();
+        this.filesToSubmit = new Map();
+        this.filesToRemove = new Map();
+        this.fileUploadError = false;
+        this.fileUploadCounts = {};
+
+        // Conditional fields
+        this.conditionalFields = {
+            category: false,
+        };
+
         // Event handlers
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
+        this.handleSaveDraft = this.handleSaveDraft.bind(this);
     }
 
     static get properties() {
         return {
             ...super.properties,
-            hideForm: {type: Boolean, attribute: false},
-            currentSubmission: {type: Object, attribute: false},
-            submissionId: {type: String, attribute: false},
-            submissionError: {type: Boolean, attribute: false},
-            submitted: {type: Boolean, attribute: false},
 
             advertisementSubcategoryItems: {type: Object, attribute: false},
             selectedCategory: {type: String, attribute: false},
@@ -87,11 +92,15 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-boolean-element': DbpBooleanElement,
             'dbp-form-enum-element': DbpEnumElement,
             'dbp-form-string-view': DbpStringView,
+            'dbp-form-date-view': DbpDateView,
             'dbp-button': Button,
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
             'dbp-select': DBPSelect,
             'dbp-translated': Translated,
+            'dbp-modal': Modal,
+            'dbp-file-source': FileSource,
+            'dbp-file-sink': FileSink,
         };
     }
 
@@ -101,12 +110,27 @@ class FormalizeFormElement extends BaseFormElement {
         this.updateComplete.then(() => {
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
+            // Event listener for saving draft
+            this.addEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
+            // Event listener for delete submission
+            this.addEventListener(
+                'DbpFormalizeFormDeleteSubmission',
+                this.handleFormDeleteSubmission,
+            );
+            // Listen to the event from file source
+            this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
         });
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
+        this.removeEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
+        this.removeEventListener(
+            'DbpFormalizeFormDeleteSubmission',
+            this.handleFormDeleteSubmission,
+        );
+        this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
     }
 
     async update(changedProperties) {
@@ -116,6 +140,31 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (changedProperties.has('data')) {
             console.log('Data changed:', this.data);
+            if (Object.keys(this.data).length > 0) {
+                await this.processFormData();
+            }
+            this.setButtonStates();
+
+            // @ts-ignore
+            this.updateComplete.then(async () => {
+                await this.processConditionalFields();
+                // If query parameter 'validate' is set to true, validate required fields
+                const urlParams = new URLSearchParams(window.location.search);
+                if (this.readOnly === false && urlParams.get('validate') === 'true') {
+                    const formElement = this.shadowRoot.querySelector('form');
+                    this.isFormValid = await validateRequiredFields(formElement);
+                    if (!this.isFormValid) {
+                        this.scrollToFirstInvalidField(formElement, true);
+                        // Show notification
+                        sendNotification({
+                            summary: this._i18n.t('errors.warning-title'),
+                            body: this._i18n.t('errors.form-validation-warning-notification-body'),
+                            type: 'warning',
+                            timeout: 5,
+                        });
+                    }
+                }
+            });
         }
     }
 
@@ -128,23 +177,98 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     static get styles() {
-        // language=css
-        return css`
-            @layer theme, utility, formalize, print;
-            @layer theme {
-                ${commonStyles.getGeneralCSS(false)}
-                ${commonStyles.getButtonCSS()}
-                ${commonStyles.getModalDialogCSS()}
-            }
-            @layer formalize {
-                ${getMediaTransparencyFormCSS()}
-            }
-        `;
+        return [
+            super.styles,
+            // language=css
+            css`
+                @layer theme, utility, formalize, print;
+                @layer theme {
+                    ${commonStyles.getGeneralCSS(false)}
+                    ${commonStyles.getButtonCSS()}
+                    ${commonStyles.getModalDialogCSS()}
+                }
+                @layer formalize {
+                    ${getMediaTransparencyFormCSS()}
+                }
+            `,
+        ];
     }
 
     async processFormData() {
         try {
             this.currentSubmission = this.data;
+
+            this.submissionId = this.data.identifier;
+            this.lastModifiedCreatorId = this.data.lastModifiedById;
+            this.formData = JSON.parse(this.data.dataFeedElement);
+            this.submissionBinaryState = this.data.submissionState;
+            this.submissionGrantedActions = this.data.grantedActions;
+            this.selectedTags = this.data.tags;
+
+            // Initialize subcategory items if category is already set
+            if (this.formData?.category) {
+                this.setSubcategoryItemsByValue(this.formData.category);
+            }
+            // Attachments
+            const submittedFiles = {};
+            for (const file of this.data.submittedFiles) {
+                if (!submittedFiles[file.fileAttributeName]) {
+                    submittedFiles[file.fileAttributeName] = [];
+                }
+                submittedFiles[file.fileAttributeName].push(file);
+            }
+
+            this.fileUploadCounts = {};
+            for (const [attachmentType, files] of Object.entries(submittedFiles)) {
+                this.fileUploadCounts[attachmentType] = files.length;
+                if (attachmentType === 'attachments') {
+                    this.submittedFiles = await this.transformApiResponseToFile(files);
+                }
+                if (attachmentType === 'voting') {
+                    this.votingFile = await this.transformApiResponseToFile(files);
+                }
+            }
+
+            switch (Number(this.submissionBinaryState)) {
+                case 1:
+                    this.currentState = SUBMISSION_STATES.DRAFT;
+                    break;
+                case 4:
+                    this.currentState = SUBMISSION_STATES.SUBMITTED;
+                    break;
+                default:
+                    this.currentState = null;
+                    break;
+            }
+
+            if (this.formData) {
+                try {
+                    const lastModifierDetailsResponse = await this.apiGetUserDetails(
+                        this.lastModifiedCreatorId,
+                    );
+                    if (!lastModifierDetailsResponse.ok) {
+                        sendNotification({
+                            summary: this._i18n.t('errors.error-title'),
+                            body: this._i18n.t('errors.failed-to-get-last-modifier-details', {
+                                status: lastModifierDetailsResponse.status,
+                            }),
+                            type: 'danger',
+                            timeout: 0,
+                        });
+                    } else {
+                        const lastModifierDetails = await lastModifierDetailsResponse.json();
+                        this.lastModifiedCreatorName = `${lastModifierDetails?.givenName} ${lastModifierDetails?.familyName}`;
+                    }
+                } catch (e) {
+                    console.log(e);
+                    sendNotification({
+                        summary: this._i18n.t('errors.error-title'),
+                        body: this._i18n.t('errors.failed-to-get-last-modifier-details'),
+                        type: 'danger',
+                        timeout: 0,
+                    });
+                }
+            }
         } catch (e) {
             console.error('Error parsing submission data:', e);
         }
@@ -165,9 +289,21 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         // Include unique identifier for person who first submitted the form (creator)
-        // data.formData.identifier = isExistingDraft
-        //     ? this.lastModifiedCreatorId
-        //     : this.auth['user-id'];
+        data.formData.identifier = isExistingDraft
+            ? this.lastModifiedCreatorId
+            : this.auth['user-id'];
+
+        // Clean up empty date fields to avoid JSON Schema validation errors
+        const dateFields = ['atFrom', 'to', 'reportingDeadline'];
+        dateFields.forEach((field) => {
+            if (
+                data.formData[field] === '' ||
+                data.formData[field] === null ||
+                data.formData[field] === undefined
+            ) {
+                delete data.formData[field];
+            }
+        });
 
         const formData = new FormData();
 
@@ -235,9 +371,192 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
-    setSubcategoryItems(e) {
+    /**
+     * Handle saving draft submission.
+     * @param {object} event - The event object containing the form data.
+     */
+    async handleSaveDraft(event) {
+        // Access the data from the event detail
+        const data = event.detail;
+        // const validationResult = data.validationResult;
+
+        // POST or PATCH
+        let isExistingDraft = false;
+        if (data.submissionId) {
+            isExistingDraft = true;
+        }
+
+        // Include unique identifier for person who last modified the form
+        data.formData.identifier = isExistingDraft
+            ? this.lastModifiedCreatorId
+            : this.auth['user-id'];
+        const formData = new FormData();
+
+        // Set attachment files to upload
+        if (this.filesToSubmit.size > 0) {
+            this.filesToSubmit.forEach((fileToAttach) => {
+                formData.append('attachments[]', fileToAttach, fileToAttach.name);
+            });
+        }
+
+        // Set attachment files to remove
+        if (this.filesToRemove.size > 0) {
+            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+            });
+        }
+
+        formData.append('form', '/formalize/forms/' + this.formIdentifier);
+        formData.append('dataFeedElement', JSON.stringify(data.formData));
+        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
+        // Add tags
+        // const selectedTags = Object.values(this.selectedTags);
+        // formData.append('tags', JSON.stringify(selectedTags));
+
+        const method = isExistingDraft ? 'PATCH' : 'POST';
+        const options = this._buildRequestOptions(formData, method);
+        const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
+
+        const filesToSubmitBackup = this.filesToSubmit;
+        const filesToRemoveBackup = this.filesToRemove;
+        const submittedFilesBackup = this.submittedFiles;
+
+        try {
+            const response = await fetch(url, options);
+            let responseBody = await response.json();
+
+            if (!response.ok) {
+                sendNotification({
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.failed-to-save-draft', {
+                        status: response.status,
+                        detail: responseBody.detail,
+                    }),
+                    type: 'danger',
+                    timeout: 0,
+                });
+            } else {
+                this.data = responseBody;
+                this.newSubmissionId = responseBody.identifier;
+                this.submissionBinaryState = responseBody.submissionState;
+                this.submittedFiles = await this.transformApiResponseToFile(
+                    responseBody.submittedFiles,
+                );
+
+                // Remove files added to the request
+                this.filesToSubmit = new Map();
+                this.filesToRemove = new Map();
+
+                // Update URL with the submission ID
+                const newSubmissionUrl =
+                    getFormRenderUrl(this.formUrlSlug, this.lang) + `/${this.newSubmissionId}`;
+                window.history.pushState({}, '', newSubmissionUrl.toString());
+
+                this.disableLeavePageWarning();
+                this.redirectToReadonlyForm();
+
+                // formDataUpdated event to notify parent component
+                this.dispatchEvent(
+                    new CustomEvent('dbpFormDataUpdated', {
+                        detail: {
+                            needUpdate: true,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
+            }
+        } catch (error) {
+            // Restore files if something went wrong
+            this.filesToSubmit = filesToSubmitBackup;
+            this.filesToRemove = filesToRemoveBackup;
+            this.submittedFiles = submittedFilesBackup;
+            this.requestUpdate();
+
+            console.error(error);
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.unknown-error-on-save-draft'),
+                type: 'danger',
+                timeout: 0,
+            });
+        }
+    }
+
+    /**
+     * Handle deleting submission.
+     * @param {object} event - The event object containing the submission id to delete.
+     */
+    async handleFormDeleteSubmission(event) {
+        const data = event.detail;
+        const submissionId = data.submissionId;
+
+        if (!submissionId) {
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.no-submission-id-provided'),
+                type: 'danger',
+                timeout: 0,
+            });
+            return;
+        }
+
+        const confirmed = await getDeletionConfirmation(this);
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(
+                this.entryPointUrl + `/formalize/submissions/${submissionId}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                this.deleteSubmissionError = true;
+                sendNotification({
+                    summary: this._i18n.t('errors.error-title'),
+                    body: this._i18n.t('errors.failed-to-delete-submission-status', {
+                        status: response.status,
+                    }),
+                    type: 'danger',
+                    timeout: 0,
+                });
+            } else {
+                this.wasDeleteSubmissionSuccessful = true;
+                this.deleteSubmissionError = false;
+            }
+        } catch (error) {
+            console.error(error);
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.unknown-error-on-delete-submission'),
+                type: 'danger',
+                timeout: 0,
+            });
+        } finally {
+            if (this.wasDeleteSubmissionSuccessful) {
+                sendNotification({
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.form-submission-deleted-successfully'),
+                    type: 'success',
+                    timeout: 5,
+                });
+
+                const emptyFormUrl = getFormRenderUrl(this.formUrlSlug, this.lang);
+                window.history.pushState({}, '', emptyFormUrl.toString());
+
+                this.resetForm(event);
+                this.sendSetPropertyEvent('routing-url', `/${this.formUrlSlug}`);
+            }
+        }
+    }
+
+    setSubcategoryItemsByValue(selectedValue) {
         const i18n = this._i18n;
-        const selectedValue = e.currentTarget.value;
         console.log(`selectedValue`, selectedValue);
         this.selectedCategory = selectedValue;
 
@@ -274,9 +593,20 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    setSubcategoryItems(e) {
+        const selectedValue = e.currentTarget.value;
+        this.setSubcategoryItemsByValue(selectedValue);
+    }
+
     render() {
         return html`
-            ${this.renderFormElements()}
+            ${this.readOnly
+                ? html`
+                      ${this.renderFormViews()}
+                  `
+                : html`
+                      ${this.renderFormElements()}
+                  `}
         `;
     }
 
@@ -293,6 +623,8 @@ class FormalizeFormElement extends BaseFormElement {
                 class="${classMap({
                     hidden: this.hideForm,
                     'media-transparency-form': true,
+                    'readonly-mode': this.readOnly,
+                    'edit-mode': !this.readOnly,
                 })}">
                 <div class="form-header">${this.getButtonRowHtml()}</div>
 
@@ -310,6 +642,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-enum-element
                     subscribe="lang"
                     name="category"
+                    data-condition='["online", "outOfHome"]'
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-category-label',
                     )}"
@@ -333,8 +666,7 @@ class FormalizeFormElement extends BaseFormElement {
                     .value=${data.category || ''}
                     required></dbp-form-enum-element>
 
-                ${this.advertisementSubcategoryItems &&
-                Object.keys(this.advertisementSubcategoryItems).length > 0
+                ${this.conditionalFields.category
                     ? html`
                           <dbp-form-enum-element
                               class="${classMap({
@@ -430,8 +762,7 @@ class FormalizeFormElement extends BaseFormElement {
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                               )}"
-                              .value=${data.otherMediumOwnersName || ''}
-                              required></dbp-form-string-element>
+                              .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
                       `
                     : html`
                           <dbp-form-string-element
@@ -504,36 +835,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-campaign-title-label',
                     )}"
-                    .value=${data.campaignTitle || ''}
-                    required></dbp-form-string-element>
-
-                <!-- Sujet file name -->
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="sujetFileName"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-sujet-file-name-label',
-                    )}"
-                    .value=${data.sujetFileName || 'MT_2025_Sujets_Bezeichnungslogik-all.pdf '}
-                    disabled
-                    required></dbp-form-string-element>
-
-                <dbp-translated subscribe="lang">
-                    <div slot="de">
-                        <p class="field-note">
-                            Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer der
-                            Durchnummerierung. Siehe folgende Datei:
-                            MT_2025_Sujets_Bezeichnungslogik-all.pdf
-                        </p>
-                    </div>
-                    <div slot="en">
-                        <p class="field-note">
-                            Subject name (short!) – no other numbers in the subject name except for
-                            sequential numbering. See the following file:
-                            MT_2025_Sujets_Bezeichnungslogik-all.pdf
-                        </p>
-                    </div>
-                </dbp-translated>
+                    .value=${data.campaignTitle || ''}></dbp-form-string-element>
 
                 ${this.selectedCategory === 'online'
                     ? html`
@@ -596,12 +898,371 @@ class FormalizeFormElement extends BaseFormElement {
                         'render-form.forms.media-transparency-form.field-reporting-deadline-label',
                     )}"
                     .value=${data.reportingDeadline || ''}></dbp-form-date-element>
+
+                <div class="file-upload-container">
+                    <div class="file-upload-title-container">
+                        <h4 class="attachments-title">
+                            ${i18n.t('render-form.forms.media-transparency-form.attachments-title')}
+                        </h4>
+                        ${this.allowedFileUploadCounts?.attachments > 0
+                            ? html`
+                                  <span class="file-upload-limit-warning">
+                                      ${i18n.t(
+                                          'render-form.download-widget.file-upload-limit-warning',
+                                          {
+                                              count: this.allowedFileUploadCounts?.attachments,
+                                          },
+                                      )}
+                                  </span>
+                              `
+                            : ''}
+
+                        <dbp-translated subscribe="lang">
+                            <div slot="de">
+                                <p>
+                                    Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer
+                                    der Durchnummerierung. Siehe folgende Datei:
+                                    MT_2025_Sujets_Bezeichnungslogik-all.pdf
+                                </p>
+                            </div>
+                            <div slot="en">
+                                <p>
+                                    Subject name (short!) – no other numbers in the subject name
+                                    except for sequential numbering. See the following file:
+                                    MT_2025_Sujets_Bezeichnungslogik-all.pdf
+                                </p>
+                            </div>
+                        </dbp-translated>
+                    </div>
+
+                    <div class="uploaded-files">${this.renderAttachedFilesHtml('attachments')}</div>
+
+                    <button
+                        class="button is-secondary upload-button upload-button--attachment"
+                        .disabled=${this.fileUploadCounts['attachments'] >=
+                        this.allowedFileUploadCounts?.attachments}
+                        @click="${(event) => {
+                            this.uploadToVoting = false;
+                            this.openFilePicker(event);
+                        }}">
+                        <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
+                        ${!isNaN(this.allowedFileUploadCounts?.attachments)
+                            ? i18n.t('render-form.download-widget.upload-file-button-label', {
+                                  count: this.allowedFileUploadCounts?.attachments,
+                              })
+                            : i18n.t(
+                                  'render-form.download-widget.upload-file-button-label-no-limit',
+                              )}
+                    </button>
+                </div>
             </form>
+
+            <dbp-file-source
+                id="file-source"
+                class="file-source"
+                lang="${this.lang}"
+                allowed-mime-types="application/pdf,image/jpeg,image/png,image/gif,video/mp4,video/mpeg,
+                    video/webm,audio/mpeg,audio/ogg,audio/flac,audio/mp4"
+                max-file-size="20000"
+                enabled-targets="local,clipboard,nextcloud"
+                subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
+
+            <dbp-file-sink
+                id="file-sink"
+                class="file-sink"
+                lang="${this.lang}"
+                allowed-mime-types="application/pdf,.pdf"
+                decompress-zip
+                enabled-targets="local,clipboard,nextcloud"
+                filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
+                subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
             ${this.renderResult(this.submitted)}
         `;
     }
 
+    renderFormViews() {
+        const i18n = this._i18n;
+        const data = this.formData || {};
+
+        console.log(`data`, data);
+
+        return html`
+            <form
+                id="media-transparency-form"
+                aria-labelledby="form-title"
+                class="${classMap({
+                    hidden: this.hideForm,
+                    'media-transparency-form': true,
+                    'readonly-mode': this.readOnly,
+                    'edit-mode': !this.readOnly,
+                })}">
+                <div class="form-header">${this.getButtonRowHtml()}</div>
+
+                <h2 class="form-title">
+                    ${i18n.t('render-form.forms.media-transparency-form.title')}
+                </h2>
+
+                <dbp-form-enum-view
+                    subscribe="lang"
+                    name="category"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-category-label',
+                    )}"
+                    display-mode="list"
+                    .items=${{
+                        online: i18n.t(
+                            'render-form.forms.media-transparency-form.categories-online',
+                        ),
+                        print: i18n.t('render-form.forms.media-transparency-form.categories-print'),
+                        outOfHome: i18n.t(
+                            'render-form.forms.media-transparency-form.categories-out-of-home',
+                        ),
+                        radio: i18n.t('render-form.forms.media-transparency-form.categories-radio'),
+                        television: i18n.t(
+                            'render-form.forms.media-transparency-form.categories-television',
+                        ),
+                    }}
+                    @change=${(e) => {
+                        this.setSubcategoryItems(e);
+                    }}
+                    .value=${data.category || ''}
+                    required></dbp-form-enum-view>
+
+                ${this.advertisementSubcategoryItems &&
+                Object.keys(this.advertisementSubcategoryItems).length > 0
+                    ? html`
+                          <dbp-form-enum-view
+                              class="${classMap({
+                                  'fade-in':
+                                      Object.keys(this.advertisementSubcategoryItems).length > 0,
+                              })}"
+                              subscribe="lang"
+                              name="advertisementSubcategory"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
+                              )}"
+                              display-mode="list"
+                              .items=${this.advertisementSubcategoryItems}
+                              .value=${data.advertisementSubcategory || ''}
+                              required></dbp-form-enum-view>
+                      `
+                    : ''}
+
+                <dbp-form-enum-view
+                    subscribe="lang"
+                    name="mediaName"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-media-name-label',
+                    )}"
+                    display-mode="dropdown"
+                    .items=${{
+                        notSelected: i18n.t(
+                            'render-form.forms.media-transparency-form.please-select-media',
+                        ),
+                        facebook: 'Facebook',
+                        instagram: 'Instagram',
+                        linkedin: 'LinkedIn',
+                        other: 'Other',
+                    }}
+                    @change=${(e) => {
+                        const selectedValue = e.currentTarget.value;
+                        console.log(`selectedValue`, selectedValue);
+                        switch (selectedValue) {
+                            case 'facebook':
+                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
+                                break;
+                            case 'instagram':
+                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
+                                break;
+                            case 'linkedin':
+                                data.mediumOwnersName = 'LinkedIn Ireland Unlimited Company';
+                                break;
+                            case 'other':
+                                data.mediumOwnersName = '';
+                                this.otherMediumNameEnabled = true;
+                                break;
+                        }
+                        this.requestUpdate();
+                    }}
+                    .value=${data.mediaName || ''}
+                    required></dbp-form-enum-view>
+
+                ${this.otherMediumNameEnabled
+                    ? html`
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="otherMediumName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                              )}"
+                              .value=${data.otherMediumName || ''}></dbp-form-string-view>
+
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="otherMediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                              )}"
+                              .value=${data.otherMediumOwnersName || ''}
+                              required></dbp-form-string-view>
+                      `
+                    : html`
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="mediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                              )}"
+                              disabled
+                              .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
+                      `}
+
+                <dbp-form-string-view
+                    subscribe="lang"
+                    name="amountInEuro"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-amount-in-euro-label',
+                    )}"
+                    .customValidator=${(value) => {
+                        const re = /^\d+(?:,\d{1,2})?$/;
+                        return re.test(value)
+                            ? null
+                            : i18n.t(
+                                  'render-form.forms.media-transparency-form.validation-amount-in-euro-label',
+                              );
+                    }}
+                    .value=${data.amountInEuro || ''}
+                    required></dbp-form-string-view>
+
+                <dbp-form-string-view
+                    subscribe="lang"
+                    name="campaignTitle"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-campaign-title-label',
+                    )}"
+                    .value=${data.campaignTitle || ''}
+                    required></dbp-form-string-view>
+
+                <!-- Sujet file name -->
+                <dbp-form-string-view
+                    subscribe="lang"
+                    name="sujetFileName"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-sujet-file-name-label',
+                    )}"
+                    .value=${data.sujetFileName || 'MT_2025_Sujets_Bezeichnungslogik-all.pdf '}
+                    disabled
+                    required></dbp-form-string-view>
+
+                ${this.selectedCategory === 'online'
+                    ? html`
+                          <!-- Sujet notes -->
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="sujetNotes"
+                              rows="5"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-sujet-notes-label',
+                              )}"
+                              .value=${data.sujetNotes || ''}></dbp-form-string-view>
+                      `
+                    : ''}
+
+                <!-- Notes -->
+                <dbp-form-string-view
+                    subscribe="lang"
+                    name="notes"
+                    rows="5"
+                    label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
+                    .value=${data.notes || ''}></dbp-form-string-view>
+
+                ${this.selectedCategory === 'online'
+                    ? html`
+                          <!-- at/from -->
+                          <dbp-form-date-view
+                              subscribe="lang"
+                              name="atFrom"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-at-from-label',
+                              )}"
+                              .value=${data.atFrom || ''}></dbp-form-date-view>
+
+                          <!-- to -->
+                          <dbp-form-date-view
+                              subscribe="lang"
+                              name="to"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-to-label',
+                              )}"
+                              .value=${data.to || ''}></dbp-form-date-view>
+                      `
+                    : ''}
+
+                <!-- SAP order number -->
+                <dbp-form-string-view
+                    subscribe="lang"
+                    name="sapOrderNumber"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-sap-order-number-label',
+                    )}"
+                    .value=${data.sapOrderNumber || ''}></dbp-form-string-view>
+
+                <!-- Reporting deadline -->
+                <dbp-form-date-view
+                    subscribe="lang"
+                    name="reportingDeadline"
+                    label="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-reporting-deadline-label',
+                    )}"
+                    .value=${data.reportingDeadline || ''}></dbp-form-date-view>
+
+                <div class="file-upload-container">
+                    <h4 class="attachments-title">
+                        ${i18n.t('render-form.download-widget.attachments-title')}
+                    </h4>
+
+                    <div class="uploaded-files">${this.renderAttachedFilesHtml('attachments')}</div>
+                </div>
+            </form>
+
+            <dbp-file-sink
+                id="file-sink"
+                class="file-sink"
+                lang="${this.lang}"
+                allowed-mime-types="application/pdf,.pdf"
+                decompress-zip
+                enabled-targets="local,clipboard,nextcloud"
+                filename="ethics-commission-form-${this.submissionId || ''}-attachments.zip"
+                subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
+
+            <!-- Deletion Confirmation Modal -->
+            <dbp-modal
+                id="deletion-confirmation-modal--formalize"
+                class="modal modal--confirmation"
+                modal-id="deletion-confirmation-modal"
+                title="${i18n.t('show-submissions.delete-confirmation-title')}"
+                subscribe="lang">
+                <div slot="content">
+                    <p>${i18n.t('show-submissions.delete-confirmation-message')}</p>
+                </div>
+                <menu slot="footer" class="footer-menu">
+                    <dbp-button
+                        type="is-secondary"
+                        no-spinner-on-click
+                        @click="${() => handleDeletionCancel(this)}">
+                        ${i18n.t('show-submissions.abort')}
+                    </dbp-button>
+                    <dbp-button
+                        type="is-danger"
+                        no-spinner-on-click
+                        @click="${() => handleDeletionConfirm(this)}">
+                        ${i18n.t('show-submissions.delete')}
+                    </dbp-button>
+                </menu>
+            </dbp-modal>
+        `;
+    }
     /**
      * Render text after successfull submission.
      * @param {boolean} submitted
@@ -631,28 +1292,156 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Build request options for the fetch call.
-     * @param {object} formData - The form data to be sent in the request body.
-     * @param {string} method - The HTTP method to use (POST, PATCH, etc.)
-     * @returns {object} The request options object.
+     * Opens the file picker dialog.
+     * @param {object} event - Click event
      */
-    _buildRequestOptions(formData, method) {
-        return {
-            method: method,
-            headers: {
-                Authorization: `Bearer ${this.auth.token}`,
-            },
-            body: formData,
-        };
+    openFilePicker(event) {
+        event.preventDefault();
+        const fileSource = this._('dbp-file-source');
+        fileSource.setAttribute('dialog-open', '');
     }
 
     /**
-     * Build the submission URL. If submissionId is provided, it will be included to the URL.
-     * @param {string} submissionId
-     * @returns {string} The submission URL.
+     * Handle files to submit event from file source component.
+     * @param {CustomEvent} event - The event object containing the file data.
      */
-    _buildSubmissionUrl(submissionId = null) {
-        const baseUrl = `${this.entryPointUrl}/formalize/submissions`;
-        return submissionId ? `${baseUrl}/${submissionId}` : `${baseUrl}`;
+    handleFilesToSubmit(event) {
+        this.filesToSubmit.set(event.detail.file.name, event.detail.file);
+        this.requestUpdate();
+    }
+
+    /**
+     * Renders attached file list with action buttons
+     * @param {string} fileGroup - The group of files to render ('attachments' or 'voting')
+     * @returns {Array|null} An array of rendered file elements or null if no files are present.
+     */
+    renderAttachedFilesHtml(fileGroup = 'attachments') {
+        const i18n = this._i18n;
+        let results = [];
+
+        // Select files based on group
+        const submittedFiles = fileGroup === 'attachments' ? this.submittedFiles : this.votingFile;
+        const filesToSubmit =
+            fileGroup === 'attachments' ? this.filesToSubmit : this.votingFileToSubmit;
+        const filesToRemove =
+            fileGroup === 'attachments' ? this.filesToRemove : this.votingFileToRemove;
+
+        if (submittedFiles.size > 0) {
+            const submittedFilesHtml = html`
+                <div class="fileblock-container submitted-files">
+                    ${Array.from(submittedFiles).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
+                    })}
+                </div>
+            `;
+            results.push(submittedFilesHtml);
+        }
+
+        if (filesToSubmit.size > 0) {
+            const filesToSubmitHtml = html`
+                <div class="fileblock-container files-to-upload">
+                    <div class="attachment-header">
+                        <dbp-icon name="upload"></dbp-icon>
+                        <h5>
+                            ${i18n.t('render-form.download-widget.attachment-upload-file-text')}
+                            <span class="attachment-warning">
+                                ${i18n.t(
+                                    'render-form.download-widget.attachment-upload-warning-text',
+                                )}
+                            </span>
+                        </h5>
+                    </div>
+                    ${Array.from(filesToSubmit).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
+                    })}
+                </div>
+            `;
+            results.push(filesToSubmitHtml);
+        }
+
+        if (filesToRemove.size > 0) {
+            const filesToRemoveHtml = html`
+                <div class="fileblock-container files-to-remove">
+                    <div class="attachment-header">
+                        <dbp-icon name="trash"></dbp-icon>
+                        <h5>
+                            ${i18n.t('render-form.download-widget.attachment-remove-file-text')}
+                            <span class="attachment-warning">
+                                ${i18n.t(
+                                    'render-form.download-widget.attachment-upload-warning-text',
+                                )}
+                            </span>
+                        </h5>
+                    </div>
+                    ${Array.from(filesToRemove).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
+                    })}
+                </div>
+            `;
+            results.push(filesToRemoveHtml);
+        }
+
+        return results;
+    }
+
+    /**
+     * Renders a single file block with action buttons.
+     * @param {object} file - The file object
+     * @param {string} identifier - Unique identifier for the file
+     * @param {string} fileGroup - The group of files ('attachments' or 'voting')
+     * @returns {import('lit').TemplateResult} The rendered file block template.
+     */
+    addFileBlock(file, identifier, fileGroup = 'attachments') {
+        return html`
+            <div class="file-block">
+                <span class="file-info">
+                    <strong class="file-name">${file.name}</strong>
+                    <span class="additional-data">
+                        <span class="file-type">(${file.type})</span>
+                        <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                    </span>
+                </span>
+                <div class="file-action-buttons">
+                    <button
+                        class="download-file-button button is-secondary"
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this._('#file-sink').files = [file];
+                        }}>
+                        <dbp-icon name="download"></dbp-icon>
+                        ${this._i18n.t('render-form.download-widget.download-attachment')}
+                    </button>
+                    <button
+                        class="delete-file-button button is-secondary"
+                        .disabled=${this.filesToRemove.has(identifier) || this.readOnly}
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this.deleteAttachment(identifier, fileGroup);
+                        }}>
+                        <dbp-icon name="trash"></dbp-icon>
+                        ${this._i18n.t('render-form.download-widget.delete-attachment')}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Handle removing files from the list of attachments.
+     * @param {string} fileIdentifier uuid
+     * @param {string} fileGroup - The group of files to handle ('attachments' or 'voting')
+     */
+    deleteAttachment(fileIdentifier, fileGroup = 'attachments') {
+        if (fileGroup === 'attachments') {
+            // Handle regular attachments
+            const fileToRemove = this.submittedFiles.get(fileIdentifier);
+            if (fileToRemove) {
+                this.filesToRemove.set(fileIdentifier, fileToRemove);
+                this.submittedFiles.delete(fileIdentifier);
+            }
+            this.filesToSubmit.delete(fileIdentifier);
+        }
+
+        this.requestUpdate();
     }
 }
