@@ -1,5 +1,5 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
-import {html} from 'lit';
+import {css, html} from 'lit';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -8,7 +8,7 @@ import {
     DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
 import {SUBMISSION_STATES_BINARY} from '../utils.js';
-import {sendNotification} from '@dbp-toolkit/common';
+import {Button, Icon, sendNotification} from '@dbp-toolkit/common';
 
 // You need to import gatherFormDataFromElement from the form-elements package if you override the sendSubmission method
 // import {gatherFormDataFromElement} from '@dbp-toolkit/form-elements/src/utils.js';
@@ -164,6 +164,8 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-datetime-element': DbpDateTimeElement,
             'dbp-form-enum-element': DbpEnumElement,
             'dbp-form-boolean-element': DbpBooleanElement,
+            'dbp-button': Button,
+            'dbp-icon': Icon,
         };
     }
 
@@ -188,9 +190,23 @@ class FormalizeFormElement extends BaseFormElement {
 
         return html`
             <h2>Demo Form</h2>
-            <input type="button" value="Test routing-url" @click=${this.testRoutingUrl} />
-            <input type="button" value="Set random data" @click=${this.setRandomData} />
+
             <form>
+                <div class="form-header">${this.getButtonRowHtml()}</div>
+
+                <div class="test-buttons">
+                    <input
+                        type="button"
+                        class="button"
+                        value="Test routing-url"
+                        @click=${this.testRoutingUrl} />
+                    <input
+                        type="button"
+                        class="button"
+                        value="Set random data"
+                        @click=${this.setRandomData} />
+                </div>
+
                 <dbp-form-string-element
                     subscribe="lang"
                     name="myString"
@@ -253,11 +269,23 @@ class FormalizeFormElement extends BaseFormElement {
                     label="My checkbox"
                     description="Check me"
                     ?state=${data.myCheckbox || false}></dbp-form-boolean-element>
-
-                ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.formData)}
         `;
+    }
+
+    static get styles() {
+        // language=css
+        return [
+            super.styles,
+            css`
+                .test-buttons {
+                    margin-top: 1em;
+                    display: flex;
+                    gap: 0.5em;
+                }
+            `,
+        ];
     }
 
     renderResult(data) {

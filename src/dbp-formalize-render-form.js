@@ -13,6 +13,9 @@ import {
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
+/**
+ * @augments {DBPFormalizeLitElement}
+ */
 class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
@@ -58,7 +61,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         window.addEventListener('beforeunload', this._onReceiveBeforeUnload);
         window.addEventListener('disableBeforeunloadWarning', this._onDisableBeforeunloadWarning);
         window.addEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
-        window.addEventListener('dbpFormReset', this._onFormReset);
+        window.addEventListener('DbpFormalizeFormReset', this._onFormReset);
 
         this.updateComplete.then(() => {
             console.log('-- updateComplete --');
@@ -76,7 +79,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this._onDisableBeforeunloadWarning,
         );
         window.removeEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
-        window.removeEventListener('dbpFormReset', this._onFormReset);
+        window.removeEventListener('DbpFormalizeFormReset', this._onFormReset);
     }
 
     updateFormUrlSlug() {

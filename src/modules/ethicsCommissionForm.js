@@ -17,18 +17,14 @@ import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {
     getFormRenderUrl,
-    formatDate,
-    arrayToObject,
     getDeletionConfirmation,
     handleDeletionConfirm,
     handleDeletionCancel,
     httpGetAsync,
+    SUBMISSION_STATES,
+    SUBMISSION_STATES_BINARY,
 } from '../utils.js';
-import {
-    getTagsCSS,
-    getEthicsCommissionFormCSS,
-    getEthicsCommissionFormPrintCSS,
-} from '../styles.js';
+import {getEthicsCommissionFormCSS, getEthicsCommissionFormPrintCSS} from '../styles.js';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -38,19 +34,7 @@ import {
     DbpDateView,
     DbpEnumView,
 } from '@dbp-toolkit/form-elements';
-import {
-    SUBMISSION_STATES,
-    SUBMISSION_STATES_BINARY,
-    SUBMISSION_COLLECTION_PERMISSIONS,
-    SUBMISSION_PERMISSIONS,
-    isDraftStateEnabled,
-    isSubmittedStateEnabled,
-    TAG_PERMISSIONS,
-} from '../utils.js';
-import {
-    gatherFormDataFromElement,
-    validateRequiredFields,
-} from '@dbp-toolkit/form-elements/src/utils.js';
+import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 import html2pdf from 'html2pdf.js';
 
 export default class extends BaseObject {
@@ -76,37 +60,7 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
 
-        this.currentState = null;
-        this.submissionBinaryState = SUBMISSION_STATES_BINARY.NONE;
-
-        this.submitted = false;
-        this.submissionError = false;
         this.scrollTimeout = null;
-        this.hideForm = false;
-
-        this.currentSubmission = {};
-        this.isFormValid = null;
-        // Tags
-        this.selectedTags = {};
-        this.allowedTags = {};
-
-        this.lastModifiedCreatorName = null;
-        this.newSubmissionId = null;
-
-        // Grants
-        this.formGrantedSubmissionCollectionActions = [];
-        this.isAdmin = false;
-        this.submissionGrantedActions = [];
-
-        // Button
-        this.isViewModeButtonAllowed = false;
-        this.isDraftButtonAllowed = false;
-        this.isDeleteSubmissionButtonAllowed = false;
-        this.isSubmitButtonEnabled = false;
-        this.isPrintButtonAllowed = false;
-        this.isDownloadButtonAllowed = false;
-        this.isSaveButtonEnabled = false;
-
         this.needValidationOnLoad = false;
 
         // Attachments
@@ -115,19 +69,12 @@ class FormalizeFormElement extends BaseFormElement {
         this.filesToRemove = new Map();
         this.fileUploadError = false;
         this.fileUploadCounts = {};
-        this.allowedFileUploadCounts = {};
+
         // Voting files
         this.uploadToVoting = false;
         this.votingFile = new Map();
         this.votingFileToSubmit = new Map();
         this.votingFileToRemove = new Map();
-
-        // Responsive layout
-        this.tagIsInline = 'inline';
-        this.mediaQuery = null;
-
-        // Event handlers
-        this.handleResize = this.handleResize.bind(this);
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleFormDeleteSubmission = this.handleFormDeleteSubmission.bind(this);
@@ -167,23 +114,7 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
-            submitted: {type: Boolean, attribute: false},
-            submissionError: {type: Boolean, attribute: false},
-            hideForm: {type: Boolean, attribute: false},
-            isFormValid: {type: Boolean, attribute: false},
-
             resourceActions: {type: Object, attribute: false},
-
-            // Buttons
-            isViewModeButtonAllowed: {type: Boolean, attribute: false},
-            isDeleteSubmissionButtonAllowed: {type: Boolean, attribute: false},
-            isDraftButtonAllowed: {type: Boolean, attribute: false},
-            isSubmitButtonEnabled: {type: Boolean, attribute: false},
-            isPrintButtonAllowed: {type: Boolean, attribute: false},
-            isDownloadButtonAllowed: {type: Boolean, attribute: false},
-
-            conditionalFields: {type: Object, attribute: false},
-            tagIsInline: {type: String, attribute: false},
         };
     }
 
@@ -216,11 +147,13 @@ class FormalizeFormElement extends BaseFormElement {
         // console.log('changedProperties', changedProperties);
 
         if (changedProperties.has('data')) {
+            console.log('[ethics] Data property changed:', this.data);
             if (Object.keys(this.data).length > 0) {
                 await this.processFormData();
             }
             this.setButtonStates();
 
+            // @ts-ignore
             this.updateComplete.then(async () => {
                 await this.processConditionalFields();
                 // If query parameter 'validate' is set to true, validate required fields
@@ -242,28 +175,9 @@ class FormalizeFormElement extends BaseFormElement {
             });
         }
 
-        if (changedProperties.has('formProperties')) {
-            if (Object.keys(this.formProperties).length > 0) {
-                this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
-                this.formGrantedSubmissionCollectionActions =
-                    this.formProperties.grantedSubmissionCollectionActions;
-                this.allowedTags = arrayToObject(this.formProperties.availableTags);
-                this.allowedFileUploadCounts = this.getAllowedFileUploadCount(
-                    this.formProperties.dataFeedSchema,
-                );
-
-                this.isAdmin = this.formGrantedSubmissionCollectionActions.some(
-                    (grant) =>
-                        grant === SUBMISSION_COLLECTION_PERMISSIONS.MANAGE ||
-                        grant === SUBMISSION_COLLECTION_PERMISSIONS.UPDATE,
-                );
-                this.setButtonStates();
-            }
-        }
-
-        if (changedProperties.has('userAllSubmissions')) {
-            this.setButtonStates();
-        }
+        // if (changedProperties.has('userAllSubmissions')) {
+        //     this.setButtonStates();
+        // }
     }
 
     async updated(changedProperties) {
@@ -277,130 +191,6 @@ class FormalizeFormElement extends BaseFormElement {
             // Reset observer so it can re-attach if needed
             this._formHeaderObserved = false;
             this.stickyHeaderObserver();
-        }
-    }
-
-    /**
-     * Reset submission / state related fields end emit dbpFormReset event.
-     */
-    resetForm() {
-        this.currentSubmission = {};
-        this.formData = {};
-        this.data = {};
-
-        this.submittedFiles = new Map();
-        this.votingFile = new Map();
-        this.currentState = null;
-        this.lastModifiedCreatorName = '';
-        this.submissionBinaryState = 0;
-        this.submissionId = '';
-        this.selectedTags = {};
-
-        this.dispatchEvent(
-            new CustomEvent('dbpFormReset', {
-                bubbles: true,
-                composed: true,
-            }),
-        );
-    }
-
-    /**
-     * Sets the button states based on the submission state and user permissions.
-     */
-    setButtonStates() {
-        console.log(
-            `this.formGrantedSubmissionCollectionActions`,
-            this.formGrantedSubmissionCollectionActions,
-        );
-        console.log(`this.submissionGrantedActions`, this.submissionGrantedActions);
-
-        this.isViewModeButtonAllowed = false;
-        this.isDraftButtonAllowed = false;
-        this.isDeleteSubmissionButtonAllowed = false;
-        this.isSubmitButtonEnabled = false;
-        this.isPrintButtonAllowed = false;
-        this.isDownloadButtonAllowed = false;
-        this.isSaveButtonEnabled = false;
-
-        // Dropdown actions
-        this.isUserAllowedToEditSubmission = false;
-        this.isUserAllowedToEditPermission = false;
-        this.isUserAllowedToDeleteSubmission = false;
-        this.isUserAllowedToDownloadPdf = false;
-
-        // No state
-        if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
-            this.isDraftButtonAllowed =
-                isDraftStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedSubmissionCollectionActions?.includes(
-                    SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
-                ) ||
-                    this.formGrantedSubmissionCollectionActions?.includes(
-                        SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
-                    ));
-
-            this.isSubmitButtonEnabled =
-                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedSubmissionCollectionActions?.includes(
-                    SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
-                ) ||
-                    this.formGrantedSubmissionCollectionActions.includes(
-                        SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
-                    ));
-        }
-
-        // DRAFT
-        if (this.currentState === SUBMISSION_STATES.DRAFT) {
-            this.isSubmitButtonEnabled =
-                isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE));
-            if (!this.readOnly) {
-                // edit mode
-                this.isViewModeButtonAllowed = true;
-                this.isDraftButtonAllowed =
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
-            } else {
-                // view mode
-                this.isUserAllowedToDownloadPdf = true;
-
-                this.isUserAllowedToEditSubmission =
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
-                this.isUserAllowedToEditPermission = this.submissionGrantedActions.includes(
-                    SUBMISSION_PERMISSIONS.MANAGE,
-                );
-                this.isUserAllowedToDeleteSubmission =
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
-            }
-        }
-
-        // SUBMITTED
-        if (this.currentState === SUBMISSION_STATES.SUBMITTED) {
-            if (!this.readOnly) {
-                // edit mode
-                this.isViewModeButtonAllowed = true;
-                this.isSaveButtonEnabled =
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
-            } else {
-                // view mode
-                this.isUserAllowedToDownloadPdf = true;
-
-                this.isUserAllowedToEditSubmission =
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.UPDATE);
-
-                this.isUserAllowedToEditPermission = this.submissionGrantedActions.includes(
-                    SUBMISSION_PERMISSIONS.MANAGE,
-                );
-
-                this.isUserAllowedToDeleteSubmission =
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    this.submissionGrantedActions.includes(SUBMISSION_PERMISSIONS.DELETE);
-            }
         }
     }
 
@@ -480,67 +270,33 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Handle conditional fields initialization.
+     * Reset submission / state related fields end emit DbpFormalizeFormReset event.
      */
-    async processConditionalFields() {
-        const conditionalFields = this._a('[data-condition]');
-        const conditionalFieldsCount = conditionalFields.length;
+    resetForm(event) {
+        super.resetForm(event);
 
-        conditionalFields.forEach((field) => {
-            const value = field.value;
-            if (value === undefined || value === '') return;
-
-            const fieldName = field.getAttribute('name');
-            const condition = field.dataset.condition; // || 'yes';
-
-            // Handle negation with ! prefix
-            let isConditionMet;
-            if (condition.startsWith('!')) {
-                const negatedCondition = condition.substring(1);
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(negatedCondition) ? false : true;
-                } else {
-                    isConditionMet = value !== negatedCondition;
-                }
-            } else {
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(condition) ? true : false;
-                } else {
-                    isConditionMet = value === condition;
-                }
-            }
-
-            if (this.conditionalFields[fieldName] !== undefined) {
-                this.conditionalFields = {
-                    ...this.conditionalFields,
-                    [fieldName]: isConditionMet,
-                };
-            }
-        });
-
-        await this.updateComplete;
-
-        // Run again to handle conditional fields inside other conditional fields just rendered
-        const newConditionalFieldsCount = this._a('[data-condition]').length;
-        if (newConditionalFieldsCount > conditionalFieldsCount) {
-            await this.processConditionalFields();
-        }
+        this.submittedFiles = new Map();
+        this.votingFile = new Map();
+        this.selectedTags = {};
     }
 
     static get styles() {
         // language=css
-        return css`
-            @layer theme, utility, formalize, print;
-            @layer theme {
-                ${commonStyles.getGeneralCSS(false)}
-                ${commonStyles.getButtonCSS()}
-                ${commonStyles.getModalDialogCSS()}
-            }
-            @layer formalize {
-                ${getTagsCSS()}
-                ${getEthicsCommissionFormCSS()}
-            }
-        `;
+        return [
+            super.styles,
+            // language=css
+            css`
+                @layer theme, utility, formalize, print;
+                @layer theme {
+                    ${commonStyles.getGeneralCSS(false)}
+                    ${commonStyles.getButtonCSS()}
+                    ${commonStyles.getModalDialogCSS()}
+                }
+                @layer formalize {
+                    ${getEthicsCommissionFormCSS()}
+                }
+            `,
+        ];
     }
 
     /**
@@ -694,11 +450,6 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
-        // Set up matchMedia for responsive layout
-        this.mediaQuery = window.matchMedia('(min-width: 350px)');
-        this.handleResize();
-        this.mediaQuery.addEventListener('change', this.handleResize);
-
         this.updateComplete.then(() => {
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
@@ -708,12 +459,6 @@ class FormalizeFormElement extends BaseFormElement {
 
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
-
-            // Event listener for toggle submission state
-            this.addEventListener(
-                'DbpFormalizeFormToggleSubmissionState',
-                this.handleToggleSubmissionState,
-            );
 
             // Event listener for delete submission
             this.addEventListener(
@@ -726,21 +471,11 @@ class FormalizeFormElement extends BaseFormElement {
             // Event listener for closing select2
             window.addEventListener('click', this.handleSelect2Close);
 
-            // Event listener for form element changes
-            this.addEventListener('change', this.handleChangeEvents);
-
             // Handle field validation on focus out
             this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
                 capture: true,
             });
         });
-    }
-
-    /**
-     * Handle responsive layout based on viewport width
-     */
-    handleResize() {
-        this.tagIsInline = this.mediaQuery?.matches ? 'inline' : '';
     }
 
     /**
@@ -770,14 +505,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.removeEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
 
-        this.removeEventListener(
-            'DbpFormalizeFormToggleSubmissionState',
-            this.handleToggleSubmissionState,
-        );
-
         this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
-
-        this.removeEventListener('change', this.handleChangeEvents);
 
         window.removeEventListener('click', this.handleSelect2Close);
 
@@ -815,47 +543,16 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {CustomEvent} event
      */
     handleChangeEvents(event) {
-        // Action dropdown buttons
+        // First call parent to handle common cases
+        super.handleChangeEvents(event);
+
+        // Handle form-specific actions
         if (event.detail && event.detail.option && event.detail.value) {
             const option = event.detail.option;
             const value = event.detail.value;
 
-            // Toggle readOnly / edit mode
-            if (option.value === 'cancel' && value === 'cancel') {
-                if (this.readOnly) {
-                    this.redirectToEditForm(true);
-                    return;
-                }
-                const confirmed = confirm(this._i18n.t('render-form.form-exit-warning-message'));
-                if (confirmed) {
-                    const form = this.shadowRoot.querySelector('form');
-                    const data = gatherFormDataFromElement(form);
-                    if (Object.keys(data).length) {
-                        this.formData = data;
-                    }
-
-                    this.disableLeavePageWarning();
-                    this.redirectToReadonlyForm();
-                    this.readOnly = !this.readOnly;
-                    return;
-                } else {
-                    // Do nothing if cancel was clicked
-                    return;
-                }
-            }
-
             if (option.value === 'download' && value === 'download') {
                 this.downloadAllFiles();
-                return;
-            }
-
-            if (option.value === 'delete' && value === 'delete') {
-                this.sendDeleteSubmission();
-                return;
-            }
-
-            if (option.value === 'save' && value === 'save') {
-                this.sendSaveSubmission();
                 return;
             }
 
@@ -863,42 +560,6 @@ class FormalizeFormElement extends BaseFormElement {
                 this._('#grant-permission-dialog').open();
                 return;
             }
-        }
-
-        // Form elements
-        if (event.detail && event.detail.fieldName && event.detail.value) {
-            const fieldName = event.detail.fieldName;
-            const value = event.detail.value;
-
-            // Update form data
-            this.formData[fieldName] = value;
-
-            const field = this._(`[name=${fieldName}]`);
-            const condition = field.dataset?.condition;
-            if (!condition) return;
-
-            // Handle negation with ! prefix
-            let isConditionMet;
-            if (condition.startsWith('!')) {
-                const negatedCondition = condition.substring(1);
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(negatedCondition) ? false : true;
-                } else {
-                    isConditionMet = value !== negatedCondition;
-                }
-            } else {
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(condition) ? true : false;
-                } else {
-                    isConditionMet = value === condition;
-                }
-            }
-
-            // Update conditional fields
-            this.conditionalFields = {
-                ...this.conditionalFields,
-                [fieldName]: isConditionMet,
-            };
         }
     }
 
@@ -1045,7 +706,8 @@ class FormalizeFormElement extends BaseFormElement {
                 timeout: 0,
             });
         } finally {
-            this.setButtonStates();
+            // @TODO: We don't need this since we switch to read-only mode after saving draft
+            // this.setButtonStates();
         }
     }
 
@@ -1183,79 +845,6 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Handle submitting draft from read-only view.
-     * @param {object} event - The event object containing the form data.
-     */
-    async handleToggleSubmissionState(event) {
-        const data = event.detail;
-        const submissionId = data.submissionId;
-        const formData = new FormData();
-
-        formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
-
-        const method = 'PATCH';
-        const options = this._buildRequestOptions(formData, method);
-        const url = this._buildSubmissionUrl(submissionId);
-
-        try {
-            const response = await fetch(url, options);
-            let responseBody = await response.json();
-            if (!response.ok) {
-                this.submissionError = true;
-                if (
-                    responseBody['relay:errorId'] ===
-                    'formalize:submission-data-feed-invalid-schema'
-                ) {
-                    this.displayValidationErrors(responseBody);
-                } else {
-                    sendNotification({
-                        summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.form-submission-failed', {
-                            status: response.status,
-                            details: responseBody.detail,
-                        }),
-                        type: 'danger',
-                        timeout: 0,
-                    });
-                }
-            } else {
-                this.currentState = SUBMISSION_STATES.SUBMITTED;
-                this.submitted = true;
-
-                // Hide form after successful submission
-                this.hideForm = true;
-                this.disableLeavePageWarning();
-
-                sendNotification({
-                    summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.form-submitted-successfully'),
-                    type: 'success',
-                    timeout: 5,
-                });
-
-                // formDataUpdated event to notify parent component
-                this.dispatchEvent(
-                    new CustomEvent('dbpFormDataUpdated', {
-                        detail: {
-                            needUpdate: true,
-                        },
-                        bubbles: true,
-                        composed: true,
-                    }),
-                );
-            }
-        } catch (error) {
-            console.error(error);
-            sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.unknown-error-on-form-submission'),
-                type: 'danger',
-                timeout: 0,
-            });
-        }
-    }
-
-    /**
      * Handle deleting submission.
      * @param {object} event - The event object containing the submission id to delete.
      */
@@ -1321,7 +910,7 @@ class FormalizeFormElement extends BaseFormElement {
                 const emptyFormUrl = getFormRenderUrl(this.formUrlSlug, this.lang);
                 window.history.pushState({}, '', emptyFormUrl.toString());
 
-                this.resetForm();
+                this.resetForm(event);
                 this.sendSetPropertyEvent('routing-url', `/${this.formUrlSlug}`);
             }
         }
@@ -1444,56 +1033,6 @@ class FormalizeFormElement extends BaseFormElement {
                 timeout: 0,
             });
         }
-    }
-
-    /**
-     * Loop through errorDetails object keys and format messages
-     * @param {object} responseBody
-     */
-    displayValidationErrors(responseBody) {
-        const errorDetails = responseBody['relay:errorDetails'];
-        let errorDetailsMessages = [];
-        Object.keys(errorDetails).forEach((fieldName) => {
-            const fieldErrors = errorDetails[fieldName];
-            fieldErrors.forEach((errorMessage) => {
-                fieldName = fieldName.replace(/^\//, '');
-                errorDetailsMessages.push(`${fieldName}: ${errorMessage}`);
-            });
-        });
-        sendNotification({
-            summary: this._i18n.t('errors.error-title'),
-            body: this._i18n.t('errors.validation-failed', {
-                details: errorDetailsMessages.join('; '),
-            }),
-            type: 'danger',
-            timeout: 0,
-        });
-    }
-
-    /**
-     * Build request options for the fetch call.
-     * @param {object} formData - The form data to be sent in the request body.
-     * @param {string} method - The HTTP method to use (POST, PATCH, etc.)
-     * @returns {object} The request options object.
-     */
-    _buildRequestOptions(formData, method) {
-        return {
-            method: method,
-            headers: {
-                Authorization: `Bearer ${this.auth.token}`,
-            },
-            body: formData,
-        };
-    }
-
-    /**
-     * Build the submission URL. If submissionId is provided, it will be included to the URL.
-     * @param {string} submissionId
-     * @returns {string} The submission URL.
-     */
-    _buildSubmissionUrl(submissionId = null) {
-        const baseUrl = `${this.entryPointUrl}/formalize/submissions`;
-        return submissionId ? `${baseUrl}/${submissionId}` : `${baseUrl}`;
     }
 
     /**
@@ -1736,61 +1275,6 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * @typedef {object} AttachmentApiFile
-     * @property {string} fileName - name of the file
-     * @property {string} downloadUrl - blob download URL
-     * @property {number} [fileSize] - size of the file
-     * @property {string} fileAttributeName - file attribute name
-     * @property {string} identifier - file identifier uuid
-     * @property {string} mimeType - file MIME type
-     */
-
-    /**
-     * Transforms the API response to a File object.
-     * @param {AttachmentApiFile[]} apiFileResponse
-     * @returns {Promise<Map<string, File>>} A promise that resolves to a map of file identifiers to File objects
-     */
-    async transformApiResponseToFile(apiFileResponse) {
-        if (!apiFileResponse || apiFileResponse.length === 0) {
-            return new Map();
-        }
-
-        const attachedFiles = new Map();
-        try {
-            for (const apiFile of apiFileResponse) {
-                // Fetch the file content from the download URL
-                const options = {
-                    method: 'GET',
-                    headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
-                    },
-                };
-                const response = await fetch(apiFile.downloadUrl, options);
-                if (!response.ok) {
-                    sendNotification({
-                        summary: this._i18n.t('errors.other-title'),
-                        body: this._i18n.t('errors.other-body'),
-                        type: 'danger',
-                        timeout: 0,
-                    });
-                } else {
-                    const fileBlob = await response.blob();
-
-                    // Create a new File object
-                    const attachmentFile = new File([fileBlob], apiFile.fileName, {
-                        type: apiFile.mimeType,
-                    });
-                    attachedFiles.set(apiFile.identifier, attachmentFile);
-                }
-            }
-            return attachedFiles;
-        } catch (error) {
-            console.error('Error transforming API response to File:', error);
-            throw error;
-        }
-    }
-
-    /**
      * Add a 'is-pinned' class to the form header when it's sticky.
      */
     stickyHeaderObserver() {
@@ -1833,22 +1317,6 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
-     * Gets user details from API
-     * @param {string} userIdentifier
-     * @returns {Promise<object>} response
-     */
-    async apiGetUserDetails(userIdentifier) {
-        const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
-            },
-        };
-        return await httpGetAsync(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
-    }
-
-    /**
      * Gets the list of Resource Action Grants
      * @returns {Promise<object>} response
      */
@@ -1865,72 +1333,6 @@ class FormalizeFormElement extends BaseFormElement {
                 `/authorization/resource-action-grants?resourceClass=DbpRelayFormalizeSubmission&resourceIdentifier=${this.submissionId}&page=1&perPage=9999`,
             options,
         );
-    }
-
-    /**
-     * Render submission details
-     * Creation date, last modified, last modified by.
-     * @returns {import('lit').TemplateResult} The HTML template result
-     */
-    renderSubmissionInfo() {
-        const i18n = this._i18n;
-
-        const dateCreated = formatDate(this.currentSubmission.dateCreated);
-        const dateLastModified = formatDate(this.currentSubmission.dateLastModified);
-        const deadLine = formatDate(this.currentSubmission.availabilityEnds);
-
-        return html`
-            <div class="submission-info">
-                ${deadLine
-                    ? html`
-                          <div class="submission-deadline">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submission-deadline-label',
-                                  )}:
-                              </span>
-                              <span class="value">${deadLine}</span>
-                          </div>
-                      `
-                    : ''}
-                ${dateCreated
-                    ? html`
-                          <div class="submission-date">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submission-creation-date-label',
-                                  )}:
-                              </span>
-                              <span class="value">${dateCreated}</span>
-                          </div>
-                      `
-                    : ''}
-                ${dateLastModified
-                    ? html`
-                          <div class="last-modified">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.ethics-commission-form.last-modified-date-label',
-                                  )}:
-                              </span>
-                              <span class="value">${dateLastModified}</span>
-                          </div>
-                      `
-                    : ''}
-                ${this.lastModifiedCreatorName
-                    ? html`
-                          <div class="last-modified-by">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.ethics-commission-form.last-modified-by-name-label',
-                                  )}:
-                              </span>
-                              <span class="value">${this.lastModifiedCreatorName}</span>
-                          </div>
-                      `
-                    : ''}
-            </div>
-        `;
     }
 
     /**
@@ -6063,437 +5465,6 @@ class FormalizeFormElement extends BaseFormElement {
 
             ${this.renderResult(this.submitted)}
         `;
-    }
-
-    /**
-     * Render form tag management in the header.
-     * @returns {import('lit').TemplateResult} - HTML for the tag management section in the header.
-     */
-    renderHeaderTags() {
-        if (Object.keys(this.allowedTags).length === 0) {
-            return html``;
-        }
-
-        if (
-            this.formProperties.tagPermissionsForSubmitters === TAG_PERMISSIONS.NONE &&
-            !this.isAdmin
-        ) {
-            return html``;
-        }
-
-        if (this.readOnly) {
-            if (
-                this.formProperties.tagPermissionsForSubmitters >= TAG_PERMISSIONS.READ ||
-                this.isAdmin
-            ) {
-                return Object.values(this.selectedTags).length > 0
-                    ? html`
-                          <dbp-form-enum-view
-                              subscribe="lang"
-                              name="formTags"
-                              display-mode="tags"
-                              layout-type="inline"
-                              label="Tags:"
-                              .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
-                      `
-                    : html``;
-            }
-            return html``;
-        } else {
-            // Edit mode
-            if (
-                this.isAdmin ||
-                this.formProperties.tagPermissionsForSubmitters >= TAG_PERMISSIONS.READ_ADD
-            ) {
-                return html`
-                    <dbp-form-enum-element
-                        id="form-tags"
-                        name="formTags"
-                        subscribe="lang"
-                        label="Tags:"
-                        @change="${(event) => {
-                            if (this.allowedTags && Object.keys(this.allowedTags).length > 0) {
-                                this.setCurrentTags(event);
-                            }
-                        }}"
-                        display-mode="tags"
-                        layout-type="${this.tagIsInline}"
-                        multiple
-                        .tagPlaceholder=${{en: 'Select tags', de: 'Wähle Tags'}}
-                        .value=${Object.values(this.selectedTags)}
-                        .items=${this.allowedTags}></dbp-form-enum-element>
-                `;
-            } else {
-                if (
-                    this.formProperties.tagPermissionsForSubmitters >= TAG_PERMISSIONS.READ &&
-                    Object.values(this.selectedTags).length > 0
-                ) {
-                    return html`
-                        <dbp-form-enum-view
-                            subscribe="lang"
-                            name="formTags"
-                            display-mode="tags"
-                            layout-type="inline"
-                            label="Tags:"
-                            .value=${Object.values(this.selectedTags)}></dbp-form-enum-view>
-                    `;
-                }
-                return html``;
-            }
-        }
-    }
-
-    /**
-     * Render status tags for the form.
-     * @returns {import('lit').TemplateResult} - HTML for the status tags.
-     */
-    renderStatusTags() {
-        const stateTag = this.currentState;
-        const tagTranslations = {
-            draft: this._i18n.t('render-form.forms.ethics-commission-form.draft-state-tag-label'),
-            submitted: this._i18n.t(
-                'render-form.forms.ethics-commission-form.submitted-state-tag-label',
-            ),
-        };
-        const modeTag = !this.readOnly
-            ? this._i18n.t('render-form.forms.ethics-commission-form.edit-mode-tag-label')
-            : '';
-
-        return html`
-            <div class="tag-container">
-                ${stateTag
-                    ? html`
-                          <span class="tag tag--state">${tagTranslations[stateTag]}</span>
-                      `
-                    : ''}
-                ${modeTag
-                    ? html`
-                          <span class="tag tag--mode">${modeTag}</span>
-                      `
-                    : ''}
-            </div>
-        `;
-    }
-
-    renderFormValidityIndicator() {
-        if (this.isFormValid) {
-            return html`
-                <div class="form-validity-indicator valid">
-                    <!-- <span class="validity-indicator valid"></span> -->
-                    <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                    <span class="validity-text">
-                        ${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.form-validity-valid-text',
-                        )}
-                    </span>
-                    <dbp-button-tooltip
-                        text-content="${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.form-validity-valid-tooltip',
-                        )}"
-                        button-text=" "
-                        icon-name="question-circle"></dbp-button-tooltip>
-                </div>
-            `;
-        } else {
-            return html`
-                <div class="form-validity-indicator invalid">
-                    <!-- <span class="validity-indicator invalid"></span> -->
-                    <dbp-icon name="cross-circle" aria-hidden="true"></dbp-icon>
-                    <span class="validity-text">
-                        ${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.form-validity-invalid-text',
-                        )}
-                    </span>
-                    <dbp-button-tooltip
-                        text-content="${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.form-validity-invalid-tooltip',
-                        )}"
-                        button-text=" "
-                        icon-name="question-circle"></dbp-button-tooltip>
-                </div>
-            `;
-        }
-    }
-
-    /**
-     * Set the current selected tags from the event.
-     * @param {CustomEvent} event - The change event containing selected tags.
-     */
-    setCurrentTags(event) {
-        if (Object.keys(this.allowedTags).length === 0) return;
-
-        let selectedTags = {};
-        const selectedTagsFromEvent = event.detail.value;
-
-        if (selectedTagsFromEvent.length > 0) {
-            for (const tagName of selectedTagsFromEvent) {
-                selectedTags[tagName] = tagName;
-            }
-        }
-        this.selectedTags = selectedTags;
-    }
-
-    /**
-     * Get allowed file upload counts from the data feed schema.
-     * @param {string} dataFeedSchema
-     * @returns {object} - An object mapping file types to their allowed upload counts.
-     */
-    getAllowedFileUploadCount(dataFeedSchema) {
-        if (!dataFeedSchema) return {};
-
-        let formSchemaFields = {};
-        let allowedFileUploadCount = {};
-        try {
-            formSchemaFields = JSON.parse(dataFeedSchema);
-            for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
-                allowedFileUploadCount[type] = fileField.maxNumber;
-            }
-            return allowedFileUploadCount;
-        } catch (e) {
-            console.log('Failed parsing json data', e);
-            return {};
-        }
-    }
-
-    /**
-     * Render the buttons needed for the form.
-     * @returns {import('lit').TemplateResult} HTML for the button row.
-     */
-    getButtonRowHtml() {
-        const i18n = this._i18n;
-
-        this.formActions = [];
-
-        if (this.isUserAllowedToEditSubmission) {
-            this.formActions.push({
-                value: 'cancel',
-                label: this.readOnly
-                    ? i18n.t('render-form.forms.ethics-commission-form.edit-mode')
-                    : i18n.t('render-form.forms.ethics-commission-form.view-mode'),
-                iconName: this.readOnly ? 'pencil' : 'close',
-            });
-        }
-        if (this.isUserAllowedToEditPermission) {
-            this.formActions.push({
-                value: 'edit-permissions',
-                label: i18n.t(
-                    'render-form.forms.ethics-commission-form.edit-permission-button-text',
-                ),
-                iconName: 'edit-permission',
-            });
-        }
-
-        if (this.isUserAllowedToDownloadPdf) {
-            this.formActions.push({
-                value: 'download',
-                label: i18n.t('render-form.forms.ethics-commission-form.download-button-text'),
-                iconName: 'download',
-            });
-        }
-
-        if (this.isUserAllowedToDeleteSubmission) {
-            this.formActions.push({
-                value: 'delete',
-                label:
-                    this.currentState === SUBMISSION_STATES.SUBMITTED
-                        ? i18n.t(
-                              'render-form.forms.ethics-commission-form.delete-submission-button-text-label',
-                          )
-                        : i18n.t(
-                              'render-form.forms.ethics-commission-form.discard-draft-button-text-label',
-                          ),
-                iconName: 'trash',
-            });
-        }
-
-        return html`
-            <div class="header-top">
-                <div class="submission-info-wrapper">${this.renderSubmissionInfo()}</div>
-                <div class="tag-management">${this.renderHeaderTags()}</div>
-            </div>
-            <div class="buttons-wrapper">
-                <div class="status-tags-wrapper">
-                    ${this.renderStatusTags()}
-                    ${this.readOnly ? '' : this.renderFormValidityIndicator()}
-                </div>
-
-                <div class="action-buttons">
-                    ${this.formActions.length > 0
-                        ? html`
-                              <dbp-select
-                                  id="action-dropdown"
-                                  label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.actions-dropdown-label',
-                                  )}"
-                                  .options="${this.formActions}"></dbp-select>
-                          `
-                        : ''}
-                    ${this.isViewModeButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  id="toggle-edit-mode"
-                                  class="toggle-edit-mode"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.toggle-edit-submission-button-title',
-                                  )}"
-                                  @click="${() => {
-                                      if (this.readOnly) {
-                                          this.redirectToEditForm(true);
-                                          return;
-                                      }
-
-                                      const confirmed = confirm(
-                                          this._i18n.t('render-form.form-exit-warning-message'),
-                                      );
-                                      if (confirmed) {
-                                          const form = this.shadowRoot.querySelector('form');
-                                          const data = gatherFormDataFromElement(form);
-                                          if (Object.keys(data).length) {
-                                              this.formData = data;
-                                          }
-
-                                          this.disableLeavePageWarning();
-                                          this.redirectToReadonlyForm();
-                                          this.readOnly = !this.readOnly;
-                                          return;
-                                      } else {
-                                          // Do nothing if cancel was clicked
-                                          return;
-                                      }
-                                  }}">
-                                  ${this.readOnly
-                                      ? html`
-                                            <dbp-icon name="pencil"></dbp-icon>
-                                            <span class="button-label">
-                                                ${i18n.t(
-                                                    'render-form.forms.ethics-commission-form.edit-mode',
-                                                )}
-                                            </span>
-                                        `
-                                      : html`
-                                            <dbp-icon name="close"></dbp-icon>
-                                            <span class="button-label">
-                                                ${i18n.t(
-                                                    'render-form.forms.ethics-commission-form.view-mode',
-                                                )}
-                                            </span>
-                                        `}
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isDraftButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-save-draft-button"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  @click=${this.sendSaveDraft}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-draft-button-text',
-                                  )}">
-                                  <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.save-draft-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isSaveButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-save-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${this.sendSaveSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.save-button-text',
-                                  )}">
-                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.save-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isSubmitButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-submit-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${(event) => {
-                                      this.readOnly
-                                          ? this.toggleSubmissionState(event)
-                                          : this.validateAndSendSubmission(event);
-                                  }}
-                                  title="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submit-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.ethics-commission-form.submit-button-text',
-                                  )}">
-                                  <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.submit-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Redirects to the readonly form by appending '/readonly' to the current URL.
-     */
-    redirectToReadonlyForm() {
-        const currentUrl = window.location.href;
-        const url = new URL(currentUrl);
-        const pathname = url.pathname.replace(/\/+$/, '');
-        url.pathname = !pathname.match(/\/readonly$/) ? pathname + '/readonly' : pathname;
-
-        url.searchParams.delete('validate');
-
-        window.history.pushState({}, '', url);
-        // Redirect to the new URL
-        window.location.href = url.toString();
-    }
-
-    /**
-     * Redirects to the edit form by removing '/readonly' from the current URL.
-     */
-    redirectToEditForm(requireValidation = false) {
-        const currentUrl = window.location.href;
-        const url = new URL(currentUrl);
-        if (url.pathname.endsWith('/readonly')) {
-            // Remove '/readonly' from the pathname
-            const readOnlyPath = url.pathname.replace(/\/readonly$/, '');
-            url.pathname = readOnlyPath;
-
-            if (requireValidation) {
-                // Append 'validate=true' query parameter
-                url.searchParams.set('validate', 'true');
-            }
-
-            window.history.pushState({}, '', url);
-            // Redirect to the new URL
-            window.location.href = url.toString();
-        }
     }
 
     /**

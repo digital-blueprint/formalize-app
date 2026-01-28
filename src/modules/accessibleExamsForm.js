@@ -1,5 +1,6 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
+import {classMap} from 'lit-html/directives/class-map.js';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -34,8 +35,6 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.submitted = false;
-        this.submissionError = false;
         this.beginTimeRef = createRef();
         this.examinerTextRef = createRef();
         this.examinerTextDisabled = false;
@@ -44,7 +43,6 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
-            submitted: {type: Boolean},
             submissionError: {type: Boolean},
             examinerTextDisabled: {type: Boolean},
         };
@@ -411,6 +409,30 @@ class FormalizeFormElement extends BaseFormElement {
         return evaluationData.examinerText === '' && evaluationData.examiner === ''
             ? [this._i18n.t('render-form.forms.accessible-exams-form.examiner-validation-error')]
             : [];
+    }
+
+    /**
+     * Render the buttons needed for the form.
+     * @returns {import('lit').TemplateResult} HTML for the button row.
+     */
+    getButtonRowHtml() {
+        const i18n = this._i18n;
+        return html`
+            <div class="button-row">
+                <button class="button is-secondary" type="button" @click=${this.resetForm} hidden>
+                    ${i18n.t('render-form.button-row.reset')}
+                </button>
+                <button
+                    class="button is-primary"
+                    type="submit"
+                    ?disabled=${!this.saveButtonEnabled}
+                    @click=${(event) => this.validateAndSendSubmission(event)}>
+                    ${i18n.t('render-form.button-row.submit')}
+                    <dbp-mini-spinner
+                        class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
+                </button>
+            </div>
+        `;
     }
 
     renderResult(submitted) {

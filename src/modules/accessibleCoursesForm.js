@@ -4,6 +4,7 @@ import {DbpStringElement} from '@dbp-toolkit/form-elements';
 import {CourseSelect} from './course-select.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 
+
 export default class extends BaseObject {
     getUrlSlug() {
         // URL-Slug für barrierefreie Kurse
@@ -23,14 +24,12 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.submitted = false;
         this.submissionError = false;
     }
 
     static get properties() {
         return {
             ...super.properties,
-            submitted: {type: Boolean},
             submissionError: {type: Boolean},
         };
     }
@@ -284,6 +283,30 @@ class FormalizeFormElement extends BaseFormElement {
             </form>
 
             ${this.renderResult(this.submitted)} ${this.renderErrorMessage(this.submissionError)}
+        `;
+    }
+
+    /**
+     * Render the buttons needed for the form.
+     * @returns {import('lit').TemplateResult} HTML for the button row.
+     */
+    getButtonRowHtml() {
+        const i18n = this._i18n;
+        return html`
+            <div class="button-row">
+                <button class="button is-secondary" type="button" @click=${this.resetForm} hidden>
+                    ${i18n.t('render-form.button-row.reset')}
+                </button>
+                <button
+                    class="button is-primary"
+                    type="submit"
+                    ?disabled=${!this.saveButtonEnabled}
+                    @click=${(event) => this.validateAndSendSubmission(event)}>
+                    ${i18n.t('render-form.button-row.submit')}
+                    <dbp-mini-spinner
+                        class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
+                </button>
+            </div>
         `;
     }
 
