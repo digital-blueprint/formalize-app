@@ -1,9 +1,9 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
+import {classMap} from 'lit-html/directives/class-map.js';
 import {DbpStringElement} from '@dbp-toolkit/form-elements';
 import {CourseSelect} from './course-select.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
-
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -24,7 +24,6 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
-        this.submissionError = false;
     }
 
     static get properties() {
@@ -82,9 +81,18 @@ class FormalizeFormElement extends BaseFormElement {
                     } else {
                         this.wasSubmissionSuccessful = true;
                         this.submissionError = false;
-                        this._('#title').style.display = 'none';
-                        this._('#description').style.display = 'none';
+                        this._('.title').style.display = 'none';
+                        this._('.description').style.display = 'none';
                         this._('#accessible-courses-form').style.display = 'none';
+
+                        // Notify parent component to refresh submission data
+                        window.dispatchEvent(
+                            new CustomEvent('dbpFormDataUpdated', {
+                                detail: {needUpdate: true},
+                                bubbles: true,
+                                composed: true,
+                            }),
+                        );
                     }
 
                     this.submitted = this.wasSubmissionSuccessful;
