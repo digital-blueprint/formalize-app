@@ -858,6 +858,56 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
+     * Evaluates whether a condition is met for a given value.
+     * @param {string|string[]} value - The field value to check
+     * @param {string} condition - The condition string from data-condition attribute
+     * @returns {boolean} Whether the condition is met
+     */
+    evaluateCondition(value, condition) {
+        // Try to parse condition as JSON array
+        let conditionArray = null;
+        if (condition.startsWith('[') && condition.endsWith(']')) {
+            try {
+                conditionArray = JSON.parse(condition);
+            } catch (e) {
+                console.warn('Failed to parse condition as JSON array:', e);
+                // If parsing fails, treat as string
+                conditionArray = null;
+            }
+        }
+
+        let isConditionMet;
+
+        // Handle array conditions
+        if (conditionArray !== null && Array.isArray(conditionArray)) {
+            if (Array.isArray(value)) {
+                // Check if any value item is in condition array
+                isConditionMet = value.some((v) => conditionArray.includes(v));
+            } else {
+                // Check if value is in condition array
+                isConditionMet = conditionArray.includes(value);
+            }
+        }
+        // Handle negation with ! prefix
+        else if (condition.startsWith('!')) {
+            const negatedCondition = condition.substring(1);
+            if (Array.isArray(value)) {
+                isConditionMet = value.includes(negatedCondition) ? false : true;
+            } else {
+                isConditionMet = value !== negatedCondition;
+            }
+        } else {
+            if (Array.isArray(value)) {
+                isConditionMet = value.includes(condition) ? true : false;
+            } else {
+                isConditionMet = value === condition;
+            }
+        }
+
+        return isConditionMet;
+    }
+
+    /**
      * Update formData if field value changes
      * @param {CustomEvent} event
      */
@@ -917,22 +967,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             const condition = field.dataset?.condition;
             if (!condition) return;
 
-            // Handle negation with ! prefix
-            let isConditionMet;
-            if (condition.startsWith('!')) {
-                const negatedCondition = condition.substring(1);
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(negatedCondition) ? false : true;
-                } else {
-                    isConditionMet = value !== negatedCondition;
-                }
-            } else {
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(condition) ? true : false;
-                } else {
-                    isConditionMet = value === condition;
-                }
-            }
+            const isConditionMet = this.evaluateCondition(value, condition);
 
             // Update conditional fields
             this.conditionalFields = {
@@ -954,24 +989,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             if (value === undefined || value === '') return;
 
             const fieldName = field.getAttribute('name');
-            const condition = field.dataset.condition; // || 'yes';
+            const condition = field.dataset.condition;
 
-            // Handle negation with ! prefix
-            let isConditionMet;
-            if (condition.startsWith('!')) {
-                const negatedCondition = condition.substring(1);
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(negatedCondition) ? false : true;
-                } else {
-                    isConditionMet = value !== negatedCondition;
-                }
-            } else {
-                if (Array.isArray(value)) {
-                    isConditionMet = value.includes(condition) ? true : false;
-                } else {
-                    isConditionMet = value === condition;
-                }
-            }
+            const isConditionMet = this.evaluateCondition(value, condition);
 
             if (this.conditionalFields[fieldName] !== undefined) {
                 this.conditionalFields = {
