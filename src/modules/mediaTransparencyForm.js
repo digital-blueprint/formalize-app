@@ -224,9 +224,6 @@ class FormalizeFormElement extends BaseFormElement {
                 if (attachmentType === 'attachments') {
                     this.submittedFiles = await this.transformApiResponseToFile(files);
                 }
-                if (attachmentType === 'voting') {
-                    this.votingFile = await this.transformApiResponseToFile(files);
-                }
             }
 
             switch (Number(this.submissionBinaryState)) {
@@ -307,6 +304,20 @@ class FormalizeFormElement extends BaseFormElement {
 
         const formData = new FormData();
 
+        // Set files to upload as attachments
+        if (this.filesToSubmit.size > 0) {
+            this.filesToSubmit.forEach((fileToAttach) => {
+                formData.append('attachments[]', fileToAttach, fileToAttach.name);
+            });
+        }
+
+        // Set files to remove from attachments
+        if (this.filesToRemove.size > 0) {
+            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+            });
+        }
+
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
@@ -314,6 +325,10 @@ class FormalizeFormElement extends BaseFormElement {
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
         const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
+
+        const filesToSubmitBackup = this.filesToSubmit;
+        const filesToRemoveBackup = this.filesToRemove;
+        const submittedFilesBackup = this.submittedFiles;
 
         try {
             const response = await fetch(url, options);
@@ -338,10 +353,17 @@ class FormalizeFormElement extends BaseFormElement {
                 }
             } else {
                 this.submissionError = false;
+                this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.submitted = true;
+
+                // Remove files added to the request
+                this.filesToSubmit = new Map();
+                this.filesToRemove = new Map();
 
                 // Hide form after successful submission
                 this.hideForm = true;
+                this.disableLeavePageWarning();
+
                 sendNotification({
                     summary: this._i18n.t('success.success-title'),
                     body: this._i18n.t('success.form-submitted-successfully'),
@@ -362,6 +384,12 @@ class FormalizeFormElement extends BaseFormElement {
             }
         } catch (error) {
             console.error(error);
+            // Restore files if something went wrong
+            this.filesToSubmit = filesToSubmitBackup;
+            this.filesToRemove = filesToRemoveBackup;
+            // Put back files that we did not delete?
+            this.submittedFiles = submittedFilesBackup;
+
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
                 body: this._i18n.t('errors.unknown-error-on-form-submission'),
@@ -481,6 +509,36 @@ class FormalizeFormElement extends BaseFormElement {
                 timeout: 0,
             });
         }
+    }
+
+    /**
+     * Update formData if field value changes
+     * @param {CustomEvent} event
+     */
+    handleChangeEvents(event) {
+        // First call parent to handle common cases
+        super.handleChangeEvents(event);
+
+        // Handle form-specific actions
+        if (event.detail && event.detail.option && event.detail.value) {
+            const option = event.detail.option;
+            const value = event.detail.value;
+
+            if (option.value === 'download' && value === 'download') {
+                this.downloadAllFiles();
+                return;
+            }
+        }
+    }
+
+    /**
+     * Download all attachments and pdf version of the form as a zip file.
+     * @param {object} event
+     */
+    async downloadAllFiles(event) {
+        const attachmentFiles = Array.from(this.submittedFiles.values());
+
+        this._('#file-sink').files = [...attachmentFiles];
     }
 
     /**
@@ -963,7 +1021,7 @@ class FormalizeFormElement extends BaseFormElement {
                 lang="${this.lang}"
                 allowed-mime-types="application/pdf,image/jpeg,image/png,image/gif,video/mp4,video/mpeg,
                     video/webm,audio/mpeg,audio/ogg,audio/flac,audio/mp4"
-                max-file-size="20000"
+                max-file-size="100000"
                 enabled-targets="local,clipboard,nextcloud"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
 
@@ -971,10 +1029,9 @@ class FormalizeFormElement extends BaseFormElement {
                 id="file-sink"
                 class="file-sink"
                 lang="${this.lang}"
-                allowed-mime-types="application/pdf,.pdf"
                 decompress-zip
                 enabled-targets="local,clipboard,nextcloud"
-                filename="ethics-commission-form-${this.formData?.id || ''}-attachments.zip"
+                filename="media-transparency-form-${this.formData?.id || ''}-attachments.zip"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
             ${this.renderResult(this.submitted)}
@@ -1320,11 +1377,9 @@ class FormalizeFormElement extends BaseFormElement {
         let results = [];
 
         // Select files based on group
-        const submittedFiles = fileGroup === 'attachments' ? this.submittedFiles : this.votingFile;
-        const filesToSubmit =
-            fileGroup === 'attachments' ? this.filesToSubmit : this.votingFileToSubmit;
-        const filesToRemove =
-            fileGroup === 'attachments' ? this.filesToRemove : this.votingFileToRemove;
+        const submittedFiles = fileGroup === 'attachments' ? this.submittedFiles : '';
+        const filesToSubmit = fileGroup === 'attachments' ? this.filesToSubmit : '';
+        const filesToRemove = fileGroup === 'attachments' ? this.filesToRemove : '';
 
         if (submittedFiles.size > 0) {
             const submittedFilesHtml = html`
