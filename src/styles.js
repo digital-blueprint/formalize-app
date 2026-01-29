@@ -1618,7 +1618,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .field-note {
-            font-size: smaller;
+            font-size: 0.8em;
             font-style: italic;
             margin: -0.5em 0 2em;
             line-height: var(--dbp-form-line-height);

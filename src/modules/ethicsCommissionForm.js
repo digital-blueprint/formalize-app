@@ -1727,7 +1727,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
                                     <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
                                     <li><p>Hinweis auf die Richtlinie für Hinweisgeber und den elektronischen Briefkasten für anonyme Hinweise an der TU Graz (Whistleblowing)</p></li>
-                                    <li><p>Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing), <a href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a></p></li>
+                                    <li><p>Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a></p></li>
                                     <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
                                 </ol>
                             </div>
@@ -1757,7 +1757,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
                                     <li><p>Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips (Whistleblowing)</p></li>
-                                    <li><p>Electronic Mailbox for Anonymous Tips (Whistleblowing), <a href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a>.</p></li>
+                                    <li><p>Electronic Mailbox for Anonymous Tips (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a>.</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                     </ol>
                             </div>
@@ -3221,6 +3221,7 @@ class FormalizeFormElement extends BaseFormElement {
                     name="type"
                     label="${i18n.t('render-form.forms.ethics-commission-form.type-label')}"
                     display-mode="list"
+                    multiple
                     .items=${{
                         study: i18n.t('render-form.forms.ethics-commission-form.study'),
                         publication: i18n.t('render-form.forms.ethics-commission-form.publication'),
@@ -3678,7 +3679,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
                                     <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
                                     <li><p>Hinweis auf die Richtlinie für Hinweisgeber und den elektronischen Briefkasten für anonyme Hinweise an der TU Graz (Whistleblowing)</p></li>
-                                    <li><p>Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing), <a href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a></p></li>
+                                    <li><p>Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a></p></li>
                                     <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
                                 </ol>
                             </div>
@@ -3708,7 +3709,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
                                     <li><p>Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips (Whistleblowing)</p></li>
-                                    <li><p>Electronic Mailbox for Anonymous Tips (Whistleblowing), <a href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a>.</p></li>
+                                    <li><p>Electronic Mailbox for Anonymous Tips (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a>.</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
                             </div>
