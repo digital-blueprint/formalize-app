@@ -154,7 +154,12 @@ class FormalizeFormElement extends BaseFormElement {
             this.requestUpdate();
             return;
         }
-        const lecturerIds = course.localData?.lecturers || [];
+
+        const lecturerIds = Array.isArray(course.localData?.lecturers)
+            ? course.localData?.lecturers.map((lecturer) =>
+                  typeof lecturer === 'string' ? lecturer : lecturer.personIdentifier,
+              )
+            : [];
 
         const lecturers = [];
         const lecturerNames = [];
