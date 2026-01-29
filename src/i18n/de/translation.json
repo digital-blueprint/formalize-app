@@ -344,6 +344,7 @@
                 "field-sujet-file-name-label": "Sujet-Speichername",
                 "field-sujet-notes-label": "Notizen - Sujetlink",
                 "field-to-label": "bis",
+                "media-name-validation-error": "Sie müssen einen Mediennamen auswählen.",
                 "please-select-media": "Bitte wählen Sie einen Mediennamen aus.",
                 "sub-categories-app": "App",
                 "sub-categories-audio": "Audio",

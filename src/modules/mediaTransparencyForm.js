@@ -751,17 +751,24 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     display-mode="dropdown"
                     .items=${{
-                        notSelected: i18n.t(
-                            'render-form.forms.media-transparency-form.please-select-media',
-                        ),
+                        '': i18n.t('render-form.forms.media-transparency-form.please-select-media'),
                         facebook: 'Facebook',
                         instagram: 'Instagram',
                         linkedin: 'LinkedIn',
                         other: 'Other',
                     }}
+                    .customValidator=${(value) => {
+                        return value === 'Bitte wählen Sie einen Mediennamen aus.' ||
+                            value === 'Please select a media name.'
+                            ? [
+                                  i18n.t(
+                                      'render-form.forms.media-transparency-form.media-name-validation-error',
+                                  ),
+                              ]
+                            : [];
+                    }}
                     @change=${(e) => {
                         const selectedValue = e.currentTarget.value;
-                        console.log(`selectedValue`, selectedValue);
                         switch (selectedValue) {
                             case 'facebook':
                                 data.mediumOwnersName = 'Meta Platforms Ireland Limited';
@@ -1080,9 +1087,6 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.media-transparency-form.categories-television',
                         ),
                     }}
-                    @change=${(e) => {
-                        this.setSubcategoryItems(e);
-                    }}
                     .value=${data.category || ''}
                     required></dbp-form-enum-view>
 
@@ -1114,33 +1118,11 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     display-mode="dropdown"
                     .items=${{
-                        notSelected: i18n.t(
-                            'render-form.forms.media-transparency-form.please-select-media',
-                        ),
+                        '': i18n.t('render-form.forms.media-transparency-form.please-select-media'),
                         facebook: 'Facebook',
                         instagram: 'Instagram',
                         linkedin: 'LinkedIn',
                         other: 'Other',
-                    }}
-                    @change=${(e) => {
-                        const selectedValue = e.currentTarget.value;
-                        console.log(`selectedValue`, selectedValue);
-                        switch (selectedValue) {
-                            case 'facebook':
-                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
-                                break;
-                            case 'instagram':
-                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
-                                break;
-                            case 'linkedin':
-                                data.mediumOwnersName = 'LinkedIn Ireland Unlimited Company';
-                                break;
-                            case 'other':
-                                data.mediumOwnersName = '';
-                                this.otherMediumNameEnabled = true;
-                                break;
-                        }
-                        this.requestUpdate();
                     }}
                     .value=${data.mediaName || ''}
                     required></dbp-form-enum-view>
@@ -1181,14 +1163,6 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-amount-in-euro-label',
                     )}"
-                    .customValidator=${(value) => {
-                        const re = /^\d+(?:,\d{1,2})?$/;
-                        return re.test(value)
-                            ? null
-                            : i18n.t(
-                                  'render-form.forms.media-transparency-form.validation-amount-in-euro-label',
-                              );
-                    }}
                     .value=${data.amountInEuro || ''}
                     required></dbp-form-string-view>
 
