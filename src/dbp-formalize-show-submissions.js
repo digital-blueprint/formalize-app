@@ -1039,7 +1039,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // activeForm.formSlug && hasReadonlyView(activeForm);
                 if (
                     activeForm.formName === 'Ethikantrag' ||
-                    activeForm.formName === 'Ethics Proposal'
+                    activeForm.formName === 'Ethics Proposal' ||
+                    activeForm.formName === 'Media Transparency Form'
                 ) {
                     const submissionDetailsFormButton = this.submissionTables[
                         state
