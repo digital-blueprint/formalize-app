@@ -335,6 +335,7 @@
                 "field-sujet-file-name-label": "Sujet-Speichername",
                 "field-sujet-notes-label": "Notizen - Sujetlink",
                 "field-to-label": "bis",
+                "invalid-attachment-filename-error": "[de] Invalid filename. The filename needs to match the pattern: MT_yyyy_Sujet_xxxxxxx.ext",
                 "media-name-validation-error": "Sie müssen einen Mediennamen auswählen.",
                 "please-select-media": "Bitte wählen Sie einen Mediennamen aus.",
                 "sub-categories-app": "App",

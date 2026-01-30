@@ -335,6 +335,7 @@
                 "field-sujet-file-name-label": "Sujet file name",
                 "field-sujet-notes-label": "Sujet notes",
                 "field-to-label": "to",
+                "invalid-attachment-filename-error": "Invalid filename. The filename needs to match the pattern: MT_yyyy_Sujet_xxxxxxx.ext",
                 "media-name-validation-error": "You need to select a media name",
                 "please-select-media": "Please select a media name",
                 "sub-categories-app": "App",

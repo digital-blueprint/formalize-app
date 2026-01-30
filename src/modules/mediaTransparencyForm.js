@@ -1345,8 +1345,32 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {CustomEvent} event - The event object containing the file data.
      */
     handleFilesToSubmit(event) {
-        this.filesToSubmit.set(event.detail.file.name, event.detail.file);
-        this.requestUpdate();
+        const isValid = this.validateAttachmentFileName(event.detail.file);
+        if (isValid) {
+            this.filesToSubmit.set(event.detail.file.name, event.detail.file);
+            this.requestUpdate();
+        }
+    }
+
+    validateAttachmentFileName(file, maxUpload) {
+        const i18n = this._i18n;
+        const fileNamePattern = /^MT_\d{4}_Sujets_[a-zA-Z_-]+\d?\.[a-z]+$/;
+
+        if (!fileNamePattern.test(file.name)) {
+            sendNotification({
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t(
+                    'render-form.forms.media-transparency-form.invalid-attachment-filename-error',
+                    {
+                        filename: file.name,
+                    },
+                ),
+                type: 'danger',
+                timeout: 0,
+            });
+            return false;
+        }
+        return true;
     }
 
     /**
