@@ -20,6 +20,7 @@ import {
     DbpEnumElement,
     DbpStringView,
     DbpDateView,
+    DbpEnumView,
 } from '@dbp-toolkit/form-elements';
 import {
     getFormRenderUrl,
@@ -94,6 +95,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-enum-element': DbpEnumElement,
             'dbp-form-string-view': DbpStringView,
             'dbp-form-date-view': DbpDateView,
+            'dbp-form-enum-view': DbpEnumView,
             'dbp-button': Button,
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
