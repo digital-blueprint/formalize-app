@@ -1036,6 +1036,7 @@ class FormalizeFormElement extends BaseFormElement {
                 allowed-mime-types="application/pdf,image/jpeg,image/png,image/gif,video/mp4,video/mpeg,
                     video/webm,audio/mpeg,audio/ogg,audio/flac,audio/mp4"
                 max-file-size="100000"
+                number-of-files="1"
                 enabled-targets="local,clipboard,nextcloud"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
 
