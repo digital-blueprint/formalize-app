@@ -530,6 +530,37 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
+    handleFieldsOfExpertiseItems(event) {
+        const selectedValues = event.detail.value || [];
+        const NONE_KEY = 'keinem';
+
+        // Get the enum element
+        const enumElement = this._('dbp-form-enum-element[name="fieldsOfExpertise"]');
+        if (!enumElement) return;
+
+        // Check if "None" was just selected
+        const hasNone = selectedValues.includes(NONE_KEY);
+
+        if (hasNone) {
+            // If "None" is selected, disable all other options and clear other selections
+            const otherKeys = Object.keys(enumElement.items).filter((key) => key !== NONE_KEY);
+            enumElement.disabledItems = otherKeys;
+
+            // If there are other values selected besides "None", remove them
+            if (selectedValues.length > 1) {
+                enumElement.value = [NONE_KEY];
+            }
+        } else {
+            // If "None" is not selected, only disable "None" if there are other selections
+            if (selectedValues.length > 0) {
+                enumElement.disabledItems = [NONE_KEY];
+            } else {
+                // No selections, enable everything
+                enumElement.disabledItems = [];
+            }
+        }
+    }
+
     /**
      * Update formData if field value changes
      * @param {CustomEvent} event
@@ -3313,6 +3344,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ),
                             keinem: i18n.t('render-form.forms.ethics-commission-form.keinem'),
                         }}
+                        @change=${(e) => this.handleFieldsOfExpertiseItems(e)}
                         .value=${data.fieldsOfExpertise || ''}>
                     </dbp-form-enum-element>
 
