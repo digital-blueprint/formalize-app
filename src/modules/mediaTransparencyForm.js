@@ -57,7 +57,6 @@ class FormalizeFormElement extends BaseFormElement {
         // Advertisement category related
         this.advertisementSubcategoryItems = {};
         this.selectedCategory = null;
-        this.mediaNameSelected = false;
         this.otherMediumNameEnabled = false;
 
         // Attachments
@@ -70,6 +69,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Conditional fields
         this.conditionalFields = {
             category: false,
+            mediaName: false,
         };
 
         // Event handlers
@@ -749,6 +749,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-enum-element
                     subscribe="lang"
                     name="mediaName"
+                    data-condition='["facebook", "instagram", "linkedin"]'
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-media-name-label',
                     )}"
@@ -773,7 +774,6 @@ class FormalizeFormElement extends BaseFormElement {
                     @change=${(e) => {
                         const selectedValue = e.currentTarget.value;
                         this.otherMediumNameEnabled = false;
-                        this.mediaNameSelected = true;
 
                         switch (selectedValue) {
                             case 'facebook':
@@ -795,48 +795,7 @@ class FormalizeFormElement extends BaseFormElement {
                     .value=${data.mediaName || ''}
                     required></dbp-form-enum-element>
 
-                <!-- <dbp-translated subscribe="lang">
-                    <div slot="de">
-                        <p class="field-note">
-                            Bitte zuerst schauen, ob das Medium in der 2024_TU Graz Medienliste
-                            (siehe eigenes Tabellenblatt) vorkommt und sich genau an die
-                            Schreibweise und die Kombination Medium/Medieninhaber zu halten. Finden
-                            Sie den Namen des Mediums nicht in der Liste, wählen Sie in dieser
-                            Spalte "Sonstiges" aus und tragen den neuen Namen bei „Name anderes
-                            Medium“ ein.
-                        </p>
-                    </div>
-                    <div slot="en">
-                        <p class="field-note">
-                            First, please check whether the medium appears in 2024_TU Graz
-                            Medienliste (see separate spreadsheet) and adhere strictly to the
-                            spelling and combination of medium/media owner. If you cannot find the
-                            name of the medium in the list, select ‘Sonstiges’ in this column and
-                            enter the new name under ‘Other medium's name’.
-                        </p>
-                    </div>
-                </dbp-translated> -->
-
-                ${this.mediaNameSelected && this.otherMediumNameEnabled
-                    ? html`
-                          <dbp-form-string-element
-                              subscribe="lang"
-                              name="otherMediumName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-name-label',
-                              )}"
-                              .value=${data.otherMediumName || ''}></dbp-form-string-element>
-
-                          <dbp-form-string-element
-                              subscribe="lang"
-                              name="otherMediumOwnersName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
-                              )}"
-                              .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
-                      `
-                    : ''}
-                ${this.mediaNameSelected && this.otherMediumNameEnabled === false
+                ${this.conditionalFields.mediaName
                     ? html`
                           <dbp-form-string-element
                               subscribe="lang"
@@ -869,7 +828,23 @@ class FormalizeFormElement extends BaseFormElement {
                               </div>
                           </dbp-translated>
                       `
-                    : ''}
+                    : html`
+                          <dbp-form-string-element
+                              subscribe="lang"
+                              name="otherMediumName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                              )}"
+                              .value=${data.otherMediumName || ''}></dbp-form-string-element>
+
+                          <dbp-form-string-element
+                              subscribe="lang"
+                              name="otherMediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                              )}"
+                              .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
+                      `}
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -1078,6 +1053,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-enum-view
                     subscribe="lang"
                     name="category"
+                    data-condition='["online", "outOfHome"]'
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-category-label',
                     )}"
@@ -1095,11 +1071,9 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.media-transparency-form.categories-television',
                         ),
                     }}
-                    .value=${data.category || ''}
-                    required></dbp-form-enum-view>
+                    .value=${data.category || ''}></dbp-form-enum-view>
 
-                ${this.advertisementSubcategoryItems &&
-                Object.keys(this.advertisementSubcategoryItems).length > 0
+                ${this.conditionalFields.category
                     ? html`
                           <dbp-form-enum-view
                               class="${classMap({
@@ -1113,8 +1087,7 @@ class FormalizeFormElement extends BaseFormElement {
                               )}"
                               display-mode="list"
                               .items=${this.advertisementSubcategoryItems}
-                              .value=${data.advertisementSubcategory || ''}
-                              required></dbp-form-enum-view>
+                              .value=${data.advertisementSubcategory || ''}></dbp-form-enum-view>
                       `
                     : ''}
 
@@ -1132,11 +1105,20 @@ class FormalizeFormElement extends BaseFormElement {
                         linkedin: 'LinkedIn',
                         other: 'Other',
                     }}
-                    .value=${data.mediaName || ''}
-                    required></dbp-form-enum-view>
+                    .value=${data.mediaName || ''}></dbp-form-enum-view>
 
-                ${this.otherMediumNameEnabled
+                ${this.conditionalFields.mediaName
                     ? html`
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="mediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                              )}"
+                              disabled
+                              .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
+                      `
+                    : html`
                           <dbp-form-string-view
                               subscribe="lang"
                               name="otherMediumName"
@@ -1151,18 +1133,7 @@ class FormalizeFormElement extends BaseFormElement {
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                               )}"
-                              .value=${data.otherMediumOwnersName || ''}
-                              required></dbp-form-string-view>
-                      `
-                    : html`
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="mediumOwnersName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-media-owners-name-label',
-                              )}"
-                              disabled
-                              .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
+                              .value=${data.otherMediumOwnersName || ''}></dbp-form-string-view>
                       `}
 
                 <dbp-form-string-view
@@ -1171,8 +1142,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-amount-in-euro-label',
                     )}"
-                    .value=${data.amountInEuro || ''}
-                    required></dbp-form-string-view>
+                    .value=${data.amountInEuro || ''}></dbp-form-string-view>
 
                 <dbp-form-string-view
                     subscribe="lang"
@@ -1180,8 +1150,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-campaign-title-label',
                     )}"
-                    .value=${data.campaignTitle || ''}
-                    required></dbp-form-string-view>
+                    .value=${data.campaignTitle || ''}></dbp-form-string-view>
 
                 <!-- Sujet file name -->
                 <dbp-form-string-view
@@ -1191,8 +1160,7 @@ class FormalizeFormElement extends BaseFormElement {
                         'render-form.forms.media-transparency-form.field-sujet-file-name-label',
                     )}"
                     .value=${data.sujetFileName || 'MT_2025_Sujets_Bezeichnungslogik-all.pdf '}
-                    disabled
-                    required></dbp-form-string-view>
+                    disabled></dbp-form-string-view>
 
                 ${this.selectedCategory === 'online'
                     ? html`
