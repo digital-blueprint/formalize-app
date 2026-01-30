@@ -342,12 +342,10 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="attachment-header">
                         <dbp-icon name="upload"></dbp-icon>
                         <h5>
-                            ${i18n.t(
-                                'render-form.forms.ethics-commission-form.attachment-upload-file-text',
-                            )}
+                            ${i18n.t('render-form.download-widget.attachment-upload-file-text')}
                             <span class="attachment-warning">
                                 ${i18n.t(
-                                    'render-form.forms.ethics-commission-form.attachment-upload-warning-text',
+                                    'render-form.download-widget.attachment-upload-warning-text',
                                 )}
                             </span>
                         </h5>
@@ -366,12 +364,10 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="attachment-header">
                         <dbp-icon name="trash"></dbp-icon>
                         <h5>
-                            ${i18n.t(
-                                'render-form.forms.ethics-commission-form.attachment-remove-file-text',
-                            )}
+                            ${i18n.t('render-form.download-widget.attachment-remove-file-text')}
                             <span class="attachment-warning">
                                 ${i18n.t(
-                                    'render-form.forms.ethics-commission-form.attachment-upload-warning-text',
+                                    'render-form.download-widget.attachment-upload-warning-text',
                                 )}
                             </span>
                         </h5>
@@ -415,7 +411,7 @@ class FormalizeFormElement extends BaseFormElement {
                             this._('dbp-pdf-viewer').showPDF(file);
                         }}>
                         <dbp-icon name="eye"></dbp-icon>
-                        ${this._i18n.t('render-form.forms.ethics-commission-form.view-attachment')}
+                        ${this._i18n.t('render-form.download-widget.view-attachment')}
                     </button>
                     <button
                         class="download-file-button button is-secondary"
@@ -424,9 +420,7 @@ class FormalizeFormElement extends BaseFormElement {
                             this._('#file-sink').files = [file];
                         }}>
                         <dbp-icon name="download"></dbp-icon>
-                        ${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.download-attachment',
-                        )}
+                        ${this._i18n.t('render-form.download-widget.download-attachment')}
                     </button>
                     <button
                         class="delete-file-button button is-secondary"
@@ -438,9 +432,7 @@ class FormalizeFormElement extends BaseFormElement {
                             this.deleteAttachment(identifier, fileGroup);
                         }}>
                         <dbp-icon name="trash"></dbp-icon>
-                        ${this._i18n.t(
-                            'render-form.forms.ethics-commission-form.delete-attachment',
-                        )}
+                        ${this._i18n.t('render-form.download-widget.delete-attachment')}
                     </button>
                 </div>
             </div>
@@ -3104,7 +3096,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <div class="file-upload-container">
 
-                        <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
+                        <h4 class="attachments-title">${i18n.t('render-form.download-widget.attachments-title')}</h4>
 
                         <div class="uploaded-files">
                             ${this.renderAttachedFilesHtml('attachments')}
@@ -3115,7 +3107,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <div class="file-upload-container">
 
-                        <h4 class="attachments-title">${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}</h4>
+                        <h4 class="attachments-title">${i18n.t('render-form.download-widget.attachments-title')}</h4>
 
                         <div class="uploaded-files">
                             ${this.renderAttachedFilesHtml('voting')}
@@ -5336,10 +5328,11 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="file-upload-container">
                         <div class="file-upload-title-container">
                             <h4 class="attachments-title">
-                                ${i18n.t('render-form.forms.ethics-commission-form.attachments-title')}
+                                ${i18n.t('render-form.download-widget.attachments-title')}
                             </h4>
                             <span class="file-upload-limit-warning">
-                                ${i18n.t('render-form.forms.ethics-commission-form.file-upload-limit-warning', {count: this.allowedFileUploadCounts?.attachments})}
+                                ${i18n.t('render-form.download-widget.file-upload-count-limit-warning', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}
+                                ${i18n.t('render-form.download-widget.file-upload-size-limit-warning', {size: this.fileUploadLimits?.fileSizeLimit?.attachments})}
                             </span>
                         </div>
 
@@ -5349,13 +5342,13 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <button
                             class="button is-secondary upload-button upload-button--attachment"
-                            .disabled=${this.fileUploadCounts['attachments'] >= this.allowedFileUploadCounts?.attachments}
+                            .disabled=${this.fileUploadCounts['attachments'] >= this.fileUploadLimits?.allowedFileUploadCount?.attachments}
                             @click="${(event) => {
                                 this.uploadToVoting = false;
                                 this.openFilePicker(event);
                             }}">
                             <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
-                            ${i18n.t('render-form.forms.ethics-commission-form.upload-file-button-label', {count: this.allowedFileUploadCounts?.attachments})}
+                            ${i18n.t('render-form.download-widget.upload-file-button-label', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}
                         </button>
                     </div>
 
@@ -5364,7 +5357,7 @@ class FormalizeFormElement extends BaseFormElement {
                             ? html`
                                   <h3 class="section-title">
                                       ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.admin-voting-file-upload',
+                                          'render-form.download-widget.admin-voting-file-upload',
                                       )}
                                   </h3>
                                   <div class="description">
@@ -5393,8 +5386,11 @@ class FormalizeFormElement extends BaseFormElement {
                                           </h4>
                                           <span class="file-upload-limit-warning">
                                               ${i18n.t(
-                                                  'render-form.forms.ethics-commission-form.file-upload-limit-warning',
-                                                  {count: this.allowedFileUploadCounts?.voting},
+                                                  'render-form.download-widget.file-upload-count-limit-warning',
+                                                  {
+                                                      count: this.fileUploadLimits
+                                                          ?.allowedFileUploadCount?.voting,
+                                                  },
                                               )}
                                           </span>
                                       </div>
@@ -5406,15 +5402,18 @@ class FormalizeFormElement extends BaseFormElement {
                                       <button
                                           class="button is-secondary upload-button upload-button--voting"
                                           .disabled=${this.fileUploadCounts['voting'] >=
-                                          this.allowedFileUploadCounts?.voting}
+                                          this.fileUploadLimits?.allowedFileUploadCount?.voting}
                                           @click="${(event) => {
                                               this.uploadToVoting = true;
                                               this.openFilePicker(event);
                                           }}">
                                           <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
                                           ${i18n.t(
-                                              'render-form.forms.ethics-commission-form.upload-file-button-label',
-                                              {count: this.allowedFileUploadCounts?.voting},
+                                              'render-form.download-widget.upload-file-button-label',
+                                              {
+                                                  count: this.fileUploadLimits
+                                                      ?.allowedFileUploadCount?.voting,
+                                              },
                                           )}
                                       </button>
                                   </div>

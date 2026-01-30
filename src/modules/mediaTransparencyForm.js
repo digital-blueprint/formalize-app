@@ -969,18 +969,16 @@ class FormalizeFormElement extends BaseFormElement {
                         <h4 class="attachments-title">
                             ${i18n.t('render-form.forms.media-transparency-form.attachments-title')}
                         </h4>
-                        ${this.allowedFileUploadCounts?.attachments > 0
-                            ? html`
-                                  <span class="file-upload-limit-warning">
-                                      ${i18n.t(
-                                          'render-form.download-widget.file-upload-limit-warning',
-                                          {
-                                              count: this.allowedFileUploadCounts?.attachments,
-                                          },
-                                      )}
-                                  </span>
-                              `
-                            : ''}
+
+                        <span class="file-upload-limit-warning">
+                            ${i18n.t(
+                                'render-form.download-widget.file-upload-count-limit-warning',
+                                {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments},
+                            )}
+                            ${i18n.t('render-form.download-widget.file-upload-size-limit-warning', {
+                                size: this.fileUploadLimits?.fileSizeLimit?.attachments,
+                            })}
+                        </span>
 
                         <dbp-translated subscribe="lang">
                             <div slot="de">
@@ -1005,15 +1003,15 @@ class FormalizeFormElement extends BaseFormElement {
                     <button
                         class="button is-secondary upload-button upload-button--attachment"
                         .disabled=${this.fileUploadCounts['attachments'] >=
-                        this.allowedFileUploadCounts?.attachments}
+                        this.fileUploadLimits?.allowedFileUploadCount?.attachments}
                         @click="${(event) => {
                             this.uploadToVoting = false;
                             this.openFilePicker(event);
                         }}">
                         <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
-                        ${!isNaN(this.allowedFileUploadCounts?.attachments)
+                        ${!isNaN(this.fileUploadLimits?.allowedFileUploadCount?.attachments)
                             ? i18n.t('render-form.download-widget.upload-file-button-label', {
-                                  count: this.allowedFileUploadCounts?.attachments,
+                                  count: this.fileUploadLimits?.allowedFileUploadCount?.attachments,
                               })
                             : i18n.t(
                                   'render-form.download-widget.upload-file-button-label-no-limit',

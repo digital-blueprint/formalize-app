@@ -62,6 +62,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.isAdmin = false;
         this.isFormValid = null;
         this.hideForm = false;
+        /** @type {'draft' | 'submitted' | null} */
         this.currentState = null;
         this.allowedSubmissionStates = 4;
         this.allowedActionsWhenSubmitted = [];
@@ -69,7 +70,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.maxNumberOfSubmissionsPerUser = 10;
         this.lastModifiedCreatorName = null;
         this.lastModifiedCreatorId = null;
-        this.allowedFileUploadCounts = {};
+        this.fileUploadLimits = {};
         this.conditionalFields = {};
 
         // Tags
@@ -1121,10 +1122,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 this.formGrantedSubmissionCollectionActions =
                     this.formProperties.grantedSubmissionCollectionActions;
                 this.allowedTags = arrayToObject(this.formProperties.availableTags);
-                this.allowedFileUploadCounts = this.getAllowedFileUploadCount(
+                this.fileUploadLimits = this.getFileUploadLimits(
                     this.formProperties?.dataFeedSchema,
                 );
-
                 this.isAdmin = this.formGrantedSubmissionCollectionActions.some(
                     (grant) =>
                         grant === SUBMISSION_COLLECTION_PERMISSIONS.MANAGE ||
@@ -1303,8 +1303,37 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             if (formSchemaFields.files === undefined) return {};
             for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
                 allowedFileUploadCount[type] = fileField.maxNumber;
+                fileField.maxSizeMb;
             }
             return allowedFileUploadCount;
+        } catch (e) {
+            console.log('Failed parsing json data', e);
+            return {};
+        }
+    }
+
+    /**
+     * Get allowed file upload counts from the data feed schema.
+     * @param {string} dataFeedSchema
+     * @returns {object} - An object mapping file types to their limits.
+     */
+    getFileUploadLimits(dataFeedSchema) {
+        if (!dataFeedSchema) return {};
+
+        let formSchemaFields = {};
+        let fileUploadLimits = {
+            allowedFileUploadCount: {},
+            fileSizeLimit: {},
+        };
+
+        try {
+            formSchemaFields = JSON.parse(dataFeedSchema);
+            if (formSchemaFields.files === undefined) return {};
+            for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
+                fileUploadLimits.allowedFileUploadCount[type] = fileField.maxNumber;
+                fileUploadLimits.fileSizeLimit[type] = fileField.maxSizeMb;
+            }
+            return fileUploadLimits;
         } catch (e) {
             console.log('Failed parsing json data', e);
             return {};
