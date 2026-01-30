@@ -56,6 +56,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Advertisement category related
         this.advertisementSubcategoryItems = {};
         this.selectedCategory = null;
+        this.mediaNameSelected = false;
         this.otherMediumNameEnabled = false;
 
         // Attachments
@@ -769,6 +770,9 @@ class FormalizeFormElement extends BaseFormElement {
                     }}
                     @change=${(e) => {
                         const selectedValue = e.currentTarget.value;
+                        this.otherMediumNameEnabled = false;
+                        this.mediaNameSelected = true;
+
                         switch (selectedValue) {
                             case 'facebook':
                                 data.mediumOwnersName = 'Meta Platforms Ireland Limited';
@@ -789,7 +793,7 @@ class FormalizeFormElement extends BaseFormElement {
                     .value=${data.mediaName || ''}
                     required></dbp-form-enum-element>
 
-                <dbp-translated subscribe="lang">
+                <!-- <dbp-translated subscribe="lang">
                     <div slot="de">
                         <p class="field-note">
                             Bitte zuerst schauen, ob das Medium in der 2024_TU Graz Medienliste
@@ -809,9 +813,9 @@ class FormalizeFormElement extends BaseFormElement {
                             enter the new name under ‘Other medium's name’.
                         </p>
                     </div>
-                </dbp-translated>
+                </dbp-translated> -->
 
-                ${this.otherMediumNameEnabled
+                ${this.mediaNameSelected && this.otherMediumNameEnabled
                     ? html`
                           <dbp-form-string-element
                               subscribe="lang"
@@ -829,7 +833,9 @@ class FormalizeFormElement extends BaseFormElement {
                               )}"
                               .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
                       `
-                    : html`
+                    : ''}
+                ${this.mediaNameSelected && this.otherMediumNameEnabled === false
+                    ? html`
                           <dbp-form-string-element
                               subscribe="lang"
                               name="mediumOwnersName"
@@ -860,7 +866,8 @@ class FormalizeFormElement extends BaseFormElement {
                                   </p>
                               </div>
                           </dbp-translated>
-                      `}
+                      `
+                    : ''}
 
                 <dbp-form-string-element
                     subscribe="lang"
