@@ -191,7 +191,7 @@ class FormalizeFormElement extends BaseFormElement {
         return html`
             <h2>Demo Form</h2>
 
-            <form>
+            <form class="formalize-form">
                 <div class="form-header">${this.getButtonRowHtml()}</div>
 
                 <div class="test-buttons">

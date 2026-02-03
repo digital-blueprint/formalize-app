@@ -676,6 +676,7 @@ class FormalizeFormElement extends BaseFormElement {
                 aria-labelledby="form-title"
                 class="${classMap({
                     hidden: this.hideForm,
+                    'formalize-form': true,
                     'media-transparency-form': true,
                     'readonly-mode': this.readOnly,
                     'edit-mode': !this.readOnly,
@@ -1033,6 +1034,7 @@ class FormalizeFormElement extends BaseFormElement {
                 aria-labelledby="form-title"
                 class="${classMap({
                     hidden: this.hideForm,
+                    'formalize-form': true,
                     'media-transparency-form': true,
                     'readonly-mode': this.readOnly,
                     'edit-mode': !this.readOnly,

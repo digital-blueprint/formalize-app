@@ -1407,17 +1407,22 @@ export function getFormHeaderCSS() {
     `;
 }
 
-export function getEthicsCommissionFormCSS() {
+export function getGeneralFormCSS() {
     // language=css
     return css`
-        #ethics-commission-form {
+        .formalize-form {
             position: relative;
             min-width: 270px;
 
             container-type: inline-size;
             container-name: form;
         }
+    `;
+}
 
+export function getEthicsCommissionFormCSS() {
+    // language=css
+    return css`
         .notification {
             margin-bottom: 2em;
         }

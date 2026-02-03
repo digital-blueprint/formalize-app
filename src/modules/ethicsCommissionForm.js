@@ -1325,7 +1325,12 @@ class FormalizeFormElement extends BaseFormElement {
             <form
                 id="ethics-commission-form"
                 aria-labelledby="form-title"
-                class=${classMap({hidden: this.hideForm, 'readonly-mode': this.readOnly, 'edit-mode': !this.readOnly})}>
+                class=${classMap({
+                    hidden: this.hideForm,
+                    'readonly-mode': this.readOnly,
+                    'edit-mode': !this.readOnly,
+                    'formalize-form': true,
+                })}>
 
                 <div class="form-header">
                     ${this.getButtonRowHtml()}
@@ -3168,6 +3173,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             <form id="ethics-commission-form" aria-labelledby="form-title" class="${classMap({
                 hidden: this.hideForm,
+                'formalize-form': true,
                 'readonly-mode': this.readOnly,
                 'edit-mode': !this.readOnly,
             })}">

@@ -236,7 +236,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <br />
                 ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}
             </p>
-            <form id="accessible-exams-form">
+            <form id="accessible-exams-form" class="formalize-form">
                 <fieldset>
                     <legend>${i18n.t('render-form.forms.accessible-exams-form.exam-data')}</legend>
                     <dbp-course-select-element
