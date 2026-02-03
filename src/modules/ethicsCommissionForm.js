@@ -1297,36 +1297,6 @@ class FormalizeFormElement extends BaseFormElement {
         this._('#file-sink').files = [pdfFile, ...attachmentFiles, ...votingFiles];
     }
 
-    /**
-     * Add a 'is-pinned' class to the form header when it's sticky.
-     */
-    stickyHeaderObserver() {
-        // Only attach observer if .form-header exists and not already observed
-        if (!this._formHeaderObserved) {
-            const formHeader = this._('.form-header');
-            if (formHeader) {
-                const options = {
-                    rootMargin: '0px',
-                    scrollMargin: '0px',
-                    threshold: 0.45,
-                };
-
-                const callback = (entries, observer) => {
-                    entries.forEach((entry) => {
-                        // console.log(`___ entry.intersectionRatio`, entry.intersectionRatio);
-                        // console.log(`entry.isIntersecting`, entry.isIntersecting);
-                        entry.target.classList.toggle('is-pinned', entry.intersectionRatio < 0.45);
-                    });
-                };
-
-                const observer = new IntersectionObserver(callback, options);
-                observer.observe(formHeader);
-                this._formHeaderObserved = true;
-                this._formHeaderObserver = observer;
-            }
-        }
-    }
-
     render() {
         return html`
             ${this.readOnly

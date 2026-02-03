@@ -98,6 +98,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.isDeleteSubmissionButtonAllowed = false;
         this.isSubmitButtonEnabled = false;
         this.isPrintButtonAllowed = false;
+
+        // Form header observer
+        this._formHeaderObserved = false;
+        this._formHeaderObserver = null;
+
         this.isDownloadButtonAllowed = false;
         this.isSaveButtonEnabled = false;
 
@@ -1404,6 +1409,34 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     _buildSubmissionUrl(submissionId = null) {
         const baseUrl = `${this.entryPointUrl}/formalize/submissions`;
         return submissionId ? `${baseUrl}/${submissionId}` : `${baseUrl}`;
+    }
+
+    /**
+     * Add a 'is-pinned' class to the form header when it's sticky.
+     */
+    stickyHeaderObserver() {
+        // Only attach observer if .form-header exists and not already observed
+        if (!this._formHeaderObserved) {
+            const formHeader = this._('.form-header');
+            if (formHeader) {
+                const options = {
+                    rootMargin: '0px',
+                    scrollMargin: '0px',
+                    threshold: 0.45,
+                };
+
+                const callback = (entries, observer) => {
+                    entries.forEach((entry) => {
+                        entry.target.classList.toggle('is-pinned', entry.intersectionRatio < 0.45);
+                    });
+                };
+
+                const observer = new IntersectionObserver(callback, options);
+                observer.observe(formHeader);
+                this._formHeaderObserved = true;
+                this._formHeaderObserver = observer;
+            }
+        }
     }
 
     render() {

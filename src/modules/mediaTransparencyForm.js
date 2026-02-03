@@ -176,6 +176,9 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (changedProperties.has('data')) {
             console.log('Data changed:', this.data);
+            // Reset observer so it can re-attach if needed
+            this._formHeaderObserved = false;
+            this.stickyHeaderObserver();
         }
     }
 
