@@ -3,14 +3,7 @@ import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {getMediaTransparencyFormCSS} from '../styles.js';
-import {
-    Button,
-    Icon,
-    IconButton,
-    DBPSelect,
-    Translated,
-    sendNotification,
-} from '@dbp-toolkit/common';
+import {Translated, sendNotification} from '@dbp-toolkit/common';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {
@@ -89,6 +82,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     static get scopedElements() {
         return {
+            ...super.scopedElements,
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-boolean-element': DbpBooleanElement,
@@ -96,10 +90,6 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-string-view': DbpStringView,
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
-            'dbp-button': Button,
-            'dbp-icon': Icon,
-            'dbp-icon-button': IconButton,
-            'dbp-select': DBPSelect,
             'dbp-translated': Translated,
             'dbp-modal': Modal,
             'dbp-file-source': FileSource,

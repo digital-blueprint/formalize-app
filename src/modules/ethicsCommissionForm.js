@@ -2,17 +2,9 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit-html/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import {
-    Button,
-    Icon,
-    IconButton,
-    Translated,
-    DBPSelect,
-    sendNotification,
-} from '@dbp-toolkit/common';
+import {Translated, sendNotification} from '@dbp-toolkit/common';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
-import {ButtonTooltip} from '@dbp-toolkit/tooltip';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {
@@ -120,6 +112,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     static get scopedElements() {
         return {
+            ...super.scopedElements,
             'dbp-translated': Translated,
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
@@ -133,11 +126,6 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-pdf-viewer': PdfViewer,
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
-            'dbp-button': Button,
-            'dbp-icon': Icon,
-            'dbp-icon-button': IconButton,
-            'dbp-select': DBPSelect,
-            'dbp-button-tooltip': ButtonTooltip,
         };
     }
 
