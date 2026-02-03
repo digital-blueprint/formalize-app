@@ -2445,14 +2445,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 <dbp-icon
                                     class="modal-title-icon"
                                     aria-label="hidden"
-                                    title="${i18n.t('filter-settings.filter-configuration')}"
+                                    title="${i18n.t('show-submissions.table-configuration')}"
                                     name="cog"></dbp-icon>
                                 <h2 id="submission-modal-title">
                                     ${i18n.t('show-submissions.header-settings')}
                                 </h2>
                             </div>
                         </header>
-                        <p class="modal-header-tag"><span class="tag tag--state">${state}</span></p>
+                        <div>
+                            <p class="modal-header-tag">
+                                <span class="tag tag--state">${state}</span>
+                            </p>
+                        </div>
                         <main
                             class="modal-content submission-modal-content"
                             id="submission-modal-content-${state}">
@@ -2538,7 +2542,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     </button>
                                     <button
                                         title="${i18n.t('show-submissions.all-filters-show')}"
-                                        class="check-btn button button--show-all is-secondary item-2"
+                                        class="check-btn button button--show-all is-secondary item-3"
                                         @click="${() => {
                                             this.toggleAllColumns(state, 'show');
                                         }}">

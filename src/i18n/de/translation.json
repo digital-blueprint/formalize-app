@@ -28,6 +28,7 @@
         "validation-failed": "Die Validierung der Daten ist fehlgeschlagen. Sie müssen Ihre Eingabe vor dem Absenden bearbeiten. {{details}}",
         "warning-title": "Achtung"
     },
+
     "loading-message": "Lädt...",
     "render-form": {
         "button-row": {
@@ -431,7 +432,8 @@
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
         "submission-table-draft-title": "Entwurf",
-        "submission-table-submitted-title": "Eingereicht"
+        "submission-table-submitted-title": "Eingereicht",
+        "table-configuration": "Tabellenkonfiguration"
     },
     "success": {
         "form-saved-successfully": "Formularübermittlung erfolgreich gespeichert",

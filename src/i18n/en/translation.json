@@ -28,6 +28,7 @@
         "validation-failed": "Validation of the data failed. You need to edit your submission before submitting.\n {{details}}",
         "warning-title": "Warning"
     },
+
     "loading-message": "Loading...",
     "render-form": {
         "button-row": {
@@ -431,7 +432,8 @@
         "something-went-wrong-body": "We're sorry, something went wrong.",
         "something-went-wrong-title": "Error!",
         "submission-table-draft-title": "Drafts",
-        "submission-table-submitted-title": "Submitted"
+        "submission-table-submitted-title": "Submitted",
+        "table-configuration": "Table configuration"
     },
     "success": {
         "form-saved-successfully": "Form submission saved successfully",
