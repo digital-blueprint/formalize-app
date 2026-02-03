@@ -1516,7 +1516,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (this.submissionsColumns[state].length !== 0) {
             for (let current_column of this.submissionsColumns[state]) {
-                if (current_column.field && current_column.field !== 'htmlButtons') {
+                if (
+                    current_column.field &&
+                    current_column.field !== 'htmlButtons' &&
+                    current_column.field !== 'rowIndex'
+                ) {
                     const labelText = current_column.title
                         ? xss(current_column.title)
                         : xss(current_column.field);
