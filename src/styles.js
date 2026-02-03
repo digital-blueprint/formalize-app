@@ -135,9 +135,10 @@ export function getFileHandlingCss() {
             overflow: hidden;
         }
 
-        #filter-modal-box p {
+        .modal-header-tag {
             margin-bottom: 10px;
         }
+
         .modal-content .source-main {
             height: 100%;
             width: 100%;
@@ -943,20 +944,20 @@ export function getShowSubmissionCSS() {
             min-height: unset;
         }
 
-        #filter-modal-box .modal-footer-btn {
+        .modal-footer-btn {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        #filter-modal-box .modal-footer-btn > :first-child {
+        .modal-footer-btn > :first-child {
             display: grid;
             padding-top: 10px;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
         }
 
-        #filter-modal-box .modal-footer-btn > :last-child {
+        .modal-footer-btn > :last-child {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
@@ -1173,7 +1174,7 @@ export function getShowSubmissionCSS() {
                 padding-left: 30px;
             }
 
-            #filter-modal-box .modal-footer-btn > :first-child {
+            .modal-footer-btn > :first-child {
                 grid-template-columns: repeat(2, 1fr);
             }
             .item-1 {

@@ -2452,8 +2452,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 </h2>
                             </div>
                         </header>
-                        <div>
-                            <p class="modal-header-tag">
+                        <div class="modal-header-tag">
+                            <p>
                                 <span class="tag tag--state">${state}</span>
                             </p>
                         </div>
