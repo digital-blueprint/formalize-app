@@ -1280,7 +1280,41 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const attachmentFields = this._getAttachmentFields(formSchemaFields);
         const systemFields = this._getSystemFields(initialColumnDefinitions);
 
-        const schemaColumnDefinitions = [...schemaFields, ...attachmentFields, ...systemFields];
+        // Ensure rowIndex is included (it has a formatter so can't be stored in localStorage)
+        const rowIndexDef = initialColumnDefinitions.find((def) => def.field === 'rowIndex');
+        const defaultRowIndexDef = {
+            title: 'ID',
+            field: 'rowIndex',
+            formatter: function (cell) {
+                const row = cell.getRow();
+                const table = row.getTable();
+                const page = table.getPage();
+                const pageSize = table.getPageSize();
+                const position = row.getPosition(true);
+                return (page - 1) * pageSize + position;
+            },
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            headerSort: false,
+            frozen: true,
+            width: 30,
+        };
+
+        // Separate htmlButtons to place it last
+        const htmlButtonsDef = systemFields.find((def) => def.field === 'htmlButtons');
+        const otherSystemFields = systemFields.filter((def) => def.field !== 'htmlButtons');
+
+        // Build columns: rowIndex first, schema/attachments/system, htmlButtons last
+        const schemaColumnDefinitions = [
+            rowIndexDef || defaultRowIndexDef,
+            ...schemaFields,
+            ...attachmentFields,
+            ...otherSystemFields,
+        ];
+
+        if (htmlButtonsDef) {
+            schemaColumnDefinitions.push(htmlButtonsDef);
+        }
 
         this.submissionsColumnsInitial[state] =
             this.cloneColumnDefinitions(schemaColumnDefinitions);
