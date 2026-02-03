@@ -482,12 +482,6 @@ class FormalizeFormElement extends BaseFormElement {
     disconnectedCallback() {
         super.disconnectedCallback();
 
-        // Clean up matchMedia listener
-        if (this.mediaQuery) {
-            this.mediaQuery.removeEventListener('change', this.handleResize);
-            this.mediaQuery = null;
-        }
-
         this.removeEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
         this.removeEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
         this.removeEventListener(
@@ -500,12 +494,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
         window.removeEventListener('click', this.handleSelect2Close);
-
-        if (this._formHeaderObserver) {
-            this._formHeaderObserver.disconnect();
-            this._formHeaderObserver = null;
-        }
-        this._formHeaderObserved = false;
     }
 
     /**

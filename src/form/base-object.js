@@ -147,6 +147,19 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     disconnectedCallback() {
         super.disconnectedCallback();
 
+        // Clean up matchMedia listener
+        if (this.mediaQuery) {
+            this.mediaQuery.removeEventListener('change', this.handleResize);
+            this.mediaQuery = null;
+        }
+
+        // Clean up form header observer
+        if (this._formHeaderObserver) {
+            this._formHeaderObserver.disconnect();
+            this._formHeaderObserver = null;
+        }
+        this._formHeaderObserved = false;
+
         // Remove event listener for form element changes
         this.removeEventListener('change', this.handleChangeEvents);
         // Remove event listener for toggle submission state
