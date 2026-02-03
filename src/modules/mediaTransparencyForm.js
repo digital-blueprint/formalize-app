@@ -983,7 +983,6 @@ class FormalizeFormElement extends BaseFormElement {
                         .disabled=${this.fileUploadCounts['attachments'] >=
                         this.fileUploadLimits?.allowedFileUploadCount?.attachments}
                         @click="${(event) => {
-                            this.uploadToVoting = false;
                             this.openFilePicker(event);
                         }}">
                         <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
