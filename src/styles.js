@@ -1794,6 +1794,7 @@ export function getFileUploadWidgetCSS() {
         .file-upload-title-container {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 1em;
         }
 
