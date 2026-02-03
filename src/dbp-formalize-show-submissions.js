@@ -2296,6 +2296,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     white-space: nowrap;
                     width: 1px;
                 }
+            }
         `;
     }
 
@@ -2440,11 +2441,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 @click="${() => {
                                     this.closeColumnOptionsModal(state);
                                 }}"></dbp-icon-button>
-                            <p id="submission-modal-title">
-                                ${i18n.t('show-submissions.header-settings')}
-                                <span class="tag tag--state">${state}</span>
-                            </p>
+                            <div class="modal-title">
+                                <dbp-icon
+                                    class="modal-title-icon"
+                                    aria-label="hidden"
+                                    title="${i18n.t('filter-settings.filter-configuration')}"
+                                    name="cog"></dbp-icon>
+                                <h2 id="submission-modal-title">
+                                    ${i18n.t('show-submissions.header-settings')}
+                                </h2>
+                            </div>
                         </header>
+                        <p class="modal-header-tag"><span class="tag tag--state">${state}</span></p>
                         <main
                             class="modal-content submission-modal-content"
                             id="submission-modal-content-${state}">
@@ -2506,51 +2514,62 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             <div class="modal-footer-btn">
                                 <div>
                                     <button
+                                        title="${i18n.t('show-submissions.reset-filter')}"
+                                        class="check-btn button button--reset is-secondary item-1"
+                                        .disabled="${this.isResetButtonDisabled[state]}"
+                                        @click="${() => {
+                                            this.resetSettings(state);
+                                        }}">
+                                        <dbp-icon
+                                            aria-hidden="true"
+                                            name="spinner-arrow-mirrored"></dbp-icon>
+                                        ${i18n.t('show-submissions.reset-filter')}
+                                    </button>
+                                    <button
+                                        title="${i18n.t('show-submissions.all-filters-hide')}"
+                                        class="check-btn button button--hide-all is-secondary item-2"
+                                        @click="${() => {
+                                            this.toggleAllColumns(state, 'hide');
+                                        }}">
+                                        <dbp-icon
+                                            aria-hidden="true"
+                                            name="source_icons_eye-off"></dbp-icon>
+                                        ${i18n.t('show-submissions.all-filters-hide')}
+                                    </button>
+                                    <button
+                                        title="${i18n.t('show-submissions.all-filters-show')}"
+                                        class="check-btn button button--show-all is-secondary item-2"
+                                        @click="${() => {
+                                            this.toggleAllColumns(state, 'show');
+                                        }}">
+                                        <dbp-icon
+                                            aria-hidden="true"
+                                            name="source_icons_eye-empty"></dbp-icon>
+                                        ${i18n.t('show-submissions.all-filters-show')}
+                                    </button>
+                                </div>
+                                <div>
+                                    <button
                                         title="${i18n.t('show-submissions.abort')}"
                                         class="check-btn button is-secondary"
                                         @click="${() => {
                                             this.closeColumnOptionsModal(state);
                                         }}">
+                                        <dbp-icon aria-hidden="true" name="close"></dbp-icon>
                                         ${i18n.t('show-submissions.abort')}
                                     </button>
-                                </div>
-                                <div>
                                     <button
-                                        title="${i18n.t('show-submissions.reset-filter')}"
-                                        class="check-btn button button--reset is-secondary"
-                                        .disabled="${this.isResetButtonDisabled[state]}"
+                                        class="check-btn button button--save is-primary"
+                                        id="check"
                                         @click="${() => {
-                                            this.resetSettings(state);
+                                            this.updateSubmissionTable(state);
+                                            this.storeSubmissionTableSettings(state);
+                                            this.closeColumnOptionsModal(state);
                                         }}">
-                                        ${i18n.t('show-submissions.reset-filter')}
-                                    </button>
-                                    <button
-                                        title="${i18n.t('show-submissions.all-filters-hide')}"
-                                        class="check-btn button button--hide-all is-secondary"
-                                        @click="${() => {
-                                            this.toggleAllColumns(state, 'hide');
-                                        }}">
-                                        ${i18n.t('show-submissions.all-filters-hide')}
-                                    </button>
-                                    <button
-                                        title="${i18n.t('show-submissions.all-filters-show')}"
-                                        class="check-btn button button--show-all is-secondary"
-                                        @click="${() => {
-                                            this.toggleAllColumns(state, 'show');
-                                        }}">
-                                        ${i18n.t('show-submissions.all-filters-show')}
+                                        <dbp-icon aria-hidden="true" name="save"></dbp-icon>
+                                        ${i18n.t('show-submissions.save-columns')}
                                     </button>
                                 </div>
-                                <button
-                                    class="check-btn button button--save is-primary"
-                                    id="check"
-                                    @click="${() => {
-                                        this.updateSubmissionTable(state);
-                                        this.storeSubmissionTableSettings(state);
-                                        this.closeColumnOptionsModal(state);
-                                    }}">
-                                    ${i18n.t('show-submissions.save-columns')}
-                                </button>
                             </div>
                         </footer>
                     </div>

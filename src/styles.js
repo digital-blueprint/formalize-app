@@ -128,13 +128,16 @@ export function getFileHandlingCss() {
         }
 
         .modal-content {
-            padding: 10px 20px 20px 20px;
+            padding: 30px 20px 20px 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
         }
 
+        #filter-modal-box p {
+            margin-bottom: 10px;
+        }
         .modal-content .source-main {
             height: 100%;
             width: 100%;
@@ -832,7 +835,7 @@ export function getShowSubmissionCSS() {
         }
 
         .modal-close {
-            font-size: 1.25em;
+            font-size: 1.5em;
         }
 
         .headers {
@@ -942,6 +945,20 @@ export function getShowSubmissionCSS() {
 
         #filter-modal-box .modal-footer-btn {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #filter-modal-box .modal-footer-btn > :first-child {
+            display: grid;
+            padding-top: 10px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        #filter-modal-box .modal-footer-btn > :last-child {
+            display: flex;
+            flex-direction: row;
             justify-content: space-between;
         }
 
@@ -1059,7 +1076,7 @@ export function getShowSubmissionCSS() {
             .detailed-submission-modal-box .modal-footer .modal-footer-btn {
                 padding: 6px 12px 6px 12px;
                 flex-direction: column;
-                gap: 6px;
+                gap: 10px;
             }
 
             .detailed-submission-modal-box .modal-content {
@@ -1137,6 +1154,10 @@ export function getShowSubmissionCSS() {
                 grid-template-columns: auto;
             }
 
+            .modal-title {
+                padding-left: 15px;
+            }
+
             .button-container .checkmark::after {
                 left: 8px;
                 top: 2px;
@@ -1152,14 +1173,18 @@ export function getShowSubmissionCSS() {
                 padding-left: 30px;
             }
 
-            #filter-modal-box .modal-footer-btn {
-                flex-direction: column;
-                gap: 5px;
+            #filter-modal-box .modal-footer-btn > :first-child {
+                grid-template-columns: repeat(2, 1fr);
             }
-
-            #filter-modal-box .modal-footer-btn div {
-                display: flex;
-                justify-content: space-between;
+            .item-1 {
+                order: 3;
+                grid-column: 1 / -1;
+            }
+            .item-2 {
+                order: 2;
+            }
+            .item-3 {
+                order: 1;
             }
         }
     `;
