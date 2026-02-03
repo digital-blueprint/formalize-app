@@ -1311,30 +1311,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     /**
      * Get allowed file upload counts from the data feed schema.
      * @param {string} dataFeedSchema
-     * @returns {object} - An object mapping file types to their allowed upload counts.
-     */
-    getAllowedFileUploadCount(dataFeedSchema) {
-        if (!dataFeedSchema) return {};
-
-        let formSchemaFields = {};
-        let allowedFileUploadCount = {};
-        try {
-            formSchemaFields = JSON.parse(dataFeedSchema);
-            if (formSchemaFields.files === undefined) return {};
-            for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
-                allowedFileUploadCount[type] = fileField.maxNumber;
-                fileField.maxSizeMb;
-            }
-            return allowedFileUploadCount;
-        } catch (e) {
-            console.log('Failed parsing json data', e);
-            return {};
-        }
-    }
-
-    /**
-     * Get allowed file upload counts from the data feed schema.
-     * @param {string} dataFeedSchema
      * @returns {object} - An object mapping file types to their limits.
      */
     getFileUploadLimits(dataFeedSchema) {
