@@ -44,6 +44,7 @@
         },
         "download-widget": {
             "admin-voting-file-upload": "Votum",
+            "attachment-deletion-warning-text": "(Die Dokumente werden beim Speichern oder Einreichen des Formulars gelöscht.)",
             "attachment-remove-file-text": "Dateien zum Entfernen",
             "attachment-upload-file-text": "Dateien zum Hochladen",
             "attachment-upload-warning-text": "(Dokumente werden beim Speichern oder Einreichen hochgeladen.)",

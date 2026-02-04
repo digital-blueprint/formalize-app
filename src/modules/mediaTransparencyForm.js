@@ -52,13 +52,6 @@ class FormalizeFormElement extends BaseFormElement {
         this.selectedCategory = null;
         this.otherMediumNameEnabled = false;
 
-        // Attachments
-        this.submittedFiles = new Map();
-        this.filesToSubmit = new Map();
-        this.filesToRemove = new Map();
-        this.fileUploadError = false;
-        this.fileUploadCounts = {};
-
         // Conditional fields
         this.conditionalFields = {
             category: false,
@@ -136,6 +129,7 @@ class FormalizeFormElement extends BaseFormElement {
             if (Object.keys(this.data).length > 0) {
                 await this.processFormData();
             }
+            // this.initializeFileGroups();
             this.setButtonStates();
 
             // @ts-ignore
@@ -205,7 +199,11 @@ class FormalizeFormElement extends BaseFormElement {
             if (this.formData?.category) {
                 this.setSubcategoryItemsByValue(this.formData.category);
             }
-            // Attachments
+
+            // Initialize file groups from schema
+            this.initializeFileGroups();
+
+            // Process submitted files by group
             const submittedFiles = {};
             for (const file of this.data.submittedFiles) {
                 if (!submittedFiles[file.fileAttributeName]) {
@@ -215,11 +213,11 @@ class FormalizeFormElement extends BaseFormElement {
             }
 
             this.fileUploadCounts = {};
-            for (const [attachmentType, files] of Object.entries(submittedFiles)) {
-                this.fileUploadCounts[attachmentType] = files.length;
-                if (attachmentType === 'attachments') {
-                    this.submittedFiles = await this.transformApiResponseToFile(files);
-                }
+            for (const [fileGroup, files] of Object.entries(submittedFiles)) {
+                this.fileUploadCounts[fileGroup] = files.length;
+                // Get or create the file group structure (handles catch-all schemas)
+                const groupData = this.getOrCreateFileGroup(fileGroup);
+                groupData.submittedFiles = await this.transformApiResponseToFile(files);
             }
 
             switch (Number(this.submissionBinaryState)) {
@@ -300,18 +298,21 @@ class FormalizeFormElement extends BaseFormElement {
 
         const formData = new FormData();
 
-        // Set files to upload as attachments
-        if (this.filesToSubmit.size > 0) {
-            this.filesToSubmit.forEach((fileToAttach) => {
-                formData.append('attachments[]', fileToAttach, fileToAttach.name);
-            });
-        }
+        // Iterate over all file groups dynamically
+        for (const [fileGroup, groupData] of Object.entries(this.filesByGroup)) {
+            // Set files to upload for this group
+            if (groupData.filesToSubmit.size > 0) {
+                groupData.filesToSubmit.forEach((fileToAttach) => {
+                    formData.append(`${fileGroup}[]`, fileToAttach, fileToAttach.name);
+                });
+            }
 
-        // Set files to remove from attachments
-        if (this.filesToRemove.size > 0) {
-            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
-                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
-            });
+            // Set files to remove for this group
+            if (groupData.filesToRemove.size > 0) {
+                groupData.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                    formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+                });
+            }
         }
 
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
@@ -322,9 +323,15 @@ class FormalizeFormElement extends BaseFormElement {
         const options = this._buildRequestOptions(formData, method);
         const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
 
-        const filesToSubmitBackup = this.filesToSubmit;
-        const filesToRemoveBackup = this.filesToRemove;
-        const submittedFilesBackup = this.submittedFiles;
+        // Backup all file groups in case of error
+        const filesByGroupBackup = {};
+        for (const [fileGroup, groupData] of Object.entries(this.filesByGroup)) {
+            filesByGroupBackup[fileGroup] = {
+                submittedFiles: new Map(groupData.submittedFiles),
+                filesToSubmit: new Map(groupData.filesToSubmit),
+                filesToRemove: new Map(groupData.filesToRemove),
+            };
+        }
 
         try {
             const response = await fetch(url, options);
@@ -352,9 +359,11 @@ class FormalizeFormElement extends BaseFormElement {
                 this.currentState = SUBMISSION_STATES.SUBMITTED;
                 this.submitted = true;
 
-                // Remove files added to the request
-                this.filesToSubmit = new Map();
-                this.filesToRemove = new Map();
+                // Clear all file groups after successful submission
+                for (const fileGroup of Object.keys(this.filesByGroup)) {
+                    this.filesByGroup[fileGroup].filesToSubmit = new Map();
+                    this.filesByGroup[fileGroup].filesToRemove = new Map();
+                }
 
                 // Hide form after successful submission
                 this.hideForm = true;
@@ -380,11 +389,10 @@ class FormalizeFormElement extends BaseFormElement {
             }
         } catch (error) {
             console.error(error);
-            // Restore files if something went wrong
-            this.filesToSubmit = filesToSubmitBackup;
-            this.filesToRemove = filesToRemoveBackup;
-            // Put back files that we did not delete?
-            this.submittedFiles = submittedFilesBackup;
+            // Restore all file groups if something went wrong
+            for (const [fileGroup, backup] of Object.entries(filesByGroupBackup)) {
+                this.filesByGroup[fileGroup] = backup;
+            }
 
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
@@ -416,18 +424,21 @@ class FormalizeFormElement extends BaseFormElement {
             : this.auth['user-id'];
         const formData = new FormData();
 
-        // Set attachment files to upload
-        if (this.filesToSubmit.size > 0) {
-            this.filesToSubmit.forEach((fileToAttach) => {
-                formData.append('attachments[]', fileToAttach, fileToAttach.name);
-            });
-        }
+        // Iterate over all file groups dynamically
+        for (const [fileGroup, groupData] of Object.entries(this.filesByGroup)) {
+            // Set files to upload for this group
+            if (groupData.filesToSubmit.size > 0) {
+                groupData.filesToSubmit.forEach((fileToAttach) => {
+                    formData.append(`${fileGroup}[]`, fileToAttach, fileToAttach.name);
+                });
+            }
 
-        // Set attachment files to remove
-        if (this.filesToRemove.size > 0) {
-            this.filesToRemove.forEach((fileObject, fileIdentifier) => {
-                formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
-            });
+            // Set files to remove for this group
+            if (groupData.filesToRemove.size > 0) {
+                groupData.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                    formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+                });
+            }
         }
 
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
@@ -441,9 +452,15 @@ class FormalizeFormElement extends BaseFormElement {
         const options = this._buildRequestOptions(formData, method);
         const url = this._buildSubmissionUrl(isExistingDraft ? this.submissionId : null);
 
-        const filesToSubmitBackup = this.filesToSubmit;
-        const filesToRemoveBackup = this.filesToRemove;
-        const submittedFilesBackup = this.submittedFiles;
+        // Backup all file groups in case of error
+        const filesByGroupBackup = {};
+        for (const [fileGroup, groupData] of Object.entries(this.filesByGroup)) {
+            filesByGroupBackup[fileGroup] = {
+                submittedFiles: new Map(groupData.submittedFiles),
+                filesToSubmit: new Map(groupData.filesToSubmit),
+                filesToRemove: new Map(groupData.filesToRemove),
+            };
+        }
 
         try {
             const response = await fetch(url, options);
@@ -463,13 +480,23 @@ class FormalizeFormElement extends BaseFormElement {
                 this.data = responseBody;
                 this.newSubmissionId = responseBody.identifier;
                 this.submissionBinaryState = responseBody.submissionState;
-                this.submittedFiles = await this.transformApiResponseToFile(
-                    responseBody.submittedFiles,
-                );
 
-                // Remove files added to the request
-                this.filesToSubmit = new Map();
-                this.filesToRemove = new Map();
+                // Process all submitted files by group
+                const submittedFilesByGroup = {};
+                for (const file of responseBody.submittedFiles) {
+                    if (!submittedFilesByGroup[file.fileAttributeName]) {
+                        submittedFilesByGroup[file.fileAttributeName] = [];
+                    }
+                    submittedFilesByGroup[file.fileAttributeName].push(file);
+                }
+
+                // Update each file group
+                for (const [fileGroup, files] of Object.entries(submittedFilesByGroup)) {
+                    const groupData = this.getOrCreateFileGroup(fileGroup);
+                    groupData.submittedFiles = await this.transformApiResponseToFile(files);
+                    groupData.filesToSubmit = new Map();
+                    groupData.filesToRemove = new Map();
+                }
 
                 // Update URL with the submission ID
                 const newSubmissionUrl =
@@ -491,10 +518,10 @@ class FormalizeFormElement extends BaseFormElement {
                 );
             }
         } catch (error) {
-            // Restore files if something went wrong
-            this.filesToSubmit = filesToSubmitBackup;
-            this.filesToRemove = filesToRemoveBackup;
-            this.submittedFiles = submittedFilesBackup;
+            // Restore all file groups if something went wrong
+            for (const [fileGroup, backup] of Object.entries(filesByGroupBackup)) {
+                this.filesByGroup[fileGroup] = backup;
+            }
             this.requestUpdate();
 
             console.error(error);
@@ -532,7 +559,8 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {object} event
      */
     async downloadAllFiles(event) {
-        const attachmentFiles = Array.from(this.submittedFiles.values());
+        const attachmentsGroup = this.getOrCreateFileGroup('attachments');
+        const attachmentFiles = Array.from(attachmentsGroup.submittedFiles.values());
 
         this._('#file-sink').files = [...attachmentFiles];
     }
@@ -983,6 +1011,7 @@ class FormalizeFormElement extends BaseFormElement {
                         .disabled=${this.fileUploadCounts['attachments'] >=
                         this.fileUploadLimits?.allowedFileUploadCount?.attachments}
                         @click="${(event) => {
+                            this.currentUploadGroup = 'attachments';
                             this.openFilePicker(event);
                         }}">
                         <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
@@ -1309,8 +1338,8 @@ class FormalizeFormElement extends BaseFormElement {
     handleFilesToSubmit(event) {
         const isValid = this.validateAttachmentFileName(event.detail.file);
         if (isValid) {
-            this.filesToSubmit.set(event.detail.file.name, event.detail.file);
-            this.requestUpdate();
+            // Call base class method to handle file addition
+            super.handleFilesToSubmit(event);
         }
     }
 
@@ -1333,138 +1362,5 @@ class FormalizeFormElement extends BaseFormElement {
             return false;
         }
         return true;
-    }
-
-    /**
-     * Renders attached file list with action buttons
-     * @param {string} fileGroup - The group of files to render ('attachments' or 'voting')
-     * @returns {Array|null} An array of rendered file elements or null if no files are present.
-     */
-    renderAttachedFilesHtml(fileGroup = 'attachments') {
-        const i18n = this._i18n;
-        let results = [];
-
-        // Select files based on group
-        const submittedFiles = fileGroup === 'attachments' ? this.submittedFiles : '';
-        const filesToSubmit = fileGroup === 'attachments' ? this.filesToSubmit : '';
-        const filesToRemove = fileGroup === 'attachments' ? this.filesToRemove : '';
-
-        if (submittedFiles.size > 0) {
-            const submittedFilesHtml = html`
-                <div class="fileblock-container submitted-files">
-                    ${Array.from(submittedFiles).map(([identifier, file]) => {
-                        return this.addFileBlock(file, identifier, fileGroup);
-                    })}
-                </div>
-            `;
-            results.push(submittedFilesHtml);
-        }
-
-        if (filesToSubmit.size > 0) {
-            const filesToSubmitHtml = html`
-                <div class="fileblock-container files-to-upload">
-                    <div class="attachment-header">
-                        <dbp-icon name="upload"></dbp-icon>
-                        <h5>
-                            ${i18n.t('render-form.download-widget.attachment-upload-file-text')}
-                            <span class="attachment-warning">
-                                ${i18n.t(
-                                    'render-form.download-widget.attachment-upload-warning-text',
-                                )}
-                            </span>
-                        </h5>
-                    </div>
-                    ${Array.from(filesToSubmit).map(([identifier, file]) => {
-                        return this.addFileBlock(file, identifier, fileGroup);
-                    })}
-                </div>
-            `;
-            results.push(filesToSubmitHtml);
-        }
-
-        if (filesToRemove.size > 0) {
-            const filesToRemoveHtml = html`
-                <div class="fileblock-container files-to-remove">
-                    <div class="attachment-header">
-                        <dbp-icon name="trash"></dbp-icon>
-                        <h5>
-                            ${i18n.t('render-form.download-widget.attachment-remove-file-text')}
-                            <span class="attachment-warning">
-                                ${i18n.t(
-                                    'render-form.download-widget.attachment-upload-warning-text',
-                                )}
-                            </span>
-                        </h5>
-                    </div>
-                    ${Array.from(filesToRemove).map(([identifier, file]) => {
-                        return this.addFileBlock(file, identifier, fileGroup);
-                    })}
-                </div>
-            `;
-            results.push(filesToRemoveHtml);
-        }
-
-        return results;
-    }
-
-    /**
-     * Renders a single file block with action buttons.
-     * @param {object} file - The file object
-     * @param {string} identifier - Unique identifier for the file
-     * @param {string} fileGroup - The group of files ('attachments' or 'voting')
-     * @returns {import('lit').TemplateResult} The rendered file block template.
-     */
-    addFileBlock(file, identifier, fileGroup = 'attachments') {
-        return html`
-            <div class="file-block">
-                <span class="file-info">
-                    <strong class="file-name">${file.name}</strong>
-                    <span class="additional-data">
-                        <span class="file-type">(${file.type})</span>
-                        <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
-                    </span>
-                </span>
-                <div class="file-action-buttons">
-                    <button
-                        class="download-file-button button is-secondary"
-                        @click=${(e) => {
-                            e.preventDefault();
-                            this._('#file-sink').files = [file];
-                        }}>
-                        <dbp-icon name="download"></dbp-icon>
-                        ${this._i18n.t('render-form.download-widget.download-attachment')}
-                    </button>
-                    <button
-                        class="delete-file-button button is-secondary"
-                        .disabled=${this.filesToRemove.has(identifier) || this.readOnly}
-                        @click=${(e) => {
-                            e.preventDefault();
-                            this.deleteAttachment(identifier, fileGroup);
-                        }}>
-                        <dbp-icon name="trash"></dbp-icon>
-                        ${this._i18n.t('render-form.download-widget.delete-attachment')}
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Handle removing files from the list of attachments.
-     * @param {string} fileIdentifier uuid
-     * @param {string} fileGroup - The group of files to handle ('attachments' or 'voting')
-     */
-    deleteAttachment(fileIdentifier, fileGroup = 'attachments') {
-        if (fileGroup === 'attachments') {
-            // Handle regular attachments
-            const fileToRemove = this.submittedFiles.get(fileIdentifier);
-            if (fileToRemove) {
-                this.filesToRemove.set(fileIdentifier, fileToRemove);
-                this.submittedFiles.delete(fileIdentifier);
-            }
-            this.filesToSubmit.delete(fileIdentifier);
-        }
-
-        this.requestUpdate();
     }
 }

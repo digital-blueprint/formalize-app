@@ -74,6 +74,14 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         this.fileUploadLimits = {};
         this.conditionalFields = {};
 
+        // File management - dynamic structure based on schema
+        // Each file group (e.g., 'attachments', 'voting') will have:
+        // { submittedFiles: Map(), filesToSubmit: Map(), filesToRemove: Map() }
+        this.filesByGroup = {};
+        this.currentUploadGroup = null; // Tracks which group is being uploaded to
+        this.fileUploadError = false;
+        this.fileUploadCounts = {};
+
         // Tags
         this.selectedTags = {};
         this.allowedTags = {};
@@ -1156,6 +1164,73 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
+     * Get file groups from the form schema.
+     * @returns {string[]} Array of file group names
+     */
+    getFileGroupsFromSchema() {
+        if (!this.formProperties?.dataFeedSchema) {
+            return [];
+        }
+
+        try {
+            const schema = JSON.parse(this.formProperties.dataFeedSchema);
+
+            // Check for catch-all schema with additionalFiles
+            if (schema.additionalFiles === true && !schema.files) {
+                // Catch-all schema allows any file groups
+                // Return empty array, groups will be created dynamically as needed
+                return [];
+            }
+
+            // Return defined file groups from schema
+            if (schema.files && typeof schema.files === 'object') {
+                return Object.keys(schema.files);
+            }
+
+            return [];
+        } catch (e) {
+            console.error('Failed to parse schema for file groups:', e);
+            return [];
+        }
+    }
+
+    /**
+     * Initialize file groups structure based on schema.
+     * Creates the nested Map structure for each file group.
+     */
+    initializeFileGroups() {
+        const fileGroups = this.getFileGroupsFromSchema();
+
+        // Initialize structure for each defined file group
+        for (const fileGroup of fileGroups) {
+            if (!this.filesByGroup[fileGroup]) {
+                this.filesByGroup[fileGroup] = {
+                    submittedFiles: new Map(),
+                    filesToSubmit: new Map(),
+                    filesToRemove: new Map(),
+                };
+            }
+        }
+    }
+
+    /**
+     * Get or create a file group structure.
+     * Handles dynamic creation for catch-all schemas.
+     * @param {string} fileGroup - The file group name
+     * @returns {object} The file group structure
+     */
+    getOrCreateFileGroup(fileGroup) {
+        if (!this.filesByGroup[fileGroup]) {
+            this.filesByGroup[fileGroup] = {
+                submittedFiles: new Map(),
+                filesToSubmit: new Map(),
+                filesToRemove: new Map(),
+            };
+        }
+        return this.filesByGroup[fileGroup];
+    }
+
+    /**
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
@@ -1306,6 +1381,182 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             console.error('Error transforming API response to File:', error);
             throw error;
         }
+    }
+
+    /**
+     * Handle files selected for upload from file source component.
+     * @param {CustomEvent} event - The event object containing the file data.
+     */
+    handleFilesToSubmit(event) {
+        const fileGroup = this.currentUploadGroup || 'attachments';
+        const groupData = this.getOrCreateFileGroup(fileGroup);
+
+        const files = event.detail.file ? [event.detail.file] : [];
+
+        if (files && files.length > 0) {
+            for (const file of files) {
+                const identifier = crypto.randomUUID();
+                groupData.filesToSubmit.set(identifier, file);
+            }
+        }
+
+        this.requestUpdate();
+    }
+
+    /**
+     * Handle removing files from the list of attachments.
+     * @param {string} fileIdentifier - uuid
+     * @param {string} fileGroup - The group of files to handle (e.g., 'attachments', 'voting')
+     */
+    deleteAttachment(fileIdentifier, fileGroup) {
+        const groupData = this.getOrCreateFileGroup(fileGroup);
+
+        if (groupData.submittedFiles.has(fileIdentifier)) {
+            groupData.filesToRemove.set(
+                fileIdentifier,
+                groupData.submittedFiles.get(fileIdentifier),
+            );
+            groupData.submittedFiles.delete(fileIdentifier);
+        } else if (groupData.filesToSubmit.has(fileIdentifier)) {
+            groupData.filesToSubmit.delete(fileIdentifier);
+        }
+
+        this.requestUpdate();
+    }
+
+    /**
+     * Renders attached file list with action buttons.
+     * @param {string} fileGroup - The group of files to render (e.g., 'attachments', 'voting')
+     * @returns {Array|null} An array of rendered file elements or null if no files are present.
+     */
+    renderAttachedFilesHtml(fileGroup = 'attachments') {
+        const groupData = this.getOrCreateFileGroup(fileGroup);
+        const i18n = this._i18n;
+        let results = [];
+
+        // Render submitted files
+        if (groupData.submittedFiles.size > 0) {
+            const submittedFilesHtml = html`
+                <div class="fileblock-container submitted-files">
+                    ${Array.from(groupData.submittedFiles).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
+                    })}
+                </div>
+            `;
+            results.push(submittedFilesHtml);
+        }
+
+        // Render files to submit
+        if (groupData.filesToSubmit.size > 0) {
+            const filesToSubmitHtml = html`
+                <div class="fileblock-container files-to-upload">
+                    <div class="attachment-header">
+                        <dbp-icon name="upload"></dbp-icon>
+                        <h5>
+                            ${i18n.t('render-form.download-widget.attachment-upload-file-text')}
+                            <span class="attachment-warning">
+                                ${i18n.t(
+                                    'render-form.download-widget.attachment-upload-warning-text',
+                                )}
+                            </span>
+                        </h5>
+                    </div>
+                    ${Array.from(groupData.filesToSubmit).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
+                    })}
+                </div>
+            `;
+            results.push(filesToSubmitHtml);
+        }
+
+        // Render files marked for removal
+        if (groupData.filesToRemove.size > 0) {
+            const filesToRemoveHtml = html`
+                <div class="fileblock-container files-to-remove">
+                    <div class="attachment-header">
+                        <dbp-icon name="trash"></dbp-icon>
+                        <h5>
+                            ${i18n.t('render-form.download-widget.attachment-remove-file-text')}
+                            <span class="attachment-warning">
+                                ${i18n.t(
+                                    'render-form.download-widget.attachment-deletion-warning-text',
+                                )}
+                            </span>
+                        </h5>
+                    </div>
+                    ${Array.from(groupData.filesToRemove).map(([identifier, file]) => {
+                        return this.addFileBlock(file, identifier, fileGroup);
+                    })}
+                </div>
+            `;
+            results.push(filesToRemoveHtml);
+        }
+
+        return results;
+    }
+
+    /**
+     * Renders a single file block with action buttons.
+     * @param {object} file - The file object
+     * @param {string} identifier - Unique identifier for the file
+     * @param {string} fileGroup - The group of files
+     * @param {boolean} viewPdf - Whether to show the PDF viewer button
+     * @returns {import('lit').TemplateResult} The rendered file block template.
+     */
+    addFileBlock(file, identifier, fileGroup = 'attachments', viewPdf = true) {
+        const groupData = this.getOrCreateFileGroup(fileGroup);
+        const canViewPdf = viewPdf && this._('#pdf-view-modal') && this._('dbp-pdf-viewer');
+
+        return html`
+            <div class="file-block">
+                <span class="file-info">
+                    <strong class="file-name">${file.name}</strong>
+                    <span class="additional-data">
+                        <span class="file-type">(${file.type})</span>
+                        <span class="file-size">${(file.size / 1024).toFixed(2)} KB</span>
+                    </span>
+                </span>
+                <div class="file-action-buttons">
+                    ${canViewPdf
+                        ? html`
+                              <button
+                                  class="view-file-button button is-secondary"
+                                  @click=${(e) => {
+                                      e.preventDefault();
+                                      const pdfModal = this._('#pdf-view-modal');
+                                      const pdfViewer = this._('dbp-pdf-viewer');
+                                      if (pdfModal && pdfViewer) {
+                                          pdfModal.open();
+                                          pdfViewer.showPDF(file);
+                                      }
+                                  }}>
+                                  <dbp-icon name="eye"></dbp-icon>
+                                  ${this._i18n.t('render-form.download-widget.view-attachment')}
+                              </button>
+                          `
+                        : ''}
+                    <button
+                        class="download-file-button button is-secondary"
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this._('#file-sink').files = [file];
+                        }}>
+                        <dbp-icon name="download"></dbp-icon>
+                        ${this._i18n.t('render-form.download-widget.download-attachment')}
+                    </button>
+                    <button
+                        class="delete-file-button button is-secondary"
+                        .disabled=${groupData.filesToRemove.has(identifier) || this.readOnly}
+                        @click=${(e) => {
+                            e.preventDefault();
+                            this.deleteAttachment(identifier, fileGroup);
+                        }}>
+                        <dbp-icon name="trash"></dbp-icon>
+                        ${this._i18n.t('render-form.download-widget.delete-attachment')}
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     /**

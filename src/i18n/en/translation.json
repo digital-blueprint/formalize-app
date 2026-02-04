@@ -44,6 +44,7 @@
         },
         "download-widget": {
             "admin-voting-file-upload": "Voting file upload",
+            "attachment-deletion-warning-text": "(Documents will get deleted by saving or submitting the form.)",
             "attachment-remove-file-text": "Files to remove",
             "attachment-upload-file-text": "Files to upload",
             "attachment-upload-warning-text": "(Documents will get uploaded by saving or submitting the form.)",
