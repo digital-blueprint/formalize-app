@@ -3307,6 +3307,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 lang="${this.lang}"
                                 class="tabulator-table tabulator-table--${state}"
                                 id="tabulator-table-submissions-${state}"
+                                data-state="${state}"
                                 identifier="submissions-table-${state}"
                                 .options=${this.options_submissions[state]}
                                 pagination-size="5"
