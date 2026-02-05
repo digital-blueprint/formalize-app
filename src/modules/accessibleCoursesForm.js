@@ -24,6 +24,7 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
+        this.saveButtonEnabled = false;
     }
 
     static get properties() {
@@ -143,6 +144,8 @@ class FormalizeFormElement extends BaseFormElement {
 
     // Reaction to dbp-course-changed
     async handleCourseChange(e) {
+        this.saveButtonEnabled = false;
+
         if (!this.formData) {
             this.formData = {};
         }
@@ -151,6 +154,8 @@ class FormalizeFormElement extends BaseFormElement {
         if (!course) {
             this.formData.lecturerName = '';
             this.formData.lecturerEmail = '';
+
+            this.saveButtonEnabled = false;
             this.requestUpdate();
             return;
         }
@@ -203,7 +208,10 @@ class FormalizeFormElement extends BaseFormElement {
         this.formData.lecturerEmail = lecturerEmails.join(', ');
         this.formData.lecturerId = lecturerIds.join(', ');
 
-        //refresh UI
+        // Enable submit button only after we have updated the lecturer data
+        this.saveButtonEnabled = true;
+
+        // refresh UI
         this.requestUpdate();
     }
 
