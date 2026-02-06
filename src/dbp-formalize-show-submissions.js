@@ -3044,14 +3044,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     id="search-toggle-filters-button--${state}"
                     aria-expanded="${this.searchWidgetIsOpen[state]}"
                     aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
+                    title="${i18n.t('show-submissions.open-search-filters')}"
                     @click="${() => {
                         this.toggleSearchFilters(state);
                     }}">
-                    <dbp-icon
-                        name="chevron-down"
-                        title="${i18n.t('show-submissions.filter-toggle-button')}"
-                        aria-label="${i18n.t('show-submissions.filter-toggle-button')}"></dbp-icon>
-                    <span class="visually-hidden">
+                    <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
+                    <span class="button-text">
                         ${this.searchWidgetIsOpen[state]
                             ? i18n.t('show-submissions.close-search-filters')
                             : i18n.t('show-submissions.open-search-filters')}
@@ -3117,14 +3115,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 id="search-toggle-filters-button--${state}"
                 aria-expanded="${this.searchWidgetIsOpen[state]}"
                 aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
+                title="${i18n.t('show-submissions.open-search-filters')}"
                 @click="${() => {
                     this.toggleSearchFilters(state);
                 }}">
-                <dbp-icon
-                    name="chevron-down"
-                    title="${i18n.t('show-submissions.filter-toggle-button')}"
-                    aria-label="${i18n.t('show-submissions.filter-toggle-button')}"></dbp-icon>
-                <span class="visually-hidden">
+                <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
+                <span class="button-text">
                     ${this.searchWidgetIsOpen[state]
                         ? i18n.t('show-submissions.close-search-filters')
                         : i18n.t('show-submissions.open-search-filters')}

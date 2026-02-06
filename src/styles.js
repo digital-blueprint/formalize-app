@@ -405,7 +405,7 @@ export function getShowSubmissionCSS() {
         .table-action-header {
             display: grid;
             grid-template-areas: 'actions search search search button export';
-            grid-template-columns: 200px 1fr 1fr 1fr 42px 160px;
+            grid-template-columns: 200px 1fr 1fr 1fr 160px 160px;
             /*grid-template-columns: 1fr;*/
             gap: 0 1em;
             position: relative;
@@ -413,7 +413,7 @@ export function getShowSubmissionCSS() {
 
         .table-action-header.open {
             grid-template-areas: 'actions search filter-col filter-op button export';
-            grid-template-columns: 200px auto auto auto 42px 160px;
+            grid-template-columns: 200px auto auto auto 160px 160px;
             gap: 0 1em;
             position: relative;
         }
@@ -546,7 +546,12 @@ export function getShowSubmissionCSS() {
         }
 
         .search-toggle-filters-button {
-            width: 42px;
+            width: 160px;
+            text-align: left;
+        }
+
+        .search-toggle-filters-button .button-text {
+            padding-left: 4px;
         }
 
         .searchbar dbp-icon,
@@ -653,7 +658,7 @@ export function getShowSubmissionCSS() {
                     'actions . . export export'
                     'search search search search button'
                     'filter-col filter-col . filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 118px 42px;
+                grid-template-columns: 115px 1fr 1fr 118px 160px;
                 gap: 1em 0;
             }
 
@@ -662,7 +667,7 @@ export function getShowSubmissionCSS() {
                     'actions . . export export'
                     'search search search search button'
                     'filter-col filter-col filter-op filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 118px 42px;
+                grid-template-columns: 115px 1fr 1fr 118px 160px;
                 gap: 1em 0;
             }
 
@@ -710,7 +715,7 @@ export function getShowSubmissionCSS() {
             }
         }
 
-        @container table-container (width < 390px) {
+        @container table-container (width < 530px) {
             .table-action-header:not(.open) {
                 grid-template-areas:
                     'actions actions . export export'
@@ -727,6 +732,21 @@ export function getShowSubmissionCSS() {
                     'filter-col filter-col filter-op filter-op filter-op';
                 grid-template-columns: 115px 1fr 1fr 68px 42px;
                 gap: 1em 0;
+            }
+
+            .search-toggle-filters-button {
+                width: 42px;
+                text-align: center;
+            }
+
+            .search-toggle-filters-button .button-text {
+                padding-left: 0;
+                position: absolute !important;
+                clip: rect(1px, 1px, 1px, 1px);
+                overflow: hidden;
+                height: 1px;
+                width: 1px;
+                word-wrap: normal;
             }
 
             .actions-container {
