@@ -1345,7 +1345,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     validateAttachmentFileName(file, maxUpload) {
         const i18n = this._i18n;
-        const fileNamePattern = /^MT_\d{4}_Sujets_[a-zA-Z_-]+\d?\.[a-z]+$/;
+        const fileNamePattern = /^MT_\d{4}_Sujet_[a-zA-Z_-]+\d*\.[a-z]+$/;
 
         if (!fileNamePattern.test(file.name)) {
             sendNotification({
