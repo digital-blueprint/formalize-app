@@ -2422,7 +2422,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return html`
             <div
-                class="modal micromodal-slide"
+                class="modal micromodal-slide column-settings-modal"
                 id="column-options-modal-${state}"
                 aria-hidden="true">
                 <div class="modal-overlay" tabindex="-2" data-micromodal-close>
@@ -2516,7 +2516,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </main>
                         <footer class="modal-footer">
                             <div class="modal-footer-btn">
-                                <div>
+                                <div class="top-button-row">
                                     <button
                                         title="${i18n.t('show-submissions.reset-filter')}"
                                         class="check-btn button button--reset is-secondary item-1"
@@ -2552,7 +2552,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                         ${i18n.t('show-submissions.all-filters-show')}
                                     </button>
                                 </div>
-                                <div>
+                                <div class="bottom-button-row">
                                     <button
                                         title="${i18n.t('show-submissions.abort')}"
                                         class="check-btn button is-secondary"

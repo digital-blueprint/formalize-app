@@ -950,14 +950,14 @@ export function getShowSubmissionCSS() {
             gap: 10px;
         }
 
-        .modal-footer-btn > :first-child {
+        .modal-footer-btn .top-button-row {
             display: grid;
             padding-top: 10px;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
         }
 
-        .modal-footer-btn > :last-child {
+        .modal-footer-btn .bottom-button-row {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
