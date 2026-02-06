@@ -6,7 +6,7 @@
         "failed-to-get-last-modifier-details": "Details zum letzten Bearbeiter konnten nicht abgerufen werden",
         "failed-to-save-draft": "Speichern des Entwurfs fehlgeschlagen",
         "feature-not-implemented": "Funktion noch nicht implementiert",
-        "form-submission-failed": "Formular konnte nicht gespeichert werden. Antwortstatus: {{status}}\n{{details}}",
+        "form-submission-failed": "Formular konnte nicht gesendet werden. Antwortstatus: {{status}}\n{{details}}",
         "form-validation-warning-notification-body": "[de] The form is not valid, please fix before submitting",
         "invalid-submission-data": "Ungültige Absendedaten",
         "no-submission-id-provided": "Keine Absendungs-ID angegeben",
