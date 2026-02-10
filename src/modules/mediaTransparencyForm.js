@@ -125,7 +125,6 @@ class FormalizeFormElement extends BaseFormElement {
         console.log('changedProperties', changedProperties);
 
         if (changedProperties.has('data')) {
-            console.log('Data changed:', this.data);
             if (Object.keys(this.data).length > 0) {
                 await this.processFormData();
             }
@@ -140,6 +139,20 @@ class FormalizeFormElement extends BaseFormElement {
                 if (this.readOnly === false && urlParams.get('validate') === 'true') {
                     const formElement = this.shadowRoot.querySelector('form');
                     this.isFormValid = await validateRequiredFields(formElement);
+
+                    // Validate minimum file upload counts
+                    const fileValidation = this.validateMinimumFileUploads();
+                    if (!fileValidation.isValid) {
+                        this.isFormValid = false;
+                        const failed = fileValidation.failedGroups[0];
+                        sendNotification({
+                            summary: this._i18n.t('errors.error-title'),
+                            body: `${this._i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
+                            type: 'warning',
+                            timeout: 5,
+                        });
+                    }
+
                     if (!this.isFormValid) {
                         this.scrollToFirstInvalidField(formElement, true);
                         // Show notification
@@ -272,6 +285,20 @@ class FormalizeFormElement extends BaseFormElement {
     async handleFormSubmission(event) {
         // Access the data from the event detail
         const data = event.detail;
+
+        // Validate minimum file upload counts
+        const fileValidation = this.validateMinimumFileUploads();
+        if (!fileValidation.isValid) {
+            const failed = fileValidation.failedGroups[0]; // Show first failure
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: `${this._i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
+                type: 'danger',
+                timeout: 5,
+            });
+            this.saveButtonEnabled = true;
+            return;
+        }
 
         // POST or PATCH
         let isExistingDraft = false;
@@ -522,7 +549,7 @@ class FormalizeFormElement extends BaseFormElement {
      * Update formData if field value changes
      * @param {CustomEvent} event
      */
-    handleChangeEvents(event) {
+    async handleChangeEvents(event) {
         // First call parent to handle common cases
         super.handleChangeEvents(event);
 
@@ -534,6 +561,19 @@ class FormalizeFormElement extends BaseFormElement {
             if (option.value === 'download' && value === 'download') {
                 this.downloadAllFiles();
                 return;
+            }
+        }
+
+        // Silently update validation widget status (without showing field errors)
+        // Only run if in edit mode (not readonly)
+        if (!this.readOnly) {
+            const formElement = this.shadowRoot.querySelector('form');
+            if (formElement) {
+                const requiredFieldsValidated = await validateRequiredFields(formElement, true);
+                const fileValidation = this.validateMinimumFileUploads();
+
+                // Update widget based on both required fields and file uploads
+                this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
             }
         }
     }
@@ -619,6 +659,33 @@ class FormalizeFormElement extends BaseFormElement {
                 this.sendSetPropertyEvent('routing-url', `/${this.formUrlSlug}`);
             }
         }
+    }
+
+    /**
+     * Validates minimum file upload counts for all file groups.
+     * @returns {{isValid: boolean, failedGroups: Array<{fileGroup: string, currentCount: number, minCount: number}>}}
+     */
+    validateMinimumFileUploads() {
+        const failedGroups = [];
+
+        if (this.fileUploadLimits.minFileUploadCount) {
+            for (const [fileGroup, minCount] of Object.entries(
+                this.fileUploadLimits.minFileUploadCount,
+            )) {
+                const submittedCount = this.filesByGroup[fileGroup]?.submittedFiles.size || 0;
+                const toSubmitCount = this.filesByGroup[fileGroup]?.filesToSubmit.size || 0;
+                const currentCount = submittedCount + toSubmitCount;
+
+                if (currentCount < minCount) {
+                    failedGroups.push({fileGroup, currentCount, minCount});
+                }
+            }
+        }
+
+        return {
+            isValid: failedGroups.length === 0,
+            failedGroups,
+        };
     }
 
     setSubcategoryItemsByValue(selectedValue) {
@@ -958,6 +1025,11 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="file-upload-title-container">
                         <h4 class="attachments-title">
                             ${i18n.t('render-form.forms.media-transparency-form.attachments-title')}
+                            ${this.fileUploadLimits?.minFileUploadCount?.attachments > 0
+                                ? html`
+                                      <span class="required-mark">*</span>
+                                  `
+                                : ''}
                         </h4>
 
                         <span class="file-upload-limit-warning">
@@ -1316,14 +1388,42 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
+     * Override deleteAttachment to update validation widget when files are removed
+     * @param {string} fileIdentifier - uuid
+     * @param {string} fileGroup - The group of files to handle
+     */
+    async deleteAttachment(fileIdentifier, fileGroup) {
+        // Call parent method to handle deletion
+        super.deleteAttachment(fileIdentifier, fileGroup);
+
+        // Update validation widget if in edit mode
+        if (!this.readOnly) {
+            const formElement = this.shadowRoot.querySelector('form');
+            if (formElement) {
+                const requiredFieldsValidated = await validateRequiredFields(formElement, true);
+                const fileValidation = this.validateMinimumFileUploads();
+
+                this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
+            }
+        }
+    }
+
+    /**
      * Handle files to submit event from file source component.
      * @param {CustomEvent} event - The event object containing the file data.
      */
-    handleFilesToSubmit(event) {
+    async handleFilesToSubmit(event) {
         const isValid = this.validateAttachmentFileName(event.detail.file);
         if (isValid) {
             // Call base class method to handle file addition
             super.handleFilesToSubmit(event);
+
+            // Update validation widget status
+            const formElement = this.shadowRoot.querySelector('form');
+            const requiredFieldsValidated = await validateRequiredFields(formElement, true);
+            const fileValidation = this.validateMinimumFileUploads();
+
+            this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
         }
     }
 
