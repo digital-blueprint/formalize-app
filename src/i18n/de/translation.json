@@ -339,6 +339,7 @@
                 "field-to-label": "bis",
                 "invalid-attachment-filename-error": "[de] Invalid filename. The filename needs to match the pattern: MT_yyyy_Sujet_xxxxxxx.ext",
                 "media-name-validation-error": "Sie müssen einen Mediennamen auswählen.",
+                "min-file-upload-error": "Die Mindestanzahl der erforderlichen Dateien beträgt {{minCount}}. Es wurden nur {{currentCount}} hochgeladen.",
                 "please-select-media": "Bitte wählen Sie einen Mediennamen aus.",
                 "sub-categories-app": "App",
                 "sub-categories-audio": "Audio",

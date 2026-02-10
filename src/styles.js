@@ -2003,6 +2003,10 @@ export function getMediaTransparencyFormCSS() {
             line-height: var(--dbp-form-line-height);
         }
 
+        .required-mark {
+            color: var(--dbp-danger);
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;

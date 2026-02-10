@@ -1557,6 +1557,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         let fileUploadLimits = {
             allowedFileUploadCount: {},
             fileSizeLimit: {},
+            minFileUploadCount: {},
         };
 
         try {
@@ -1564,6 +1565,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             if (formSchemaFields.files === undefined) return {};
             for (const [type, fileField] of Object.entries(formSchemaFields.files)) {
                 fileUploadLimits.allowedFileUploadCount[type] = fileField.maxNumber;
+                fileUploadLimits.minFileUploadCount[type] = fileField.minNumber;
                 fileUploadLimits.fileSizeLimit[type] = fileField.maxSizeMb;
             }
             return fileUploadLimits;
