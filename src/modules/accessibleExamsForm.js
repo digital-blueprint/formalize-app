@@ -111,7 +111,7 @@ class FormalizeFormElement extends BaseFormElement {
                     if (!response.ok) {
                         this.submissionError = true;
                         this.saveButtonEnabled = true;
-                        throw new Error(`Response status: ${response.status}`);
+                        await this.displayErrors(response);
                     } else {
                         this.wasSubmissionSuccessful = true;
                         this.submissionError = false;
