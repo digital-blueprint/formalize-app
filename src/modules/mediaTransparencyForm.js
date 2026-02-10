@@ -433,6 +433,19 @@ class FormalizeFormElement extends BaseFormElement {
         data.formData.identifier = isExistingDraft
             ? this.lastModifiedCreatorId
             : this.auth['user-id'];
+
+        // Clean up empty date fields to avoid JSON Schema validation errors
+        const dateFields = ['atFrom', 'to', 'reportingDeadline'];
+        dateFields.forEach((field) => {
+            if (
+                data.formData[field] === '' ||
+                data.formData[field] === null ||
+                data.formData[field] === undefined
+            ) {
+                delete data.formData[field];
+            }
+        });
+
         const formData = new FormData();
 
         // Iterate over all file groups dynamically
