@@ -997,6 +997,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         const conditionalFields = this._a('[data-condition]');
         const conditionalFieldsCount = conditionalFields.length;
 
+        if (conditionalFields.length === 0) return;
+
         conditionalFields.forEach((field) => {
             const value = field.value;
             if (value === undefined || value === '') return;
