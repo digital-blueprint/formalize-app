@@ -335,25 +335,9 @@ class FormalizeFormElement extends BaseFormElement {
 
         try {
             const response = await fetch(url, options);
-            let responseBody = await response.json();
             if (!response.ok) {
                 this.submissionError = true;
-                if (
-                    responseBody['relay:errorId'] ===
-                    'formalize:submission-data-feed-invalid-schema'
-                ) {
-                    this.displayValidationErrors(responseBody);
-                } else {
-                    sendNotification({
-                        summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.form-submission-failed', {
-                            status: response.status,
-                            details: responseBody.detail,
-                        }),
-                        type: 'danger',
-                        timeout: 0,
-                    });
-                }
+                await this.displayErrors(response);
             } else {
                 this.submissionError = false;
                 this.currentState = SUBMISSION_STATES.SUBMITTED;
