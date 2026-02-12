@@ -1060,14 +1060,14 @@ class FormalizeFormElement extends BaseFormElement {
                                 <p>
                                     Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer
                                     der Durchnummerierung. Siehe folgende Datei:
-                                    MT_2025_Sujets_Bezeichnungslogik-all.pdf
+                                    MT_2026_Sujets_Bezeichnungslogik-all.pdf
                                 </p>
                             </div>
                             <div slot="en">
                                 <p>
                                     Subject name (short!) – no other numbers in the subject name
                                     except for sequential numbering. See the following file:
-                                    MT_2025_Sujets_Bezeichnungslogik-all.pdf
+                                    MT_2026_Sujets_Bezeichnungslogik-all.pdf
                                 </p>
                             </div>
                         </dbp-translated>
@@ -1102,7 +1102,7 @@ class FormalizeFormElement extends BaseFormElement {
                 allowed-mime-types="application/pdf,image/jpeg,image/png,image/gif,video/mp4,video/mpeg,
                     video/webm,audio/mpeg,audio/ogg,audio/flac,audio/mp4"
                 max-file-size="100000"
-                number-of-files="1"
+                number-of-files="10"
                 enabled-targets="local,clipboard,nextcloud"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
 
@@ -1251,7 +1251,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-sujet-file-name-label',
                     )}"
-                    .value=${data.sujetFileName || 'MT_2025_Sujets_Bezeichnungslogik-all.pdf '}
+                    .value=${data.sujetFileName || ''}
                     disabled></dbp-form-string-view>
 
                 ${this.selectedCategory === 'online'
@@ -1442,7 +1442,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     validateAttachmentFileName(file, maxUpload) {
         const i18n = this._i18n;
-        const fileNamePattern = /^MT_\d{4}_Sujet_[a-zA-Z_-]+\d*\.[a-z]+$/;
+        const fileNamePattern = /^MT_\d{4}_Sujet_[a-zA-Z_-]+\d*\.[a-z0-9]+$/;
 
         if (!fileNamePattern.test(file.name)) {
             sendNotification({
