@@ -2769,19 +2769,21 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // const activeForm = this.forms.get(this.activeFormId);
         // const formGrantedActions = activeForm.formGrantedActions;
 
-        let selectedSubmissionsGrants = [];
+        let selectedSubmissionsGrants = new Set();
         for (const row of selectedRows) {
             const submissionId = row.getData().submissionId;
-            selectedSubmissionsGrants.push(...this.submissionsGrantedActions.get(submissionId));
+            const grants = this.submissionsGrantedActions.get(submissionId);
+            grants?.forEach((grant) => selectedSubmissionsGrants.add(grant));
         }
         // console.log(`selectedSubmissionsGrants`, selectedSubmissionsGrants);
 
-        let allSubmissionsGrants = [];
+        let allSubmissionsGrants = new Set();
         for (const row of allRows) {
             const submissionId = row.getData().submissionId;
-            allSubmissionsGrants.push(...this.submissionsGrantedActions.get(submissionId));
+            const grants = this.submissionsGrantedActions.get(submissionId);
+            grants?.forEach((grant) => allSubmissionsGrants.add(grant));
         }
-        // console.log(`allSubmissionsGrants`, allSubmissionsGrants);
+        console.log(`allSubmissionsGrants`, allSubmissionsGrants);
 
         // Set row counts
         this.selectedRowCount[state] = selectedRows.length;
@@ -2790,23 +2792,28 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.isDeleteSelectedSubmissionEnabled[state] =
             this.selectedRowCount[state] > 0 &&
             // If we can delete any of the selected submissions
-            (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
+            (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isDeleteAllSubmissionEnabled[state] =
             this.selectedRowCount[state] === 0 &&
             // If we can delete any of the submissions
-            (allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                allSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.DELETE));
+            (allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE));
 
         this.isEditSubmissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
-            (selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.UPDATE));
+            (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.UPDATE));
+
+        this.isBatchTaggingEnabled[state] =
+            this.selectedRowCount[state] > 0 &&
+            (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.READ_ADD_REMOVE_TAGS));
 
         this.isEditSubmissionPermissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
-            selectedSubmissionsGrants.includes(SUBMISSION_PERMISSIONS.MANAGE);
+            selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE);
 
         this.requestUpdate();
     }
