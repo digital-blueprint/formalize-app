@@ -345,6 +345,9 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('form', '/formalize/forms/' + this.formIdentifier);
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
+        // Add tags
+        const selectedTags = Object.values(this.selectedTags);
+        formData.append('tags', JSON.stringify(selectedTags));
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
@@ -469,8 +472,8 @@ class FormalizeFormElement extends BaseFormElement {
         formData.append('dataFeedElement', JSON.stringify(data.formData));
         formData.append('submissionState', String(SUBMISSION_STATES_BINARY.DRAFT));
         // Add tags
-        // const selectedTags = Object.values(this.selectedTags);
-        // formData.append('tags', JSON.stringify(selectedTags));
+        const selectedTags = Object.values(this.selectedTags);
+        formData.append('tags', JSON.stringify(selectedTags));
 
         const method = isExistingDraft ? 'PATCH' : 'POST';
         const options = this._buildRequestOptions(formData, method);
