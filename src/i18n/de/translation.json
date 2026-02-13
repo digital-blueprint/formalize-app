@@ -28,7 +28,6 @@
         "validation-failed": "Die Validierung der Daten ist fehlgeschlagen. Sie müssen Ihre Eingabe vor dem Absenden bearbeiten. {{details}}",
         "warning-title": "Achtung"
     },
-
     "loading-message": "Lädt...",
     "render-form": {
         "button-row": {
@@ -374,6 +373,12 @@
         "all-filters-show": "Alle anzeigen",
         "apply-col-settings": "Filteroptionen übernehmen",
         "back-text": "Zurück zur Formularliste",
+        "batch-tagging-button-text": "Schlagwörter hinzufügen",
+        "batch-tagging-button-text-add": "Tags hinzufügen",
+        "batch-tagging-button-text-replace": "Tags ersetzen",
+        "batch-tagging-message_one": "Wählen Sie die Tags aus, die Sie der ausgewählten {{count}} Einreichung hinzufügen möchten.",
+        "batch-tagging-message_other": "Wählen Sie die Tags aus, die Sie den ausgewählten {{count}} Einreichungen hinzufügen möchten.",
+        "batch-tagging-title": "Stapel-Tagging",
         "close-search-filters": "Schließen",
         "create-submission-button": "Einreichung erstellen",
         "default-export-select": "Exportieren",
@@ -398,6 +403,7 @@
         "filter-toggle-button": "Filter umschalten",
         "header-settings": "Tabellenkonfiguration",
         "id": "ID",
+        "just-add-tags-label": "",
         "modal-close": "Dialog schließen",
         "move-column-down": "Feld nach unten verschieben",
         "move-column-up": "Feld nach oben verschieben",
@@ -405,6 +411,7 @@
         "n-items-shown-label": "{{n}} gezeigt",
         "name": "Name",
         "next-entry-btn-title": "Nächster",
+        "no-available-tags-label": "Kein Tag verfügbar",
         "open-detailed-view-form": "Detaillierte Formularansicht öffnen",
         "open-detailed-view-modal": "Formularübermittlung Modal öffnen",
         "open-forms": "Formulareingabe öffnen",

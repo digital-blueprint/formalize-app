@@ -45,7 +45,8 @@ export const SUBMISSION_PERMISSIONS = Object.freeze({
     DELETE: 'delete',
     MANAGE: 'manage',
     READ_TAGS: 'read_tags',
-    READ_ADD_TAGS: 'read_add_tags',
+    ADD_TAGS: 'add_tags',
+    REMOVE_TAGS: 'remove_tags',
     READ_ADD_REMOVE_TAGS: 'read_add_remove_tags',
 });
 

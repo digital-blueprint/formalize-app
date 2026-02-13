@@ -28,7 +28,6 @@
         "validation-failed": "Validation of the data failed. You need to edit your submission before submitting.\n {{details}}",
         "warning-title": "Warning"
     },
-
     "loading-message": "Loading...",
     "render-form": {
         "button-row": {
@@ -337,7 +336,7 @@
                 "field-sujet-file-name-label": "Sujet file name",
                 "field-sujet-notes-label": "Sujet notes",
                 "field-to-label": "to",
-                "invalid-attachment-filename-error": "Invalid filename. The filename needs to match the pattern: MT_yyyy_Sujet_xxxxxxx.ext",
+                "invalid-attachment-filename-error": "Invalid filename '{{filename}}'. The filename needs to match the pattern: MT_yyyy_Sujet_xxxxxxx.ext",
                 "media-name-validation-error": "You need to select a media name",
                 "min-file-upload-error": "Minimum required files is count is {{minCount}}. Only {{currentCount}} is uploaded",
                 "please-select-media": "Please select a media name",
@@ -374,6 +373,12 @@
         "all-filters-show": "Show all",
         "apply-col-settings": "Apply filter options",
         "back-text": "Back to form list",
+        "batch-tagging-button-text": "Add tags",
+        "batch-tagging-button-text-add": "Add tags",
+        "batch-tagging-button-text-replace": "Replace tags",
+        "batch-tagging-message_one": "Select tag(s) that you want to set for the selected {{count}} submission",
+        "batch-tagging-message_other": "Select tag(s) that you want to set for the selected {{count}} submissions",
+        "batch-tagging-title": "Batch tagging",
         "close-search-filters": "Close filters",
         "create-submission-button": "Create submission",
         "default-export-select": "Export",
@@ -398,6 +403,7 @@
         "filter-toggle-button": "Toggle filters",
         "header-settings": "Table configuration",
         "id": "ID",
+        "just-add-tags-label": "Just add tags",
         "modal-close": "Close dialog",
         "move-column-down": "Move down",
         "move-column-up": "Move up",
@@ -405,6 +411,7 @@
         "n-items-shown-label": "{{n}} shown",
         "name": "Name",
         "next-entry-btn-title": "Next entry",
+        "no-available-tags-label": "No tags available",
         "open-detailed-view-form": "Open detailed form view",
         "open-detailed-view-modal": "Open submission modal",
         "open-forms": "Open form submissions",

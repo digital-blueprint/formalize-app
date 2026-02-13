@@ -715,6 +715,40 @@ export function getShowSubmissionCSS() {
             }
         }
 
+        .modal--batch-tagging {
+            --dbp-modal-max-width: 300px;
+            --dbp-fieldset-label-gap: 0.5em;
+            --dbp-boolean-label-gap: 0.5em;
+            --dbp-form-fieldset-margin: 0 0;
+        }
+
+        .batch-tagging-modal-content input[type='checkbox'] {
+            width: 24px;
+            height: 24px;
+        }
+
+        .tag-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+
+        .tag-checkbox label,
+        .tag-checkbox input[type='checkbox'] {
+            cursor: pointer;
+        }
+
+        .just-add-tags {
+            display: flex;
+            align-items: center;
+            gap: 0.25em;
+        }
+
+        .modal--batch-tagging .footer-menu {
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
         @container table-container (width < 530px) {
             .table-action-header:not(.open) {
                 grid-template-areas:

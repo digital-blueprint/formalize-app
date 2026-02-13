@@ -1,4 +1,5 @@
 import {css, html} from 'lit';
+import {createRef, ref} from 'lit/directives/ref.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {
     Button,
@@ -139,6 +140,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: false,
             submitted: false,
         };
+        this.isBatchTaggingEnabled = {
+            draft: false,
+            submitted: false,
+        };
         this.isEditSubmissionPermissionEnabled = {
             draft: false,
             submitted: false,
@@ -175,6 +180,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.userNameCache = new Map();
         this.isRequestDetailedView = false;
         this.submissionIdToOpen = null;
+        this.submissionIdsForTagging = [];
+        this.batchTaggingModalRef = createRef();
+        this.batchTaggingConfirmButtonRef = createRef();
+        this.availableTags = [];
+        this.selectedTagsForBatchTagging = [];
+        this.justAddTagsForBatchTagging = false;
     }
 
     static get scopedElements() {
@@ -232,6 +243,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             allRowCount: {type: Object, attribute: false},
             visibleRowCount: {type: Object, attribute: false},
             searchIsActive: {type: Object, attribute: false},
+            justAddTagsForBatchTagging: {type: Boolean, attribute: false},
         };
     }
 
@@ -719,12 +731,20 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.activeFormId = form.formId;
         this.showFormsTable = false;
         this.loadingSubmissionTables = true;
+
+        // Reset availableTags when switching forms
+        this.availableTags = [];
+
         this.getAllFormSubmissions(this.activeFormId).then(async () => {
             const activeForm = this.forms.get(this.activeFormId);
             const activeFormSlug = activeForm ? activeForm.formSlug : null;
             this.createSubmissionUrl = activeFormSlug
                 ? getFormRenderUrl(activeFormSlug, this.lang)
                 : '';
+
+            // Fetch available tags for this form before building the table
+            // This ensures availableTags is populated when setDefaultSubmissionTableOrder runs
+            await this.apiGetTags(this.activeFormId);
 
             // For tabulatorTable 'draft' and 'submitted'
             for (const state of Object.keys(this.submissionTables)) {
@@ -947,6 +967,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 dataFeedElement = JSON.parse(dataFeedElement);
                 let submissionId = submission['identifier'];
                 // const grantedActions = submission['grantedActions'];
+                const submissionTags = submission['tags'] || [];
 
                 // Iterate trough dataFeedElement
                 for (const [key, value] of Object.entries(dataFeedElement)) {
@@ -990,6 +1011,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const id = x + 1;
                 let cols = {
                     dateCreated: dateCreated,
+                    tags: Array.isArray(submissionTags)
+                        ? submissionTags
+                              .map((tag) => `<span class="tag">${xss(tag)}</span>`)
+                              .join(' ')
+                        : '',
                     ...dataFeedElement,
                     submissionId: submissionId,
                 };
@@ -1118,6 +1144,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                     if (columnDefinition.field === 'dateCreated') {
                         columnDefinition.visible = true;
+                    }
+                    if (columnDefinition.field === 'tags') {
+                        columnDefinition.formatter = 'html';
                     }
                     if (columnDefinition.field === 'htmlButtons') {
                         columnDefinition.formatter = 'html';
@@ -1269,6 +1298,9 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const initialColumnDefinitions = this._getInitialColumnDefinitions(submissionsTable);
         if (initialColumnDefinitions.length === 0) return;
 
+        // Check if tags are enabled for this form
+        const hasTagsColumn = Array.isArray(this.availableTags) && this.availableTags.length > 0;
+
         const isCatchAll = this._isCatchAllSchema(formSchemaFields);
 
         const schemaFields = this._getSchemaFields(
@@ -1276,6 +1308,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isCatchAll,
             initialColumnDefinitions,
             state,
+            hasTagsColumn,
         );
         const attachmentFields = this._getAttachmentFields(formSchemaFields);
         const systemFields = this._getSystemFields(initialColumnDefinitions);
@@ -1365,9 +1398,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {boolean} isCatchAll - Whether the schema is a catch-all schema.
      * @param {Array} initialColumnDefinitions - The initial column definitions.
      * @param {string} state - The state of the submission table ('draft' or 'submitted').
+     * @param {boolean} hasTagsColumn - Whether the tags are enabled for the form.
      * @returns {Array} - An array of schema field definitions.
      */
-    _getSchemaFields(formSchemaFields, isCatchAll, initialColumnDefinitions, state) {
+    _getSchemaFields(formSchemaFields, isCatchAll, initialColumnDefinitions, state, hasTagsColumn) {
         const schemaFields = [];
 
         // Always include dateCreated at the beginning
@@ -1376,12 +1410,27 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             schemaFields.push(dateCreatedDef);
         }
 
+        // Add tags column right after dateCreated if it exists
+        if (hasTagsColumn) {
+            const tagsField = initialColumnDefinitions.find((def) => def.field === 'tags');
+            if (tagsField) {
+                const tagsFieldClone = {...tagsField};
+                tagsFieldClone.frozen = false;
+                tagsFieldClone.formatter = 'html';
+                if (tagsFieldClone.visible === undefined) {
+                    tagsFieldClone.visible = true;
+                }
+                schemaFields.push(tagsFieldClone);
+            }
+        }
+
         if (isCatchAll) {
             initialColumnDefinitions.forEach((def) => {
                 if (
                     def.field &&
                     def.field !== 'rowIndex' &&
                     def.field !== 'dateCreated' &&
+                    def.field !== 'tags' &&
                     def.field !== 'identifier' &&
                     def.field !== 'submissionId' &&
                     def.field !== 'htmlButtons'
@@ -1433,12 +1482,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @returns {Array} - An array of system field definitions.
      */
     _getSystemFields(initialColumnDefinitions) {
-        return initialColumnDefinitions.filter(
+        const systemFields = initialColumnDefinitions.filter(
             (def) =>
                 def.field === 'identifier' ||
                 def.field === 'submissionId' ||
                 def.field === 'htmlButtons',
         );
+
+        return systemFields;
     }
 
     /**
@@ -2672,6 +2723,18 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         </li>
                         <li class="action">
                             <button
+                                class="button action-button button--batch-tagging"
+                                ?disabled=${!this.isBatchTaggingEnabled[state]}
+                                @click="${async () => {
+                                    await this.handleOpenBatchTaggingModal(state);
+                                    this.toggleActionsDropdown(state);
+                                }}">
+                                <dbp-icon name="tags" aria-hidden="true"></dbp-icon>
+                                ${i18n.t('show-submissions.batch-tagging-button-text')}
+                            </button>
+                        </li>
+                        <li class="action">
+                            <button
                                 class="button action-button button--edit-permission"
                                 ?disabled=${!this.isEditSubmissionPermissionEnabled[state]}
                                 @click="${async () => {
@@ -2730,7 +2793,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.isEditSubmissionEnabled[state] === false &&
             this.isEditSubmissionPermissionEnabled[state] === false &&
             this.isDeleteAllSubmissionEnabled[state] === false &&
-            this.isDeleteSelectedSubmissionEnabled[state] === false
+            this.isDeleteSelectedSubmissionEnabled[state] === false &&
+            this.isBatchTaggingEnabled[state] === false
         ) {
             this.isActionAvailable = {...this.isActionAvailable, [state]: false};
         } else {
@@ -2808,8 +2872,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.isBatchTaggingEnabled[state] =
             this.selectedRowCount[state] > 0 &&
-            (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.READ_ADD_REMOVE_TAGS));
+            selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.ADD_TAGS);
 
         this.isEditSubmissionPermissionEnabled[state] =
             this.selectedRowCount[state] === 1 &&
@@ -2870,6 +2933,100 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             permissionDialog.resourceIdentifier = submissionId;
             permissionDialog.open();
         }
+    }
+
+    async handleOpenBatchTaggingModal(state) {
+        const data = this.submissionTables[state].tabulatorTable.getSelectedData();
+        this.submissionIdsForTagging = data.map((submission) => submission.submissionId);
+        await this.apiGetTags(this.activeFormId);
+        this.currentStateForBatchTagging = state;
+        // Reset selected tags when opening the modal
+        this.selectedTagsForBatchTagging = [];
+        this.requestUpdate();
+        this.batchTaggingModalRef.value?.open();
+    }
+
+    async handleBatchTaggingConfirm(event) {
+        const button = this.batchTaggingConfirmButtonRef.value;
+        if (button) {
+            button.spinner = true;
+            button.start();
+        }
+
+        // PATCH submissions with the new tags.
+        let responseStatus = [];
+        let responseDetailedStatus = [];
+        let submissionFinalTagsMap = new Map();
+
+        for (const submissionId of this.submissionIdsForTagging) {
+            try {
+                // Find current tags from rawSubmissions
+                const rawSubmission = this.rawSubmissions.find(
+                    (sub) => sub.identifier === submissionId,
+                );
+                const currentTags = rawSubmission?.tags || [];
+
+                let finalTags;
+                if (this.justAddTagsForBatchTagging) {
+                    // Add new tags to existing ones and remove duplicates
+                    const mergedTags = [...currentTags, ...this.selectedTagsForBatchTagging];
+                    finalTags = [...new Set(mergedTags)];
+                } else {
+                    // Replace all tags with selected ones
+                    finalTags = [...this.selectedTagsForBatchTagging];
+                }
+
+                const response = await this.apiUpdateSubmissionTags(submissionId, finalTags);
+                responseStatus.push(response);
+                responseDetailedStatus.push({status: response, submissionId: submissionId});
+
+                // Store final tags for table update and update rawSubmissions
+                if (response && rawSubmission) {
+                    submissionFinalTagsMap.set(submissionId, finalTags);
+                    rawSubmission.tags = finalTags;
+                }
+            } catch (error) {
+                console.error(`Failed to update tags for submission ${submissionId}:`, error);
+                responseStatus.push(false);
+                responseDetailedStatus.push({status: false, submissionId: submissionId});
+            }
+        }
+
+        // Unselect processed rows and update table
+        const state = this.currentStateForBatchTagging;
+        const tabulatorTable = this.submissionTables[state].tabulatorTable;
+        tabulatorTable
+            .getRows()
+            .filter((row) => {
+                const res = responseDetailedStatus.find(
+                    (res) => res.submissionId === row.getData().submissionId,
+                );
+                return res && res.status === true;
+            })
+            .forEach((row) => {
+                const submissionId = row.getData().submissionId;
+                const finalTags = submissionFinalTagsMap.get(submissionId) || [];
+                row.update({
+                    tags: Array.isArray(finalTags)
+                        ? finalTags.map((tag) => `<span class="tag">${xss(tag)}</span>`).join(' ')
+                        : '',
+                });
+                row.deselect();
+            });
+
+        // Recalculate column widths after updating rows
+        tabulatorTable.redraw(true);
+
+        if (button) {
+            button.spinner = false;
+            button.stop();
+            this.batchTaggingModalRef.value?.close();
+        }
+        // Reset selected tags after closing the modal
+        this.selectedTagsForBatchTagging = [];
+        this.requestUpdate();
+        // Report
+        this.successFailureNotification(responseStatus);
     }
 
     handleEditSubmissions(event, state) {
@@ -2977,6 +3134,54 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    /**
+     *
+     * @param {string} submissionId
+     * @param {Array<string>} finalTags - The final tags to set for the submission
+     * @returns {Promise<boolean>}
+     */
+    async apiUpdateSubmissionTags(submissionId, finalTags) {
+        if (!submissionId || !this.activeFormId) {
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.no-submission-id-provided'),
+                type: 'danger',
+                timeout: 0,
+            });
+            return false;
+        }
+
+        // Only send tags field to avoid schema validation of dataFeedElement
+        const formData = new FormData();
+        formData.append('form', '/formalize/forms/' + this.activeFormId);
+        formData.append('tags', JSON.stringify(finalTags));
+        const options = {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${this.auth.token}`,
+            },
+            body: formData,
+        };
+        const url = this.entryPointUrl + '/formalize/submissions/' + submissionId;
+
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                console.warn(
+                    `Failed to update submission tags. Response status: ${response.status}`,
+                );
+                const errorData = await response.json().catch(() => ({}));
+                console.warn('Error details:', errorData);
+                return false;
+            } else {
+                return true;
+            }
+        } catch (error) {
+            console.error(error.message);
+            return false;
+        }
+    }
+
     async apiDeleteSubmissions(submissionId) {
         if (!submissionId) {
             sendNotification({
@@ -3009,6 +3214,58 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             console.error(error.message);
             return false;
         }
+    }
+
+    /**
+     * Get tags from the API for the active form to be used in batch tagging
+     * Sets this.availableTags with the result
+     * @param {string} identifier - form identifier
+     */
+    async apiGetTags(identifier) {
+        // If the user is not logged in yet, we can't check permissions
+        if (this.auth.token === '') {
+            this.availableTags = [];
+        }
+
+        let response;
+        let data = [];
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        };
+
+        try {
+            response = await this.httpGetAsync(
+                this.entryPointUrl + '/formalize/forms/' + identifier,
+                options,
+            );
+
+            if (!response.ok) {
+                this.availableTags = [];
+            }
+
+            data = await response.json();
+        } catch (e) {
+            this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
+            console.error(e);
+            this.availableTags = [];
+        }
+
+        if (data.error) {
+            console.error('checkPermissionsToForm data.error', data.error);
+            this.availableTags = [];
+        }
+
+        if (data['@type'] === 'hydra:Error') {
+            console.error('checkPermissionsToForm hydra:Error', data.detail);
+            this.availableTags = [];
+        }
+
+        this.availableTags = data.availableTags || [];
     }
 
     closeAllSearchWidgets() {
@@ -3364,6 +3621,111 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         @click="${() => handleDeletionConfirm(this)}">
                         ${i18n.t('show-submissions.delete')}
                     </dbp-button>
+                </menu>
+            </dbp-modal>
+
+            <!-- Batch Tagging Confirmation Modal -->
+            <dbp-modal
+                ${ref(this.batchTaggingModalRef)}
+                id="batch-tagging-dialog-modal"
+                class="modal modal--batch-tagging"
+                modal-id="batch-tagging-dialog"
+                title="${i18n.t('show-submissions.batch-tagging-title')}"
+                subscribe="lang">
+                <div slot="content">
+                    <div class="batch-tagging-modal-content">
+                        <p>
+                            ${i18n.t('show-submissions.batch-tagging-message', {
+                                count: this.submissionIdsForTagging.length,
+                            })}
+                        </p>
+                        <fieldset class="checkbox-container">
+                            <legend>
+                                <dbp-icon name="tags" aria-hidden="true"></dbp-icon>
+                                Available tags
+                            </legend>
+                            ${this.availableTags && this.availableTags.length > 0
+                                ? html`
+                                      ${this.availableTags.map(
+                                          (tag) => html`
+                                              <div class="tag-checkbox">
+                                                  <input
+                                                      type="checkbox"
+                                                      id="batch-tagging-tag-${tag.identifier}"
+                                                      name="batch-tagging-tag-${tag.identifier}"
+                                                      value="${tag.identifier}"
+                                                      .checked="${this.selectedTagsForBatchTagging.includes(
+                                                          tag.identifier,
+                                                      )}"
+                                                      @change="${(e) => {
+                                                          if (e.target.checked) {
+                                                              this.selectedTagsForBatchTagging = [
+                                                                  ...this
+                                                                      .selectedTagsForBatchTagging,
+                                                                  tag.identifier,
+                                                              ];
+                                                          } else {
+                                                              this.selectedTagsForBatchTagging =
+                                                                  this.selectedTagsForBatchTagging.filter(
+                                                                      (t) => t !== tag.identifier,
+                                                                  );
+                                                          }
+                                                      }}" />
+                                                  <label for="batch-tagging-tag-${tag.identifier}">
+                                                      ${tag.identifier}
+                                                  </label>
+                                              </div>
+                                          `,
+                                      )}
+                                  `
+                                : html`
+                                      <p>
+                                          <dbp-icon name="warning" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('show-submissions.no-available-tags-label')}
+                                      </p>
+                                  `}
+                        </fieldset>
+                    </div>
+                </div>
+                <menu slot="footer" class="footer-menu">
+                    <div class="just-add-tags">
+                        <input
+                            type="checkbox"
+                            id="just-add-tags-checkbox"
+                            name="just-add-tags-checkbox"
+                            value="just-add-tags"
+                            @change="${(e) => {
+                                if (e.target.checked) {
+                                    this.justAddTagsForBatchTagging = true;
+                                } else {
+                                    this.justAddTagsForBatchTagging = false;
+                                }
+                            }}" />
+                        <label for="just-add-tags-checkbox">
+                            ${i18n.t('show-submissions.just-add-tags-label')}
+                        </label>
+                    </div>
+                    <div class="button-container">
+                        <dbp-button
+                            type="is-secondary"
+                            no-spinner-on-click
+                            @click="${() => {
+                                this.selectedTagsForBatchTagging = [];
+                                this.requestUpdate();
+                                this.batchTaggingModalRef.value?.close();
+                            }}">
+                            ${i18n.t('show-submissions.abort')}
+                        </dbp-button>
+                        <dbp-button
+                            ${ref(this.batchTaggingConfirmButtonRef)}
+                            id="process-batch-tagging-button"
+                            type="is-danger"
+                            @click="${(event) => this.handleBatchTaggingConfirm(event)}">
+                            ${this.justAddTagsForBatchTagging
+                                ? i18n.t('show-submissions.batch-tagging-button-text-add')
+                                : i18n.t('show-submissions.batch-tagging-button-text-replace')}
+                        </dbp-button>
+                    </div>
                 </menu>
             </dbp-modal>
         `;
