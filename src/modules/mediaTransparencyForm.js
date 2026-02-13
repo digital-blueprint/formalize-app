@@ -61,6 +61,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Event handlers
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
+        this.handleFormSaveSubmission = this.handleFormSaveSubmission.bind(this);
     }
 
     static get properties() {
@@ -105,6 +106,8 @@ class FormalizeFormElement extends BaseFormElement {
             );
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
+            // Event listener for save/PATCH submission
+            this.addEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
         });
     }
 
@@ -112,6 +115,7 @@ class FormalizeFormElement extends BaseFormElement {
         super.disconnectedCallback();
         this.removeEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
         this.removeEventListener('DbpFormalizeFormSaveDraft', this.handleSaveDraft);
+        this.removeEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
         this.removeEventListener(
             'DbpFormalizeFormDeleteSubmission',
             this.handleFormDeleteSubmission,
@@ -411,6 +415,124 @@ class FormalizeFormElement extends BaseFormElement {
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
                 body: this._i18n.t('errors.unknown-error-on-form-submission'),
+                type: 'danger',
+                timeout: 0,
+            });
+        }
+    }
+
+    /**
+     * Handle save (PATCH) submission.
+     * @param {object} event - The event object containing the form data.
+     */
+    async handleFormSaveSubmission(event) {
+        if (!event.detail.submissionId) return;
+
+        const data = event.detail;
+        // Include unique identifier for person who is submitting
+        data.formData.identifier = this.lastModifiedCreatorId;
+        // Clean up empty date fields to avoid JSON Schema validation errors
+        const dateFields = ['atFrom', 'to', 'reportingDeadline'];
+        dateFields.forEach((field) => {
+            if (
+                data.formData[field] === '' ||
+                data.formData[field] === null ||
+                data.formData[field] === undefined
+            ) {
+                delete data.formData[field];
+            }
+        });
+
+        const formData = new FormData();
+
+        // Iterate over all file groups dynamically
+        for (const [fileGroup, groupData] of Object.entries(this.filesByGroup)) {
+            // Set files to upload for this group
+            if (groupData.filesToSubmit.size > 0) {
+                groupData.filesToSubmit.forEach((fileToAttach) => {
+                    formData.append(`${fileGroup}[]`, fileToAttach, fileToAttach.name);
+                });
+            }
+
+            // Set files to remove for this group
+            if (groupData.filesToRemove.size > 0) {
+                groupData.filesToRemove.forEach((fileObject, fileIdentifier) => {
+                    formData.append(`submittedFiles[${fileIdentifier}]`, 'null');
+                });
+            }
+        }
+
+        formData.append('dataFeedElement', JSON.stringify(data.formData));
+        // Add tags
+        const selectedTags = Object.values(this.selectedTags);
+        formData.append('tags', JSON.stringify(selectedTags));
+
+        const options = this._buildRequestOptions(formData, 'PATCH');
+        const url = this._buildSubmissionUrl(event.detail.submissionId);
+
+        // Backup all file groups in case of error
+        const filesByGroupBackup = {};
+        for (const [fileGroup, groupData] of Object.entries(this.filesByGroup)) {
+            filesByGroupBackup[fileGroup] = {
+                submittedFiles: new Map(groupData.submittedFiles),
+                filesToSubmit: new Map(groupData.filesToSubmit),
+                filesToRemove: new Map(groupData.filesToRemove),
+            };
+        }
+
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                await this.displayErrors(response);
+            } else {
+                const responseBody = await response.json();
+                // Process all submitted files by group
+                const submittedFilesByGroup = {};
+                for (const file of responseBody.submittedFiles) {
+                    if (!submittedFilesByGroup[file.fileAttributeName]) {
+                        submittedFilesByGroup[file.fileAttributeName] = [];
+                    }
+                    submittedFilesByGroup[file.fileAttributeName].push(file);
+                }
+
+                // Update each file group
+                for (const [fileGroup, files] of Object.entries(submittedFilesByGroup)) {
+                    const groupData = this.getOrCreateFileGroup(fileGroup);
+                    groupData.submittedFiles = await this.transformApiResponseToFile(files);
+                    groupData.filesToSubmit = new Map();
+                    groupData.filesToRemove = new Map();
+                }
+
+                // formDataUpdated event to notify parent component
+                this.dispatchEvent(
+                    new CustomEvent('dbpFormDataUpdated', {
+                        detail: {
+                            needUpdate: true,
+                        },
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
+
+                sendNotification({
+                    summary: this._i18n.t('success.success-title'),
+                    body: this._i18n.t('success.form-saved-successfully'),
+                    type: 'success',
+                    timeout: 5,
+                });
+            }
+        } catch (error) {
+            // Restore all file groups if something went wrong
+            for (const [fileGroup, backup] of Object.entries(filesByGroupBackup)) {
+                this.filesByGroup[fileGroup] = backup;
+            }
+
+            this.requestUpdate();
+
+            console.error(error);
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.unknown-error-on-save-submission'),
                 type: 'danger',
                 timeout: 0,
             });
