@@ -1,6 +1,6 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
-import {classMap} from 'lit-html/directives/class-map.js';
+import {classMap} from 'lit/directives/class-map.js';
 import {DbpStringElement} from '@dbp-toolkit/form-elements';
 import {CourseSelect} from './course-select.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';

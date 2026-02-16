@@ -1,6 +1,6 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
-import {classMap} from 'lit-html/directives/class-map.js';
+import {classMap} from 'lit/directives/class-map.js';
 import {
     DbpStringElement,
     DbpDateElement,

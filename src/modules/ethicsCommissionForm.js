@@ -1,6 +1,6 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
-import {classMap} from 'lit-html/directives/class-map.js';
+import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {Translated, sendNotification} from '@dbp-toolkit/common';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
