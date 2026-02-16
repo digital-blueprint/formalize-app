@@ -3426,6 +3426,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
+    _onLoginClicked(e) {
+        this.sendSetPropertyEvent('requested-login-status', 'logged-in');
+        e.preventDefault();
+    }
+
     render() {
         const i18n = this._i18n;
 
@@ -3434,9 +3439,10 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return html`
             <div
                 class="notification is-warning ${classMap({
-                    hidden: this.isLoggedIn(),
+                    hidden: this.isLoggedIn() || this.isLoading(),
                 })}">
                 ${i18n.t('error-login-message')}
+                <a href="#" @click="${this._onLoginClicked}">${i18n.t('error-login-link')}</a>
             </div>
 
             <div class="control ${classMap({hidden: this.isLoggedIn() || !this.isAuthPending()})}">

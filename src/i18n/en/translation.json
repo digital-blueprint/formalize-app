@@ -1,5 +1,6 @@
 {
-    "error-login-message": "You need to be logged in to use this function!",
+    "error-login-link": "Log in",
+    "error-login-message": "Please log in to use this functionality.",
     "errors": {
         "error-title": "Error",
         "failed-to-delete-submission-status": "Failed to delete submission. Response status: {{status}}",

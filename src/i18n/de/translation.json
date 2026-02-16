@@ -1,5 +1,6 @@
 {
-    "error-login-message": "Sie müssen eingeloggt sein, um diese Funktion nutzen zu können!",
+    "error-login-link": "Anmelden",
+    "error-login-message": "Bitte melden Sie sich an, um diese Funktion nutzen zu können.",
     "errors": {
         "error-title": "Fehler",
         "failed-to-delete-submission-status": "Das Löschen der Übermittlung ist fehlgeschlagen. Antwortstatus: {{status}}",
