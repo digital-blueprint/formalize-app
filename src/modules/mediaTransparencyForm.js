@@ -1011,6 +1011,7 @@ class FormalizeFormElement extends BaseFormElement {
                           <dbp-form-string-element
                               subscribe="lang"
                               name="mediumOwnersName"
+                              maxlength="1000"
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-media-owners-name-label',
                               )}"
@@ -1043,6 +1044,7 @@ class FormalizeFormElement extends BaseFormElement {
                           <dbp-form-string-element
                               subscribe="lang"
                               name="otherMediumName"
+                              maxlength="1000"
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-other-medium-name-label',
                               )}"
@@ -1054,12 +1056,14 @@ class FormalizeFormElement extends BaseFormElement {
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                               )}"
+                              maxlength="1000"
                               .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
                       `}
 
                 <dbp-form-string-element
                     subscribe="lang"
                     name="amountInEuro"
+                    maxlength="20"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-amount-in-euro-label',
                     )}"
@@ -1092,6 +1096,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-string-element
                     subscribe="lang"
                     name="campaignTitle"
+                    maxlength="1000"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-campaign-title-label',
                     )}"
@@ -1104,6 +1109,7 @@ class FormalizeFormElement extends BaseFormElement {
                               subscribe="lang"
                               name="sujetNotes"
                               rows="5"
+                              maxlength="1000"
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-sujet-notes-label',
                               )}"
@@ -1116,6 +1122,7 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="notes"
                     rows="5"
+                    maxlength="1000"
                     label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
                     .value=${data.notes || ''}></dbp-form-string-element>
 
@@ -1145,6 +1152,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-string-element
                     subscribe="lang"
                     name="sapOrderNumber"
+                    maxlength="100"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-sap-order-number-label',
                     )}"
