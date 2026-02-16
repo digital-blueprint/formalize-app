@@ -125,6 +125,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     async update(changedProperties) {
         super.update(changedProperties);
+        const i18n = this._i18n;
 
         console.log('changedProperties', changedProperties);
 
@@ -150,8 +151,11 @@ class FormalizeFormElement extends BaseFormElement {
                         this.isFormValid = false;
                         const failed = fileValidation.failedGroups[0];
                         sendNotification({
-                            summary: this._i18n.t('errors.error-title'),
-                            body: `${this._i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
+                            summary: i18n.t('errors.error-title'),
+                            body: i18n.t(
+                                'render-form.forms.media-transparency-form.min-file-upload-error',
+                                {currentCount: failed.currentCount, minCount: failed.minCount},
+                            ),
                             type: 'warning',
                             timeout: 5,
                         });
@@ -161,8 +165,8 @@ class FormalizeFormElement extends BaseFormElement {
                         this.scrollToFirstInvalidField(formElement, true);
                         // Show notification
                         sendNotification({
-                            summary: this._i18n.t('errors.warning-title'),
-                            body: this._i18n.t('errors.form-validation-warning-notification-body'),
+                            summary: i18n.t('errors.warning-title'),
+                            body: i18n.t('errors.form-validation-warning-notification-body'),
                             type: 'warning',
                             timeout: 5,
                         });
@@ -176,7 +180,6 @@ class FormalizeFormElement extends BaseFormElement {
         super.updated(changedProperties);
 
         if (changedProperties.has('data')) {
-            console.log('Data changed:', this.data);
             // Reset observer so it can re-attach if needed
             this._formHeaderObserved = false;
             this.stickyHeaderObserver();
@@ -202,6 +205,7 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     async processFormData() {
+        const i18n = this._i18n;
         try {
             this.currentSubmission = this.data;
 
@@ -256,8 +260,8 @@ class FormalizeFormElement extends BaseFormElement {
                     );
                     if (!lastModifierDetailsResponse.ok) {
                         sendNotification({
-                            summary: this._i18n.t('errors.error-title'),
-                            body: this._i18n.t('errors.failed-to-get-last-modifier-details', {
+                            summary: i18n.t('errors.error-title'),
+                            body: i18n.t('errors.failed-to-get-last-modifier-details', {
                                 status: lastModifierDetailsResponse.status,
                             }),
                             type: 'danger',
@@ -270,8 +274,8 @@ class FormalizeFormElement extends BaseFormElement {
                 } catch (e) {
                     console.log(e);
                     sendNotification({
-                        summary: this._i18n.t('errors.error-title'),
-                        body: this._i18n.t('errors.failed-to-get-last-modifier-details'),
+                        summary: i18n.t('errors.error-title'),
+                        body: i18n.t('errors.failed-to-get-last-modifier-details'),
                         type: 'danger',
                         timeout: 0,
                     });
@@ -287,6 +291,7 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {object} event - The event object containing the form data.
      */
     async handleFormSubmission(event) {
+        const i18n = this._i18n;
         // Access the data from the event detail
         const data = event.detail;
 
@@ -295,8 +300,8 @@ class FormalizeFormElement extends BaseFormElement {
         if (!fileValidation.isValid) {
             const failed = fileValidation.failedGroups[0]; // Show first failure
             sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: `${this._i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
+                summary: i18n.t('errors.error-title'),
+                body: `${i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
                 type: 'danger',
                 timeout: 5,
             });
@@ -388,8 +393,8 @@ class FormalizeFormElement extends BaseFormElement {
                 this.disableLeavePageWarning();
 
                 sendNotification({
-                    summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.form-submitted-successfully'),
+                    summary: i18n.t('success.success-title'),
+                    body: i18n.t('success.form-submitted-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -413,8 +418,8 @@ class FormalizeFormElement extends BaseFormElement {
             }
 
             sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.unknown-error-on-form-submission'),
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('errors.unknown-error-on-form-submission'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -426,6 +431,7 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {object} event - The event object containing the form data.
      */
     async handleFormSaveSubmission(event) {
+        const i18n = this._i18n;
         if (!event.detail.submissionId) return;
 
         const data = event.detail;
@@ -515,8 +521,8 @@ class FormalizeFormElement extends BaseFormElement {
                 );
 
                 sendNotification({
-                    summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.form-saved-successfully'),
+                    summary: i18n.t('success.success-title'),
+                    body: i18n.t('success.form-saved-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -531,8 +537,8 @@ class FormalizeFormElement extends BaseFormElement {
 
             console.error(error);
             sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.unknown-error-on-save-submission'),
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('errors.unknown-error-on-save-submission'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -544,6 +550,7 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {object} event - The event object containing the form data.
      */
     async handleSaveDraft(event) {
+        const i18n = this._i18n;
         // Access the data from the event detail
         const data = event.detail;
         // const validationResult = data.validationResult;
@@ -617,8 +624,8 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (!response.ok) {
                 sendNotification({
-                    summary: this._i18n.t('errors.error-title'),
-                    body: this._i18n.t('errors.failed-to-save-draft', {
+                    summary: i18n.t('errors.error-title'),
+                    body: i18n.t('errors.failed-to-save-draft', {
                         status: response.status,
                         detail: responseBody.detail,
                     }),
@@ -675,8 +682,8 @@ class FormalizeFormElement extends BaseFormElement {
 
             console.error(error);
             sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.unknown-error-on-save-draft'),
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('errors.unknown-error-on-save-draft'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -732,13 +739,14 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {object} event - The event object containing the submission id to delete.
      */
     async handleFormDeleteSubmission(event) {
+        const i18n = this._i18n;
         const data = event.detail;
         const submissionId = data.submissionId;
 
         if (!submissionId) {
             sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.no-submission-id-provided'),
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('errors.no-submission-id-provided'),
                 type: 'danger',
                 timeout: 0,
             });
@@ -762,8 +770,8 @@ class FormalizeFormElement extends BaseFormElement {
             if (!response.ok) {
                 this.deleteSubmissionError = true;
                 sendNotification({
-                    summary: this._i18n.t('errors.error-title'),
-                    body: this._i18n.t('errors.failed-to-delete-submission-status', {
+                    summary: i18n.t('errors.error-title'),
+                    body: i18n.t('errors.failed-to-delete-submission-status', {
                         status: response.status,
                     }),
                     type: 'danger',
@@ -776,16 +784,16 @@ class FormalizeFormElement extends BaseFormElement {
         } catch (error) {
             console.error(error);
             sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.unknown-error-on-delete-submission'),
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('errors.unknown-error-on-delete-submission'),
                 type: 'danger',
                 timeout: 0,
             });
         } finally {
             if (this.wasDeleteSubmissionSuccessful) {
                 sendNotification({
-                    summary: this._i18n.t('success.success-title'),
-                    body: this._i18n.t('success.form-submission-deleted-successfully'),
+                    summary: i18n.t('success.success-title'),
+                    body: i18n.t('success.form-submission-deleted-successfully'),
                     type: 'success',
                     timeout: 5,
                 });
@@ -828,7 +836,6 @@ class FormalizeFormElement extends BaseFormElement {
 
     setSubcategoryItemsByValue(selectedValue) {
         const i18n = this._i18n;
-        console.log(`selectedValue`, selectedValue);
         this.selectedCategory = selectedValue;
 
         // Update subcategory options based on selected category
@@ -885,8 +892,6 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         const data = this.formData || {};
 
-        console.log(`data`, data);
-
         return html`
             <form
                 id="media-transparency-form"
@@ -906,9 +911,9 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <p>
                     <span class="red-marked-asterisk">
-                        ${this._i18n.t('render-form.required-files-asterisk')}
+                        ${i18n.t('render-form.required-files-asterisk')}
                     </span>
-                    ${this._i18n.t('render-form.required-files-text')}
+                    ${i18n.t('render-form.required-files-text')}
                 </p>
 
                 <dbp-form-enum-element
@@ -1255,8 +1260,6 @@ class FormalizeFormElement extends BaseFormElement {
     renderFormViews() {
         const i18n = this._i18n;
         const data = this.formData || {};
-
-        console.log(`data`, data);
 
         return html`
             <form
