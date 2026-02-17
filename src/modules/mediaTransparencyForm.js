@@ -909,6 +909,28 @@ class FormalizeFormElement extends BaseFormElement {
                     ${i18n.t('render-form.forms.media-transparency-form.title')}
                 </h2>
 
+                <div class="form-description">
+                    <dbp-translated subscribe="lang">
+                        <div slot="de">
+                            <p>
+                                In diesem Formular können Sie Ihre Werbemaßnahmen eintragen, um die
+                                Transparenz von Werbung an der TU Graz zu erhöhen. Bitte füllen Sie
+                                alle Pflichtfelder aus (gekennzeichnet mit einem roten Stern) und
+                                laden Sie die erforderlichen Dateien hoch, damit Ihre Einreichung
+                                bearbeitet werden kann.
+                            </p>
+                        </div>
+                        <div slot="en">
+                            <p>
+                                In this form, you can enter your advertising activities to increase
+                                the transparency of advertising at TU Graz. Please fill in all
+                                required fields (marked with a red asterisk) and upload the
+                                necessary files to ensure that your submission can be processed.
+                            </p>
+                        </div>
+                    </dbp-translated>
+                </div>
+
                 <p>
                     <span class="red-marked-asterisk">
                         ${i18n.t('render-form.required-files-asterisk')}

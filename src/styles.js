@@ -2030,6 +2030,11 @@ export function getMediaTransparencyFormCSS() {
             --dbp-form-line-height: 24px;
         }
 
+        .form-description {
+            padding: 0 1em;
+            border: var(--dbp-border);
+        }
+
         .field-note {
             font-size: 0.8em;
             font-style: italic;
