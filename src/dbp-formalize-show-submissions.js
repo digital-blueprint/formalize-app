@@ -894,7 +894,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async getAllFormSubmissions(formId) {
         // const i18n = this._i18n;
         let response;
-        let data = [];
+        let data;
         this.submissions = {
             submitted: [],
             draft: [],
@@ -1206,8 +1206,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Set tabulator table data
             this.options_submissions[state].data = this.submissions[state];
             this.totalNumberOfItems[state] = submissions_list.length;
-
-            submissions_list = [];
         }
         return response;
     }
@@ -1647,7 +1645,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Get selected rows or all rows if no selection
             const selectedRowsObjects =
                 this.submissionTables[state].tabulatorTable.getSelectedRows();
-            let rowsToExport = [];
+            let rowsToExport;
             let selectedRowsSubmissionIds = [];
             if (selectedRowsObjects && selectedRowsObjects.length > 0) {
                 rowsToExport = selectedRowsObjects;

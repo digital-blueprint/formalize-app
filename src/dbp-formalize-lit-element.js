@@ -120,7 +120,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
      * @param responseData
      */
     async sendErrorAnalyticsEvent(category, action, information, responseData = {}) {
-        let responseBody = {};
+        let responseBody;
         // Use a clone of responseData to prevent "Failed to execute 'json' on 'Response': body stream already read"
         // after this function, but still a TypeError will occur if .json() was already called before this function
         try {

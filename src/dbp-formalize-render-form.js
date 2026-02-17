@@ -126,7 +126,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.authTokenExists = true;
         let response;
-        let data = [];
+        let data;
 
         const options = {
             method: 'GET',

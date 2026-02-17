@@ -1553,7 +1553,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     getFileUploadLimits(dataFeedSchema) {
         if (!dataFeedSchema) return {};
 
-        let formSchemaFields = {};
+        let formSchemaFields;
         let fileUploadLimits = {
             allowedFileUploadCount: {},
             fileSizeLimit: {},
