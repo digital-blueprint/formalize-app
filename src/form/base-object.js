@@ -1051,42 +1051,39 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                           </div>
                       `
                     : ''}
-                ${dateCreated
-                    ? html`
-                          <div class="submission-date">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.submission-creation-date-label',
-                                  )}:
-                              </span>
-                              <span class="value">${dateCreated}</span>
-                          </div>
-                      `
-                    : ''}
-                ${dateLastModified
-                    ? html`
-                          <div class="last-modified">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.last-modified-date-label',
-                                  )}:
-                              </span>
-                              <span class="value">${dateLastModified}</span>
-                          </div>
-                      `
-                    : ''}
-                ${this.lastModifiedCreatorName
-                    ? html`
-                          <div class="last-modified-by">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.last-modified-by-name-label',
-                                  )}:
-                              </span>
-                              <span class="value">${this.lastModifiedCreatorName}</span>
-                          </div>
-                      `
-                    : ''}
+                <div class="submission-date">
+                    <span class="label">
+                        ${i18n.t('render-form.forms.base-object.submission-creation-date-label')}:
+                    </span>
+                    <span class="value">
+                        ${dateCreated ||
+                        html`
+                            &mdash;
+                        `}
+                    </span>
+                </div>
+                <div class="last-modified">
+                    <span class="label">
+                        ${i18n.t('render-form.forms.base-object.last-modified-date-label')}:
+                    </span>
+                    <span class="value">
+                        ${dateLastModified ||
+                        html`
+                            &mdash;
+                        `}
+                    </span>
+                </div>
+                <div class="last-modified-by">
+                    <span class="label">
+                        ${i18n.t('render-form.forms.base-object.last-modified-by-name-label')}:
+                    </span>
+                    <span class="value">
+                        ${this.lastModifiedCreatorName ||
+                        html`
+                            &mdash;
+                        `}
+                    </span>
+                </div>
             </div>
         `;
     }
