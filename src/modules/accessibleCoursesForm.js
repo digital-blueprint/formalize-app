@@ -7,7 +7,7 @@ import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
-        // URL-Slug für barrierefreie Kurse
+        // URL-Slug
         return 'accessible-courses';
     }
 
@@ -15,7 +15,7 @@ export default class extends BaseObject {
         return FormalizeFormElement;
     }
 
-    // Formalize-Formular-ID für die Kurs-Anmeldung
+    // Formalize-Formular-ID for course registration
     getFormIdentifier() {
         return '019ada3e-b7ff-7b35-b1dd-7b578d810955';
     }
@@ -25,6 +25,9 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
         this.saveButtonEnabled = false;
+
+        // ensuring we have an object to extend
+        this.formData = this.formData || {};
     }
 
     static get properties() {
@@ -44,18 +47,17 @@ class FormalizeFormElement extends BaseFormElement {
                 // Identifier of the student
                 formData.identifier = this.formData.identifier;
 
-                // Lecturer Data
-                formData.lecturerName = this.formData.lecturerName || '';
-                formData.lecturerEmail = this.formData.lecturerEmail || '';
+                // use Lecturer-Array from formData
+                formData.lecturers = this.formData.lecturers || [];
+
                 try {
                     this.isPostingSubmission = true;
                     if (this.wasSubmissionSuccessful) return;
 
-                    //submit relevant data
+                    // submit relevant data
                     const payload = {
                         courseName: formData.courseName,
-                        lecturerName: formData.lecturerName || '',
-                        lecturerEmail: formData.lecturerEmail || '',
+                        lecturers: formData.lecturers,
                         studentName: `${formData.givenName} ${formData.familyName}`,
                         studentEmail: formData.email_student,
                         comment: formData.comment,
@@ -131,12 +133,18 @@ class FormalizeFormElement extends BaseFormElement {
             );
             if (!response.ok) throw new Error(response);
 
-            this.formData = await response.json();
-            this.formData.identifier = `${this.formData['identifier']}`;
-            this.formData.givenName = `${this.formData['givenName']}`;
-            this.formData.familyName = `${this.formData['familyName']}`;
-            this.formData.matriculationNumber = `${this.formData['localData']['matriculationNumber']}`;
-            this.formData.email_student = `${this.formData['localData']['email']}`;
+            const person = await response.json();
+
+            // completing/updating fields
+            this.formData = this.formData || {};
+
+            this.formData.identifier = `${person['identifier']}`;
+            this.formData.givenName = `${person['givenName']}`;
+            this.formData.familyName = `${person['familyName']}`;
+            this.formData.matriculationNumber = `${person['localData']['matriculationNumber']}`;
+            this.formData.email_student = `${person['localData']['email']}`;
+
+            this.requestUpdate();
         } catch (error) {
             console.error(error.message);
         }
@@ -152,23 +160,21 @@ class FormalizeFormElement extends BaseFormElement {
 
         const course = e.detail?.course;
         if (!course) {
-            this.formData.lecturerName = '';
-            this.formData.lecturerEmail = '';
-
             this.saveButtonEnabled = false;
+
+            // if no course chosen, reset lecturers
+            this.formData.lecturers = [];
             this.requestUpdate();
             return;
         }
 
         const lecturerIds = Array.isArray(course.localData?.lecturers)
-            ? course.localData?.lecturers.map((lecturer) =>
+            ? course.localData.lecturers.map((lecturer) =>
                   typeof lecturer === 'string' ? lecturer : lecturer.personIdentifier,
               )
             : [];
 
-        const lecturers = [];
-        const lecturerNames = [];
-        const lecturerEmails = [];
+        const lecturerStrings = [];
 
         for (const lecturerId of lecturerIds) {
             try {
@@ -184,8 +190,8 @@ class FormalizeFormElement extends BaseFormElement {
 
                 if (!resp.ok) {
                     console.warn('Lecturer fetch failed for', lecturerId, resp.status);
-                    lecturers.push({id: lecturerId, name: lecturerId, email: null});
-                    lecturerNames.push(lecturerId);
+                    // Fallback: wenn Person nicht gefunden, einfach die ID speichern
+                    lecturerStrings.push(lecturerId);
                     continue;
                 }
 
@@ -193,24 +199,20 @@ class FormalizeFormElement extends BaseFormElement {
                 const name = `${person.givenName ?? ''} ${person.familyName ?? ''}`.trim();
                 const email = person.localData?.email ?? null;
 
-                lecturers.push({id: lecturerId, name: name || lecturerId, email});
-                lecturerNames.push(name || lecturerId);
-                if (email) {
-                    lecturerEmails.push(email);
-                }
+                // concat String "Name (mail@tugraz.at)"
+                const label = email ? `${name || lecturerId} (${email})` : name || lecturerId;
+
+                lecturerStrings.push(label);
             } catch (err) {
                 console.error('Error fetching lecturer', lecturerId, err);
+                lecturerStrings.push(lecturerId); // Fallback bei Fehler
             }
         }
-        // structured Data & Strings
-        this.formData.lecturers = lecturers;
-        this.formData.lecturerName = lecturerNames.join(', ');
-        this.formData.lecturerEmail = lecturerEmails.join(', ');
-        this.formData.lecturerId = lecturerIds.join(', ');
-
         // Enable submit button only after we have updated the lecturer data
         this.saveButtonEnabled = true;
 
+        // store Array in formData
+        this.formData.lecturers = lecturerStrings;
         // refresh UI
         this.requestUpdate();
     }
