@@ -2342,7 +2342,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           class="question-group"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
-                                          label="3.5. ${i18n.t(
+                                          label="3.4.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
                                           value=${data.appropriateUseOfResources ||
@@ -2769,7 +2769,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     7.4. Werden im Projekt diversitäts- und gendersensible Aspekte berücksichtigt (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>siehe Leitfaden der TU Graz</a>)?
                                 </div>
                                 <div slot="en">
-                                    7.4. Are diversity and gender-sensitive aspects considered in the project? (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>see guidelines from TU Graz</a>)?
+                                    7.4. Are diversity and gender-sensitive aspects considered in the project (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>see guidelines from TU Graz</a>)?
                                 </div>
                             </dbp-translated>
                         </span>
@@ -4428,7 +4428,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
                                           maxlength="1000"
-                                          label="3.5. ${i18n.t(
+                                          label="3.4.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
                                           placeholder="${i18n.t(
@@ -4969,7 +4969,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     7.4. Werden im Projekt diversitäts- und gendersensible Aspekte berücksichtigt (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>siehe Leitfaden der TU Graz</a>)?
                                 </div>
                                 <div slot="en">
-                                    7.4. Are diversity and gender-sensitive aspects considered in the project? (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>see guidelines from TU Graz</a>)?
+                                    7.4. Are diversity and gender-sensitive aspects considered in the project (<a href='https://tu4u.tugraz.at/fileadmin/public/Studierende_und_Bedienstete/Anleitungen/Diversity-Gender_in_Forschungsprojekten_Checkliste_Deutsch.pdf?sword_list%5B0%5D=gender&sword_list%5B1%5D=forschung&no_cache=1' target='_blank'>see guidelines from TU Graz</a>)?
                                 </div>
                             </dbp-translated>
                         </span>
