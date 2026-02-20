@@ -185,7 +185,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
-        console.log('validateAndSendSubmission validationResult', validationResult);
         if (!validationResult) {
             this.scrollToFirstInvalidField(formElement);
             return;
@@ -362,7 +361,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
-        console.log('[sendSaveSubmission] validationResult', validationResult);
         if (!validationResult) {
             this.scrollToFirstInvalidField(formElement);
             return;
@@ -1100,7 +1098,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         });
 
         if (changedProperties.has('data')) {
-            console.log('[base-object] Data property changed:', this.data);
             // @ts-ignore
             // this.updateComplete.then(async () => {
             //     await this.processConditionalFields();
@@ -1217,12 +1214,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
-        console.log(
-            `this.formGrantedSubmissionCollectionActions`,
-            this.formGrantedSubmissionCollectionActions,
-        );
-        console.log(`this.submissionGrantedActions`, this.submissionGrantedActions);
-
         this.isViewModeButtonAllowed = false;
         this.isDraftButtonAllowed = false;
         this.isDeleteSubmissionButtonAllowed = false;
