@@ -441,6 +441,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     columnDefinition.minWidth = 64;
                     columnDefinition.frozen = true;
                     columnDefinition.headerHozAlign = 'right';
+                    columnDefinition.download = false;
                     // Add open columnSettings modal button
                     columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
                         let columnSettingsButton = this.submissionTables[state].createScopedElement(
@@ -479,6 +480,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     headerSort: false,
                     frozen: true,
                     width: 30,
+                    download: false,
                 },
                 ...definitions, // rest of the auto-generated columns
             ];
@@ -1156,6 +1158,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         columnDefinition.minWidth = 64;
                         columnDefinition.frozen = true;
                         columnDefinition.headerHozAlign = 'right';
+                        columnDefinition.download = false;
                         // Add open columnSettings modal button
                         columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
                             let columnSettingsButton = this.submissionTables[
@@ -1195,6 +1198,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         headerSort: false,
                         frozen: true,
                         width: 30,
+                        download: false,
                     },
                     ...definitions, // rest of the auto-generated columns
                 ];
