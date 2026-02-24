@@ -794,11 +794,16 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         `;
     }
 
+    /**
+     * Render form validity indicator based on the isFormValid property.
+     * @returns {import('lit').TemplateResult} - HTML for the form validity indicator.
+     */
     renderFormValidityIndicator() {
+        if (!this.submissionId) return html``;
+
         if (this.isFormValid) {
             return html`
                 <div class="form-validity-indicator valid">
-                    <!-- <span class="validity-indicator valid"></span> -->
                     <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
                     <span class="validity-text">
                         ${this._i18n.t('render-form.forms.base-object.form-validity-valid-text')}
@@ -807,6 +812,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                         text-content="${this._i18n.t(
                             'render-form.forms.base-object.form-validity-valid-tooltip',
                         )}"
+                        type="button"
                         button-text=" "
                         icon-name="question-circle"></dbp-button-tooltip>
                 </div>
@@ -814,7 +820,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         } else {
             return html`
                 <div class="form-validity-indicator invalid">
-                    <!-- <span class="validity-indicator invalid"></span> -->
                     <dbp-icon name="cross-circle" aria-hidden="true"></dbp-icon>
                     <span class="validity-text">
                         ${this._i18n.t('render-form.forms.base-object.form-validity-invalid-text')}
@@ -824,6 +829,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                             'render-form.forms.base-object.form-validity-invalid-tooltip',
                         )}"
                         button-text=" "
+                        type="button"
                         icon-name="question-circle"></dbp-button-tooltip>
                 </div>
             `;
