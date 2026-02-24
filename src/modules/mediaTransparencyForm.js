@@ -24,6 +24,179 @@ import {
     SUBMISSION_STATES_BINARY,
 } from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
+
+const OTHER_MEDIA_VALUE = 'Sonstiges';
+
+/**
+ * Lookup maps: camelCase key → full i18n translation key.
+ * Keep in sync with MEDIA_NAME_OWNER_MAPPING.
+ */
+const SUBCATEGORY_TRANSLATION_KEYS = {
+    // online subcategories
+    Audio: 'render-form.forms.media-transparency-form.sub-categories-audio',
+    App: 'render-form.forms.media-transparency-form.sub-categories-app',
+    'Soziales Netzwerk': 'render-form.forms.media-transparency-form.sub-categories-social-media',
+    Website: 'render-form.forms.media-transparency-form.sub-categories-website',
+    Text: 'render-form.forms.media-transparency-form.sub-categories-text',
+    Video: 'render-form.forms.media-transparency-form.sub-categories-video',
+    Sonstiges: 'render-form.forms.media-transparency-form.sub-categories-else',
+    // outOfHome subcategories
+    Plakat: 'render-form.forms.media-transparency-form.sub-categories-billboard',
+    Verkehrsmittel: 'render-form.forms.media-transparency-form.sub-categories-transportation',
+    'Digitaler Screen': 'render-form.forms.media-transparency-form.sub-categories-digital-screen',
+    // outdoorAdvertising:
+    //     'render-form.forms.media-transparency-form.sub-categories-outdoor-advertising',
+    Kino: 'render-form.forms.media-transparency-form.sub-categories-cinema',
+};
+
+const CATEGORY_TRANSLATION_KEYS = {
+    Online: 'render-form.forms.media-transparency-form.categories-online',
+    Print: 'render-form.forms.media-transparency-form.categories-print',
+    'Out of Home': 'render-form.forms.media-transparency-form.categories-out-of-home',
+    Hörfunk: 'render-form.forms.media-transparency-form.categories-radio',
+    Fernsehen: 'render-form.forms.media-transparency-form.categories-television',
+};
+
+/**
+ * Never called at runtime. The i18next-cli extractor uses static analysis and
+ * only preserves keys it finds as string literals in t() calls. Since the keys
+ * above are used via dynamic lookup (not direct t() calls), they would be
+ * pruned by `i18next:fix`. This function prevents that. Do not remove.
+ */
+// eslint-disable-next-line no-unused-vars
+const _i18nExtractKeys = (t) => {
+    // subcategory keys — keep in sync with SUBCATEGORY_TRANSLATION_KEYS
+    t('render-form.forms.media-transparency-form.sub-categories-audio');
+    t('render-form.forms.media-transparency-form.sub-categories-app');
+    t('render-form.forms.media-transparency-form.sub-categories-social-media');
+    t('render-form.forms.media-transparency-form.sub-categories-website');
+    t('render-form.forms.media-transparency-form.sub-categories-text');
+    t('render-form.forms.media-transparency-form.sub-categories-video');
+    t('render-form.forms.media-transparency-form.sub-categories-else');
+    t('render-form.forms.media-transparency-form.sub-categories-billboard');
+    t('render-form.forms.media-transparency-form.sub-categories-transportation');
+    t('render-form.forms.media-transparency-form.sub-categories-digital-screen');
+    t('render-form.forms.media-transparency-form.sub-categories-outdoor-advertising');
+    t('render-form.forms.media-transparency-form.sub-categories-cinema');
+    // category keys — keep in sync with CATEGORY_TRANSLATION_KEYS
+    t('render-form.forms.media-transparency-form.categories-online');
+    t('render-form.forms.media-transparency-form.categories-print');
+    t('render-form.forms.media-transparency-form.categories-out-of-home');
+    t('render-form.forms.media-transparency-form.categories-radio');
+    t('render-form.forms.media-transparency-form.categories-television');
+};
+
+/**
+ * Mapping of category → subcategory → mediaName → mediaOwnerName driven by CSV data.
+ * Keys use form enum lowerCamelCase values for category and subcategory.
+ * Categories with subcategories use subcategory keys directly.
+ * Categories without subcategories use the sentinel key `_items` for their media names.
+ */
+export const MEDIA_NAME_OWNER_MAPPING = {
+    Online: {
+        Audio: {
+            'Amazon Music': 'Amazon.com, Inc.',
+            'Antenna Pod': 'Antenna Pod',
+            'Apple Podcasts': 'Apple Inc.',
+            Deezer: 'Deezer S.A.',
+            fyyd: 'Christian Bednarek',
+            'Listen Notes': 'Listen Notes, Inc.',
+            'Pocket Casts': 'Automattic, Inc.',
+            Spotify: 'Spotify AB',
+        },
+        App: {
+            'Google Play': 'Google LLC',
+            iTunes: 'Apple Inc.',
+            'Podcast Addict': 'Guillemane Xavier - Podcast & Radio Addict',
+        },
+        'Soziales Netzwerk': {
+            Facebook: 'Meta Platforms Ireland Limited',
+            Instagram: 'Meta Platforms Ireland Limited',
+            LinkedIn: 'LinkedIn Ireland Unlimited Company',
+            Snapchat: 'Snap Inc.',
+            'X (Twitter)': 'X Corp.',
+            YouTube: 'Google Ireland Limited',
+        },
+        Website: {
+            'c.socceruhd.online': 'socceruhd.online',
+            'e-flux.com': 'e-flux Inc.',
+            'google.com': 'Google Ireland Limited',
+            'grazer.at': 'Media 21 GmbH',
+            'industriemagazin.at': 'WEKA Industrie Medien GmbH',
+            'kleinezeitung.at': 'Kleine Zeitung GmbH & Co KG',
+            'science.apa.at': 'APA - Austria Presse Agentur eG',
+            'spiritofstyria.at': 'GRAZETTA GmbH',
+        },
+        Text: {
+            'Industriemagazin Newsletter': 'WEKA Industrie Medien GmbH',
+            'Newsletter Automobil + Motoren': 'Springer Fachmedien Wiesbaden GmbH',
+        },
+        Video: {},
+        Sonstiges: {},
+    },
+    Print: {
+        _items: {
+            'ADDITIVE FERTIGUNG': 'x-Technik IT & Medien GesmbH',
+            Bildungsguide: 'Tamedia Publikationen Deutschschweiz AG',
+            'COOL! Mädchen': 'Gonzomedia GesmbH',
+            DerGrazer: 'Media 21 GmbH',
+            'Die Presse': '"Die Presse" Verlags-Gesellschaft m.b.H. & Co KG',
+            Forschung: 'STANDARD Verlagsgesellschaft m.b.H.',
+            'Jahresbericht Bundesrealgymnasium 8010 Graz, Petersgasse 110':
+                'Bundesrealgymnasium 8010 Graz, Petersgasse 110',
+            'Jahresbericht Höhere technische Bundeslehranstalt 5280 Braunau am Inn, Osternbergerstraße 55':
+                'Höhere technische Bundeslehranstalt 5280 Braunau am Inn, Osternbergerstraße 55',
+            'KLEINE ZEITUNG': 'Kleine Zeitung GmbH & Co KG',
+            'Maturazeitung Bundes-Oberstufenrealgymnasium 8010 Graz, Monsbergergasse 16':
+                'Bundes-Oberstufenrealgymnasium 8010 Graz, Monsbergergasse 16',
+            'Maturazeitung Bundesgymnasium, Bundesrealgymnasium und Bundes-Oberstufenrealgymnasium (HIB) 8041 Graz-Liebenau, Kadettengasse 19-23':
+                'Bundesgymnasium, Bundesrealgymnasium und Bundes-Oberstufenrealgymnasium (HIB) 8041 Graz-Liebenau, Kadettengasse 19-23',
+            'Maturazeitung Höhere technische Bundeslehr- und Versuchsanstalt 7423 Pinkafeld, Meierhofplatz 1':
+                'Höhere technische Bundeslehr- und Versuchsanstalt 7423 Pinkafeld, Meierhofplatz 1',
+            'Maturazeitung Höhere technische Bundeslehranstalt 8051 Graz-Gösting, Ibererstraße 15-21':
+                'Höhere technische Bundeslehranstalt 8051 Graz-Gösting, Ibererstraße 15-21',
+            'Maturazeitung Höhere technische Bundeslehranstalt 8430 Leibnitz, Kaindorf, Grazer Straße 202':
+                'Höhere technische Bundeslehranstalt 8430 Leibnitz, Kaindorf, Grazer Straße 202',
+            MEGAPHON: 'Caritas der Diözese Graz-Seckau',
+            MTZ: 'Springer Fachmedien Wiesbaden GmbH',
+            'Rebell*innen Kalender':
+                'AMAZONE, Verein zur Herstellung von Geschlechtergerechtigkeit',
+            sheconomy: 'SHE Wirtschaftsmedien Beteiligungs GmbH',
+            'Spirit OF STYRIA': 'SPIRIT Medienhaus GmbH',
+            'Verkehrsmalbuch für Kinder': 'IPA Verlagsgesellschaft m.b.H.',
+            'Weekend Magazin Steiermark': 'Weekend Magazin Steiermark GmbH',
+            ZukunftsBranchen: 'Weber Ulrich, "WeberMedia"',
+        },
+    },
+    'Out of Home': {
+        // poster: {},
+        Plakat: {
+            Ankünder: 'Ankünder GmbH',
+            'BS Vertriebsagentur e.U.': 'BS Vertriebsagentur e.U.',
+            'City Light': 'City Light Ankünder GmbH',
+            'GFW Gesellschaft für Wirtschaftsdokumentationen':
+                'GFW Gesellschaft für Wirtschaftsdokumentationen Gesellschaft m.b.H. & Co. KG',
+        },
+        Verkehrsmittel: {
+            'Ankünder GmbH': 'Ankünder GmbH',
+        },
+        'Digitaler Screen': {},
+        outdoorAdvertising: {},
+        Kino: {},
+        Sonstiges: {
+            'CompanyCode Werbe GmbH': 'CompanyCode Werbe GmbH',
+            'Grazetta GmbH': 'Grazetta GmbH',
+        },
+    },
+    Fernsehen: {
+        _items: {
+            'ORF 2': 'Österreichischer Rundfunk',
+        },
+    },
+    Hörfunk: {
+        _items: {},
+    },
+};
 export default class extends BaseObject {
     getUrlSlug() {
         return 'media-transparency';
@@ -47,14 +220,14 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
 
-        // Advertisement category related
-        this.advertisementSubcategoryItems = {};
+        // Advertisement category/media related
         this.selectedCategory = null;
         this.otherMediumNameEnabled = false;
 
         // Conditional fields
         this.conditionalFields = {
             category: false,
+            advertisementSubcategory: false,
             mediaName: false,
         };
 
@@ -68,7 +241,6 @@ class FormalizeFormElement extends BaseFormElement {
         return {
             ...super.properties,
 
-            advertisementSubcategoryItems: {type: Object, attribute: false},
             selectedCategory: {type: String, attribute: false},
             otherMediumNameEnabled: {type: Boolean, attribute: false},
         };
@@ -127,7 +299,7 @@ class FormalizeFormElement extends BaseFormElement {
         super.update(changedProperties);
         const i18n = this._i18n;
 
-        console.log('changedProperties', changedProperties);
+        // console.log('changedProperties', changedProperties);
 
         if (changedProperties.has('data')) {
             if (Object.keys(this.data).length > 0) {
@@ -218,7 +390,17 @@ class FormalizeFormElement extends BaseFormElement {
 
             // Initialize subcategory items if category is already set
             if (this.formData?.category) {
-                this.setSubcategoryItemsByValue(this.formData.category);
+                this.setSubcategoryItemsByCategoryValue(this.formData.category);
+            }
+
+            // Initialize media name items if subcategory is already set
+            if (this.formData?.advertisementSubcategory) {
+                this.setMediaNameItemsByValue(this.formData.advertisementSubcategory);
+            }
+
+            // Set conditional field for mediaName if 'Sonstiges' is selected
+            if (this.formData?.mediaName === OTHER_MEDIA_VALUE) {
+                this.conditionalFields.mediaName = true;
             }
 
             // Initialize file groups from schema
@@ -728,10 +910,11 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {object} event
      */
     async downloadAllFiles(event) {
-        const attachmentsGroup = this.getOrCreateFileGroup('attachments');
-        const attachmentFiles = Array.from(attachmentsGroup.submittedFiles.values());
-
-        this._('#file-sink').files = [...attachmentFiles];
+        const allFiles = this.getFileGroupsFromSchema().flatMap((groupName) => {
+            const group = this.getOrCreateFileGroup(groupName);
+            return Array.from(group.submittedFiles.values());
+        });
+        this._('#file-sink').files = allFiles;
     }
 
     /**
@@ -834,46 +1017,267 @@ class FormalizeFormElement extends BaseFormElement {
         };
     }
 
-    setSubcategoryItemsByValue(selectedValue) {
+    /**
+     * Renders the editable file upload widget for one schema file group.
+     * @param {string} groupName
+     * @returns {import('lit').TemplateResult}
+     */
+    renderFileUploadGroup(groupName) {
         const i18n = this._i18n;
-        this.selectedCategory = selectedValue;
+        return html`
+            <div class="file-upload-container">
+                <div class="file-upload-title-container">
+                    <h4 class="attachments-title">
+                        ${i18n.t('render-form.forms.media-transparency-form.attachments-title')}
+                        ${this.fileUploadLimits?.minFileUploadCount?.[groupName] > 0
+                            ? html`
+                                  <span class="required-mark">*</span>
+                              `
+                            : ''}
+                    </h4>
 
-        // Update subcategory options based on selected category
-        if (selectedValue === 'online') {
-            this.advertisementSubcategoryItems = {
-                website: i18n.t('render-form.forms.media-transparency-form.sub-categories-website'),
-                app: i18n.t('render-form.forms.media-transparency-form.sub-categories-app'),
-                video: i18n.t('render-form.forms.media-transparency-form.sub-categories-video'),
-                text: i18n.t('render-form.forms.media-transparency-form.sub-categories-text'),
-                audio: i18n.t('render-form.forms.media-transparency-form.sub-categories-audio'),
-                else: i18n.t('render-form.forms.media-transparency-form.sub-categories-else'),
-            };
-        } else if (selectedValue === 'outOfHome') {
-            this.advertisementSubcategoryItems = {
-                poster: i18n.t('render-form.forms.media-transparency-form.sub-categories-poster'),
-                transportation: i18n.t(
-                    'render-form.forms.media-transparency-form.sub-categories-transportation',
-                ),
-                digitalScreen: i18n.t(
-                    'render-form.forms.media-transparency-form.sub-categories-digitalScreen',
-                ),
-                billboard: i18n.t(
-                    'render-form.forms.media-transparency-form.sub-categories-billboard',
-                ),
-                outdoorAdvertising: i18n.t(
-                    'render-form.forms.media-transparency-form.sub-categories-outdoorAdvertising',
-                ),
-                cinema: i18n.t('render-form.forms.media-transparency-form.sub-categories-cinema'),
-                else: i18n.t('render-form.forms.media-transparency-form.sub-categories-else'),
-            };
-        } else {
-            this.advertisementSubcategoryItems = {};
-        }
+                    <span class="file-upload-limit-warning">
+                        ${i18n.t('render-form.download-widget.file-upload-count-limit-warning', {
+                            count: this.fileUploadLimits?.allowedFileUploadCount?.[groupName],
+                        })}
+                        ${i18n.t('render-form.download-widget.file-upload-size-limit-warning', {
+                            size: this.fileUploadLimits?.fileSizeLimit?.[groupName],
+                        })}
+                    </span>
+
+                    <dbp-translated subscribe="lang">
+                        <div slot="de">
+                            <p>
+                                Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer der
+                                Durchnummerierung. Siehe folgende Datei:
+                                MT_2026_Sujets_Bezeichnungslogik-all.pdf
+                            </p>
+                        </div>
+                        <div slot="en">
+                            <p>
+                                Subject name (short!) – no other numbers in the subject name except
+                                for sequential numbering. See the following file:
+                                MT_2026_Sujets_Bezeichnungslogik-all.pdf
+                            </p>
+                        </div>
+                    </dbp-translated>
+                </div>
+
+                <div class="uploaded-files">${this.renderAttachedFilesHtml(groupName)}</div>
+
+                <button
+                    class="button is-secondary upload-button upload-button--attachment"
+                    .disabled=${this.fileUploadCounts[groupName] >=
+                    this.fileUploadLimits?.allowedFileUploadCount?.[groupName]}
+                    @click="${(event) => {
+                        this.currentUploadGroup = groupName;
+                        this.openFilePicker(event);
+                    }}">
+                    <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
+                    ${!isNaN(this.fileUploadLimits?.allowedFileUploadCount?.[groupName])
+                        ? i18n.t('render-form.download-widget.upload-file-button-label', {
+                              count: this.fileUploadLimits?.allowedFileUploadCount?.[groupName],
+                          })
+                        : i18n.t('render-form.download-widget.upload-file-button-label-no-limit')}
+                </button>
+            </div>
+        `;
     }
 
+    /**
+     * Renders the read-only file list for one schema file group.
+     * @param {string} groupName
+     * @returns {import('lit').TemplateResult}
+     */
+    renderFileViewGroup(groupName) {
+        const i18n = this._i18n;
+        return html`
+            <div class="file-upload-container">
+                <h4 class="attachments-title">
+                    ${i18n.t('render-form.download-widget.attachments-title')}
+                </h4>
+                <div class="uploaded-files">${this.renderAttachedFilesHtml(groupName)}</div>
+            </div>
+        `;
+    }
+
+    /**
+     * Check if a category has subcategories.
+     * Categories with subcategories have named subcategory keys.
+     * Categories without subcategories use the sentinel key `_items`.
+     * @param {string} category
+     * @returns {boolean}
+     */
+    categoryHasSubcategories(category) {
+        const categoryData = MEDIA_NAME_OWNER_MAPPING[category];
+        return !!categoryData && !('_items' in categoryData);
+    }
+
+    /**
+     * Get all categories from MEDIA_NAME_OWNER_MAPPING with translations.
+     * Single source of truth for categories.
+     * @returns {object} Object with category keys and translated values
+     */
+    getCategoryItems() {
+        const i18n = this._i18n;
+        const categories = {};
+        Object.keys(MEDIA_NAME_OWNER_MAPPING).forEach((categoryKey) => {
+            const translationKey =
+                CATEGORY_TRANSLATION_KEYS[categoryKey] ??
+                `render-form.forms.media-transparency-form.categories-${this.camelToKebab(categoryKey)}`;
+            categories[categoryKey] = i18n.t(translationKey);
+        });
+        return categories;
+    }
+
+    /**
+     * Get list of categories that have subcategories.
+     * Used for data-condition on category field.
+     * @returns {Array<string>}
+     */
+    getCategoriesWithSubcategories() {
+        return Object.keys(MEDIA_NAME_OWNER_MAPPING).filter((category) =>
+            this.categoryHasSubcategories(category),
+        );
+    }
+
+    /**
+     * Convert camelCase to kebab-case for translation keys
+     * @param {string} str
+     * @returns {string}
+     */
+    camelToKebab(str) {
+        return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+    }
+
+    /**
+     * Get translated subcategory items for the currently selected category.
+     * Called inline in the template so it is always fresh on language change.
+     * @returns {object} Object with subcategory keys and translated labels
+     */
+    getSubcategoryItems() {
+        const i18n = this._i18n;
+        if (!this.selectedCategory || !this.categoryHasSubcategories(this.selectedCategory)) {
+            return {};
+        }
+        const items = {};
+        Object.keys(MEDIA_NAME_OWNER_MAPPING[this.selectedCategory]).forEach((subcategoryKey) => {
+            const translationKey =
+                SUBCATEGORY_TRANSLATION_KEYS[subcategoryKey] ??
+                `render-form.forms.media-transparency-form.sub-categories-${this.camelToKebab(subcategoryKey)}`;
+            items[subcategoryKey] = i18n.t(translationKey);
+        });
+        return items;
+    }
+
+    /**
+     * Get translated media name items for the current category/subcategory.
+     * Called inline in the template so it is always fresh on language change.
+     * @returns {object} Object with media name keys and display values
+     */
+    getMediaNameItems() {
+        const i18n = this._i18n;
+        const subcategoryKey = this.categoryHasSubcategories(this.selectedCategory)
+            ? this.formData?.advertisementSubcategory
+            : '_items';
+        const mapping = MEDIA_NAME_OWNER_MAPPING[this.selectedCategory]?.[subcategoryKey] || {};
+        if (Object.keys(mapping).length === 0) {
+            return {[OTHER_MEDIA_VALUE]: OTHER_MEDIA_VALUE};
+        }
+        const items = {
+            '': i18n.t('render-form.forms.media-transparency-form.please-select-media'),
+        };
+        Object.keys(mapping).forEach((name) => {
+            items[name] = name;
+        });
+        items[OTHER_MEDIA_VALUE] = OTHER_MEDIA_VALUE;
+        return items;
+    }
+
+    /**
+     * Set conditional field visibility and reset related fields based on selected category value.
+     * @param {string} selectedValue
+     */
+    setSubcategoryItemsByCategoryValue(selectedValue) {
+        this.selectedCategory = selectedValue;
+
+        if (!this.categoryHasSubcategories(selectedValue)) {
+            // Categories without subcategories (print, television, radio, radio).
+            // Always show the mediaName dropdown; when _items is empty 'Sonstiges' will be
+            // pre-selected by the caller so the required field remains satisfied.
+            this.conditionalFields.advertisementSubcategory = true;
+        }
+
+        // reset media name conditional field
+        this.conditionalFields.mediaName = false;
+    }
+
+    /**
+     * Set conditional field visibility and reset related fields based on selected subcategory value.
+     * @param {CustomEvent} e - change event from subcategory dropdown, used to get the selected subcategory value
+     */
     setSubcategoryItems(e) {
         const selectedValue = e.currentTarget.value;
-        this.setSubcategoryItemsByValue(selectedValue);
+        this.setSubcategoryItemsByCategoryValue(selectedValue);
+
+        // Get the data object from the form
+        const data = this.formData;
+
+        // Reset fields based on category type
+        data.advertisementSubcategory = '';
+        data.mediumOwnersName = '';
+        data.otherMediumName = '';
+        data.otherMediumOwnersName = '';
+
+        if (this.categoryHasSubcategories(selectedValue)) {
+            // Category with subcategories (online, outOfHome): wait for subcategory selection
+            data.mediaName = '';
+            this.conditionalFields.advertisementSubcategory = false;
+        } else {
+            // Category without subcategories (print, television, radio)
+            // Check whether there are any known media names under _items
+            const hasMediaNames =
+                Object.keys(MEDIA_NAME_OWNER_MAPPING[selectedValue]._items).length > 0;
+
+            if (hasMediaNames) {
+                // Reset to 'Please select'
+                data.mediaName = '';
+                this.conditionalFields.mediaName = false;
+            } else {
+                // No known media names — only 'Other' available
+                data.mediaName = OTHER_MEDIA_VALUE;
+                this.conditionalFields.mediaName = true;
+            }
+        }
+
+        this.requestUpdate();
+    }
+
+    /**
+     * Update conditional field visibility for the media name dropdown.
+     * Items are computed at render time by getMediaNameItems().
+     * @param {string} subcategory
+     */
+    setMediaNameItemsByValue(subcategory) {
+        // Always show the mediaName dropdown so its `required` attribute can be satisfied.
+        // When the mapping is empty the only available option is 'Sonstiges', which is
+        // pre-selected by the caller; hiding the field would break browser/schema validation.
+        this.conditionalFields.advertisementSubcategory = true;
+        this.requestUpdate();
+    }
+
+    /**
+     * Get the owner name for a given media name based on the current category and subcategory selection.
+     * @param {string} mediaName
+     * @returns {string|null} The owner name for the given media name, or null if not found
+     */
+    getOwnerForMediaName(mediaName) {
+        const categoryData = MEDIA_NAME_OWNER_MAPPING[this.selectedCategory];
+        if (!categoryData) return null;
+        const subcategoryKey = this.categoryHasSubcategories(this.selectedCategory)
+            ? this.formData.advertisementSubcategory
+            : '_items';
+        return categoryData[subcategoryKey]?.[mediaName] ?? null;
     }
 
     render() {
@@ -888,6 +1292,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Renders the form elements
+     * @returns {import('lit').TemplateResult} The rendered form elements
+     */
     renderFormElements() {
         const i18n = this._i18n;
         const data = this.formData || {};
@@ -941,24 +1349,12 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-enum-element
                     subscribe="lang"
                     name="category"
-                    data-condition='["online", "outOfHome"]'
+                    data-condition="${JSON.stringify(this.getCategoriesWithSubcategories())}"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-category-label',
                     )}"
                     display-mode="list"
-                    .items=${{
-                        online: i18n.t(
-                            'render-form.forms.media-transparency-form.categories-online',
-                        ),
-                        print: i18n.t('render-form.forms.media-transparency-form.categories-print'),
-                        outOfHome: i18n.t(
-                            'render-form.forms.media-transparency-form.categories-out-of-home',
-                        ),
-                        radio: i18n.t('render-form.forms.media-transparency-form.categories-radio'),
-                        television: i18n.t(
-                            'render-form.forms.media-transparency-form.categories-television',
-                        ),
-                    }}
+                    .items=${this.getCategoryItems()}
                     @change=${(e) => {
                         this.setSubcategoryItems(e);
                     }}
@@ -967,107 +1363,110 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${this.conditionalFields.category
                     ? html`
-                          <dbp-form-enum-element
-                              class="${classMap({
-                                  'fade-in':
-                                      Object.keys(this.advertisementSubcategoryItems).length > 0,
-                              })}"
-                              subscribe="lang"
-                              name="advertisementSubcategory"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
-                              )}"
-                              display-mode="list"
-                              .items=${this.advertisementSubcategoryItems || {}}
-                              .value=${data.advertisementSubcategory || ''}
-                              required></dbp-form-enum-element>
+                          ${Object.keys(this.getSubcategoryItems()).length > 0
+                              ? html`
+                                    <dbp-form-enum-element
+                                        class="${classMap({
+                                            'fade-in':
+                                                Object.keys(this.getSubcategoryItems()).length > 0,
+                                        })}"
+                                        subscribe="lang"
+                                        data-condition="!Sonstiges"
+                                        name="advertisementSubcategory"
+                                        label="${i18n.t(
+                                            'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
+                                        )}"
+                                        display-mode="list"
+                                        .items=${this.getSubcategoryItems()}
+                                        .value=${data.advertisementSubcategory || ''}
+                                        @change=${(e) => {
+                                            this.setMediaNameItemsByValue(e.currentTarget.value); // populate mediaName list on subcategory change
+
+                                            // Reset media name to empty or 'Sonstiges' depending on available options
+                                            const mapping =
+                                                MEDIA_NAME_OWNER_MAPPING[this.selectedCategory]?.[
+                                                    e.currentTarget.value
+                                                ] || {};
+                                            if (Object.keys(mapping).length === 0) {
+                                                // Only 'Sonstiges' is available
+                                                data.mediaName = OTHER_MEDIA_VALUE;
+                                                this.conditionalFields.mediaName = true;
+                                            } else {
+                                                // Reset to 'Please select'
+                                                data.mediaName = '';
+                                                this.conditionalFields.mediaName = false;
+                                            }
+
+                                            // Clear related fields
+                                            data.mediumOwnersName = '';
+                                            data.otherMediumName = '';
+                                            data.otherMediumOwnersName = '';
+
+                                            this.requestUpdate();
+                                        }}
+                                        required></dbp-form-enum-element>
+                                `
+                              : ''}
                       `
                     : ''}
+                ${this.conditionalFields.advertisementSubcategory
+                    ? html`
+                          <dbp-form-enum-element
+                              subscribe="lang"
+                              name="mediaName"
+                              data-condition="Sonstiges"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-media-name-label',
+                              )}"
+                              display-mode="dropdown"
+                              .items=${this.getMediaNameItems()}
+                              .customValidator=${(value) => {
+                                  return value === 'Bitte wählen Sie einen Mediennamen aus.' ||
+                                      value === 'Please select a media name.'
+                                      ? [
+                                            i18n.t(
+                                                'render-form.forms.media-transparency-form.media-name-validation-error',
+                                            ),
+                                        ]
+                                      : [];
+                              }}
+                              @change=${(e) => {
+                                  const selectedValue = e.currentTarget.value;
+                                  data.mediaName = selectedValue;
 
-                <dbp-form-enum-element
-                    subscribe="lang"
-                    name="mediaName"
-                    data-condition='["facebook", "instagram", "linkedin"]'
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-media-name-label',
-                    )}"
-                    display-mode="dropdown"
-                    .items=${{
-                        '': i18n.t('render-form.forms.media-transparency-form.please-select-media'),
-                        facebook: 'Facebook',
-                        instagram: 'Instagram',
-                        linkedin: 'LinkedIn',
-                        other: 'Other',
-                    }}
-                    .customValidator=${(value) => {
-                        return value === 'Bitte wählen Sie einen Mediennamen aus.' ||
-                            value === 'Please select a media name.'
-                            ? [
-                                  i18n.t(
-                                      'render-form.forms.media-transparency-form.media-name-validation-error',
-                                  ),
-                              ]
-                            : [];
-                    }}
-                    @change=${(e) => {
-                        const selectedValue = e.currentTarget.value;
-                        this.otherMediumNameEnabled = false;
+                                  // If 'Other' is selected, show other medium fields
+                                  if (selectedValue === OTHER_MEDIA_VALUE) {
+                                      this.conditionalFields.mediaName = true;
+                                      data.mediumOwnersName = '';
+                                  } else {
+                                      this.conditionalFields.mediaName = false;
+                                      // Auto-fill owner name from mapping
+                                      const owner = this.getOwnerForMediaName(selectedValue);
+                                      data.mediumOwnersName = owner ?? '';
+                                  }
+                                  this.requestUpdate();
+                              }}
+                              .value=${data.mediaName || ''}
+                              required></dbp-form-enum-element>
 
-                        switch (selectedValue) {
-                            case 'facebook':
-                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
-                                break;
-                            case 'instagram':
-                                data.mediumOwnersName = 'Meta Platforms Ireland Limited';
-                                break;
-                            case 'linkedin':
-                                data.mediumOwnersName = 'LinkedIn Ireland Unlimited Company';
-                                break;
-                            case 'other':
-                                data.mediumOwnersName = '';
-                                this.otherMediumNameEnabled = true;
-                                break;
-                        }
-                        this.requestUpdate();
-                    }}
-                    .value=${data.mediaName || ''}
-                    required></dbp-form-enum-element>
-
+                          ${!this.conditionalFields.mediaName
+                              ? html`
+                                    <dbp-form-string-element
+                                        subscribe="lang"
+                                        name="mediumOwnersName"
+                                        maxlength="1000"
+                                        label="${i18n.t(
+                                            'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                                        )}"
+                                        disabled
+                                        .value=${data.mediumOwnersName ||
+                                        ''}></dbp-form-string-element>
+                                `
+                              : ''}
+                      `
+                    : ''}
                 ${this.conditionalFields.mediaName
                     ? html`
-                          <dbp-form-string-element
-                              subscribe="lang"
-                              name="mediumOwnersName"
-                              maxlength="1000"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-media-owners-name-label',
-                              )}"
-                              disabled
-                              .value=${data.mediumOwnersName || ''}></dbp-form-string-element>
-
-                          <dbp-translated subscribe="lang">
-                              <div slot="de">
-                                  <p class="field-note">
-                                      Bitte zuerst schauen, ob der Name des Medieninhabers in der
-                                      2024_TU Graz Medienliste (siehe eigenes Tabellenblatt)
-                                      vorkommt. Finden Sie den Namen des Medieninhabers nicht in der
-                                      Liste, wählen Sie in dieser Spalte "Sonstiger" aus und tragen
-                                      den neuen Namen bei „Name anderer Medieninhaber" ein.
-                                  </p>
-                              </div>
-                              <div slot="en">
-                                  <p class="field-note">
-                                      First, please check whether the medium appears in 2024_TU Graz
-                                      Medienliste (see separate spreadsheet) and adhere strictly to
-                                      the spelling and combination of medium/media owner. If you
-                                      cannot find the name of the medium in the list, select
-                                      ‘Sonstiges’ in this column and enter the new name under ‘Other
-                                      medium owner's name’.
-                                  </p>
-                              </div>
-                          </dbp-translated>
-                      `
-                    : html`
                           <dbp-form-string-element
                               subscribe="lang"
                               name="otherMediumName"
@@ -1077,6 +1476,24 @@ class FormalizeFormElement extends BaseFormElement {
                               )}"
                               .value=${data.otherMediumName || ''}></dbp-form-string-element>
 
+                          <dbp-translated subscribe="lang">
+                              <div slot="de">
+                                  <p class="field-note">
+                                      Bitte zuerst schauen, ob der Name des Medieninhabers in der
+                                      2024_TU Graz Medienliste (siehe eigenes Tabellenblatt [add
+                                      link here?]) vorkommt.
+                                  </p>
+                              </div>
+                              <div slot="en">
+                                  <p class="field-note">
+                                      First, please check whether the medium appears in 2024_TU Graz
+                                      Medienliste (see separate spreadsheet [add link here?]) and
+                                      adhere strictly to the spelling and combination of
+                                      medium/media owner.
+                                  </p>
+                              </div>
+                          </dbp-translated>
+
                           <dbp-form-string-element
                               subscribe="lang"
                               name="otherMediumOwnersName"
@@ -1085,7 +1502,8 @@ class FormalizeFormElement extends BaseFormElement {
                               )}"
                               maxlength="1000"
                               .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
-                      `}
+                      `
+                    : ''}
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -1129,7 +1547,7 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.campaignTitle || ''}></dbp-form-string-element>
 
-                ${this.selectedCategory === 'online'
+                ${this.selectedCategory === 'Online'
                     ? html`
                           <!-- Sujet notes -->
                           <dbp-form-string-element
@@ -1153,7 +1571,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
                     .value=${data.notes || ''}></dbp-form-string-element>
 
-                ${this.selectedCategory === 'online'
+                ${this.selectedCategory === 'Online'
                     ? html`
                           <!-- at/from -->
                           <dbp-form-date-element
@@ -1194,65 +1612,9 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.reportingDeadline || ''}></dbp-form-date-element>
 
-                <div class="file-upload-container">
-                    <div class="file-upload-title-container">
-                        <h4 class="attachments-title">
-                            ${i18n.t('render-form.forms.media-transparency-form.attachments-title')}
-                            ${this.fileUploadLimits?.minFileUploadCount?.attachments > 0
-                                ? html`
-                                      <span class="required-mark">*</span>
-                                  `
-                                : ''}
-                        </h4>
-
-                        <span class="file-upload-limit-warning">
-                            ${i18n.t(
-                                'render-form.download-widget.file-upload-count-limit-warning',
-                                {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments},
-                            )}
-                            ${i18n.t('render-form.download-widget.file-upload-size-limit-warning', {
-                                size: this.fileUploadLimits?.fileSizeLimit?.attachments,
-                            })}
-                        </span>
-
-                        <dbp-translated subscribe="lang">
-                            <div slot="de">
-                                <p>
-                                    Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer
-                                    der Durchnummerierung. Siehe folgende Datei:
-                                    MT_2026_Sujets_Bezeichnungslogik-all.pdf
-                                </p>
-                            </div>
-                            <div slot="en">
-                                <p>
-                                    Subject name (short!) – no other numbers in the subject name
-                                    except for sequential numbering. See the following file:
-                                    MT_2026_Sujets_Bezeichnungslogik-all.pdf
-                                </p>
-                            </div>
-                        </dbp-translated>
-                    </div>
-
-                    <div class="uploaded-files">${this.renderAttachedFilesHtml('attachments')}</div>
-
-                    <button
-                        class="button is-secondary upload-button upload-button--attachment"
-                        .disabled=${this.fileUploadCounts['attachments'] >=
-                        this.fileUploadLimits?.allowedFileUploadCount?.attachments}
-                        @click="${(event) => {
-                            this.currentUploadGroup = 'attachments';
-                            this.openFilePicker(event);
-                        }}">
-                        <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
-                        ${!isNaN(this.fileUploadLimits?.allowedFileUploadCount?.attachments)
-                            ? i18n.t('render-form.download-widget.upload-file-button-label', {
-                                  count: this.fileUploadLimits?.allowedFileUploadCount?.attachments,
-                              })
-                            : i18n.t(
-                                  'render-form.download-widget.upload-file-button-label-no-limit',
-                              )}
-                    </button>
-                </div>
+                ${this.getFileGroupsFromSchema().map((groupName) =>
+                    this.renderFileUploadGroup(groupName),
+                )}
             </form>
 
             <dbp-file-source
@@ -1279,6 +1641,10 @@ class FormalizeFormElement extends BaseFormElement {
         `;
     }
 
+    /**
+     * Renders the read-only form elements
+     * @returns {import('lit').TemplateResult} The rendered form elements
+     */
     renderFormViews() {
         const i18n = this._i18n;
         const data = this.formData || {};
@@ -1303,32 +1669,19 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-enum-view
                     subscribe="lang"
                     name="category"
-                    data-condition='["online", "outOfHome"]'
+                    data-condition="${JSON.stringify(this.getCategoriesWithSubcategories())}"
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-category-label',
                     )}"
                     display-mode="list"
-                    .items=${{
-                        online: i18n.t(
-                            'render-form.forms.media-transparency-form.categories-online',
-                        ),
-                        print: i18n.t('render-form.forms.media-transparency-form.categories-print'),
-                        outOfHome: i18n.t(
-                            'render-form.forms.media-transparency-form.categories-out-of-home',
-                        ),
-                        radio: i18n.t('render-form.forms.media-transparency-form.categories-radio'),
-                        television: i18n.t(
-                            'render-form.forms.media-transparency-form.categories-television',
-                        ),
-                    }}
                     .value=${data.category || ''}></dbp-form-enum-view>
 
-                ${this.conditionalFields.category
+                ${this.conditionalFields.advertisementSubcategory &&
+                Object.keys(this.getSubcategoryItems()).length > 0
                     ? html`
                           <dbp-form-enum-view
                               class="${classMap({
-                                  'fade-in':
-                                      Object.keys(this.advertisementSubcategoryItems).length > 0,
+                                  'fade-in': Object.keys(this.getSubcategoryItems()).length > 0,
                               })}"
                               subscribe="lang"
                               name="advertisementSubcategory"
@@ -1336,28 +1689,24 @@ class FormalizeFormElement extends BaseFormElement {
                                   'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
                               )}"
                               display-mode="list"
-                              .items=${this.advertisementSubcategoryItems}
+                              .items=${this.getSubcategoryItems()}
                               .value=${data.advertisementSubcategory || ''}></dbp-form-enum-view>
                       `
                     : ''}
-
-                <dbp-form-enum-view
-                    subscribe="lang"
-                    name="mediaName"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-media-name-label',
-                    )}"
-                    display-mode="dropdown"
-                    .items=${{
-                        '': i18n.t('render-form.forms.media-transparency-form.please-select-media'),
-                        facebook: 'Facebook',
-                        instagram: 'Instagram',
-                        linkedin: 'LinkedIn',
-                        other: 'Other',
-                    }}
-                    .value=${data.mediaName || ''}></dbp-form-enum-view>
-
-                ${this.conditionalFields.mediaName
+                ${data.mediaName
+                    ? html`
+                          <dbp-form-enum-view
+                              subscribe="lang"
+                              name="mediaName"
+                              data-condition="!Sonstiges"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-media-name-label',
+                              )}"
+                              display-mode="dropdown"
+                              .value=${data.mediaName || ''}></dbp-form-enum-view>
+                      `
+                    : ''}
+                ${data.mediumOwnersName
                     ? html`
                           <dbp-form-string-view
                               subscribe="lang"
@@ -1365,10 +1714,11 @@ class FormalizeFormElement extends BaseFormElement {
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-media-owners-name-label',
                               )}"
-                              disabled
                               .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
                       `
-                    : html`
+                    : ''}
+                ${data.otherMediumName || data.otherMediumOwnersName
+                    ? html`
                           <dbp-form-string-view
                               subscribe="lang"
                               name="otherMediumName"
@@ -1384,7 +1734,8 @@ class FormalizeFormElement extends BaseFormElement {
                                   'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                               )}"
                               .value=${data.otherMediumOwnersName || ''}></dbp-form-string-view>
-                      `}
+                      `
+                    : ''}
 
                 <dbp-form-string-view
                     subscribe="lang"
@@ -1394,25 +1745,18 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.amountInEuro || ''}></dbp-form-string-view>
 
-                <dbp-form-string-view
-                    subscribe="lang"
-                    name="campaignTitle"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-campaign-title-label',
-                    )}"
-                    .value=${data.campaignTitle || ''}></dbp-form-string-view>
-
-                <!-- Sujet file name -->
-                <dbp-form-string-view
-                    subscribe="lang"
-                    name="sujetFileName"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-sujet-file-name-label',
-                    )}"
-                    .value=${data.sujetFileName || ''}
-                    disabled></dbp-form-string-view>
-
-                ${this.selectedCategory === 'online'
+                ${data.campaignTitle
+                    ? html`
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="campaignTitle"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-campaign-title-label',
+                              )}"
+                              .value=${data.campaignTitle || ''}></dbp-form-string-view>
+                      `
+                    : ''}
+                ${data.sujetNotes
                     ? html`
                           <!-- Sujet notes -->
                           <dbp-form-string-view
@@ -1427,14 +1771,19 @@ class FormalizeFormElement extends BaseFormElement {
                     : ''}
 
                 <!-- Notes -->
-                <dbp-form-string-view
-                    subscribe="lang"
-                    name="notes"
-                    rows="5"
-                    label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
-                    .value=${data.notes || ''}></dbp-form-string-view>
-
-                ${this.selectedCategory === 'online'
+                ${data.notes
+                    ? html`
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="notes"
+                              rows="5"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-notes-label',
+                              )}"
+                              .value=${data.notes || ''}></dbp-form-string-view>
+                      `
+                    : ''}
+                ${data.atFrom || data.to
                     ? html`
                           <!-- at/from -->
                           <dbp-form-date-view
@@ -1457,40 +1806,42 @@ class FormalizeFormElement extends BaseFormElement {
                     : ''}
 
                 <!-- SAP order number -->
-                <dbp-form-string-view
-                    subscribe="lang"
-                    name="sapOrderNumber"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-sap-order-number-label',
-                    )}"
-                    .value=${data.sapOrderNumber || ''}></dbp-form-string-view>
+                ${data.sapOrderNumber
+                    ? html`
+                          <dbp-form-string-view
+                              subscribe="lang"
+                              name="sapOrderNumber"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-sap-order-number-label',
+                              )}"
+                              .value=${data.sapOrderNumber || ''}></dbp-form-string-view>
+                      `
+                    : ''}
 
                 <!-- Reporting deadline -->
-                <dbp-form-date-view
-                    subscribe="lang"
-                    name="reportingDeadline"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-reporting-deadline-label',
-                    )}"
-                    .value=${data.reportingDeadline || ''}></dbp-form-date-view>
-
-                <div class="file-upload-container">
-                    <h4 class="attachments-title">
-                        ${i18n.t('render-form.download-widget.attachments-title')}
-                    </h4>
-
-                    <div class="uploaded-files">${this.renderAttachedFilesHtml('attachments')}</div>
-                </div>
+                ${data.sapOrderNumber
+                    ? html`
+                          <dbp-form-date-view
+                              subscribe="lang"
+                              name="reportingDeadline"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-reporting-deadline-label',
+                              )}"
+                              .value=${data.reportingDeadline || ''}></dbp-form-date-view>
+                      `
+                    : ''}
+                ${this.getFileGroupsFromSchema().map((groupName) =>
+                    this.renderFileViewGroup(groupName),
+                )}
             </form>
 
             <dbp-file-sink
                 id="file-sink"
                 class="file-sink"
                 lang="${this.lang}"
-                allowed-mime-types="application/pdf,.pdf"
                 decompress-zip
                 enabled-targets="local,clipboard,nextcloud"
-                filename="ethics-commission-form-${this.submissionId || ''}-attachments.zip"
+                filename="media-transparency-form-${this.formData?.id || ''}-attachments.zip"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
             <!-- Deletion Confirmation Modal -->
@@ -1600,7 +1951,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     validateAttachmentFileName(file, maxUpload) {
         const i18n = this._i18n;
-        const fileNamePattern = /^MT_\d{4}_Sujet_[a-zA-Z_-]+\d*\.[a-z0-9]+$/;
+        const fileNamePattern = /^\d{2}_[A-Za-z]+_[A-Za-z]+_[A-Za-z]+\.[A-Za-z0-9]+$/;
 
         if (!fileNamePattern.test(file.name)) {
             sendNotification({
