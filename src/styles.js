@@ -652,6 +652,22 @@ export function getShowSubmissionCSS() {
             transform: rotate(360deg);
         }
 
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 99;
+            width: 300px;
+            background: var(--dbp-background);
+            border: var(--dbp-border);
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.25em;
+        }
+
         @container table-container (width < 1040px) {
             .table-action-header:not(.open) {
                 grid-template-areas:

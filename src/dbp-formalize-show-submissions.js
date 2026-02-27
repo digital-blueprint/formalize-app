@@ -47,6 +47,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
         this.boundTablePaginationPageLoaded = this.handleTablePaginationPageLoaded.bind(this);
+        this.boundFileSinkDownloadStartedHandler = this.handleFileSinkDownloadStarted.bind(this);
+        this.boundSwMessageHandler = this.handleSwMessage.bind(this);
         this._deletionConfirmationResolve = null;
         this.selectedRowCount = {
             draft: 0,
@@ -186,6 +188,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.availableTags = [];
         this.selectedTagsForBatchTagging = [];
         this.justAddTagsForBatchTagging = false;
+        this.showLoadingIndicator = false;
     }
 
     static get scopedElements() {
@@ -244,6 +247,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             visibleRowCount: {type: Object, attribute: false},
             searchIsActive: {type: Object, attribute: false},
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
+            showLoadingIndicator: {type: Boolean, attribute: false},
         };
     }
 
@@ -259,6 +263,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-tabulator-table-page-loaded-event',
             this.boundTablePaginationPageLoaded,
         );
+        document.removeEventListener(
+            'dbp-file-sink-download-started',
+            this.boundFileSinkDownloadStartedHandler,
+        );
+        navigator.serviceWorker.removeEventListener('message', this.boundSwMessageHandler);
     }
 
     /**
@@ -333,6 +342,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 'dbp-tabulator-table-page-loaded-event',
                 this.boundTablePaginationPageLoaded,
             );
+
+            document.addEventListener(
+                'dbp-file-sink-download-started',
+                this.boundFileSinkDownloadStartedHandler,
+            );
+
+            // listen for the SW message indicating that the download has started, to hide the loading indicator in the UI
+            navigator.serviceWorker.addEventListener('message', this.boundSwMessageHandler);
 
             // Table built event listener
             document.addEventListener(
@@ -2905,6 +2922,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    handleFileSinkDownloadStarted(event) {
+        this.showLoadingIndicator = true;
+    }
+
+    handleSwMessage(event) {
+        if (event.data?.type === 'DOWNLOAD_STARTED') {
+            this.showLoadingIndicator = false;
+        }
+    }
+
     /**
      * Reset action buttons state if table selection changes
      * @param {CustomEvent} tableEvent
@@ -3736,6 +3763,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </div>
                 </menu>
             </dbp-modal>
+
+            ${this.showLoadingIndicator
+                ? html`
+                      <div class="loading-indicator">
+                          <dbp-mini-spinner
+                              text="${i18n.t(
+                                  'show-submissions.preparing-download',
+                              )}"></dbp-mini-spinner>
+                      </div>
+                  `
+                : ''}
         `;
     }
 }
