@@ -922,6 +922,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // const i18n = this._i18n;
         let response;
         let data;
+        this.rawSubmissions = [];
+        this.submittedFileDetails = {
+            draft: new Map(),
+            submitted: new Map(),
+        };
         this.submissions = {
             submitted: [],
             draft: [],
