@@ -189,6 +189,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedTagsForBatchTagging = [];
         this.justAddTagsForBatchTagging = false;
         this.showLoadingIndicator = false;
+        this.attachmentsAreLoading = {
+            draft: false,
+            submitted: false,
+        };
+        this._abortAttachmentLoading = false;
     }
 
     static get scopedElements() {
@@ -248,6 +253,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             searchIsActive: {type: Object, attribute: false},
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
             showLoadingIndicator: {type: Boolean, attribute: false},
+            attachmentsAreLoading: {type: Object, attribute: false},
         };
     }
 
@@ -397,6 +403,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.requestDetailedSubmission(state, cols, id);
                                 }
                             }
+                            // Load attachment details for each submissions
+                            this.loadAttachmentDetails(state);
                         }
                     }
                 },
@@ -1011,6 +1019,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             dataFeedElement[key] = this.userNameCache.get(value);
                         }
                     }
+
                     // Remove formTags if no permission to view
                     // if (key === 'formTags') {
                     //     const currentForm = this.forms.get(formId);
@@ -1038,43 +1047,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     ...dataFeedElement,
                     submissionId: submissionId,
                 };
-
-                // Get attachments
-                const submittedFilesBasicResponse = submission['submittedFiles'];
-                const allAttachmentDetails = {};
-                if (
-                    submittedFilesBasicResponse &&
-                    Array.isArray(submittedFilesBasicResponse) &&
-                    submittedFilesBasicResponse.length > 0
-                ) {
-                    this.submissionsHasAttachment[state] = true;
-                    // Extract file names from the submittedFiles array
-                    try {
-                        this.submittedFileDetails[state].set(
-                            submissionId,
-                            await this.getAttachmentFilesDetails(submissionId),
-                        );
-                    } catch (e) {
-                        console.error(e);
-                    }
-
-                    // Separate attachments and voting files
-                    for (const attachment of this.submittedFileDetails[state].get(submissionId)) {
-                        const fieldName = `form_files-${attachment.fileAttributeName}`;
-                        if (allAttachmentDetails[fieldName] === undefined) {
-                            allAttachmentDetails[fieldName] = [];
-                        }
-                        allAttachmentDetails[fieldName].push(attachment.fileName);
-                    }
-                }
-
-                for (const fieldName of Object.keys(allAttachmentDetails)) {
-                    if (allAttachmentDetails[fieldName]) {
-                        cols[fieldName] = Array.isArray(allAttachmentDetails[fieldName])
-                            ? allAttachmentDetails[fieldName].join(', ')
-                            : allAttachmentDetails[fieldName];
-                    }
-                }
 
                 let actionButtonsDiv = this.createScopedElement('div');
                 const activeForm = this.forms.get(formId);
@@ -1229,6 +1201,82 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.totalNumberOfItems[state] = submissions_list.length;
         }
         return response;
+    }
+
+    /**
+     * Load attachment details for all submissions in the given state and refresh the tabulator table.
+     * Runs after the table has been initialized to avoid blocking initial page load.
+     * @param {string} state - The state of the submission table ('draft' or 'submitted').
+     */
+    async loadAttachmentDetails(state) {
+        this._abortAttachmentLoading = false;
+        this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: true};
+        const stateFlag =
+            state === 'submitted'
+                ? SUBMISSION_STATES_BINARY.SUBMITTED
+                : SUBMISSION_STATES_BINARY.DRAFT;
+        const submissionsWithFiles = this.rawSubmissions.filter(
+            (submission) =>
+                submission.submissionState === stateFlag &&
+                submission['submittedFiles'] &&
+                Array.isArray(submission['submittedFiles']) &&
+                submission['submittedFiles'].length > 0,
+        );
+
+        if (submissionsWithFiles.length === 0) {
+            this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: false};
+            return;
+        }
+
+        this.submissionsHasAttachment[state] = true;
+
+        const tabulatorTable =
+            this.submissionTables[state] && this.submissionTables[state].tabulatorTable;
+
+        for (const submission of submissionsWithFiles) {
+            if (this._abortAttachmentLoading) break;
+            const submissionId = submission['identifier'];
+            let attachmentDetails;
+            try {
+                attachmentDetails = await this.getAttachmentFilesDetails(submissionId);
+                this.submittedFileDetails[state].set(submissionId, attachmentDetails);
+            } catch (e) {
+                console.error(e);
+                continue;
+            }
+
+            // Group file names by field name
+            const attachmentUpdate = {};
+            for (const attachment of attachmentDetails) {
+                const fieldName = `form_files-${attachment.fileAttributeName}`;
+                if (attachmentUpdate[fieldName] === undefined) {
+                    attachmentUpdate[fieldName] = [];
+                }
+                attachmentUpdate[fieldName].push(attachment.fileName);
+            }
+
+            // Flatten arrays to comma-separated strings
+            for (const fieldName of Object.keys(attachmentUpdate)) {
+                attachmentUpdate[fieldName] = attachmentUpdate[fieldName].join(', ');
+            }
+
+            // Update the in-memory submission row data
+            const cols = this.submissions[state].find((s) => s.submissionId === submissionId);
+            if (cols) {
+                Object.assign(cols, attachmentUpdate);
+            }
+
+            // Update the tabulator row immediately
+            if (tabulatorTable) {
+                const row = tabulatorTable
+                    .getRows()
+                    .find((r) => r.getData().submissionId === submissionId);
+                if (row) {
+                    row.update(attachmentUpdate);
+                }
+            }
+        }
+        this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: false};
     }
 
     /**
@@ -1679,6 +1727,27 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const data = row.getData();
                 selectedRowsSubmissionIds.push(data.submissionId);
             });
+
+            // Stop any background attachment loading before fetching on-demand
+            this._abortAttachmentLoading = true;
+
+            // Fetch attachment details on-demand for any rows not yet loaded
+            const missingIds = selectedRowsSubmissionIds.filter(
+                (id) => !this.submittedFileDetails[state].has(id),
+            );
+            if (missingIds.length > 0) {
+                this.showLoadingIndicator = true;
+                for (const submissionId of missingIds) {
+                    try {
+                        const attachmentDetails =
+                            await this.getAttachmentFilesDetails(submissionId);
+                        this.submittedFileDetails[state].set(submissionId, attachmentDetails);
+                    } catch (e) {
+                        console.error('Failed to load attachment details for', submissionId, e);
+                    }
+                }
+                this.showLoadingIndicator = false;
+            }
 
             for (const [submissionId, attachments] of this.submittedFileDetails[state]) {
                 // If there are selected rows, only download the attachments of the selected rows
