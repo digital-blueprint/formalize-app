@@ -1579,7 +1579,7 @@ export function getEthicsCommissionFormCSS() {
         }
 
         .field-note {
-            font-size: 0.8em;
+            font-size: 1em;
             font-style: italic;
             margin: -0.5em 0 2em;
             line-height: var(--dbp-form-line-height);
@@ -2052,7 +2052,7 @@ export function getMediaTransparencyFormCSS() {
         }
 
         .field-note {
-            font-size: 0.8em;
+            font-size: 1em;
             font-style: italic;
             margin: -0.5em 0 2em;
             line-height: var(--dbp-form-line-height);
