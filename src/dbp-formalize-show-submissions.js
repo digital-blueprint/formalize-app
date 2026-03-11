@@ -3142,7 +3142,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // @TODO: LunchLottery don't have a slug
         // other forms don't have read-only view
-        if (activeForm.formName === 'Ethikantrag' || activeForm.formName === 'Ethics Proposal') {
+        if (
+            activeForm.formName === 'Ethikantrag' ||
+            activeForm.formName === 'Ethics Proposal' ||
+            activeForm.formName === 'Media Transparency Form'
+        ) {
             // Go to the readonly view of the form submission
             let formSubmissionUrl =
                 getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
