@@ -58,6 +58,7 @@ class FormalizeFormElement extends BaseFormElement {
                     const payload = {
                         courseName: formData.courseName,
                         lecturers: formData.lecturers,
+                        adaptations: formData.adaptations,
                         studentName: `${formData.givenName} ${formData.familyName}`,
                         studentEmail: formData.email_student,
                         comment: formData.comment,
@@ -190,7 +191,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 if (!resp.ok) {
                     console.warn('Lecturer fetch failed for', lecturerId, resp.status);
-                    // Fallback: wenn Person nicht gefunden, einfach die ID speichern
+                    // Fallback: if person not found, return ID
                     lecturerStrings.push(lecturerId);
                     continue;
                 }
@@ -256,14 +257,26 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t('render-form.forms.accessible-courses-form.course-name')}"
                         value=${data.courseName || ''}
                         required
-                        @dbp-course-changed="${(e) =>
-                            this.handleCourseChange(e)}"></dbp-course-select-element>
+                        @dbp-course-changed=${(e) =>
+                            this.handleCourseChange(e)}></dbp-course-select-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
-                        name="comment"
-                        label=${i18n.t('render-form.forms.accessible-courses-form.comment')}
-                        value=${data.comment || ''}></dbp-form-string-element>
+                        name="lecturers"
+                        label=${i18n.t('render-form.forms.accessible-courses-form.lecturers')}
+                        value=${data.lecturers || ''}
+                        disabled></dbp-form-string-element>
+
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="adaptations"
+                        label=${i18n.t('render-form.forms.accessible-courses-form.adaptations')}
+                        placeholder="${i18n.t(
+                            'render-form.forms.accessible-courses-form.adaptations-placeholder',
+                        )}"
+                        .value=${data.adaptations || ''}
+                        required
+                        rows="5"></dbp-form-string-element>
                 </fieldset>
 
                 <fieldset>
@@ -300,6 +313,16 @@ class FormalizeFormElement extends BaseFormElement {
                         label=${i18n.t('render-form.forms.accessible-courses-form.email')}
                         value=${data.email_student || ''}
                         disabled></dbp-form-string-element>
+
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="comment"
+                        label=${i18n.t('render-form.forms.accessible-courses-form.comment')}
+                        .value=${data.comment || ''}
+                        rows="5"
+                        placeholder="${i18n.t(
+                            'render-form.forms.accessible-courses-form.comment-placeholder',
+                        )}"></dbp-form-string-element>
                 </fieldset>
 
                 ${this.getButtonRowHtml()}

@@ -67,20 +67,24 @@
         "form-with-slug-not-found": "Form with slug '{{slug}}' not found!",
         "forms": {
             "accessible-courses-form": {
-                "comment": "Comment",
+                "adaptations": "Needed adaptations",
+                "adaptations-placeholder": "Which of the adjustments agreed upon during the initial consultation and deemed necessary by a medical specialist would you like to request for this course?",
+                "comment": "Comment (to be filled out by the university staff)",
+                "comment-placeholder": "PLEASE LEAVE EMPTY. To be filled out by university staff only.",
                 "course-data": "Course details",
                 "course-information": "Please note that registration must be submitted at least 14 days in advance.",
                 "course-name": "Course",
                 "email": "E-mail address",
                 "family-name": "Last name",
                 "given-name": "First name",
+                "lecturers": "Lecturers",
                 "mandatory-fields": "Please fill out all required fields.",
                 "matriculation-number": "Matriculation number",
                 "personal-data": "Personal data (prefilled)",
                 "submission-error": "Something went wrong.",
                 "submission-error-notification": "Your data could not be submitted. Please try again later.",
-                "submission-result-notification": "You have registered for an accessible course. You will receive a confirmation by e-mail.",
-                "submission-result-thanks": "Thank you for your registration!",
+                "submission-result-notification": "We have received your request for an accessible course. You will receive confirmation by email.",
+                "submission-result-thanks": "Thank you very much!",
                 "title": "Accessible Course Registration"
             },
             "accessible-exams-form": {
