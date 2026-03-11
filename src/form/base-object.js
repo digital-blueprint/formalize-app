@@ -1093,8 +1093,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
     }
 
     async update(changedProperties) {
-        super.update(changedProperties);
-
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
@@ -1102,6 +1100,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                     break;
             }
         });
+
+        super.update(changedProperties);
 
         if (changedProperties.has('data')) {
             // @ts-ignore
