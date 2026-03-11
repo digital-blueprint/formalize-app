@@ -67,20 +67,24 @@
         "form-with-slug-not-found": "Formular mit Slug '{{slug}}' nicht gefunden!",
         "forms": {
             "accessible-courses-form": {
-                "comment": "Anmerkung",
+                "adaptations": "Notwendige Anpassungen",
+                "adaptations-placeholder": "Welche der im Erstgespräch vereinbarten und fachärztlich als notwendig erachteten Adaptierungen möchten Sie für diese Lehrveranstaltung beantragen?",
+                "comment": "Kommentar (Auszufüllen vom Universitätspersonal)",
+                "comment-placeholder": "BITTE FREILASSEN. Nur vom Universitätspersonal auszufüllen",
                 "course-data": "Lehrveranstaltungsdaten",
                 "course-information": "Bitte beachten Sie, dass die Anmeldung mindestens 14 Tage im Voraus erfolgen muss.",
                 "course-name": "Lehrveranstaltung",
                 "email": "E-Mail-Adresse",
                 "family-name": "Nachname",
                 "given-name": "Vorname",
+                "lecturers": "Vortragende",
                 "mandatory-fields": "Bitte füllen Sie alle Pflichtfelder aus.",
                 "matriculation-number": "Matrikelnummer",
                 "personal-data": "Persönliche Daten (vorausgefüllt)",
                 "submission-error": "Fehler beim Absenden",
                 "submission-error-notification": "Fehler beim Absenden",
-                "submission-result-notification": "Gut gemacht!",
-                "submission-result-thanks": "Danke!",
+                "submission-result-notification": "Ihre Anfrage für eine barrierefreie Lehrveranstaltung ist eingegangen. Sie erhalten eine Bestätigung per E-Mail.",
+                "submission-result-thanks": "Vielen Dank!",
                 "title": "Barrierefreie Lehrveranstaltungsteilnahme"
             },
             "accessible-exams-form": {
