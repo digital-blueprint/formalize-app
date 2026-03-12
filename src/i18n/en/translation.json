@@ -340,7 +340,7 @@
                 "field-sap-order-number-label": "SAP order number",
                 "field-sujet-notes-label": "Sujet notes",
                 "field-to-label": "to",
-                "invalid-attachment-filename-error": "Invalid filename '{{filename}}'. The filename needs to match the pattern: 12_xxxx_xxxx_xxxx.ext",
+                "invalid-attachment-filename-error": "Invalid filename '{{filename}}'. Required format: NN_Word_Word_Word.ext (e.g. 01_Medium_Campaign_Sujet.pdf) — NN = two-digit number, each Word = letters only, ext = file extension.",
                 "media-name-validation-error": "You need to select a media name",
                 "min-file-upload-error": "Minimum required files is count is {{minCount}}. Only {{currentCount}} is uploaded",
                 "please-select-media": "Please select a media name",

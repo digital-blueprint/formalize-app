@@ -340,7 +340,7 @@
                 "field-sap-order-number-label": "SAP-Bestellnummer",
                 "field-sujet-notes-label": "Notizen - Sujetlink",
                 "field-to-label": "bis",
-                "invalid-attachment-filename-error": "[de] Invalid filename. The filename needs to match the pattern: 12_xxxx_xxxx_xxxx.ext",
+                "invalid-attachment-filename-error": "Ungültiger Dateiname '{{filename}}'. Erforderliches Format: NN_Wort_Wort_Wort.Endung (z. B. 01_Medium_Kampagne_Sujet.pdf) — NN = zweistellige Zahl, jedes Wort = nur Buchstaben, Endung = Dateiendung.",
                 "media-name-validation-error": "Sie müssen einen Mediennamen auswählen.",
                 "min-file-upload-error": "Die Mindestanzahl der erforderlichen Dateien beträgt {{minCount}}. Es wurden nur {{currentCount}} hochgeladen.",
                 "please-select-media": "Bitte wählen Sie einen Mediennamen aus.",

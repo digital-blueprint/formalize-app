@@ -1048,16 +1048,40 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-translated subscribe="lang">
                         <div slot="de">
                             <p>
-                                Sujetname (kurz!) - keine weiteren Ziffern im Sujetnamen außer der
-                                Durchnummerierung. Siehe folgende Datei:
-                                MT_2026_Sujets_Bezeichnungslogik-all.pdf
+                                Der Dateiname muss folgendem Muster entsprechen:
+                                <br />
+                                <code>NN_Wort_Wort_Wort.Endung</code>
+                                (z.&nbsp;B.
+                                <code>01_Medium_Kampagne_Sujet.pdf</code>
+                                )
+                                <br />
+                                <strong>NN</strong>
+                                = zweistellige Nummer
+                                <br />
+                                <strong>Wort</strong>
+                                = nur Buchstaben, keine Zahlen oder Sonderzeichen
+                                <br />
+                                <strong>Endung</strong>
+                                = Dateiendung (Buchstaben/Ziffern)
                             </p>
                         </div>
                         <div slot="en">
                             <p>
-                                Subject name (short!) – no other numbers in the subject name except
-                                for sequential numbering. See the following file:
-                                MT_2026_Sujets_Bezeichnungslogik-all.pdf
+                                The filename must match the following pattern:
+                                <br />
+                                <code>NN_Word_Word_Word.ext</code>
+                                (e.g.
+                                <code>01_Medium_Campaign_Sujet.pdf</code>
+                                )
+                                <br />
+                                <strong>NN</strong>
+                                = two-digit number
+                                <br />
+                                <strong>Word</strong>
+                                = letters only, no digits or special characters
+                                <br />
+                                <strong>ext</strong>
+                                = file extension (letters/digits)
                             </p>
                         </div>
                     </dbp-translated>
