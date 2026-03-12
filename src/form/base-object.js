@@ -185,7 +185,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
-        console.log('validateAndSendSubmission validationResult', validationResult);
         if (!validationResult) {
             this.scrollToFirstInvalidField(formElement);
             return;
@@ -362,7 +361,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
-        console.log('[sendSaveSubmission] validationResult', validationResult);
         if (!validationResult) {
             this.scrollToFirstInvalidField(formElement);
             return;
@@ -796,11 +794,16 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         `;
     }
 
+    /**
+     * Render form validity indicator based on the isFormValid property.
+     * @returns {import('lit').TemplateResult} - HTML for the form validity indicator.
+     */
     renderFormValidityIndicator() {
+        if (!this.submissionId) return html``;
+
         if (this.isFormValid) {
             return html`
                 <div class="form-validity-indicator valid">
-                    <!-- <span class="validity-indicator valid"></span> -->
                     <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
                     <span class="validity-text">
                         ${this._i18n.t('render-form.forms.base-object.form-validity-valid-text')}
@@ -809,6 +812,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                         text-content="${this._i18n.t(
                             'render-form.forms.base-object.form-validity-valid-tooltip',
                         )}"
+                        type="button"
                         button-text=" "
                         icon-name="question-circle"></dbp-button-tooltip>
                 </div>
@@ -816,7 +820,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         } else {
             return html`
                 <div class="form-validity-indicator invalid">
-                    <!-- <span class="validity-indicator invalid"></span> -->
                     <dbp-icon name="cross-circle" aria-hidden="true"></dbp-icon>
                     <span class="validity-text">
                         ${this._i18n.t('render-form.forms.base-object.form-validity-invalid-text')}
@@ -826,6 +829,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                             'render-form.forms.base-object.form-validity-invalid-tooltip',
                         )}"
                         button-text=" "
+                        type="button"
                         icon-name="question-circle"></dbp-button-tooltip>
                 </div>
             `;
@@ -1051,49 +1055,44 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                           </div>
                       `
                     : ''}
-                ${dateCreated
-                    ? html`
-                          <div class="submission-date">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.submission-creation-date-label',
-                                  )}:
-                              </span>
-                              <span class="value">${dateCreated}</span>
-                          </div>
-                      `
-                    : ''}
-                ${dateLastModified
-                    ? html`
-                          <div class="last-modified">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.last-modified-date-label',
-                                  )}:
-                              </span>
-                              <span class="value">${dateLastModified}</span>
-                          </div>
-                      `
-                    : ''}
-                ${this.lastModifiedCreatorName
-                    ? html`
-                          <div class="last-modified-by">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.last-modified-by-name-label',
-                                  )}:
-                              </span>
-                              <span class="value">${this.lastModifiedCreatorName}</span>
-                          </div>
-                      `
-                    : ''}
+                <div class="submission-date">
+                    <span class="label">
+                        ${i18n.t('render-form.forms.base-object.submission-creation-date-label')}:
+                    </span>
+                    <span class="value">
+                        ${dateCreated ||
+                        html`
+                            &mdash;
+                        `}
+                    </span>
+                </div>
+                <div class="last-modified">
+                    <span class="label">
+                        ${i18n.t('render-form.forms.base-object.last-modified-date-label')}:
+                    </span>
+                    <span class="value">
+                        ${dateLastModified ||
+                        html`
+                            &mdash;
+                        `}
+                    </span>
+                </div>
+                <div class="last-modified-by">
+                    <span class="label">
+                        ${i18n.t('render-form.forms.base-object.last-modified-by-name-label')}:
+                    </span>
+                    <span class="value">
+                        ${this.lastModifiedCreatorName ||
+                        html`
+                            &mdash;
+                        `}
+                    </span>
+                </div>
             </div>
         `;
     }
 
     async update(changedProperties) {
-        super.update(changedProperties);
-
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
@@ -1102,8 +1101,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             }
         });
 
+        super.update(changedProperties);
+
         if (changedProperties.has('data')) {
-            console.log('[base-object] Data property changed:', this.data);
             // @ts-ignore
             // this.updateComplete.then(async () => {
             //     await this.processConditionalFields();
@@ -1220,12 +1220,6 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * Sets the button states based on the submission state and user permissions.
      */
     setButtonStates() {
-        console.log(
-            `this.formGrantedSubmissionCollectionActions`,
-            this.formGrantedSubmissionCollectionActions,
-        );
-        console.log(`this.submissionGrantedActions`, this.submissionGrantedActions);
-
         this.isViewModeButtonAllowed = false;
         this.isDraftButtonAllowed = false;
         this.isDeleteSubmissionButtonAllowed = false;

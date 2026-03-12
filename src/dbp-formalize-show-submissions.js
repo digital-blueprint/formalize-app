@@ -47,6 +47,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
         this.boundTablePaginationPageLoaded = this.handleTablePaginationPageLoaded.bind(this);
+        this.boundFileSinkDownloadStartedHandler = this.handleFileSinkDownloadStarted.bind(this);
+        this.boundSwMessageHandler = this.handleSwMessage.bind(this);
         this._deletionConfirmationResolve = null;
         this.selectedRowCount = {
             draft: 0,
@@ -186,6 +188,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.availableTags = [];
         this.selectedTagsForBatchTagging = [];
         this.justAddTagsForBatchTagging = false;
+        this.showLoadingIndicator = false;
+        this.attachmentsAreLoading = {
+            draft: false,
+            submitted: false,
+        };
+        this._abortAttachmentLoading = false;
     }
 
     static get scopedElements() {
@@ -244,6 +252,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             visibleRowCount: {type: Object, attribute: false},
             searchIsActive: {type: Object, attribute: false},
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
+            showLoadingIndicator: {type: Boolean, attribute: false},
+            attachmentsAreLoading: {type: Object, attribute: false},
         };
     }
 
@@ -259,6 +269,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-tabulator-table-page-loaded-event',
             this.boundTablePaginationPageLoaded,
         );
+        document.removeEventListener(
+            'dbp-file-sink-download-started',
+            this.boundFileSinkDownloadStartedHandler,
+        );
+        navigator.serviceWorker.removeEventListener('message', this.boundSwMessageHandler);
     }
 
     /**
@@ -334,6 +349,14 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.boundTablePaginationPageLoaded,
             );
 
+            document.addEventListener(
+                'dbp-file-sink-download-started',
+                this.boundFileSinkDownloadStartedHandler,
+            );
+
+            // listen for the SW message indicating that the download has started, to hide the loading indicator in the UI
+            navigator.serviceWorker.addEventListener('message', this.boundSwMessageHandler);
+
             // Table built event listener
             document.addEventListener(
                 'dbp-tabulator-table-built',
@@ -380,6 +403,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.requestDetailedSubmission(state, cols, id);
                                 }
                             }
+                            // Load attachment details for each submissions
+                            this.loadAttachmentDetails(state);
                         }
                     }
                 },
@@ -441,6 +466,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     columnDefinition.minWidth = 64;
                     columnDefinition.frozen = true;
                     columnDefinition.headerHozAlign = 'right';
+                    columnDefinition.download = false;
                     // Add open columnSettings modal button
                     columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
                         let columnSettingsButton = this.submissionTables[state].createScopedElement(
@@ -479,6 +505,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     headerSort: false,
                     frozen: true,
                     width: 30,
+                    download: false,
                 },
                 ...definitions, // rest of the auto-generated columns
             ];
@@ -895,6 +922,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // const i18n = this._i18n;
         let response;
         let data;
+        this.rawSubmissions = [];
+        this.submittedFileDetails = {
+            draft: new Map(),
+            submitted: new Map(),
+        };
         this.submissions = {
             submitted: [],
             draft: [],
@@ -992,6 +1024,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             dataFeedElement[key] = this.userNameCache.get(value);
                         }
                     }
+
                     // Remove formTags if no permission to view
                     // if (key === 'formTags') {
                     //     const currentForm = this.forms.get(formId);
@@ -1019,43 +1052,6 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     ...dataFeedElement,
                     submissionId: submissionId,
                 };
-
-                // Get attachments
-                const submittedFilesBasicResponse = submission['submittedFiles'];
-                const allAttachmentDetails = {};
-                if (
-                    submittedFilesBasicResponse &&
-                    Array.isArray(submittedFilesBasicResponse) &&
-                    submittedFilesBasicResponse.length > 0
-                ) {
-                    this.submissionsHasAttachment[state] = true;
-                    // Extract file names from the submittedFiles array
-                    try {
-                        this.submittedFileDetails[state].set(
-                            submissionId,
-                            await this.getAttachmentFilesDetails(submissionId),
-                        );
-                    } catch (e) {
-                        console.error(e);
-                    }
-
-                    // Separate attachments and voting files
-                    for (const attachment of this.submittedFileDetails[state].get(submissionId)) {
-                        const fieldName = `form_files-${attachment.fileAttributeName}`;
-                        if (allAttachmentDetails[fieldName] === undefined) {
-                            allAttachmentDetails[fieldName] = [];
-                        }
-                        allAttachmentDetails[fieldName].push(attachment.fileName);
-                    }
-                }
-
-                for (const fieldName of Object.keys(allAttachmentDetails)) {
-                    if (allAttachmentDetails[fieldName]) {
-                        cols[fieldName] = Array.isArray(allAttachmentDetails[fieldName])
-                            ? allAttachmentDetails[fieldName].join(', ')
-                            : allAttachmentDetails[fieldName];
-                    }
-                }
 
                 let actionButtonsDiv = this.createScopedElement('div');
                 const activeForm = this.forms.get(formId);
@@ -1156,6 +1152,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         columnDefinition.minWidth = 64;
                         columnDefinition.frozen = true;
                         columnDefinition.headerHozAlign = 'right';
+                        columnDefinition.download = false;
                         // Add open columnSettings modal button
                         columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
                             let columnSettingsButton = this.submissionTables[
@@ -1195,6 +1192,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         headerSort: false,
                         frozen: true,
                         width: 30,
+                        download: false,
                     },
                     ...definitions, // rest of the auto-generated columns
                 ];
@@ -1208,6 +1206,82 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.totalNumberOfItems[state] = submissions_list.length;
         }
         return response;
+    }
+
+    /**
+     * Load attachment details for all submissions in the given state and refresh the tabulator table.
+     * Runs after the table has been initialized to avoid blocking initial page load.
+     * @param {string} state - The state of the submission table ('draft' or 'submitted').
+     */
+    async loadAttachmentDetails(state) {
+        this._abortAttachmentLoading = false;
+        this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: true};
+        const stateFlag =
+            state === 'submitted'
+                ? SUBMISSION_STATES_BINARY.SUBMITTED
+                : SUBMISSION_STATES_BINARY.DRAFT;
+        const submissionsWithFiles = this.rawSubmissions.filter(
+            (submission) =>
+                submission.submissionState === stateFlag &&
+                submission['submittedFiles'] &&
+                Array.isArray(submission['submittedFiles']) &&
+                submission['submittedFiles'].length > 0,
+        );
+
+        if (submissionsWithFiles.length === 0) {
+            this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: false};
+            return;
+        }
+
+        this.submissionsHasAttachment[state] = true;
+
+        const tabulatorTable =
+            this.submissionTables[state] && this.submissionTables[state].tabulatorTable;
+
+        for (const submission of submissionsWithFiles) {
+            if (this._abortAttachmentLoading) break;
+            const submissionId = submission['identifier'];
+            let attachmentDetails;
+            try {
+                attachmentDetails = await this.getAttachmentFilesDetails(submissionId);
+                this.submittedFileDetails[state].set(submissionId, attachmentDetails);
+            } catch (e) {
+                console.error(e);
+                continue;
+            }
+
+            // Group file names by field name
+            const attachmentUpdate = {};
+            for (const attachment of attachmentDetails) {
+                const fieldName = `form_files-${attachment.fileAttributeName}`;
+                if (attachmentUpdate[fieldName] === undefined) {
+                    attachmentUpdate[fieldName] = [];
+                }
+                attachmentUpdate[fieldName].push(attachment.fileName);
+            }
+
+            // Flatten arrays to comma-separated strings
+            for (const fieldName of Object.keys(attachmentUpdate)) {
+                attachmentUpdate[fieldName] = attachmentUpdate[fieldName].join(', ');
+            }
+
+            // Update the in-memory submission row data
+            const cols = this.submissions[state].find((s) => s.submissionId === submissionId);
+            if (cols) {
+                Object.assign(cols, attachmentUpdate);
+            }
+
+            // Update the tabulator row immediately
+            if (tabulatorTable) {
+                const row = tabulatorTable
+                    .getRows()
+                    .find((r) => r.getData().submissionId === submissionId);
+                if (row) {
+                    row.update(attachmentUpdate);
+                }
+            }
+        }
+        this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: false};
     }
 
     /**
@@ -1658,6 +1732,27 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const data = row.getData();
                 selectedRowsSubmissionIds.push(data.submissionId);
             });
+
+            // Stop any background attachment loading before fetching on-demand
+            this._abortAttachmentLoading = true;
+
+            // Fetch attachment details on-demand for any rows not yet loaded
+            const missingIds = selectedRowsSubmissionIds.filter(
+                (id) => !this.submittedFileDetails[state].has(id),
+            );
+            if (missingIds.length > 0) {
+                this.showLoadingIndicator = true;
+                for (const submissionId of missingIds) {
+                    try {
+                        const attachmentDetails =
+                            await this.getAttachmentFilesDetails(submissionId);
+                        this.submittedFileDetails[state].set(submissionId, attachmentDetails);
+                    } catch (e) {
+                        console.error('Failed to load attachment details for', submissionId, e);
+                    }
+                }
+                this.showLoadingIndicator = false;
+            }
 
             for (const [submissionId, attachments] of this.submittedFileDetails[state]) {
                 // If there are selected rows, only download the attachments of the selected rows
@@ -2901,6 +2996,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    handleFileSinkDownloadStarted(event) {
+        this.showLoadingIndicator = true;
+    }
+
+    handleSwMessage(event) {
+        if (event.data?.type === 'DOWNLOAD_STARTED') {
+            this.showLoadingIndicator = false;
+        }
+    }
+
     /**
      * Reset action buttons state if table selection changes
      * @param {CustomEvent} tableEvent
@@ -3037,7 +3142,11 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         // @TODO: LunchLottery don't have a slug
         // other forms don't have read-only view
-        if (activeForm.formName === 'Ethikantrag' || activeForm.formName === 'Ethics Proposal') {
+        if (
+            activeForm.formName === 'Ethikantrag' ||
+            activeForm.formName === 'Ethics Proposal' ||
+            activeForm.formName === 'Media Transparency Form'
+        ) {
             // Go to the readonly view of the form submission
             let formSubmissionUrl =
                 getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
@@ -3732,6 +3841,17 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </div>
                 </menu>
             </dbp-modal>
+
+            ${this.showLoadingIndicator
+                ? html`
+                      <div class="loading-indicator">
+                          <dbp-mini-spinner
+                              text="${i18n.t(
+                                  'show-submissions.preparing-download',
+                              )}"></dbp-mini-spinner>
+                      </div>
+                  `
+                : ''}
         `;
     }
 }

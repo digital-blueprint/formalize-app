@@ -157,6 +157,14 @@ export default (async () => {
         moduleTypes: {
             '.css': 'js', // work around rolldown handling the CSS import before the URL plugin can
         },
+        // Fix infinite loop in "npm run watch"
+        watch: {
+            exclude: ['dist/**', 'node_modules/**'],
+            watcher: {
+                usePolling: true,
+                compareContentsForPolling: true,
+            },
+        },
         treeshake: treeshake,
         plugins: [
             !whitelabel &&
@@ -366,6 +374,12 @@ export default (async () => {
                       },
                   })
                 : false,
+            watch && {
+                name: 'log-rebuild',
+                writeBundle() {
+                    console.log(`\n[${new Date().toLocaleString()}] dist rebuilt\n`);
+                },
+            },
         ],
     };
 })();
