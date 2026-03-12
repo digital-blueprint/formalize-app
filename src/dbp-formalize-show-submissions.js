@@ -457,6 +457,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 if (columnDefinition.field === 'dateCreated') {
                     columnDefinition.visible = true;
+                    columnDefinition.title = this.lang === 'de' ? 'Erstellt am' : 'Date created';
                 }
                 if (columnDefinition.field === 'htmlButtons') {
                     columnDefinition.formatter = 'html';
@@ -1140,6 +1141,8 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                     if (columnDefinition.field === 'dateCreated') {
                         columnDefinition.visible = true;
+                        columnDefinition.title =
+                            this.lang === 'de' ? 'Erstellt am' : 'Date created';
                     }
                     if (columnDefinition.field === 'tags') {
                         columnDefinition.formatter = 'html';
@@ -2276,7 +2279,7 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                 });
 
-                // Add back formatter and sorter functions
+                // Add back formatter, sorter functions, and current translated title
                 options.forEach((storedColumnDefinition) => {
                     const columnWithFormatter = formatterDefinitions.find((columnDefinition) => {
                         return columnDefinition.field === storedColumnDefinition.field;
@@ -2294,6 +2297,16 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     // dateCreated
                     if (columnWithFormatter?.sorter) {
                         storedColumnDefinition.sorter = columnWithFormatter?.sorter;
+                    }
+
+                    // Always use the current (translated) title from submissionsColumnsInitial,
+                    // which is populated by setDefaultSubmissionTableOrder() with schema-localized
+                    // titles before this restore runs.
+                    const initialDef = this.submissionsColumnsInitial[state]?.find(
+                        (def) => def.field === storedColumnDefinition.field,
+                    );
+                    if (initialDef?.title) {
+                        storedColumnDefinition.title = initialDef.title;
                     }
                 });
 
@@ -2323,11 +2336,12 @@ class ShowSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement) {
     storeSubmissionTableSettings(state) {
         if (this.storeSession && this.isLoggedIn()) {
             const publicId = this.auth['user-id'];
-            // Filter out columns with non-serializable properties (like titleFormatter)
-            // These columns (htmlButtons, ID) are frozen and auto-generated, so we don't need to store them
-            const serializableColumns = this.submissionsColumns[state].filter((column) => {
-                return column.frozen !== true;
-            });
+            // Filter out frozen columns (htmlButtons, ID) — non-serializable and auto-generated.
+            // Also strip `title` since it is language-dependent and must be re-applied from the
+            // live column definitions on restore so that language changes are always reflected.
+            const serializableColumns = this.submissionsColumns[state]
+                .filter((column) => column.frozen !== true)
+                .map(({title, ...rest}) => rest);
 
             localStorage.setItem(
                 `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${publicId}`,
