@@ -2,9 +2,9 @@
 
 ## Unreleased
 
+- CourseSelect: only offer courses from the previous, current, and next semester
 - Format base course teaching term as returned by the Public REST API to match the legacy API format (e.g. "Winter Term 2023/24")
 - Update toolkit and adapt to the new version of PersonSelect
-
 - Extracted common form functionality from `ethicsCommissionForm` to `BaseFormElement`
 - Standardized form UI: buttons, tags, submission info, and validation indicators across all forms
 - Unified permission-based button state management
