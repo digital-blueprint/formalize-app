@@ -1,0 +1,18 @@
+{
+    "element": "dbp-formalize-manage-forms",
+    "module_src": "dbp-formalize-manage-forms.js",
+    "routing_name": "manage-forms",
+    "name": {
+        "de": "Formulare verwalten",
+        "en": "Manage forms"
+    },
+    "short_name": {
+        "de": "Formulare verwalten",
+        "en": "Manage forms"
+    },
+    "description": {
+        "de": "Verwaltet verfügbare Formulareinträge",
+        "en": "Manage available submissions"
+    },
+    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url"
+}

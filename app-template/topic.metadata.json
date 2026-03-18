@@ -11,9 +11,9 @@
         "de": "Verwalten Sie Kursanmeldungen.",
         "en": "Manage course registrations."
     },
-    "routing_name": "show-submissions",
+    "routing_name": "manage-forms",
     "activities": [
-        {"path": "/app/dbp-formalize-show-submissions.metadata.json", "visible": true},
+        {"path": "/app/dbp-formalize-manage-forms.metadata.json", "visible": true},
         {"path": "/app/dbp-formalize-render-form.metadata.json", "visible": true}
     ],
     "attributes": []

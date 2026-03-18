@@ -2932,7 +2932,7 @@ class FormalizeFormElement extends BaseFormElement {
             <dbp-grant-permission-dialog
                 id="grant-permission-dialog"
                 lang="${this.lang}"
-                modal-title="${i18n.t('show-submissions.edit-permission-modal-title')}"
+                modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
                 subscribe="auth"
                 entry-point-url="${this.entryPointUrl}"
                 resource-identifier="${this.submissionId}"
@@ -2943,23 +2943,23 @@ class FormalizeFormElement extends BaseFormElement {
                 id="deletion-confirmation-modal--formalize"
                 class="modal modal--confirmation"
                 modal-id="deletion-confirmation-modal"
-                title="${i18n.t('show-submissions.delete-confirmation-title')}"
+                title="${i18n.t('manage-forms.delete-confirmation-title')}"
                 subscribe="lang">
                 <div slot="content">
-                    <p>${i18n.t('show-submissions.delete-confirmation-message')}</p>
+                    <p>${i18n.t('manage-forms.delete-confirmation-message')}</p>
                 </div>
                 <menu slot="footer" class="footer-menu">
                     <dbp-button
                         type="is-secondary"
                         no-spinner-on-click
                         @click="${() => handleDeletionCancel(this)}">
-                        ${i18n.t('show-submissions.abort')}
+                        ${i18n.t('manage-forms.abort')}
                     </dbp-button>
                     <dbp-button
                         type="is-danger"
                         no-spinner-on-click
                         @click="${() => handleDeletionConfirm(this)}">
-                        ${i18n.t('show-submissions.delete')}
+                        ${i18n.t('manage-forms.delete')}
                     </dbp-button>
                 </menu>
             </dbp-modal>

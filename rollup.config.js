@@ -123,7 +123,7 @@ config.CSP = `default-src 'self' 'unsafe-inline' \
 
 let input = [
     'src/' + appName + '.js',
-    'src/dbp-formalize-show-submissions.js',
+    'src/dbp-formalize-manage-forms.js',
     'src/dbp-formalize-render-form.js',
     'src/modules/demoForm.js',
     'src/modules/accessibleExamsForm.js',
