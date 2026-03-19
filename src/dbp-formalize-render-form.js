@@ -105,9 +105,30 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.formUrlSlug = formUrlSlug;
             console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
 
+            // Notify the app-shell whether a form slug is present in the URL
+            this._dispatchActivityEnabled(formUrlSlug !== '');
+
             // We need to check permissions, because the user has navigated to a different form
             this.handlePermissionsForCurrentForm();
         }
+    }
+
+    /**
+     * Dispatches an event to the app-shell to toggle menu item disabled state.
+     *
+     * @param {boolean} enabled - true if a form slug is in the URL
+     */
+    _dispatchActivityEnabled(enabled) {
+        this.dispatchEvent(
+            new CustomEvent('dbp-app-shell-activity-enabled', {
+                detail: {
+                    name: 'render-form',
+                    enabled,
+                },
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     async handlePermissionsForCurrentForm() {
