@@ -20,7 +20,6 @@ import {
 } from './table-components.js';
 import {FileSink} from '@dbp-toolkit/file-handling';
 import * as commonStyles from '@dbp-toolkit/common/styles';
-import MicroModal from './micromodal.es.js';
 import {
     SUBMISSION_STATES,
     getFormRenderUrl,
@@ -315,6 +314,40 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    syncSubmissionsPageState() {
+        const submissionsPage = this.getSubmissionsPage();
+        if (!submissionsPage) {
+            return;
+        }
+
+        submissionsPage.showFormsTable = this.showFormsTable;
+        submissionsPage.showSubmissionTables = this.showSubmissionTables;
+        submissionsPage.loadingSubmissionTables = this.loadingSubmissionTables;
+        submissionsPage.activeFormName = this.activeFormName;
+        submissionsPage.createSubmissionUrl = this.createSubmissionUrl;
+        submissionsPage.enabledStates = this.enabledStates;
+        submissionsPage.noSubmissionAvailable = this.noSubmissionAvailable;
+        submissionsPage.searchWidgetIsOpen = this.searchWidgetIsOpen;
+        submissionsPage.actionsWidgetIsOpen = this.actionsWidgetIsOpen;
+        submissionsPage.isActionAvailable = this.isActionAvailable;
+        submissionsPage.isEditSubmissionEnabled = this.isEditSubmissionEnabled;
+        submissionsPage.isBatchTaggingEnabled = this.isBatchTaggingEnabled;
+        submissionsPage.isEditSubmissionPermissionEnabled = this.isEditSubmissionPermissionEnabled;
+        submissionsPage.isDeleteAllSubmissionEnabled = this.isDeleteAllSubmissionEnabled;
+        submissionsPage.isDeleteSelectedSubmissionEnabled = this.isDeleteSelectedSubmissionEnabled;
+        submissionsPage.optionsSubmissions = this.options_submissions;
+        submissionsPage.submissions = this.submissions;
+        submissionsPage.submissionsColumns = this.submissionsColumns;
+        submissionsPage.iconNameVisible = this.iconNameVisible;
+        submissionsPage.iconNameHidden = this.iconNameHidden;
+        submissionsPage.isResetButtonDisabled = this.isResetButtonDisabled;
+        submissionsPage.selectedRowCount = this.selectedRowCount;
+        submissionsPage.allRowCount = this.allRowCount;
+        submissionsPage.visibleRowCount = this.visibleRowCount;
+        submissionsPage.searchIsActive = this.searchIsActive;
+        submissionsPage.submissionsHasAttachment = this.submissionsHasAttachment;
+    }
+
     /**
      * Converts a timestamp to a readable date
      *
@@ -514,7 +547,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         );
                         columnSettingsButton.setAttribute('subscribe', 'lang');
                         columnSettingsButton.addEventListener('click', () => {
-                            this.openColumnOptionsModal(state);
+                            this.getSubmissionsPage()?.openColumnOptionsModal(state);
                         });
                         return columnSettingsButton;
                     };
@@ -693,6 +726,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (changedProperties.has('submissions')) {
             this.refreshTableReferences();
+            this.syncSubmissionsPageState();
             // const oldValue = changedProperties.get('submissions');
             // console.log(`*** [updated] oldValue`, oldValue);
             // console.log(`*** [updated] this.submissions`, this.submissions);
@@ -732,6 +766,35 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // To re-create get-submission-links with the new language
                 this.switchToSubmissionTable(activeForm);
             }
+        }
+
+        if (
+            changedProperties.has('showFormsTable') ||
+            changedProperties.has('showSubmissionTables') ||
+            changedProperties.has('loadingSubmissionTables') ||
+            changedProperties.has('activeFormName') ||
+            changedProperties.has('createSubmissionUrl') ||
+            changedProperties.has('enabledStates') ||
+            changedProperties.has('noSubmissionAvailable') ||
+            changedProperties.has('searchWidgetIsOpen') ||
+            changedProperties.has('actionsWidgetIsOpen') ||
+            changedProperties.has('isActionAvailable') ||
+            changedProperties.has('isEditSubmissionEnabled') ||
+            changedProperties.has('isBatchTaggingEnabled') ||
+            changedProperties.has('isEditSubmissionPermissionEnabled') ||
+            changedProperties.has('isDeleteAllSubmissionEnabled') ||
+            changedProperties.has('isDeleteSelectedSubmissionEnabled') ||
+            changedProperties.has('options_submissions') ||
+            changedProperties.has('submissions') ||
+            changedProperties.has('submissionsColumns') ||
+            changedProperties.has('isResetButtonDisabled') ||
+            changedProperties.has('selectedRowCount') ||
+            changedProperties.has('allRowCount') ||
+            changedProperties.has('visibleRowCount') ||
+            changedProperties.has('searchIsActive') ||
+            changedProperties.has('submissionsHasAttachment')
+        ) {
+            this.syncSubmissionsPageState();
         }
 
         super.updated(changedProperties);
@@ -1192,7 +1255,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             );
                             columnSettingsButton.setAttribute('subscribe', 'lang');
                             columnSettingsButton.addEventListener('click', () => {
-                                this.openColumnOptionsModal(state);
+                                this.getSubmissionsPage()?.openColumnOptionsModal(state);
                             });
                             return columnSettingsButton;
                         };
@@ -1923,22 +1986,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    toggleSearchFilters(state) {
-        if (this.searchWidgetIsOpen[state]) {
-            // Close search filters widget
-            this.searchWidgetIsOpen = {
-                ...this.searchWidgetIsOpen,
-                [state]: false,
-            };
-        } else {
-            // Open search filters widget
-            this.searchWidgetIsOpen = {
-                ...this.searchWidgetIsOpen,
-                [state]: true,
-            };
-        }
-    }
-
     /**
      * Removes the current filters from the submissions table
      */
@@ -1974,97 +2021,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state - The state of the submission table ('draft' or 'submitted')
      * @returns {import('lit').TemplateResult[]} Array of option template results
      */
-    getTableHeaderOptions(state) {
-        const i18n = this._i18n;
-
-        if (this.submissions[state].length === 0) {
-            return [];
-        } else {
-            let options = [];
-            options.push(html`
-                <option value="all">${i18n.t('manage-forms.all-columns')}</option>
-            `);
-
-            let submissions = [];
-            if (this.submissions[state].length > 0) {
-                submissions = this.submissions[state];
-            }
-
-            let cols = Object.keys(submissions[0]);
-
-            let schemaFields = null;
-            if (this.activeFormId) {
-                const activeForm = this.forms.get(this.activeFormId);
-                try {
-                    const formSchema = JSON.parse(activeForm.dataFeedSchema);
-                    schemaFields = formSchema?.properties;
-                } catch (e) {
-                    console.log('Failed parsing json data', e);
-                }
-            }
-
-            for (let col of cols) {
-                if (col && col !== 'htmlButtons') {
-                    // Get localized name from the schema if available
-                    const localizedName = schemaFields?.[col]?.localizedName?.[this.lang];
-                    const displayName = localizedName || col;
-                    options.push(html`
-                        <option value="${col}">${displayName}</option>
-                    `);
-                }
-            }
-            return options;
-        }
-    }
-
-    getTableFilterOptions() {
-        const i18n = this._i18n;
-        return html`
-            <option value="like">${i18n.t('manage-forms.search-operator-like')}</option>
-            <option value="=">${i18n.t('manage-forms.search-operator-equal')}</option>
-            <option value="!=">${i18n.t('manage-forms.search-operator-notequal')}</option>
-            <option value="starts">${i18n.t('manage-forms.search-operator-starts')}</option>
-            <option value="ends">${i18n.t('manage-forms.search-operator-ends')}</option>
-            <option value="<">${i18n.t('manage-forms.search-operator-less')}</option>
-            <option value="<=">${i18n.t('manage-forms.search-operator-lessthanorequal')}</option>
-            <option value=">">${i18n.t('manage-forms.search-operator-greater')}</option>
-            <option value=">=">${i18n.t('manage-forms.search-operator-greaterorequal')}</option>
-            <option value="regex">${i18n.t('manage-forms.search-operator-regex')}</option>
-            <option value="keywords">${i18n.t('manage-forms.search-operator-keywords')}</option>
-        `;
-    }
-
-    /**
-     * Opens submission Columns Modal
-     * @param {string} state
-     */
-    openColumnOptionsModal(state) {
-        let modal = this.getSubmissionsPage()?.getColumnOptionsModal(state);
-        if (modal) {
-            MicroModal.show(modal, {
-                disableScroll: true,
-                disableFocus: false,
-            });
-        }
-
-        // Scroll list to top disableScroll: true
-        let scrollWrapper = this.getSubmissionsPage()?.getColumnOptionsContent(state);
-        if (scrollWrapper) {
-            scrollWrapper.scrollTo(0, 0);
-        }
-    }
-
-    /**
-     * Close Column Options Modal
-     * @param {string} state
-     */
-    closeColumnOptionsModal(state) {
-        let modal = this.getSubmissionsPage()?.getColumnOptionsModal(state);
-        if (modal) {
-            MicroModal.close(modal);
-        }
-    }
-
     /**
      * Close submission Columns Modal
      * @param {string} state
@@ -2134,7 +2090,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param event
      */
     handleKeyEvents(event) {
-        const activeElement = this.shadowRoot.activeElement;
+        const activeElement = this.getSubmissionsPage()?.shadowRoot?.activeElement;
 
         if (activeElement && activeElement.classList.contains('searchbar')) {
             // ENTER
@@ -2406,334 +2362,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     width: 1px;
                 }
             }
-        `;
-    }
-
-    renderColumnSettingsModal(state) {
-        const i18n = this._i18n;
-
-        // Remove columns that we don't want to show in the settings modal (frozen columns)
-        const columns = this.submissionsColumns[state].filter((column) => {
-            return column && column.frozen !== true;
-        });
-
-        if (columns.length === 0) {
-            return;
-        }
-
-        return html`
-            <div
-                class="modal micromodal-slide column-settings-modal"
-                id="column-options-modal-${state}"
-                aria-hidden="true">
-                <div class="modal-overlay" tabindex="-2" data-micromodal-close>
-                    <div
-                        class="modal-container"
-                        id="filter-modal-box"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="submission-modal-title">
-                        <header class="modal-header">
-                            <dbp-icon-button
-                                title="${i18n.t('manage-forms.modal-close')}"
-                                aria-label="${i18n.t('manage-forms.modal-close')}"
-                                class="modal-close"
-                                icon-name="close"
-                                @click="${() => {
-                                    this.closeColumnOptionsModal(state);
-                                }}"></dbp-icon-button>
-                            <div class="modal-title">
-                                <dbp-icon
-                                    class="modal-title-icon"
-                                    aria-label="hidden"
-                                    title="${i18n.t('manage-forms.table-configuration')}"
-                                    name="cog"></dbp-icon>
-                                <h2 id="submission-modal-title">
-                                    ${i18n.t('manage-forms.header-settings')}
-                                </h2>
-                            </div>
-                        </header>
-                        <div class="modal-header-tag">
-                            <p>
-                                <span class="tag tag--state">${state}</span>
-                            </p>
-                        </div>
-                        <main
-                            class="modal-content submission-modal-content"
-                            id="submission-modal-content-${state}">
-                            <ul class="headers">
-                                ${columns.map(
-                                    (column, index) => html`
-                                        <li
-                                            class="header-field"
-                                            data-index="${index}"
-                                            data-fieldname="${column.field}">
-                                            <div class="header-order">${index + 1}</div>
-                                            <div class="header-title">${column.title}</div>
-                                            <dbp-icon-button
-                                                data-visibility="${column.visible}"
-                                                icon-name=${column.visible
-                                                    ? this.iconNameVisible
-                                                    : this.iconNameHidden}
-                                                @click="${() => {
-                                                    this.toggleVisibility(column, state);
-                                                }}"
-                                                class="header-visibility-icon"></dbp-icon-button>
-
-                                            <div class="button-wrapper">
-                                                <div class="header-move">
-                                                    <dbp-icon-button
-                                                        class="arrow-up ${classMap({
-                                                            'first-arrow-up': index === 0,
-                                                        })}"
-                                                        icon-name="arrow-up"
-                                                        title="${i18n.t(
-                                                            'manage-forms.move-column-up',
-                                                        )}"
-                                                        @click="${() => {
-                                                            this.moveHeader(column, state, 'up');
-                                                        }}"></dbp-icon-button>
-                                                    <dbp-icon-button
-                                                        class="header-button arrow-down ${classMap({
-                                                            'last-arrow-down':
-                                                                index ===
-                                                                this.submissionsColumns[state]
-                                                                    .length -
-                                                                    1,
-                                                        })}"
-                                                        icon-name="arrow-down"
-                                                        title="${i18n.t(
-                                                            'manage-forms.move-column-down',
-                                                        )}"
-                                                        @click="${() => {
-                                                            this.moveHeader(column, state, 'down');
-                                                        }}"></dbp-icon-button>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    `,
-                                )}
-                            </ul>
-                        </main>
-                        <footer class="modal-footer">
-                            <div class="modal-footer-btn">
-                                <div class="top-button-row">
-                                    <button
-                                        title="${i18n.t('manage-forms.reset-filter')}"
-                                        class="check-btn button button--reset is-secondary item-1"
-                                        .disabled="${this.isResetButtonDisabled[state]}"
-                                        @click="${() => {
-                                            this.resetSettings(state);
-                                        }}">
-                                        <dbp-icon
-                                            aria-hidden="true"
-                                            name="spinner-arrow-mirrored"></dbp-icon>
-                                        ${i18n.t('manage-forms.reset-filter')}
-                                    </button>
-                                    <button
-                                        title="${i18n.t('manage-forms.all-filters-hide')}"
-                                        class="check-btn button button--hide-all is-secondary item-2"
-                                        @click="${() => {
-                                            this.toggleAllColumns(state, 'hide');
-                                        }}">
-                                        <dbp-icon
-                                            aria-hidden="true"
-                                            name="source_icons_eye-off"></dbp-icon>
-                                        ${i18n.t('manage-forms.all-filters-hide')}
-                                    </button>
-                                    <button
-                                        title="${i18n.t('manage-forms.all-filters-show')}"
-                                        class="check-btn button button--show-all is-secondary item-3"
-                                        @click="${() => {
-                                            this.toggleAllColumns(state, 'show');
-                                        }}">
-                                        <dbp-icon
-                                            aria-hidden="true"
-                                            name="source_icons_eye-empty"></dbp-icon>
-                                        ${i18n.t('manage-forms.all-filters-show')}
-                                    </button>
-                                </div>
-                                <div class="bottom-button-row">
-                                    <button
-                                        title="${i18n.t('manage-forms.abort')}"
-                                        class="check-btn button is-secondary"
-                                        @click="${() => {
-                                            this.closeColumnOptionsModal(state);
-                                        }}">
-                                        <dbp-icon aria-hidden="true" name="close"></dbp-icon>
-                                        ${i18n.t('manage-forms.abort')}
-                                    </button>
-                                    <button
-                                        class="check-btn button button--save is-primary"
-                                        id="check"
-                                        @click="${() => {
-                                            this.updateSubmissionTable(state);
-                                            this.storeSubmissionTableSettings(state);
-                                            this.closeColumnOptionsModal(state);
-                                        }}">
-                                        <dbp-icon aria-hidden="true" name="save"></dbp-icon>
-                                        ${i18n.t('manage-forms.save-columns')}
-                                    </button>
-                                </div>
-                            </div>
-                        </footer>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    renderExportWidget(state) {
-        const i18n = this._i18n;
-
-        const exportCount =
-            this.selectedRowCount[state] === 0
-                ? this.allRowCount[state]
-                : this.selectedRowCount[state];
-
-        return html`
-            <div class="export-container">
-                <select
-                    id="export-select"
-                    class="dropdown-menu"
-                    aria-label="${i18n.t('manage-forms.export-select-aria-label')}"
-                    @change="${(e) => {
-                        this.exportSubmissionTable(e, state);
-                    }}">
-                    <option value="-" disabled selected>
-                        ${i18n.t('manage-forms.default-export-select')}
-                    </option>
-                    <option value="csv">
-                        ${i18n.t('manage-forms.export-csv-label', {
-                            n: exportCount,
-                        })}
-                    </option>
-                    <option value="xlsx">
-                        ${i18n.t('manage-forms.export-xlsx-label', {
-                            n: exportCount,
-                        })}
-                    </option>
-                    <option value="pdf">
-                        ${i18n.t('manage-forms.export-pdf-label', {
-                            n: exportCount,
-                        })}
-                    </option>
-                    ${this.submissionsHasAttachment[state]
-                        ? html`
-                              <option value="attachments">
-                                  ${i18n.t('manage-forms.export-attachments-label', {
-                                      n: exportCount,
-                                  })}
-                              </option>
-                          `
-                        : ''}
-                </select>
-                <dbp-icon
-                    class="export-select-icon"
-                    name="chevron-down"
-                    aria-hidden="true"></dbp-icon>
-            </div>
-        `;
-    }
-
-    renderActionsWidget(state) {
-        const i18n = this._i18n;
-
-        return html`
-            <div
-                class="actions-container ${classMap({open: this.actionsWidgetIsOpen[state]})}"
-                id="actions-container--${state}">
-                <button
-                    class="button open-actions-button is-secondary"
-                    id="action-button-${state}"
-                    ?disabled=${!this.isActionAvailable[state]}
-                    @click="${() => {
-                        this.setActionButtonsStates(state);
-                        this.toggleActionsDropdown(state);
-                    }}">
-                    ${i18n.t('manage-forms.actions-button-text')}
-                    <dbp-icon
-                        class="icon-chevron"
-                        name="chevron-down"
-                        aria-hidden="true"></dbp-icon>
-                </button>
-                <div class="actions-dropdown" ?inert=${!this.actionsWidgetIsOpen[state]}>
-                    <ul class="actions-list">
-                        <li class="action">
-                            <button
-                                class="button action-button button--edit-submission"
-                                ?disabled=${!this.isEditSubmissionEnabled[state]}
-                                @mousedown="${async (event) => {
-                                    await this.handleEditSubmissions(event, state);
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.edit-submission-button-text')}
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--batch-tagging"
-                                ?disabled=${!this.isBatchTaggingEnabled[state]}
-                                @click="${async () => {
-                                    await this.handleOpenBatchTaggingModal(state);
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="tags" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.batch-tagging-button-text')}
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--edit-permission"
-                                ?disabled=${!this.isEditSubmissionPermissionEnabled[state]}
-                                @click="${async () => {
-                                    await this.handleEditSubmissionsPermission(state);
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.edit-permission-button-text')}
-                            </button>
-                        </li>
-                        ${this.isDeleteAllSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--delete-all"
-                                          @click="${async () => {
-                                              await this.handleDeleteSubmissions(state);
-                                          }}">
-                                          <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                          ${i18n.t(
-                                              'manage-forms.delete-all-submissions-button-text',
-                                              {n: this.allRowCount[state]},
-                                          )}
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
-                        ${this.isDeleteSelectedSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--delete-selected"
-                                          @click="${async () => {
-                                              await this.handleDeleteSubmissions(state, true);
-                                          }}">
-                                          <dbp-icon
-                                              name="delete-selection"
-                                              aria-hidden="true"></dbp-icon>
-                                          ${i18n.t(
-                                              'manage-forms.delete-selected-submissions-button-text',
-                                              {n: this.selectedRowCount[state]},
-                                          )}
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
-                    </ul>
-                </div>
-            </div>
         `;
     }
 
@@ -3233,10 +2861,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     closeAllSearchWidgets() {
-        this.searchWidgetIsOpen = {
-            draft: false,
-            submitted: false,
-        };
+        this.searchWidgetIsOpen = {draft: false, submitted: false};
+        this.syncSubmissionsPageState();
     }
 
     handleBackToOverview() {
@@ -3248,6 +2874,84 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.showFormsTable = true;
         this.activeFormId = null;
         this.sendSetPropertyEvent('routing-url', '/', true);
+    }
+
+    handleSubmissionsPageSearchToggle(event) {
+        const {state, open} = event.detail;
+        this.searchWidgetIsOpen = {
+            ...this.searchWidgetIsOpen,
+            [state]: open,
+        };
+        this.syncSubmissionsPageState();
+    }
+
+    handleSubmissionsPageActionsToggle(event) {
+        const {state, open} = event.detail;
+        this.actionsWidgetIsOpen = {
+            ...this.actionsWidgetIsOpen,
+            [state]: open,
+        };
+        this.syncSubmissionsPageState();
+    }
+
+    handleSubmissionsPageAction(event) {
+        const {action, state, payload} = event.detail;
+        const effectivePayload = payload ?? {};
+        const effectiveColumn = effectivePayload.column;
+        const effectiveEvent = effectivePayload.event;
+
+        switch (action) {
+            case 'prepare-actions':
+                this.setActionButtonsStates(state);
+                this.syncSubmissionsPageState();
+                break;
+            case 'edit-submission':
+                this.handleEditSubmissions(effectiveEvent, state);
+                break;
+            case 'batch-tagging':
+                this.handleOpenBatchTaggingModal(state);
+                break;
+            case 'edit-permission':
+                this.handleEditSubmissionsPermission(state);
+                break;
+            case 'delete-all':
+                this.handleDeleteSubmissions(state);
+                break;
+            case 'delete-selected':
+                this.handleDeleteSubmissions(state, true);
+                break;
+            case 'export':
+                this.exportSubmissionTable(effectiveEvent, state);
+                break;
+            case 'toggle-column-visibility':
+                this.toggleVisibility(effectiveColumn, state);
+                this.syncSubmissionsPageState();
+                break;
+            case 'move-column-up':
+                this.moveHeader(effectiveColumn, state, 'up');
+                this.syncSubmissionsPageState();
+                break;
+            case 'move-column-down':
+                this.moveHeader(effectiveColumn, state, 'down');
+                this.syncSubmissionsPageState();
+                break;
+            case 'reset-columns':
+                this.resetSettings(state);
+                this.syncSubmissionsPageState();
+                break;
+            case 'hide-all-columns':
+                this.toggleAllColumns(state, 'hide');
+                this.syncSubmissionsPageState();
+                break;
+            case 'show-all-columns':
+                this.toggleAllColumns(state, 'show');
+                this.syncSubmissionsPageState();
+                break;
+            case 'save-columns':
+                this.updateSubmissionTable(state);
+                this.storeSubmissionTableSettings(state);
+                break;
+        }
     }
 
     handleSubmissionModalClose() {
@@ -3262,157 +2966,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     handleSubmissionModalNext(event) {
         const {state} = event.detail;
         this.showEntryOfPos(state, this.currentDetailPosition + 1, 'next');
-    }
-
-    renderSearchWidget(state) {
-        const i18n = this._i18n;
-
-        return html`
-            <div class="search-input">
-                <label for="searchbar--${state}">
-                    ${i18n.t('manage-forms.search-input-label')}:
-                </label>
-
-                <input
-                    type="text"
-                    id="searchbar--${state}"
-                    data-state="${state}"
-                    class="searchbar"
-                    placeholder="${i18n.t('manage-forms.searchbar-placeholder')}" />
-
-                <button
-                    class="button search-button"
-                    id="search-button--${state}"
-                    @click="${() => {
-                        this.filterTable(state);
-                    }}">
-                    <dbp-icon
-                        title="${i18n.t('manage-forms.search-button')}"
-                        aria-label="${i18n.t('manage-forms.search-button')}"
-                        name="search"></dbp-icon>
-                </button>
-
-                <button
-                    class="button search-toggle-filters-button"
-                    id="search-toggle-filters-button--${state}"
-                    aria-expanded="${this.searchWidgetIsOpen[state]}"
-                    aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
-                    title="${i18n.t('manage-forms.open-search-filters')}"
-                    @click="${() => {
-                        this.toggleSearchFilters(state);
-                    }}">
-                    <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
-                    <span class="button-text">
-                        ${this.searchWidgetIsOpen[state]
-                            ? i18n.t('manage-forms.close-search-filters')
-                            : i18n.t('manage-forms.open-search-filters')}
-                    </span>
-                </button>
-            </div>
-
-            <div
-                id="search-filter-columns--${state}"
-                role="region"
-                aria-label="${i18n.t('manage-forms.search-filters-region')}"
-                class="search-filter-columns ${classMap({
-                    open: this.searchWidgetIsOpen[state],
-                })}">
-                <label for="search-select-${state}">${i18n.t('manage-forms.search-in')}:</label>
-                <select
-                    id="search-select--${state}"
-                    class="button dropdown-menu search-select"
-                    title="${i18n.t('manage-forms.search-in-column')}"
-                    @change="${(e) => {
-                        this.filterTable(state);
-                    }}">
-                    <optgroup label="${i18n.t('manage-forms.search-in-column')}">
-                        <legend>${i18n.t('manage-forms.search-in-column')}:</legend>
-                        ${this.getTableHeaderOptions(state)}
-                    </optgroup>
-                </select>
-                <dbp-icon
-                    name="chevron-down"
-                    title="${i18n.t('manage-forms.filter-toggle-button')}"
-                    aria-label="${i18n.t('manage-forms.filter-toggle-button')}"></dbp-icon>
-            </div>
-
-            <div
-                id="search-filter-operator--${state}"
-                role="region"
-                aria-label="${i18n.t('manage-forms.search-operator')}"
-                class="search-filter-operator ${classMap({
-                    open: this.searchWidgetIsOpen[state],
-                })}">
-                <label for="search-operator--${state}">
-                    ${i18n.t('manage-forms.search-operator')}:
-                </label>
-                <select
-                    id="search-operator--${state}"
-                    title="${i18n.t('manage-forms.search-operator')}"
-                    class="button dropdown-menu search-operator"
-                    @change="${(e) => {
-                        this.filterTable(state);
-                    }}">
-                    <optgroup label="${i18n.t('manage-forms.search-operator')}">
-                        <legend>${i18n.t('manage-forms.search-operator')}:</legend>
-                        ${this.getTableFilterOptions()}
-                    </optgroup>
-                </select>
-                <dbp-icon
-                    name="chevron-down"
-                    title="${i18n.t('manage-forms.filter-toggle-button')}"
-                    aria-label="${i18n.t('manage-forms.filter-toggle-button')}"></dbp-icon>
-            </div>
-            <button
-                class="button search-toggle-filters-button"
-                id="search-toggle-filters-button--${state}"
-                aria-expanded="${this.searchWidgetIsOpen[state]}"
-                aria-controls="search-filter-columns--${state} search-filter-operator--${state}"
-                title="${i18n.t('manage-forms.open-search-filters')}"
-                @click="${() => {
-                    this.toggleSearchFilters(state);
-                }}">
-                <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
-                <span class="button-text">
-                    ${this.searchWidgetIsOpen[state]
-                        ? i18n.t('manage-forms.close-search-filters')
-                        : i18n.t('manage-forms.open-search-filters')}
-                </span>
-            </button>
-        `;
-    }
-
-    renderStatusBar(state) {
-        const i18n = this._i18n;
-
-        return html`
-            <div class="statusbar" role="status" aria-live="polite" aria-atomic="true">
-                <span class="selection-info">
-                    ${i18n.t('manage-forms.n-items-shown-label', {
-                        n: this.visibleRowCount[state],
-                    })}${this.selectedRowCount[state] > 0
-                        ? html`
-                              ,
-                              ${i18n.t('manage-forms.n-items-selected-label', {
-                                  n: this.selectedRowCount[state],
-                              })}
-                          `
-                        : ''}
-                </span>
-                <button
-                    class="reset-search"
-                    ?disabled="${this.searchIsActive[state] === false}"
-                    @click="${() => {
-                        this.clearAllFilters();
-                    }}">
-                    <dbp-icon
-                        name="spinner-arrow"
-                        title="${i18n.t('manage-forms.reset-search-label')}"
-                        aria-label="${i18n.t('manage-forms.reset-search-label')}"></dbp-icon>
-                    ${i18n.t('manage-forms.reset-search-label')}
-                </button>
-            </div>
-        `;
     }
 
     _onLoginClicked(e) {
@@ -3468,23 +3021,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"
                     id="submissions-page"
-                    .showFormsTable=${this.showFormsTable}
-                    .showSubmissionTables=${this.showSubmissionTables}
-                    .loadingSubmissionTables=${this.loadingSubmissionTables}
-                    .activeFormName=${this.activeFormName}
-                    .createSubmissionUrl=${this.createSubmissionUrl}
-                    .enabledStates=${this.enabledStates}
-                    .noSubmissionAvailable=${this.noSubmissionAvailable}
-                    .searchWidgetIsOpen=${this.searchWidgetIsOpen}
-                    .optionsSubmissions=${this.options_submissions}
-                    .onBack=${() => this.handleBackToOverview()}
-                    .renderActionsWidget=${(state) => this.renderActionsWidget(state)}
-                    .renderSearchWidget=${(state) => this.renderSearchWidget(state)}
-                    .renderExportWidget=${(state) => this.renderExportWidget(state)}
-                    .renderStatusBar=${(state) => this.renderStatusBar(state)}
-                    .renderColumnSettingsModal=${(state) =>
-                        this.renderColumnSettingsModal(
-                            state,
+                    @back-to-overview=${() => this.handleBackToOverview()}
+                    @submission-search-toggle=${(event) =>
+                        this.handleSubmissionsPageSearchToggle(event)}
+                    @submission-actions-toggle=${(event) =>
+                        this.handleSubmissionsPageActionsToggle(event)}
+                    @submission-search=${(event) => this.filterTable(event.detail.state)}
+                    @submission-search-reset=${() => this.clearAllFilters()}
+                    @submission-action=${(event) =>
+                        this.handleSubmissionsPageAction(
+                            event,
                         )}></dbp-formalize-manage-form-submissions-page>
             </div>
 
