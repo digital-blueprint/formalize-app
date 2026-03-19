@@ -1,11 +1,10 @@
+// @ts-nocheck
 import {css, html} from 'lit';
-import {createRef, ref} from 'lit/directives/ref.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {
     Button,
     Icon,
     IconButton,
-    LoadingButton,
     MiniSpinner,
     Translated,
     sendNotification,
@@ -23,14 +22,11 @@ import * as commonStyles from '@dbp-toolkit/common/styles';
 import {
     SUBMISSION_STATES,
     getFormRenderUrl,
-    getFormManageFormsUrl,
     SUBMISSION_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
-    SUBMISSION_STATES_BINARY,
-    getDeletionConfirmation,
-    handleDeletionConfirm,
-    handleDeletionCancel,
+    addDetailsToUrl,
+    removeDetailsFromUrl,
 } from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss, getTagsCSS, getManageFormsCSS} from './styles.js';
 import metadata from './dbp-formalize-manage-forms.metadata.json';
@@ -41,6 +37,37 @@ import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {ManageFormsOverviewPage} from './manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from './manage-form-submissions-page.js';
 import {ManageSubmissionModal} from './manage-submission-modal.js';
+import {BatchTaggingModal} from './batch-tagging-modal.js';
+import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
+
+// Extracted modules
+import {
+    loadModules,
+    getListOfAllForms,
+    getAllFormSubmissions,
+    getAttachmentFilesDetails,
+    loadAttachmentDetails,
+    apiDeleteSubmission,
+    apiUpdateSubmissionTags,
+    apiGetTags,
+    humanReadableDate,
+    successFailureNotification,
+} from './manage-forms-api.js';
+import {
+    setSubmissionFormOptions,
+    setDefaultSubmissionTableOrder,
+    enableCheckboxSelection,
+    disableCheckboxSelection,
+    enablePagination,
+    disablePagination,
+    restoreSubmissionTableSettings,
+    storeSubmissionTableSettings,
+    resetSettings,
+    toggleAllColumns,
+    toggleVisibility,
+    moveHeader,
+    updateSubmissionTable,
+} from './manage-forms-table-config.js';
 
 /**
  * @augments {DBPFormalizeLitElement}
@@ -56,7 +83,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.boundTablePaginationPageLoaded = this.handleTablePaginationPageLoaded.bind(this);
         this.boundFileSinkDownloadStartedHandler = this.handleFileSinkDownloadStarted.bind(this);
         this.boundSwMessageHandler = this.handleSwMessage.bind(this);
-        this._deletionConfirmationResolve = null;
         this.selectedRowCount = {
             draft: 0,
             submitted: 0,
@@ -187,11 +213,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.isRequestDetailedView = false;
         this.submissionIdToOpen = null;
         this.submissionIdsForTagging = [];
-        this.batchTaggingModalRef = createRef();
-        this.batchTaggingConfirmButtonRef = createRef();
         this.availableTags = [];
-        this.selectedTagsForBatchTagging = [];
-        this.justAddTagsForBatchTagging = false;
         this.showLoadingIndicator = false;
         this.attachmentsAreLoading = {
             draft: false,
@@ -207,7 +229,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-icon-button': IconButton,
             'dbp-translated': Translated,
             'dbp-mini-spinner': MiniSpinner,
-            'dbp-loading-button': LoadingButton,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
@@ -218,6 +239,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-formalize-manage-forms-overview-page': ManageFormsOverviewPage,
             'dbp-formalize-manage-form-submissions-page': ManageFormSubmissionsPage,
             'dbp-formalize-manage-submission-modal': ManageSubmissionModal,
+            'dbp-formalize-batch-tagging-modal': BatchTaggingModal,
+            'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
         };
     }
 
@@ -314,57 +337,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    syncSubmissionsPageState() {
-        const submissionsPage = this.getSubmissionsPage();
-        if (!submissionsPage) {
-            return;
-        }
-
-        submissionsPage.showFormsTable = this.showFormsTable;
-        submissionsPage.showSubmissionTables = this.showSubmissionTables;
-        submissionsPage.loadingSubmissionTables = this.loadingSubmissionTables;
-        submissionsPage.activeFormName = this.activeFormName;
-        submissionsPage.createSubmissionUrl = this.createSubmissionUrl;
-        submissionsPage.enabledStates = this.enabledStates;
-        submissionsPage.noSubmissionAvailable = this.noSubmissionAvailable;
-        submissionsPage.searchWidgetIsOpen = this.searchWidgetIsOpen;
-        submissionsPage.actionsWidgetIsOpen = this.actionsWidgetIsOpen;
-        submissionsPage.isActionAvailable = this.isActionAvailable;
-        submissionsPage.isEditSubmissionEnabled = this.isEditSubmissionEnabled;
-        submissionsPage.isBatchTaggingEnabled = this.isBatchTaggingEnabled;
-        submissionsPage.isEditSubmissionPermissionEnabled = this.isEditSubmissionPermissionEnabled;
-        submissionsPage.isDeleteAllSubmissionEnabled = this.isDeleteAllSubmissionEnabled;
-        submissionsPage.isDeleteSelectedSubmissionEnabled = this.isDeleteSelectedSubmissionEnabled;
-        submissionsPage.optionsSubmissions = this.options_submissions;
-        submissionsPage.submissions = this.submissions;
-        submissionsPage.submissionsColumns = this.submissionsColumns;
-        submissionsPage.iconNameVisible = this.iconNameVisible;
-        submissionsPage.iconNameHidden = this.iconNameHidden;
-        submissionsPage.isResetButtonDisabled = this.isResetButtonDisabled;
-        submissionsPage.selectedRowCount = this.selectedRowCount;
-        submissionsPage.allRowCount = this.allRowCount;
-        submissionsPage.visibleRowCount = this.visibleRowCount;
-        submissionsPage.searchIsActive = this.searchIsActive;
-        submissionsPage.submissionsHasAttachment = this.submissionsHasAttachment;
-    }
-
-    /**
-     * Converts a timestamp to a readable date
-     *
-     * @param value
-     * @returns {string} xlsx year-month-date hours:minutes
-     */
-    humanReadableDate(value) {
-        const d = Date.parse(value);
-        const timestamp = new Date(d);
-        const year = timestamp.getFullYear();
-        const month = ('0' + (timestamp.getMonth() + 1)).slice(-2);
-        const date = ('0' + timestamp.getDate()).slice(-2);
-        const hours = ('0' + timestamp.getHours()).slice(-2);
-        const minutes = ('0' + timestamp.getMinutes()).slice(-2);
-        return year + '-' + month + '-' + date + ' ' + hours + ':' + minutes;
-    }
-
     connectedCallback() {
         super.connectedCallback();
         const i18n = this._i18n;
@@ -405,8 +377,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        this.setSubmissionFormOptions('draft');
-        this.setSubmissionFormOptions('submitted');
+        setSubmissionFormOptions(this, 'draft');
+        setSubmissionFormOptions(this, 'submitted');
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
@@ -436,13 +408,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     if (e.detail.id) {
                         const state = this.getTableState(e.detail.id);
                         if (state) {
-                            // console.log(`this.submissions`, this.submissions);
                             // Set visibility and name localization of columns based on form schema
-                            this.setDefaultSubmissionTableOrder(state);
+                            setDefaultSubmissionTableOrder(this, state);
 
                             // Get settings from localStorage.
-                            const columnsLoadedFromLocalStorage =
-                                this.restoreSubmissionTableSettings(state);
+                            const columnsLoadedFromLocalStorage = restoreSubmissionTableSettings(
+                                this,
+                                state,
+                            );
                             if (!columnsLoadedFromLocalStorage) {
                                 // If no saved settings found, use schema settings
                                 this.submissionTables[state].setColumns(
@@ -451,10 +424,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             }
                             this.setIsActionAvailable(state);
 
-                            this.visibleRowCount[state] =
-                                this.submissionTables[state].tabulatorTable.getRows(
-                                    'visible',
-                                ).length;
+                            this.visibleRowCount = {
+                                ...this.visibleRowCount,
+                                [state]:
+                                    this.submissionTables[state].tabulatorTable.getRows('visible')
+                                        .length,
+                            };
 
                             // Open detailed view modal if /details/[uuid] is in the URL
                             if (this.isRequestDetailedView) {
@@ -476,146 +451,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 }
                             }
                             // Load attachment details for each submissions
-                            this.loadAttachmentDetails(state);
+                            loadAttachmentDetails(this, state);
                         }
                     }
                 },
             );
         });
-    }
-
-    setSubmissionFormOptions(state) {
-        let lang_submissions = {
-            en: {
-                columns: {},
-            },
-            de: {
-                columns: {},
-            },
-        };
-
-        const options_submissions = {
-            langs: lang_submissions,
-            autoColumns: 'full', //'true',
-            rowHeight: 64,
-            layout: 'fitDataStretch',
-            layoutColumnsOnNewData: true,
-            selectableRows: 'highlight',
-            // Checkbox selection
-            rowHeader: {
-                formatter: 'rowSelection',
-                titleFormatter: 'rowSelection',
-                titleFormatterParams: {
-                    rowRange: 'visible', // only toggle the visible rows
-                },
-                headerSort: false,
-                resizable: false,
-                frozen: true,
-                headerHozAlign: 'center',
-                hozAlign: 'center',
-            },
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-            placeholder: 'No Submission data available',
-        };
-
-        options_submissions.autoColumnsDefinitions = (definitions) => {
-            definitions.forEach((columnDefinition) => {
-                if (columnDefinition.field === 'submissionId') {
-                    columnDefinition.visible = false;
-                }
-                if (columnDefinition.field === 'dateCreated') {
-                    columnDefinition.visible = true;
-                    columnDefinition.title = this.lang === 'de' ? 'Erstellt am' : 'Date created';
-                }
-                if (columnDefinition.field === 'htmlButtons') {
-                    columnDefinition.formatter = 'html';
-                    columnDefinition.hozAlign = 'right';
-                    columnDefinition.vertAlign = 'middle';
-                    columnDefinition.headerSort = false;
-                    columnDefinition.minWidth = 64;
-                    columnDefinition.frozen = true;
-                    columnDefinition.headerHozAlign = 'right';
-                    columnDefinition.download = false;
-                    // Add open columnSettings modal button
-                    columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
-                        let columnSettingsButton = this.createScopedElement(
-                            'dbp-formalize-column-settings-button',
-                        );
-                        columnSettingsButton.setAttribute('subscribe', 'lang');
-                        columnSettingsButton.addEventListener('click', () => {
-                            this.getSubmissionsPage()?.openColumnOptionsModal(state);
-                        });
-                        return columnSettingsButton;
-                    };
-                } else {
-                    columnDefinition.sorter = 'string';
-                }
-                if (columnDefinition.field.includes('date')) {
-                    columnDefinition.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
-                        const timeStampA = this.dateToTimestamp(a);
-                        const timeStampB = this.dateToTimestamp(b);
-                        return timeStampA - timeStampB;
-                    };
-                }
-            });
-            return [
-                {
-                    title: 'ID',
-                    formatter: function (cell) {
-                        const row = cell.getRow();
-                        const table = row.getTable();
-                        const page = table.getPage();
-                        const pageSize = table.getPageSize();
-                        const position = row.getPosition(true); // position in current data view
-                        return (page - 1) * pageSize + position;
-                    },
-                    hozAlign: 'center',
-                    headerHozAlign: 'center',
-                    headerSort: false,
-                    frozen: true,
-                    width: 30,
-                    download: false,
-                },
-                ...definitions, // rest of the auto-generated columns
-            ];
-        };
-
-        this.options_submissions[state] = {...options_submissions};
-    }
-
-    enableCheckboxSelection(state) {
-        this.options_submissions[state].rowHeader = {
-            formatter: 'rowSelection',
-            titleFormatter: 'rowSelection',
-            titleFormatterParams: {
-                rowRange: 'visible', // only toggle the visible rows
-            },
-            headerSort: false,
-            resizable: false,
-            frozen: true,
-            headerHozAlign: 'center',
-            hozAlign: 'center',
-        };
-        this.options_submissions[state].headerVisible = true;
-    }
-
-    disableCheckboxSelection(state) {
-        this.options_submissions[state].rowHeader = false;
-        this.options_submissions[state].headerVisible = false;
-    }
-
-    disablePagination(state) {
-        this.submissionTables[state].paginationEnabled = false;
-    }
-
-    enablePagination(state) {
-        if (this.submissionTables[state].paginationEnabled === false) {
-            this.submissionTables[state].paginationEnabled = true;
-        }
     }
 
     getTableState(tableId) {
@@ -640,16 +481,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // If we arrive from another activity, auth is not updated
         // we need to init form-loading here.
         if (this.forms.size === 0) {
-            await this.loadModules();
+            await loadModules(this);
         }
-        await this.getListOfAllForms();
+        await getListOfAllForms(this);
     }
 
     async loginCallback() {
         if (this.forms.size === 0) {
-            await this.loadModules();
+            await loadModules(this);
         }
-        await this.getListOfAllForms();
+        await getListOfAllForms(this);
     }
 
     async updated(changedProperties) {
@@ -697,11 +538,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             oldUrl = oldUrl.replace(/^(.*)#.*$/, '$1');
 
             if (oldUrl !== newUrl) {
-                // console.log('[updated - routingUrl]', oldUrl, '=>', newUrl);
-
                 if (this.forms.size === 0 && this.isLoggedIn()) {
-                    await this.loadModules();
-                    await this.getListOfAllForms();
+                    await loadModules(this);
+                    await getListOfAllForms(this);
                 }
 
                 // Show submission table
@@ -726,25 +565,21 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (changedProperties.has('submissions')) {
             this.refreshTableReferences();
-            this.syncSubmissionsPageState();
-            // const oldValue = changedProperties.get('submissions');
-            // console.log(`*** [updated] oldValue`, oldValue);
-            // console.log(`*** [updated] this.submissions`, this.submissions);
 
             for (const state in this.submissions) {
                 if (this.submissions[state]?.length === 0) {
-                    this.noSubmissionAvailable[state] = true;
-                    this.disableCheckboxSelection(state);
-                    this.disablePagination(state);
+                    this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: true};
+                    disableCheckboxSelection(this, state);
+                    disablePagination(this, state);
                     if (this.submissionTables[state].tabulatorTable) {
                         this.submissionTables[state].tabulatorTable.destroy();
-                        this.setSubmissionFormOptions(state);
+                        setSubmissionFormOptions(this, state);
                         this.submissionTables[state].buildTable();
                     }
                 } else {
-                    this.noSubmissionAvailable[state] = false;
-                    this.enableCheckboxSelection(state);
-                    this.enablePagination(state);
+                    this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: false};
+                    enableCheckboxSelection(this, state);
+                    enablePagination(this, state);
                 }
 
                 if (this.needTableRebuild[state]) {
@@ -755,7 +590,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('lang')) {
-            await this.getListOfAllForms();
+            await getListOfAllForms(this);
 
             const activeForm = this.forms.get(this.activeFormId);
             if (activeForm) {
@@ -768,80 +603,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
 
-        if (
-            changedProperties.has('showFormsTable') ||
-            changedProperties.has('showSubmissionTables') ||
-            changedProperties.has('loadingSubmissionTables') ||
-            changedProperties.has('activeFormName') ||
-            changedProperties.has('createSubmissionUrl') ||
-            changedProperties.has('enabledStates') ||
-            changedProperties.has('noSubmissionAvailable') ||
-            changedProperties.has('searchWidgetIsOpen') ||
-            changedProperties.has('actionsWidgetIsOpen') ||
-            changedProperties.has('isActionAvailable') ||
-            changedProperties.has('isEditSubmissionEnabled') ||
-            changedProperties.has('isBatchTaggingEnabled') ||
-            changedProperties.has('isEditSubmissionPermissionEnabled') ||
-            changedProperties.has('isDeleteAllSubmissionEnabled') ||
-            changedProperties.has('isDeleteSelectedSubmissionEnabled') ||
-            changedProperties.has('options_submissions') ||
-            changedProperties.has('submissions') ||
-            changedProperties.has('submissionsColumns') ||
-            changedProperties.has('isResetButtonDisabled') ||
-            changedProperties.has('selectedRowCount') ||
-            changedProperties.has('allRowCount') ||
-            changedProperties.has('visibleRowCount') ||
-            changedProperties.has('searchIsActive') ||
-            changedProperties.has('submissionsHasAttachment')
-        ) {
-            this.syncSubmissionsPageState();
-        }
-
         super.updated(changedProperties);
-    }
-
-    throwSomethingWentWrongNotification() {
-        const i18n = this._i18n;
-
-        sendNotification({
-            summary: i18n.t('manage-forms.something-went-wrong-title'),
-            body: i18n.t('manage-forms.something-went-wrong-body'),
-            type: 'danger',
-            timeout: 0,
-        });
-    }
-
-    /**
-     * Load form modules and create ID -> slug mapping
-     */
-    async loadModules() {
-        if (this.isLoadingModules) return;
-        this.isLoadingModules = true;
-
-        try {
-            // Fetch the JSON file containing module paths
-            const response = await fetch(this.basePath + 'modules.json');
-            const data = await response.json();
-
-            // Iterate over the module paths and dynamically import each module
-            for (const path of Object.values(data['forms'])) {
-                const module = await import(path);
-                const object = new module.default();
-
-                // Store the mapping of form identifier to slug
-                if (object.getFormIdentifier && object.getUrlSlug) {
-                    this.forms.set(object.getFormIdentifier(), {
-                        formName: null,
-                        formId: object.getFormIdentifier(),
-                        formSlug: object.getUrlSlug(),
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error loading modules:', error);
-        } finally {
-            this.isLoadingModules = false;
-        }
     }
 
     /**
@@ -858,7 +620,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Reset availableTags when switching forms
         this.availableTags = [];
 
-        this.getAllFormSubmissions(this.activeFormId).then(async () => {
+        getAllFormSubmissions(this, this.activeFormId).then(async () => {
             const activeForm = this.forms.get(this.activeFormId);
             const activeFormSlug = activeForm ? activeForm.formSlug : null;
             this.createSubmissionUrl = activeFormSlug
@@ -867,7 +629,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             // Fetch available tags for this form before building the table
             // This ensures availableTags is populated when setDefaultSubmissionTableOrder runs
-            await this.apiGetTags(this.activeFormId);
+            await apiGetTags(this, this.activeFormId);
 
             // For tabulatorTable 'draft' and 'submitted'
             for (const state of Object.keys(this.submissionTables)) {
@@ -877,23 +639,24 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true; // show back button
                         this.showFormsTable = false;
-                        this.disableCheckboxSelection(state);
-                        this.disablePagination(state);
+                        disableCheckboxSelection(this, state);
+                        disablePagination(this, state);
 
                         // Reset data
-                        this.options_submissions[state].data = [];
-                        // this.submissionTables[state].clearData();
+                        this.options_submissions = {
+                            ...this.options_submissions,
+                            [state]: {...this.options_submissions[state], data: []},
+                        };
                         this.submissionTables[state].buildTable();
                     } else {
-                        this.enableCheckboxSelection(state);
-                        this.enablePagination(state);
+                        enableCheckboxSelection(this, state);
+                        enablePagination(this, state);
 
                         this.loadingSubmissionTables = false;
                         this.showSubmissionTables = true;
                         this.showFormsTable = false;
 
                         // Open submission details modal if /details/[uuid] is in the URL
-                        // this.handleOpenDetailedSubmissionFromUrl()
                         const routingData = this.getRoutingData();
                         this.submissionIdToOpen =
                             routingData.pathSegments[2] &&
@@ -913,807 +676,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         });
     }
 
-    /**
-     * Gets the list of courses
-     *
-     * @returns {Promise<object>} response
-     */
-    async getListOfAllForms() {
-        const i18n = this._i18n;
-        try {
-            this.loadCourses = false;
-            this.loadingFormsTable = true;
-
-            const response = await fetch(
-                this.entryPointUrl + '/formalize/forms' + '?perPage=9999',
-                {
-                    headers: {
-                        'Content-Type': 'application/ld+json',
-                        Authorization: 'Bearer ' + this.auth.token,
-                    },
-                },
-            );
-
-            if (!response.ok) {
-                this.handleErrorResponse(response);
-            } else {
-                let data = [];
-                let forms = [];
-                try {
-                    data = await response.json();
-                } catch (e) {
-                    this.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
-                    this.throwSomethingWentWrongNotification();
-                    this.loadCourses = true;
-                    return;
-                }
-
-                for (let x = 0; x < data['hydra:member'].length; x++) {
-                    const entry = data['hydra:member'][x];
-                    const id = x + 1;
-                    let localizedFormName = entry['localizedNames'].find((localizedName) => {
-                        return localizedName.languageTag === this.lang;
-                    });
-                    const formName = localizedFormName ? localizedFormName.name : entry['name'];
-                    const formId = entry['identifier'];
-                    const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
-                    const tagPermissionsForSubmitters = entry['tagPermissionsForSubmitters'];
-                    // const formGrantedActions = entry['grantedActions'];
-                    const allowedSubmissionStates = entry['allowedSubmissionStates'];
-                    const dataFeedSchema = entry['dataFeedSchema'];
-
-                    this.forms.set(formId, {
-                        ...this.forms.get(formId),
-                        formName,
-                        formId,
-                        allowedSubmissionStates,
-                        allowedActionsWhenSubmitted,
-                        // formGrantedActions,
-                        dataFeedSchema,
-                        tagPermissionsForSubmitters,
-                    });
-
-                    let btn = this.createScopedElement('dbp-formalize-get-details-button');
-                    btn.setAttribute('subscribe', 'lang');
-                    btn.title = i18n.t('manage-forms.open-forms');
-                    btn.ariaLabel = i18n.t('manage-forms.open-forms');
-                    btn.addEventListener('click', async (event) => {
-                        this.loadingSubmissionTables = true;
-                        // Switch to form submissions table
-                        this.routingUrl = `/${formId}`;
-                        const formSubmissionUrl = getFormManageFormsUrl(formId, this.lang);
-                        const url = new URL(formSubmissionUrl);
-                        window.history.pushState({}, '', url);
-                        this.sendSetPropertyEvent('routing-url', `/${formId}`, true);
-                    });
-
-                    let new_form = {id: id, name: formName, actionButton: btn};
-                    forms.push(new_form);
-                }
-
-                this.allForms = forms;
-                // Set tabulator table data
-                this.options_forms.data = this.allForms;
-            }
-        } catch (e) {
-            this.loadCourses = true;
-            console.error('[updated] Error getting list of forms:', e);
-            sendNotification({
-                summary: i18n.t('manage-forms.failed-to-get-forms-title'),
-                body: i18n.t('manage-forms.failed-to-get-forms-body'),
-                type: 'danger',
-                timeout: 0,
-            });
-        }
-    }
-
-    /**
-     * Gets the list of submissions for a specific form
-     *
-     * @param {string} formId - form identifier
-     */
-    async getAllFormSubmissions(formId) {
-        // const i18n = this._i18n;
-        let response;
-        let data;
-        this.rawSubmissions = [];
-        this.submittedFileDetails = {
-            draft: new Map(),
-            submitted: new Map(),
-        };
-        this.submissions = {
-            submitted: [],
-            draft: [],
-        };
-        const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
-            },
-        };
-
-        try {
-            response = await this.httpGetAsync(
-                this.entryPointUrl +
-                    '/formalize/submissions?formIdentifier=' +
-                    formId +
-                    '&perPage=9999',
-                options,
-            );
-            data = await response.json();
-        } catch (e) {
-            this.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
-            this.throwSomethingWentWrongNotification();
-            return Promise.reject(e);
-        }
-
-        this.rawSubmissions = data['hydra:member'];
-
-        this.submissionsGrantedActions = new Map();
-
-        this.rawSubmissions.forEach((submission) => {
-            this.submissionsGrantedActions.set(submission.identifier, submission.grantedActions);
-        });
-
-        if (data['hydra:member'].length === 0) {
-            this.noSubmissionAvailable = {
-                draft: true,
-                submitted: true,
-            };
-            return response;
-        }
-
-        // Separate submissions by their state
-        const submissions = {};
-        submissions.submitted = data['hydra:member'].filter((submission) => {
-            return submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED;
-        });
-        submissions.draft = data['hydra:member'].filter((submission) => {
-            return submission.submissionState === SUBMISSION_STATES_BINARY.DRAFT;
-        });
-
-        for (const state of Object.keys(this.submissions)) {
-            // No submissions available - disable actions, checkboxes, pagination and add placeholder message
-            if (submissions[state].length === 0) {
-                this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: true};
-                continue;
-            } else {
-                this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: false};
-            }
-
-            let submissions_list = [];
-            // Add additional columns to the table
-            // dateCreated, submissionId, attachments, action Buttons
-            for (let [x, submission] of submissions[state].entries()) {
-                let dateCreated = submission['dateCreated'];
-                dateCreated = this.humanReadableDate(dateCreated);
-
-                let dataFeedElement = submission['dataFeedElement'];
-                dataFeedElement = JSON.parse(dataFeedElement);
-                let submissionId = submission['identifier'];
-                // const grantedActions = submission['grantedActions'];
-                const submissionTags = submission['tags'] || [];
-
-                // Iterate trough dataFeedElement
-                for (const [key, value] of Object.entries(dataFeedElement)) {
-                    // Find array fields and convert them to strings
-                    if (Array.isArray(value)) {
-                        dataFeedElement[key] = value.join(', ');
-                    }
-                    // Convert user identifier to user full name
-                    if (key === 'identifier' && value) {
-                        if (!this.userNameCache.has(value)) {
-                            try {
-                                const response = await this.apiGetUserDetails(value);
-                                const userObject = await response.json();
-                                const fullName = `${userObject['givenName']} ${userObject['familyName']}`;
-                                dataFeedElement[key] = fullName;
-                                this.userNameCache.set(value, fullName);
-                            } catch (e) {
-                                console.error(e);
-                                dataFeedElement[key] = value;
-                            }
-                        } else {
-                            dataFeedElement[key] = this.userNameCache.get(value);
-                        }
-                    }
-
-                    // Remove formTags if no permission to view
-                    // if (key === 'formTags') {
-                    //     const currentForm = this.forms.get(formId);
-                    //     const tagPermissions = currentForm?.tagPermissionsForSubmitters;
-                    //     const isAdmin = currentForm.formGrantedActions.some((grant) => {
-                    //         return (
-                    //             grant === SUBMISSION_COLLECTION_PERMISSIONS.MANAGE ||
-                    //             grant === SUBMISSION_COLLECTION_PERMISSIONS.UPDATE_SUBMISSIONS
-                    //         );
-                    //     });
-                    //     if (tagPermissions < 1 && !isAdmin) {
-                    //         delete dataFeedElement[key];
-                    //     }
-                    // }
-                }
-
-                const id = x + 1;
-                let cols = {
-                    dateCreated: dateCreated,
-                    tags: Array.isArray(submissionTags)
-                        ? submissionTags
-                              .map((tag) => `<span class="tag">${xss(tag)}</span>`)
-                              .join(' ')
-                        : '',
-                    ...dataFeedElement,
-                    submissionId: submissionId,
-                };
-
-                let actionButtonsDiv = this.createScopedElement('div');
-                const activeForm = this.forms.get(formId);
-
-                // Add link to manage form entry in render form view
-                // @TODO: only for forms that we are rendering ourselves and have readonly view
-                // activeForm.formSlug && hasReadonlyView(activeForm);
-                if (
-                    activeForm.formName === 'Ethikantrag' ||
-                    activeForm.formName === 'Ethics Proposal' ||
-                    activeForm.formName === 'Media Transparency Form'
-                ) {
-                    const submissionDetailsFormButton = this.createScopedElement(
-                        'dbp-formalize-get-submission-link',
-                    );
-                    // Set submission URL
-                    const activeFormSlug = activeForm.formSlug ? activeForm.formSlug : null;
-                    if (activeFormSlug) {
-                        let formSubmissionUrl =
-                            getFormRenderUrl(activeFormSlug, this.lang) +
-                            `/${submissionId}/readonly`;
-                        /*
-                            t('manage-forms.open-detailed-view-form')
-                        */
-                        submissionDetailsFormButton.ariaLabel =
-                            'manage-forms.open-detailed-view-form';
-                        submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
-                        submissionDetailsFormButton.iconName = 'open-new-window';
-                        submissionDetailsFormButton.title = 'manage-forms.open-detailed-view-form';
-                        submissionDetailsFormButton.id = id.toString();
-                        submissionDetailsFormButton.setAttribute('subscribe', 'lang');
-                        submissionDetailsFormButton.addEventListener('click', (event) => {
-                            event.stopPropagation();
-                        });
-                        actionButtonsDiv.appendChild(submissionDetailsFormButton);
-                    }
-                }
-
-                // Add button to show submission details in a modal
-                const submissionDetailsButton = this.createScopedElement(
-                    'dbp-formalize-get-details-button',
-                );
-                /*
-                    t('manage-forms.open-detailed-view-modal')
-                */
-                submissionDetailsButton.ariaLabel = 'manage-forms.open-detailed-view-modal';
-                submissionDetailsButton.title = 'manage-forms.open-detailed-view-modal';
-                submissionDetailsButton.id = id.toString();
-                submissionDetailsButton.setAttribute('subscribe', 'lang');
-                submissionDetailsButton.addEventListener('click', (event) => {
-                    event.stopPropagation();
-
-                    // Add 'details/submissionId' to the URL when opening submission details modal
-                    const routingData = this.getRoutingData();
-                    const formId = routingData.pathSegments[0];
-                    if (formId.match(/[0-9a-f-]+/)) {
-                        this.addDetailsToUrl(submissionId);
-
-                        this.requestDetailedSubmission(state, cols, id);
-                    }
-                    return;
-                });
-
-                actionButtonsDiv.appendChild(submissionDetailsButton);
-                actionButtonsDiv.classList.add('actions-buttons');
-
-                cols.htmlButtons = actionButtonsDiv;
-                submissions_list.push(cols);
-            }
-
-            // Remove attachments if all empty
-            const noAttachments = submissions_list.every(
-                (submission) => submission.attachments === '',
-            );
-            submissions_list = noAttachments
-                ? submissions_list.map(({attachments, ...rest}) => rest)
-                : submissions_list;
-
-            this.submissions[state] = submissions_list;
-
-            this.options_submissions[state].autoColumnsDefinitions = (definitions) => {
-                definitions.forEach((columnDefinition) => {
-                    if (columnDefinition.field === 'submissionId') {
-                        columnDefinition.visible = true;
-                    }
-                    if (columnDefinition.field === 'dateCreated') {
-                        columnDefinition.visible = true;
-                        columnDefinition.title =
-                            this.lang === 'de' ? 'Erstellt am' : 'Date created';
-                    }
-                    if (columnDefinition.field === 'tags') {
-                        columnDefinition.formatter = 'html';
-                    }
-                    if (columnDefinition.field === 'htmlButtons') {
-                        columnDefinition.formatter = 'html';
-                        columnDefinition.hozAlign = 'right';
-                        columnDefinition.vertAlign = 'middle';
-                        columnDefinition.headerSort = false;
-                        columnDefinition.minWidth = 64;
-                        columnDefinition.frozen = true;
-                        columnDefinition.headerHozAlign = 'right';
-                        columnDefinition.download = false;
-                        // Add open columnSettings modal button
-                        columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
-                            let columnSettingsButton = this.createScopedElement(
-                                'dbp-formalize-column-settings-button',
-                            );
-                            columnSettingsButton.setAttribute('subscribe', 'lang');
-                            columnSettingsButton.addEventListener('click', () => {
-                                this.getSubmissionsPage()?.openColumnOptionsModal(state);
-                            });
-                            return columnSettingsButton;
-                        };
-                    } else {
-                        columnDefinition.sorter = 'string';
-                    }
-                    if (columnDefinition.field.includes('date')) {
-                        columnDefinition.sorter = (a, b, aRow, bRow, column, dir, sorterParams) => {
-                            const timeStampA = this.dateToTimestamp(a);
-                            const timeStampB = this.dateToTimestamp(b);
-                            return timeStampA - timeStampB;
-                        };
-                    }
-                });
-                return [
-                    {
-                        title: 'ID',
-                        formatter: function (cell) {
-                            const row = cell.getRow();
-                            const table = row.getTable();
-                            const page = table.getPage();
-                            const pageSize = table.getPageSize();
-                            const position = row.getPosition(true); // position in current data view
-                            return (page - 1) * pageSize + position;
-                        },
-                        field: 'rowIndex',
-                        hozAlign: 'center',
-                        headerHozAlign: 'center',
-                        headerSort: false,
-                        frozen: true,
-                        width: 30,
-                        download: false,
-                    },
-                    ...definitions, // rest of the auto-generated columns
-                ];
-            };
-
-            // this.setSubmissionFormOptions(state);
-            // console.log(`*** this.options_submissions[${state}]`, this.options_submissions[state]);
-
-            // Set tabulator table data
-            this.options_submissions[state].data = this.submissions[state];
-            this.totalNumberOfItems[state] = submissions_list.length;
-        }
-        return response;
-    }
-
-    /**
-     * Load attachment details for all submissions in the given state and refresh the tabulator table.
-     * Runs after the table has been initialized to avoid blocking initial page load.
-     * @param {string} state - The state of the submission table ('draft' or 'submitted').
-     */
-    async loadAttachmentDetails(state) {
-        this._abortAttachmentLoading = false;
-        this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: true};
-        const stateFlag =
-            state === 'submitted'
-                ? SUBMISSION_STATES_BINARY.SUBMITTED
-                : SUBMISSION_STATES_BINARY.DRAFT;
-        const submissionsWithFiles = this.rawSubmissions.filter(
-            (submission) =>
-                submission.submissionState === stateFlag &&
-                submission['submittedFiles'] &&
-                Array.isArray(submission['submittedFiles']) &&
-                submission['submittedFiles'].length > 0,
-        );
-
-        if (submissionsWithFiles.length === 0) {
-            this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: false};
-            return;
-        }
-
-        this.submissionsHasAttachment[state] = true;
-
-        const tabulatorTable =
-            this.submissionTables[state] && this.submissionTables[state].tabulatorTable;
-
-        for (const submission of submissionsWithFiles) {
-            if (this._abortAttachmentLoading) break;
-            const submissionId = submission['identifier'];
-            let attachmentDetails;
-            try {
-                attachmentDetails = await this.getAttachmentFilesDetails(submissionId);
-                this.submittedFileDetails[state].set(submissionId, attachmentDetails);
-            } catch (e) {
-                console.error(e);
-                continue;
-            }
-
-            // Group file names by field name
-            const attachmentUpdate = {};
-            for (const attachment of attachmentDetails) {
-                const fieldName = `form_files-${attachment.fileAttributeName}`;
-                if (attachmentUpdate[fieldName] === undefined) {
-                    attachmentUpdate[fieldName] = [];
-                }
-                attachmentUpdate[fieldName].push(attachment.fileName);
-            }
-
-            // Flatten arrays to comma-separated strings
-            for (const fieldName of Object.keys(attachmentUpdate)) {
-                attachmentUpdate[fieldName] = attachmentUpdate[fieldName].join(', ');
-            }
-
-            // Update the in-memory submission row data
-            const cols = this.submissions[state].find((s) => s.submissionId === submissionId);
-            if (cols) {
-                Object.assign(cols, attachmentUpdate);
-            }
-
-            // Update the tabulator row immediately
-            if (tabulatorTable) {
-                const row = tabulatorTable
-                    .getRows()
-                    .find((r) => r.getData().submissionId === submissionId);
-                if (row) {
-                    row.update(attachmentUpdate);
-                }
-            }
-        }
-        this.attachmentsAreLoading = {...this.attachmentsAreLoading, [state]: false};
-    }
-
-    /**
-     * Convert date string to timestamp
-     * @param {string} dateInput
-     * @returns {number} timestamp
-     */
-    dateToTimestamp(dateInput) {
-        const d = new Date(dateInput);
-        if (isNaN(d)) throw new Error('Invalid date');
-        console.log(`timestamp`, Math.floor(d.getTime() / 1000));
-        return Math.floor(d.getTime() / 1000);
-    }
-
-    /**
-     * @typedef {object} AttachmentDetails
-     * @property {string} fileName - name of the file
-     * @property {string} downloadUrl - blob download URL
-     * @property {number} [fileSize] - size of the file
-     * @property {string} fileAttributeName - file attribute name
-     * @property {string} identifier - file identifier uuid
-     * @property {string} mimeType - file MIME type
-     */
-
-    /**
-     * Get details of attachment files for a specific submission
-     * fileName, fileSize, downloadUrl
-     * @param {string} submissionId
-     * @returns {Promise<AttachmentDetails[]>} List of attachment details
-     */
-    async getAttachmentFilesDetails(submissionId) {
-        let submissionData = {};
-
-        const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
-            },
-        };
-
-        try {
-            const response = await this.httpGetAsync(
-                this.entryPointUrl + '/formalize/submissions/' + submissionId,
-                options,
-            );
-            if (!response.ok) {
-                this.handleErrorResponse(response);
-            }
-            submissionData = await response.json();
-        } catch (e) {
-            console.error(e);
-        }
-
-        if (
-            submissionData['submittedFiles'] &&
-            Array.isArray(submissionData['submittedFiles']) &&
-            submissionData['submittedFiles'].length > 0
-        ) {
-            return submissionData['submittedFiles'];
-        } else {
-            return [];
-        }
-    }
-
-    /**
-     * Sets the initial visibility [/order] of the submission table columns from the schema.
-     * @param {string} state - The state of the submission table ('draft' or 'submitted').
-     */
-    setDefaultSubmissionTableOrder(state) {
-        const activeForm = this.forms.get(this.activeFormId);
-        if (!activeForm) return;
-
-        const formSchemaFields = this._getFormSchema(activeForm);
-
-        this.isResetButtonDisabled[state] = true;
-
-        // Set download folder name pattern from schema
-        this.downloadFolderNamePattern =
-            formSchemaFields?.submissionExport?.downloadFolderPattern || '';
-        this.useSubFoldersForExports = formSchemaFields?.submissionExport?.subfolders ?? true;
-
-        const submissionsTable = this.submissionTables[state];
-        if (!submissionsTable) return;
-
-        const initialColumnDefinitions = this._getInitialColumnDefinitions(submissionsTable);
-        if (initialColumnDefinitions.length === 0) return;
-
-        // Check if tags are enabled for this form
-        const hasTagsColumn = Array.isArray(this.availableTags) && this.availableTags.length > 0;
-
-        const isCatchAll = this._isCatchAllSchema(formSchemaFields);
-
-        const schemaFields = this._getSchemaFields(
-            formSchemaFields,
-            isCatchAll,
-            initialColumnDefinitions,
-            state,
-            hasTagsColumn,
-        );
-        const attachmentFields = this._getAttachmentFields(formSchemaFields);
-        const systemFields = this._getSystemFields(initialColumnDefinitions);
-
-        // Ensure rowIndex is included (it has a formatter so can't be stored in localStorage)
-        const rowIndexDef = initialColumnDefinitions.find((def) => def.field === 'rowIndex');
-        const defaultRowIndexDef = {
-            title: 'ID',
-            field: 'rowIndex',
-            formatter: function (cell) {
-                const row = cell.getRow();
-                const table = row.getTable();
-                const page = table.getPage();
-                const pageSize = table.getPageSize();
-                const position = row.getPosition(true);
-                return (page - 1) * pageSize + position;
-            },
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            headerSort: false,
-            frozen: true,
-            width: 30,
-        };
-
-        // Separate htmlButtons to place it last
-        const htmlButtonsDef = systemFields.find((def) => def.field === 'htmlButtons');
-        const otherSystemFields = systemFields.filter((def) => def.field !== 'htmlButtons');
-
-        // Build columns: rowIndex first, schema/attachments/system, htmlButtons last
-        const schemaColumnDefinitions = [
-            rowIndexDef || defaultRowIndexDef,
-            ...schemaFields,
-            ...attachmentFields,
-            ...otherSystemFields,
-        ];
-
-        if (htmlButtonsDef) {
-            schemaColumnDefinitions.push(htmlButtonsDef);
-        }
-
-        this.submissionsColumnsInitial[state] =
-            this.cloneColumnDefinitions(schemaColumnDefinitions);
-        this.submissionsColumns[state] = this.cloneColumnDefinitions(
-            this.submissionsColumnsInitial[state],
-        );
-    }
-
-    /**
-     * Check if the form schema is a catch-all schema.
-     * @param {object} formSchemaFields - The parsed form schema.
-     * @returns {boolean} - True if it's a catch-all schema, false otherwise.
-     */
-    _isCatchAllSchema(formSchemaFields) {
-        return (
-            !formSchemaFields?.properties || Object.keys(formSchemaFields?.properties).length === 0
-        );
-    }
-
-    /**
-     * Get the parsed form schema from the active form.
-     * @param {object} activeForm - The active form object.
-     * @returns {object|null} - The parsed form schema or null if parsing fails.
-     */
-    _getFormSchema(activeForm) {
-        try {
-            return JSON.parse(activeForm.dataFeedSchema);
-        } catch (e) {
-            console.log('Failed parsing json data', e);
-            return null;
-        }
-    }
-
-    /**
-     * Get the initial column definitions from the submissions table.
-     * @param {object} submissionsTable - The submissions table instance.
-     * @returns {Array} - An array of column definitions.
-     */
-    _getInitialColumnDefinitions(submissionsTable) {
-        const columnComponents = submissionsTable.getColumns();
-        if (!columnComponents || columnComponents.length === 0) return [];
-        return columnComponents.map((column) => column.getDefinition());
-    }
-
-    /**
-     * Get schema fields, handling visibility and localization.
-     * @param {object} formSchemaFields - The parsed form schema.
-     * @param {boolean} isCatchAll - Whether the schema is a catch-all schema.
-     * @param {Array} initialColumnDefinitions - The initial column definitions.
-     * @param {string} state - The state of the submission table ('draft' or 'submitted').
-     * @param {boolean} hasTagsColumn - Whether the tags are enabled for the form.
-     * @returns {Array} - An array of schema field definitions.
-     */
-    _getSchemaFields(formSchemaFields, isCatchAll, initialColumnDefinitions, state, hasTagsColumn) {
-        const schemaFields = [];
-
-        // Always include dateCreated at the beginning
-        const dateCreatedDef = initialColumnDefinitions.find((def) => def.field === 'dateCreated');
-        if (dateCreatedDef) {
-            schemaFields.push(dateCreatedDef);
-        }
-
-        // Add tags column right after dateCreated if it exists
-        if (hasTagsColumn) {
-            const tagsField = initialColumnDefinitions.find((def) => def.field === 'tags');
-            if (tagsField) {
-                const tagsFieldClone = {...tagsField};
-                tagsFieldClone.frozen = false;
-                tagsFieldClone.formatter = 'html';
-                if (tagsFieldClone.visible === undefined) {
-                    tagsFieldClone.visible = true;
-                }
-                schemaFields.push(tagsFieldClone);
-            }
-        }
-
-        if (isCatchAll) {
-            initialColumnDefinitions.forEach((def) => {
-                if (
-                    def.field &&
-                    def.field !== 'rowIndex' &&
-                    def.field !== 'dateCreated' &&
-                    def.field !== 'tags' &&
-                    def.field !== 'identifier' &&
-                    def.field !== 'submissionId' &&
-                    def.field !== 'htmlButtons'
-                ) {
-                    def.visible = true;
-                    schemaFields.push(def);
-                }
-            });
-        } else {
-            Object.keys(formSchemaFields.properties).forEach((field) => {
-                const schemaField = formSchemaFields.properties[field];
-                if (schemaField.tableViewVisibleDefault !== undefined) {
-                    this.isResetButtonDisabled[state] = false;
-                }
-
-                const definition = {
-                    field: field,
-                    visible: schemaField?.tableViewVisibleDefault ?? true,
-                    title: schemaField?.localizedName?.[this.lang] || field,
-                };
-                schemaFields.push(definition);
-            });
-        }
-        return schemaFields;
-    }
-
-    /**
-     * Get attachment fields from the form schema.
-     * @param {object} formSchemaFields - The parsed form schema.
-     * @returns {Array} - An array of attachment field definitions.
-     */
-    _getAttachmentFields(formSchemaFields) {
-        const attachmentFields = [];
-        if (formSchemaFields.files && typeof formSchemaFields.files === 'object') {
-            Object.keys(formSchemaFields.files).forEach((attachmentType) => {
-                attachmentFields.push({
-                    field: `form_files-${attachmentType}`,
-                    title: attachmentType,
-                    visible: true,
-                });
-            });
-        }
-        return attachmentFields;
-    }
-
-    /**
-     * Get system fields that should always be present.
-     * @param {Array} initialColumnDefinitions - The initial column definitions.
-     * @returns {Array} - An array of system field definitions.
-     */
-    _getSystemFields(initialColumnDefinitions) {
-        const systemFields = initialColumnDefinitions.filter(
-            (def) =>
-                def.field === 'identifier' ||
-                def.field === 'submissionId' ||
-                def.field === 'htmlButtons',
-        );
-
-        return systemFields;
-    }
-
-    /**
-     * Resets the settings to their currently not saved values
-     * @param {string} state - The state of the submission table ('draft' or 'submitted').
-     */
-    resetSettings(state) {
-        this.submissionsColumns[state] = this.cloneColumnDefinitions(
-            this.submissionsColumnsInitial[state],
-        );
-    }
-
-    /**
-     * Clone an array of column definitions so mutations don't affect the source.
-     * @param {object[]} definitions
-     * @returns {object[]}
-     */
-    cloneColumnDefinitions(definitions) {
-        if (!Array.isArray(definitions)) {
-            return [];
-        }
-
-        return definitions.map((definition) => this.cloneColumnDefinition(definition));
-    }
-
-    /**
-     * Clone a single column definition, including nested column groups.
-     * @param {object} definition
-     * @returns {object}
-     */
-    cloneColumnDefinition(definition) {
-        if (!definition || typeof definition !== 'object') {
-            return definition;
-        }
-
-        const clone = {...definition};
-
-        if (Array.isArray(definition.columns)) {
-            clone.columns = this.cloneColumnDefinitions(definition.columns);
-        }
-
-        return clone;
-    }
-
-    /**
-     * Set all columns hidden in Column Settings Modal
-     * @param {string} state
-     * @param {string} action - 'hide' or 'show'
-     */
-    toggleAllColumns(state, action) {
-        // let columnDefinitions = [];
-        this.submissionsColumns[state].forEach((column) => {
-            if (column.frozen) return; // skip frozen columns (ID, htmlButtons)
-            column.visible = action === 'hide' ? false : true;
-        });
-        this.requestUpdate();
-    }
+    // -----------------------------------------------------------------------
+    // Submission detail modal
+    // -----------------------------------------------------------------------
 
     /**
      * Gets the detailed data of a specific row
@@ -1741,7 +706,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         : xss(current_column.field);
                     const value =
                         current_column.field === 'dateCreated'
-                            ? this.humanReadableDate(entry[current_column.field])
+                            ? humanReadableDate(entry[current_column.field])
                             : xss(entry[current_column.field] ?? '');
                     contentItems.push({label: labelText, value});
                 }
@@ -1753,7 +718,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 contentItems.push({
                     label: xss(key),
-                    value: key === 'dateCreated' ? this.humanReadableDate(value) : xss(value ?? ''),
+                    value: key === 'dateCreated' ? humanReadableDate(value) : xss(value ?? ''),
                 });
             }
         }
@@ -1774,6 +739,51 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.showDetailedModal(state);
     }
+
+    /**
+     * Opens submission detail Modal
+     */
+    showDetailedModal(state) {
+        const modal = this.getSubmissionModal(state);
+        if (modal) {
+            modal.show();
+        }
+    }
+
+    /**
+     * Shows entry of a specific position of this.submissionTable
+     * @param {string} state - 'draft' or 'submitted'
+     * @param {number} positionToShow
+     * @param {"next"|"previous"} direction
+     */
+    async showEntryOfPos(state, positionToShow, direction) {
+        if (positionToShow > this.totalNumberOfItems[state] || positionToShow < 1) return;
+
+        const table = this.submissionTables[state];
+        if (!table) return;
+
+        let rows = table.getRows();
+
+        let next_row = rows[positionToShow - 1];
+        let cells = next_row.getCells();
+        let next_data = {};
+        for (let cell of cells) {
+            let column = cell.getColumn();
+            let definition = column.getDefinition();
+            if (definition.formatter !== 'html') {
+                next_data[cell.getField()] = cell.getValue();
+            }
+        }
+
+        // Append /details/submissionId to the URL
+        addDetailsToUrl(next_data.submissionId, metadata['routing_name']);
+
+        this.requestDetailedSubmission(state, next_data, positionToShow);
+    }
+
+    // -----------------------------------------------------------------------
+    // Export
+    // -----------------------------------------------------------------------
 
     /**
      * Export the specific table
@@ -1822,8 +832,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.showLoadingIndicator = true;
                 for (const submissionId of missingIds) {
                     try {
-                        const attachmentDetails =
-                            await this.getAttachmentFilesDetails(submissionId);
+                        const attachmentDetails = await getAttachmentFilesDetails(
+                            this,
+                            submissionId,
+                        );
                         this.submittedFileDetails[state].set(submissionId, attachmentDetails);
                     } catch (e) {
                         console.error('Failed to load attachment details for', submissionId, e);
@@ -1903,7 +915,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return submissionData['submissionId'];
         }
 
-        // ${SCHEMA_FIELD_PREFIX/applicant}_${SYSTEM_ATTRIBUTE_PREFIX/lastModifiedDate}_${SCHEMA_FIELD_PREFIX/userTitleShort}
         let fieldPatterns = this.downloadFolderNamePattern.split('_');
         let folderNameParts = [];
 
@@ -1946,6 +957,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return folderName.substring(0, 230);
     }
 
+    // -----------------------------------------------------------------------
+    // Search / filter
+    // -----------------------------------------------------------------------
+
     /**
      * Filters the submissions table
      */
@@ -1982,7 +997,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             table.setFilter([listOfFilters]);
 
             this.setVisibleRowCount(state);
-            this.searchIsActive[state] = true;
+            this.searchIsActive = {...this.searchIsActive, [state]: true};
         }
     }
 
@@ -2009,85 +1024,17 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             searchColumn.value = 'all';
             searchOperator.value = 'like';
             table.clearFilter();
-            this.searchIsActive[state] = false;
+            this.searchIsActive = {...this.searchIsActive, [state]: false};
             this.setVisibleRowCount(state);
         }
     }
 
-    /**
-     * Creates options for a select box of
-     * this.submissionColumns Array (all possible cols of active table)
-     *
-     * @param {string} state - The state of the submission table ('draft' or 'submitted')
-     * @returns {import('lit').TemplateResult[]} Array of option template results
-     */
-    /**
-     * Close submission Columns Modal
-     * @param {string} state
-     */
-    /**
-     * Append 'details/submissionId' to the URL
-     * (called when opening the modal)
-     * @param {string} submissionId
-     */
-    addDetailsToUrl(submissionId) {
-        const currentUrl = new URL(window.location.href);
-        const pathSegments = currentUrl.pathname.split('/');
-        const baseIndex = pathSegments.indexOf(metadata['routing_name']);
-        // Remove everything before and including the routing_name
-        if (baseIndex > -1) {
-            pathSegments.splice(0, baseIndex + 1);
-
-            // Check if we already have details in the URL (while paginating)
-            if (
-                pathSegments[0].match(/[0-9a-f-]+/) &&
-                pathSegments[1] === 'details' &&
-                pathSegments[2].match(/[0-9a-f-]+/)
-            ) {
-                currentUrl.pathname = currentUrl.pathname.replace(
-                    /\/details\/.*$/,
-                    `/details/${submissionId}`,
-                );
-            } else {
-                currentUrl.pathname += `/details/${submissionId}`;
-            }
-
-            const submissionDetailsUrl = new URL(currentUrl.toString());
-            window.history.pushState({}, '', submissionDetailsUrl.toString());
-        }
-    }
-
-    /**
-     * Remove 'details/submissionId' from the URL
-     * (called when closing the modal or pressing ESC)
-     */
-    removeDetailsFromUrl() {
-        const currentUrl = new URL(window.location.href);
-        const pathSegments = currentUrl.pathname.split('/');
-        const detailsIndex = pathSegments.indexOf('details');
-        if (detailsIndex > -1) {
-            // Remove 'details' and the submissionId from the URL
-            pathSegments.splice(detailsIndex, 2);
-            currentUrl.pathname = pathSegments.join('/');
-            window.history.pushState({}, '', currentUrl.toString());
-        }
-    }
-
-    /**
-     * Opens submission detail Modal
-     *
-     */
-    showDetailedModal(state) {
-        const modal = this.getSubmissionModal(state);
-        if (modal) {
-            modal.show();
-        }
-    }
+    // -----------------------------------------------------------------------
+    // Event handlers
+    // -----------------------------------------------------------------------
 
     /**
      * Handle key events for the searchBar
-     *
-     * @param event
      */
     handleKeyEvents(event) {
         const activeElement = this.getSubmissionsPage()?.shadowRoot?.activeElement;
@@ -2134,236 +1081,40 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
     }
 
-    /**
-     * Update Submission Table (order and visibility)
-     * Based on the column-options-modal icon state
-     * @param {string} state - 'draft' or 'submitted'
-     */
-    updateSubmissionTable(state) {
-        const table = this.submissionTables[state];
-        table.setColumns(this.submissionsColumns[state]);
+    handleFileSinkDownloadStarted(event) {
+        this.showLoadingIndicator = true;
     }
 
-    /**
-     * Gets stored submission table settings from localStorage
-     * @param {string} state - 'draft' or 'submitted'
-     * @returns {boolean} success
-     */
-    restoreSubmissionTableSettings(state) {
-        if (this.storeSession && this.isLoggedIn()) {
-            let optionsString = localStorage.getItem(
-                `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${this.auth['user-id']}`,
-            );
-
-            try {
-                let options = JSON.parse(optionsString);
-                if (!options) return false;
-
-                // Get column definitions from the current table
-                const table = this.submissionTables[state];
-                let columns = table.getColumns();
-                if (columns.length === 0) return false;
-
-                const columnDefinitions = columns.map((column) => {
-                    return column.getDefinition();
-                });
-
-                // Add back frozen columns
-                const rowIndexDef = columnDefinitions.find((def) => def.field === 'rowIndex');
-                const htmlButtonsDef = columnDefinitions.find((def) => def.field === 'htmlButtons');
-
-                // Get all columns with formatter or sorter functions
-                const formatterDefinitions = columnDefinitions.filter((columnDefinition) => {
-                    if (
-                        columnDefinition.formatter &&
-                        (typeof columnDefinition.formatter === 'function' ||
-                            typeof columnDefinition.titleFormatter === 'function')
-                    ) {
-                        return true;
-                    }
-                    if (columnDefinition.sorter && typeof columnDefinition.sorter === 'function') {
-                        return true;
-                    }
-                });
-
-                // Add back formatter, sorter functions, and current translated title
-                options.forEach((storedColumnDefinition) => {
-                    const columnWithFormatter = formatterDefinitions.find((columnDefinition) => {
-                        return columnDefinition.field === storedColumnDefinition.field;
-                    });
-
-                    // rowIndex
-                    if (columnWithFormatter?.formatter) {
-                        storedColumnDefinition.formatter = columnWithFormatter?.formatter;
-                    }
-
-                    // htmlButtons
-                    if (columnWithFormatter?.titleFormatter) {
-                        storedColumnDefinition.titleFormatter = columnWithFormatter?.titleFormatter;
-                    }
-                    // dateCreated
-                    if (columnWithFormatter?.sorter) {
-                        storedColumnDefinition.sorter = columnWithFormatter?.sorter;
-                    }
-
-                    // Always use the current (translated) title from submissionsColumnsInitial,
-                    // which is populated by setDefaultSubmissionTableOrder() with schema-localized
-                    // titles before this restore runs.
-                    const initialDef = this.submissionsColumnsInitial[state]?.find(
-                        (def) => def.field === storedColumnDefinition.field,
-                    );
-                    if (initialDef?.title) {
-                        storedColumnDefinition.title = initialDef.title;
-                    }
-                });
-
-                this.submissionsColumns[state] = [rowIndexDef, ...options, htmlButtonsDef];
-
-                table.setColumns(this.submissionsColumns[state]);
-
-                console.log(`this.submissionsColumns[${state}]`, this.submissionsColumns[state]);
-            } catch (e) {
-                console.error('Failed parsing stored table options', e);
-                this.sendErrorAnalyticsEvent(
-                    '[restoreSubmissionTableSettings]',
-                    'WrongResponse',
-                    e,
-                );
-                return false;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Stores submission Table settings in localStorage
-     * @param {string} state - 'draft' or 'submitted'
-     */
-    storeSubmissionTableSettings(state) {
-        if (this.storeSession && this.isLoggedIn()) {
-            const publicId = this.auth['user-id'];
-            // Filter out frozen columns (htmlButtons, ID) — non-serializable and auto-generated.
-            // Also strip `title` since it is language-dependent and must be re-applied from the
-            // live column definitions on restore so that language changes are always reflected.
-            const serializableColumns = this.submissionsColumns[state]
-                .filter((column) => column.frozen !== true)
-                .map(({title, ...rest}) => rest);
-
-            localStorage.setItem(
-                `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${publicId}`,
-                JSON.stringify(serializableColumns),
-            );
+    handleSwMessage(event) {
+        if (event.data?.type === 'DOWNLOAD_STARTED') {
+            this.showLoadingIndicator = false;
         }
     }
 
     /**
-     * Delete submission Table settings from localStorage
-     * @param {string} state - 'draft' or 'submitted'
+     * Reset action buttons state if table selection changes
+     * @param {CustomEvent} tableEvent
      */
-    deleteSubmissionTableSettings(state) {
-        if (this.storeSession && this.isLoggedIn()) {
-            const publicId = this.auth['user-id'];
-            localStorage.removeItem(
-                `dbp-formalize-tableoptions-${this.activeFormName}-${state}-${publicId}`,
-            );
+    handleTableSelectionChanges(tableEvent) {
+        const selectedRows = tableEvent.detail.selected;
+        const deSelectedRows = tableEvent.detail.deselected;
+
+        const activeTable =
+            selectedRows.length > 0 ? selectedRows[0].getTable() : deSelectedRows[0].getTable();
+
+        const root = activeTable.element.getRootNode();
+        if (root instanceof ShadowRoot) {
+            const tabulatorTableComponent = root.host;
+            const state = this.getTableState(tabulatorTableComponent.identifier);
+            this.selectedRowCount = {...this.selectedRowCount, [state]: selectedRows.length};
+
+            this.setIsActionAvailable(state);
         }
     }
 
-    toggleVisibility(column, state) {
-        const fieldName = column.field;
-        this.submissionsColumns[state].map((col) => {
-            if (col.field === fieldName) {
-                col.visible = !col.visible;
-            }
-        });
-        this.requestUpdate();
-    }
-
-    /**
-     * Moves a header in this.submissionColumns Array and in DOM up
-     *
-     * @param {object} column - tabulator table column component
-     * @param {string} state - draft or submitted
-     * @param {string} direction - up or down
-     */
-    moveHeader(column, state, direction) {
-        // Swap the two elements in  this.submissionsColumns
-        const fieldName = column.field;
-        const index = this.submissionsColumns[state].findIndex((col) => col.field === fieldName);
-        const originalColumn = this.submissionsColumns[state][index];
-
-        const delta = direction === 'up' ? -1 : 1;
-
-        this.submissionsColumns[state][index] = this.submissionsColumns[state][index + delta];
-        this.submissionsColumns[state][index + delta] = originalColumn;
-
-        this.requestUpdate();
-    }
-
-    /**
-     * Shows entry of a specific position of this.submissionTable
-     * @param {string} state - 'draft' or 'submitted'
-     * @param {number} positionToShow
-     * @param {"next"|"previous"} direction
-     */
-    async showEntryOfPos(state, positionToShow, direction) {
-        if (positionToShow > this.totalNumberOfItems[state] || positionToShow < 1) return;
-
-        const table = this.submissionTables[state];
-        if (!table) return;
-
-        let rows = table.getRows();
-
-        let next_row = rows[positionToShow - 1];
-        let cells = next_row.getCells();
-        let next_data = {};
-        for (let cell of cells) {
-            let column = cell.getColumn();
-            let definition = column.getDefinition();
-            if (definition.formatter !== 'html') {
-                next_data[cell.getField()] = cell.getValue();
-            }
-        }
-
-        // Append /details/submissionId to the URL
-        this.addDetailsToUrl(next_data.submissionId);
-
-        this.requestDetailedSubmission(state, next_data, positionToShow);
-    }
-
-    static get styles() {
-        // language=css
-        return css`
-            @layer theme, utility, formalize;
-            @layer theme {
-                ${commonStyles.getThemeCSS()}
-                ${commonStyles.getModalDialogCSS()}
-                ${commonStyles.getRadioAndCheckboxCss()}
-                ${commonStyles.getGeneralCSS(false)}
-                ${commonStyles.getNotificationCSS()}
-                ${commonStyles.getActivityCSS()}
-                ${commonStyles.getButtonCSS()}
-                ${getSelectorFixCSS()}
-                ${getFileHandlingCss()}
-                ${getTagsCSS()}
-            }
-
-            @layer formalize {
-                ${getManageFormsCSS()}
-
-                .visually-hidden {
-                    clip: rect(0 0 0 0);
-                    clip-path: inset(50%);
-                    height: 1px;
-                    overflow: hidden;
-                    position: absolute;
-                    white-space: nowrap;
-                    width: 1px;
-                }
-            }
-        `;
-    }
+    // -----------------------------------------------------------------------
+    // Actions
+    // -----------------------------------------------------------------------
 
     setIsActionAvailable(state) {
         this.setActionButtonsStates(state);
@@ -2408,8 +1159,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     setActionButtonsStates(state) {
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
         const allRows = this.submissionTables[state].tabulatorTable.getRows('all');
-        // const activeForm = this.forms.get(this.activeFormId);
-        // const formGrantedActions = activeForm.formGrantedActions;
 
         let selectedSubmissionsGrants = new Set();
         for (const row of selectedRows) {
@@ -2417,7 +1166,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const grants = this.submissionsGrantedActions.get(submissionId);
             grants?.forEach((grant) => selectedSubmissionsGrants.add(grant));
         }
-        // console.log(`selectedSubmissionsGrants`, selectedSubmissionsGrants);
 
         let allSubmissionsGrants = new Set();
         for (const row of allRows) {
@@ -2427,89 +1175,48 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
         console.log(`allSubmissionsGrants`, allSubmissionsGrants);
 
-        // Set row counts
-        this.selectedRowCount[state] = selectedRows.length;
-        this.allRowCount[state] = allRows.length;
+        const selectedCount = selectedRows.length;
+        const allCount = allRows.length;
 
-        this.isDeleteSelectedSubmissionEnabled[state] =
-            this.selectedRowCount[state] > 0 &&
-            // If we can delete any of the selected submissions
-            (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE));
+        // Replace objects with new references so Lit detects changes
+        this.selectedRowCount = {...this.selectedRowCount, [state]: selectedCount};
+        this.allRowCount = {...this.allRowCount, [state]: allCount};
 
-        this.isDeleteAllSubmissionEnabled[state] =
-            this.selectedRowCount[state] === 0 &&
-            // If we can delete any of the submissions
-            (allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
-                allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE));
+        this.isDeleteSelectedSubmissionEnabled = {
+            ...this.isDeleteSelectedSubmissionEnabled,
+            [state]:
+                selectedCount > 0 &&
+                (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE)),
+        };
 
-        this.isEditSubmissionEnabled[state] =
-            this.selectedRowCount[state] === 1 &&
-            (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
-                selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.UPDATE));
+        this.isDeleteAllSubmissionEnabled = {
+            ...this.isDeleteAllSubmissionEnabled,
+            [state]:
+                selectedCount === 0 &&
+                (allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE)),
+        };
 
-        this.isBatchTaggingEnabled[state] =
-            this.selectedRowCount[state] > 0 &&
-            selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.ADD_TAGS);
+        this.isEditSubmissionEnabled = {
+            ...this.isEditSubmissionEnabled,
+            [state]:
+                selectedCount === 1 &&
+                (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
+                    selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.UPDATE)),
+        };
 
-        this.isEditSubmissionPermissionEnabled[state] =
-            this.selectedRowCount[state] === 1 &&
-            selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE);
+        this.isBatchTaggingEnabled = {
+            ...this.isBatchTaggingEnabled,
+            [state]:
+                selectedCount > 0 && selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.ADD_TAGS),
+        };
 
-        this.requestUpdate();
-    }
-
-    successFailureNotification(responseStatus) {
-        const successCount = responseStatus.filter((status) => status === true).length;
-        if (successCount > 0) {
-            sendNotification({
-                summary: this._i18n.t('success.success-title'),
-                body: this._i18n.t('success.submissions-processed', {count: successCount}),
-                type: 'success',
-                timeout: 5,
-            });
-        }
-
-        const errorCount = responseStatus.filter((status) => status === false).length;
-        if (errorCount > 0) {
-            sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.submissions-processing-failed', {count: errorCount}),
-                type: 'danger',
-                timeout: 0,
-            });
-        }
-    }
-
-    handleFileSinkDownloadStarted(event) {
-        this.showLoadingIndicator = true;
-    }
-
-    handleSwMessage(event) {
-        if (event.data?.type === 'DOWNLOAD_STARTED') {
-            this.showLoadingIndicator = false;
-        }
-    }
-
-    /**
-     * Reset action buttons state if table selection changes
-     * @param {CustomEvent} tableEvent
-     */
-    handleTableSelectionChanges(tableEvent) {
-        const selectedRows = tableEvent.detail.selected;
-        const deSelectedRows = tableEvent.detail.deselected;
-
-        const activeTable =
-            selectedRows.length > 0 ? selectedRows[0].getTable() : deSelectedRows[0].getTable();
-
-        const root = activeTable.element.getRootNode();
-        if (root instanceof ShadowRoot) {
-            const tabulatorTableComponent = root.host;
-            const state = this.getTableState(tabulatorTableComponent.identifier);
-            this.selectedRowCount[state] = selectedRows.length;
-
-            this.setIsActionAvailable(state);
-        }
+        this.isEditSubmissionPermissionEnabled = {
+            ...this.isEditSubmissionPermissionEnabled,
+            [state]:
+                selectedCount === 1 && selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE),
+        };
     }
 
     handleEditSubmissionsPermission(state) {
@@ -2526,16 +1233,22 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async handleOpenBatchTaggingModal(state) {
         const data = this.submissionTables[state].tabulatorTable.getSelectedData();
         this.submissionIdsForTagging = data.map((submission) => submission.submissionId);
-        await this.apiGetTags(this.activeFormId);
+        await apiGetTags(this, this.activeFormId);
         this.currentStateForBatchTagging = state;
-        // Reset selected tags when opening the modal
-        this.selectedTagsForBatchTagging = [];
-        this.requestUpdate();
-        this.batchTaggingModalRef.value?.open();
+
+        const batchTaggingModal = this._('#batch-tagging-modal');
+        if (batchTaggingModal) {
+            batchTaggingModal.availableTags = this.availableTags;
+            batchTaggingModal.submissionCount = this.submissionIdsForTagging.length;
+            batchTaggingModal.open();
+        }
     }
 
     async handleBatchTaggingConfirm(event) {
-        const button = this.batchTaggingConfirmButtonRef.value;
+        const {tags, justAdd} = event.detail;
+        const batchTaggingModal = this._('#batch-tagging-modal');
+        const button = batchTaggingModal?.getConfirmButton();
+
         if (button) {
             button.spinner = true;
             button.start();
@@ -2555,16 +1268,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const currentTags = rawSubmission?.tags || [];
 
                 let finalTags;
-                if (this.justAddTagsForBatchTagging) {
+                if (justAdd) {
                     // Add new tags to existing ones and remove duplicates
-                    const mergedTags = [...currentTags, ...this.selectedTagsForBatchTagging];
+                    const mergedTags = [...currentTags, ...tags];
                     finalTags = [...new Set(mergedTags)];
                 } else {
                     // Replace all tags with selected ones
-                    finalTags = [...this.selectedTagsForBatchTagging];
+                    finalTags = [...tags];
                 }
 
-                const response = await this.apiUpdateSubmissionTags(submissionId, finalTags);
+                const response = await apiUpdateSubmissionTags(this, submissionId, finalTags);
                 responseStatus.push(response);
                 responseDetailedStatus.push({status: response, submissionId: submissionId});
 
@@ -2608,13 +1321,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (button) {
             button.spinner = false;
             button.stop();
-            this.batchTaggingModalRef.value?.close();
         }
-        // Reset selected tags after closing the modal
-        this.selectedTagsForBatchTagging = [];
+        if (batchTaggingModal) {
+            batchTaggingModal.close();
+        }
+
         this.requestUpdate();
         // Report
-        this.successFailureNotification(responseStatus);
+        successFailureNotification(this, responseStatus);
     }
 
     handleEditSubmissions(event, state) {
@@ -2670,14 +1384,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             : this.submissionTables[state].tabulatorTable.getRows('all');
 
         if (data.length > 0) {
-            const confirmed = await getDeletionConfirmation(this);
+            const deletionModal = this._('#deletion-modal');
+            const confirmed = deletionModal ? await deletionModal.confirm() : false;
             if (!confirmed) return;
 
             let responseStatus = [];
             let failedRequestToSelect = [];
             let index = 0;
             for (const submission of data) {
-                const response = await this.apiDeleteSubmissions(submission.submissionId);
+                const response = await apiDeleteSubmission(this, submission.submissionId);
                 responseStatus.push(response);
                 // Delete row from the table
                 if (response === true) {
@@ -2690,11 +1405,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.submissions = {...this.submissions, [state]: filteredSubmissions};
 
                     // Remove entry from options.data
-                    this.options_submissions[state].data = this.options_submissions[
-                        state
-                    ].data.filter((sub) => {
-                        return sub.submissionId !== submission.submissionId;
-                    });
+                    this.options_submissions = {
+                        ...this.options_submissions,
+                        [state]: {
+                            ...this.options_submissions[state],
+                            data: this.options_submissions[state].data.filter((sub) => {
+                                return sub.submissionId !== submission.submissionId;
+                            }),
+                        },
+                    };
                 } else {
                     failedRequestToSelect.push(submission.submissionId);
                 }
@@ -2704,7 +1423,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Update row-indexes
             this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
-            this.successFailureNotification(responseStatus);
+            successFailureNotification(this, responseStatus);
 
             // Re-select failed submissions
             if (failedRequestToSelect.length > 0) {
@@ -2726,143 +1445,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    /**
-     *
-     * @param {string} submissionId
-     * @param {Array<string>} finalTags - The final tags to set for the submission
-     * @returns {Promise<boolean>}
-     */
-    async apiUpdateSubmissionTags(submissionId, finalTags) {
-        if (!submissionId || !this.activeFormId) {
-            sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.no-submission-id-provided'),
-                type: 'danger',
-                timeout: 0,
-            });
-            return false;
-        }
-
-        // Only send tags field to avoid schema validation of dataFeedElement
-        const formData = new FormData();
-        formData.append('form', '/formalize/forms/' + this.activeFormId);
-        formData.append('tags', JSON.stringify(finalTags));
-        const options = {
-            method: 'PATCH',
-            headers: {
-                Authorization: `Bearer ${this.auth.token}`,
-            },
-            body: formData,
-        };
-        const url = this.entryPointUrl + '/formalize/submissions/' + submissionId;
-
-        try {
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                console.warn(
-                    `Failed to update submission tags. Response status: ${response.status}`,
-                );
-                const errorData = await response.json().catch(() => ({}));
-                console.warn('Error details:', errorData);
-                return false;
-            } else {
-                return true;
-            }
-        } catch (error) {
-            console.error(error.message);
-            return false;
-        }
-    }
-
-    async apiDeleteSubmissions(submissionId) {
-        if (!submissionId) {
-            sendNotification({
-                summary: this._i18n.t('errors.error-title'),
-                body: this._i18n.t('errors.no-submission-id-provided'),
-                type: 'danger',
-                timeout: 0,
-            });
-            return false;
-        }
-
-        try {
-            const response = await fetch(
-                this.entryPointUrl + `/formalize/submissions/${submissionId}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
-                    },
-                },
-            );
-
-            if (!response.ok) {
-                console.warn(`Failed to delete submission. Response status: ${response.status}`);
-                return false;
-            } else {
-                return true;
-            }
-        } catch (error) {
-            console.error(error.message);
-            return false;
-        }
-    }
-
-    /**
-     * Get tags from the API for the active form to be used in batch tagging
-     * Sets this.availableTags with the result
-     * @param {string} identifier - form identifier
-     */
-    async apiGetTags(identifier) {
-        // If the user is not logged in yet, we can't check permissions
-        if (this.auth.token === '') {
-            this.availableTags = [];
-        }
-
-        let response;
-        let data = [];
-
-        const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
-            },
-        };
-
-        try {
-            response = await this.httpGetAsync(
-                this.entryPointUrl + '/formalize/forms/' + identifier,
-                options,
-            );
-
-            if (!response.ok) {
-                this.availableTags = [];
-            }
-
-            data = await response.json();
-        } catch (e) {
-            this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
-            console.error(e);
-            this.availableTags = [];
-        }
-
-        if (data.error) {
-            console.error('checkPermissionsToForm data.error', data.error);
-            this.availableTags = [];
-        }
-
-        if (data['@type'] === 'hydra:Error') {
-            console.error('checkPermissionsToForm hydra:Error', data.detail);
-            this.availableTags = [];
-        }
-
-        this.availableTags = data.availableTags || [];
-    }
+    // -----------------------------------------------------------------------
+    // Navigation / routing helpers
+    // -----------------------------------------------------------------------
 
     closeAllSearchWidgets() {
         this.searchWidgetIsOpen = {draft: false, submitted: false};
-        this.syncSubmissionsPageState();
     }
 
     handleBackToOverview() {
@@ -2876,13 +1464,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.sendSetPropertyEvent('routing-url', '/', true);
     }
 
+    // -----------------------------------------------------------------------
+    // Child component event handlers
+    // -----------------------------------------------------------------------
+
     handleSubmissionsPageSearchToggle(event) {
         const {state, open} = event.detail;
         this.searchWidgetIsOpen = {
             ...this.searchWidgetIsOpen,
             [state]: open,
         };
-        this.syncSubmissionsPageState();
     }
 
     handleSubmissionsPageActionsToggle(event) {
@@ -2891,7 +1482,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ...this.actionsWidgetIsOpen,
             [state]: open,
         };
-        this.syncSubmissionsPageState();
     }
 
     handleSubmissionsPageAction(event) {
@@ -2903,7 +1493,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         switch (action) {
             case 'prepare-actions':
                 this.setActionButtonsStates(state);
-                this.syncSubmissionsPageState();
                 break;
             case 'edit-submission':
                 this.handleEditSubmissions(effectiveEvent, state);
@@ -2924,38 +1513,32 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.exportSubmissionTable(effectiveEvent, state);
                 break;
             case 'toggle-column-visibility':
-                this.toggleVisibility(effectiveColumn, state);
-                this.syncSubmissionsPageState();
+                toggleVisibility(this, effectiveColumn, state);
                 break;
             case 'move-column-up':
-                this.moveHeader(effectiveColumn, state, 'up');
-                this.syncSubmissionsPageState();
+                moveHeader(this, effectiveColumn, state, 'up');
                 break;
             case 'move-column-down':
-                this.moveHeader(effectiveColumn, state, 'down');
-                this.syncSubmissionsPageState();
+                moveHeader(this, effectiveColumn, state, 'down');
                 break;
             case 'reset-columns':
-                this.resetSettings(state);
-                this.syncSubmissionsPageState();
+                resetSettings(this, state);
                 break;
             case 'hide-all-columns':
-                this.toggleAllColumns(state, 'hide');
-                this.syncSubmissionsPageState();
+                toggleAllColumns(this, state, 'hide');
                 break;
             case 'show-all-columns':
-                this.toggleAllColumns(state, 'show');
-                this.syncSubmissionsPageState();
+                toggleAllColumns(this, state, 'show');
                 break;
             case 'save-columns':
-                this.updateSubmissionTable(state);
-                this.storeSubmissionTableSettings(state);
+                updateSubmissionTable(this, state);
+                storeSubmissionTableSettings(this, state);
                 break;
         }
     }
 
     handleSubmissionModalClose() {
-        this.removeDetailsFromUrl();
+        removeDetailsFromUrl();
     }
 
     handleSubmissionModalPrevious(event) {
@@ -2973,6 +1556,47 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         e.preventDefault();
     }
 
+    // -----------------------------------------------------------------------
+    // Styles
+    // -----------------------------------------------------------------------
+
+    static get styles() {
+        // language=css
+        return css`
+            @layer theme, utility, formalize;
+            @layer theme {
+                ${commonStyles.getThemeCSS()}
+                ${commonStyles.getModalDialogCSS()}
+                ${commonStyles.getRadioAndCheckboxCss()}
+                ${commonStyles.getGeneralCSS(false)}
+                ${commonStyles.getNotificationCSS()}
+                ${commonStyles.getActivityCSS()}
+                ${commonStyles.getButtonCSS()}
+                ${getSelectorFixCSS()}
+                ${getFileHandlingCss()}
+                ${getTagsCSS()}
+            }
+
+            @layer formalize {
+                ${getManageFormsCSS()}
+
+                .visually-hidden {
+                    clip: rect(0 0 0 0);
+                    clip-path: inset(50%);
+                    height: 1px;
+                    overflow: hidden;
+                    position: absolute;
+                    white-space: nowrap;
+                    width: 1px;
+                }
+            }
+        `;
+    }
+
+    // -----------------------------------------------------------------------
+    // Render
+    // -----------------------------------------------------------------------
+
     render() {
         const i18n = this._i18n;
 
@@ -2984,8 +1608,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 submitted: isSubmittedStateEnabled(allowedSubmissionStates),
             };
         }
-
-        // console.log(`this.submissions`, this.submissions);
 
         return html`
             <div
@@ -3021,6 +1643,32 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"
                     id="submissions-page"
+                    .showFormsTable=${this.showFormsTable}
+                    .showSubmissionTables=${this.showSubmissionTables}
+                    .loadingSubmissionTables=${this.loadingSubmissionTables}
+                    .activeFormName=${this.activeFormName}
+                    .createSubmissionUrl=${this.createSubmissionUrl}
+                    .enabledStates=${this.enabledStates}
+                    .noSubmissionAvailable=${this.noSubmissionAvailable}
+                    .searchWidgetIsOpen=${this.searchWidgetIsOpen}
+                    .actionsWidgetIsOpen=${this.actionsWidgetIsOpen}
+                    .isActionAvailable=${this.isActionAvailable}
+                    .isEditSubmissionEnabled=${this.isEditSubmissionEnabled}
+                    .isBatchTaggingEnabled=${this.isBatchTaggingEnabled}
+                    .isEditSubmissionPermissionEnabled=${this.isEditSubmissionPermissionEnabled}
+                    .isDeleteAllSubmissionEnabled=${this.isDeleteAllSubmissionEnabled}
+                    .isDeleteSelectedSubmissionEnabled=${this.isDeleteSelectedSubmissionEnabled}
+                    .optionsSubmissions=${this.options_submissions}
+                    .submissions=${this.submissions}
+                    .submissionsColumns=${this.submissionsColumns}
+                    .iconNameVisible=${this.iconNameVisible}
+                    .iconNameHidden=${this.iconNameHidden}
+                    .isResetButtonDisabled=${this.isResetButtonDisabled}
+                    .selectedRowCount=${this.selectedRowCount}
+                    .allRowCount=${this.allRowCount}
+                    .visibleRowCount=${this.visibleRowCount}
+                    .searchIsActive=${this.searchIsActive}
+                    .submissionsHasAttachment=${this.submissionsHasAttachment}
                     @back-to-overview=${() => this.handleBackToOverview()}
                     @submission-search-toggle=${(event) =>
                         this.handleSubmissionsPageSearchToggle(event)}
@@ -3069,136 +1717,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 enabled-targets="local,clipboard,nextcloud"
                 subscribe="auth,nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
-            <!-- Deletion Confirmation Modal -->
-            <dbp-modal
-                id="deletion-confirmation-modal--formalize"
-                class="modal modal--confirmation"
-                modal-id="deletion-confirmation-modal"
-                title="${i18n.t('manage-forms.delete-confirmation-title')}"
-                subscribe="lang">
-                <div slot="content">
-                    <p>${i18n.t('manage-forms.delete-confirmation-message')}</p>
-                </div>
-                <menu slot="footer" class="footer-menu">
-                    <dbp-button
-                        type="is-secondary"
-                        no-spinner-on-click
-                        @click="${() => handleDeletionCancel(this)}">
-                        ${i18n.t('manage-forms.abort')}
-                    </dbp-button>
-                    <dbp-button
-                        type="is-danger"
-                        no-spinner-on-click
-                        @click="${() => handleDeletionConfirm(this)}">
-                        ${i18n.t('manage-forms.delete')}
-                    </dbp-button>
-                </menu>
-            </dbp-modal>
+            <dbp-formalize-deletion-confirmation-modal
+                id="deletion-modal"
+                subscribe="lang"></dbp-formalize-deletion-confirmation-modal>
 
-            <!-- Batch Tagging Confirmation Modal -->
-            <dbp-modal
-                ${ref(this.batchTaggingModalRef)}
-                id="batch-tagging-dialog-modal"
-                class="modal modal--batch-tagging"
-                modal-id="batch-tagging-dialog"
-                title="${i18n.t('manage-forms.batch-tagging-title')}"
-                subscribe="lang">
-                <div slot="content">
-                    <div class="batch-tagging-modal-content">
-                        <p>
-                            ${i18n.t('manage-forms.batch-tagging-message', {
-                                count: this.submissionIdsForTagging.length,
-                            })}
-                        </p>
-                        <fieldset class="checkbox-container">
-                            <legend>
-                                <dbp-icon name="tags" aria-hidden="true"></dbp-icon>
-                                Available tags
-                            </legend>
-                            ${this.availableTags && this.availableTags.length > 0
-                                ? html`
-                                      ${this.availableTags.map(
-                                          (tag) => html`
-                                              <div class="tag-checkbox">
-                                                  <input
-                                                      type="checkbox"
-                                                      id="batch-tagging-tag-${tag.identifier}"
-                                                      name="batch-tagging-tag-${tag.identifier}"
-                                                      value="${tag.identifier}"
-                                                      .checked="${this.selectedTagsForBatchTagging.includes(
-                                                          tag.identifier,
-                                                      )}"
-                                                      @change="${(e) => {
-                                                          if (e.target.checked) {
-                                                              this.selectedTagsForBatchTagging = [
-                                                                  ...this
-                                                                      .selectedTagsForBatchTagging,
-                                                                  tag.identifier,
-                                                              ];
-                                                          } else {
-                                                              this.selectedTagsForBatchTagging =
-                                                                  this.selectedTagsForBatchTagging.filter(
-                                                                      (t) => t !== tag.identifier,
-                                                                  );
-                                                          }
-                                                      }}" />
-                                                  <label for="batch-tagging-tag-${tag.identifier}">
-                                                      ${tag.identifier}
-                                                  </label>
-                                              </div>
-                                          `,
-                                      )}
-                                  `
-                                : html`
-                                      <p>
-                                          <dbp-icon name="warning" aria-hidden="true"></dbp-icon>
-                                          ${i18n.t('manage-forms.no-available-tags-label')}
-                                      </p>
-                                  `}
-                        </fieldset>
-                    </div>
-                </div>
-                <menu slot="footer" class="footer-menu">
-                    <div class="just-add-tags">
-                        <input
-                            type="checkbox"
-                            id="just-add-tags-checkbox"
-                            name="just-add-tags-checkbox"
-                            value="just-add-tags"
-                            @change="${(e) => {
-                                if (e.target.checked) {
-                                    this.justAddTagsForBatchTagging = true;
-                                } else {
-                                    this.justAddTagsForBatchTagging = false;
-                                }
-                            }}" />
-                        <label for="just-add-tags-checkbox">
-                            ${i18n.t('manage-forms.just-add-tags-label')}
-                        </label>
-                    </div>
-                    <div class="button-container">
-                        <dbp-button
-                            type="is-secondary"
-                            no-spinner-on-click
-                            @click="${() => {
-                                this.selectedTagsForBatchTagging = [];
-                                this.requestUpdate();
-                                this.batchTaggingModalRef.value?.close();
-                            }}">
-                            ${i18n.t('manage-forms.abort')}
-                        </dbp-button>
-                        <dbp-button
-                            ${ref(this.batchTaggingConfirmButtonRef)}
-                            id="process-batch-tagging-button"
-                            type="is-danger"
-                            @click="${(event) => this.handleBatchTaggingConfirm(event)}">
-                            ${this.justAddTagsForBatchTagging
-                                ? i18n.t('manage-forms.batch-tagging-button-text-add')
-                                : i18n.t('manage-forms.batch-tagging-button-text-replace')}
-                        </dbp-button>
-                    </div>
-                </menu>
-            </dbp-modal>
+            <dbp-formalize-batch-tagging-modal
+                id="batch-tagging-modal"
+                subscribe="lang"
+                @batch-tagging-confirm=${(event) =>
+                    this.handleBatchTaggingConfirm(event)}></dbp-formalize-batch-tagging-modal>
 
             ${this.showLoadingIndicator
                 ? html`
