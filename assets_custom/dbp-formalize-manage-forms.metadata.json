@@ -12,7 +12,7 @@
     },
     "description": {
         "de": "Verwaltet verfügbare Formulareinträge",
-        "en": "Manage available submissions"
+        "en": "Manage available forms"
     },
     "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url"
 }
