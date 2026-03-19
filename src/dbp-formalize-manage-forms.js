@@ -1157,6 +1157,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state - form state. draft or submitted
      */
     setActionButtonsStates(state) {
+        if (!this.submissionTables[state].tabulatorTable) return;
+
         const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
         const allRows = this.submissionTables[state].tabulatorTable.getRows('all');
 
