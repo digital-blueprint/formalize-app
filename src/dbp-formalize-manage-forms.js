@@ -11,11 +11,16 @@ import {
     sendNotification,
 } from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
-import * as commonStyles from '@dbp-toolkit/common/styles';
 import {classMap} from 'lit/directives/class-map.js';
-import {CustomTabulatorTable} from './table-components.js';
-import MicroModal from './micromodal.es.js';
+import {
+    ColumnSettingsButton,
+    CustomTabulatorTable,
+    GetDetailsButton,
+    GetSubmissionLink,
+} from './table-components.js';
 import {FileSink} from '@dbp-toolkit/file-handling';
+import * as commonStyles from '@dbp-toolkit/common/styles';
+import MicroModal from './micromodal.es.js';
 import {
     SUBMISSION_STATES,
     getFormRenderUrl,
@@ -34,6 +39,9 @@ import xss from 'xss';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
+import {ManageFormsOverviewPage} from './manage-forms-overview-page.js';
+import {ManageFormSubmissionsPage} from './manage-form-submissions-page.js';
+import {ManageSubmissionModal} from './manage-submission-modal.js';
 
 /**
  * @augments {DBPFormalizeLitElement}
@@ -90,11 +98,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: [],
             submitted: [],
         };
-        this.navigateBetweenDetailedSubmissionsHandler =
-            this.navigateBetweenDetailedSubmissions.bind(this);
         this.activeFormName = '';
         this.activeFormId = '';
-        this.currentRow = null;
         this.currentBeautyId = 0;
         this.totalNumberOfItems = {
             draft: 0,
@@ -208,6 +213,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
             'dbp-file-sink': FileSink,
+            'dbp-formalize-column-settings-button': ColumnSettingsButton,
+            'dbp-formalize-get-details-button': GetDetailsButton,
+            'dbp-formalize-get-submission-link': GetSubmissionLink,
+            'dbp-formalize-manage-forms-overview-page': ManageFormsOverviewPage,
+            'dbp-formalize-manage-form-submissions-page': ManageFormSubmissionsPage,
+            'dbp-formalize-manage-submission-modal': ManageSubmissionModal,
         };
     }
 
@@ -274,6 +285,34 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.boundFileSinkDownloadStartedHandler,
         );
         navigator.serviceWorker.removeEventListener('message', this.boundSwMessageHandler);
+    }
+
+    getOverviewPage() {
+        return this._('dbp-formalize-manage-forms-overview-page');
+    }
+
+    getSubmissionsPage() {
+        return this._('dbp-formalize-manage-form-submissions-page');
+    }
+
+    getSubmissionModal(state) {
+        return this._(`#submission-modal-${state}`);
+    }
+
+    refreshTableReferences() {
+        const overviewPage = this.getOverviewPage();
+        if (overviewPage) {
+            this.formsTable = /** @type {CustomTabulatorTable} */ (overviewPage.getFormsTable());
+        }
+
+        const submissionsPage = this.getSubmissionsPage();
+        if (submissionsPage) {
+            for (const state of Object.values(SUBMISSION_STATES)) {
+                this.submissionTables[state] = /** @type {CustomTabulatorTable} */ (
+                    submissionsPage.getSubmissionTable(state)
+                );
+            }
+        }
     }
 
     /**
@@ -470,7 +509,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     columnDefinition.download = false;
                     // Add open columnSettings modal button
                     columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
-                        let columnSettingsButton = this.submissionTables[state].createScopedElement(
+                        let columnSettingsButton = this.createScopedElement(
                             'dbp-formalize-column-settings-button',
                         );
                         columnSettingsButton.setAttribute('subscribe', 'lang');
@@ -559,12 +598,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async firstUpdated() {
-        this.formsTable = /** @type {CustomTabulatorTable} */ (this._('#tabulator-table-forms'));
-        for (const state of Object.values(SUBMISSION_STATES)) {
-            this.submissionTables[state] = /** @type {CustomTabulatorTable} */ (
-                this._(`#tabulator-table-submissions-${state}`)
-            );
-        }
+        this.refreshTableReferences();
 
         if (this.auth.token === '' || this.allForms.length > 0) {
             return;
@@ -606,9 +640,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         });
                     }
                 } else {
-                    this.formsTable = /** @type {CustomTabulatorTable} */ (
-                        this._('#tabulator-table-forms')
-                    );
+                    this.refreshTableReferences();
                     if (this.formsTable) {
                         this.formsTable.buildTable();
                         this.loadingFormsTable = false;
@@ -648,11 +680,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     }
                 } else {
                     // Show the forms table
-                    this.formsTable = /** @type {CustomTabulatorTable} */ (
-                        this._('#tabulator-table-forms')
-                    );
+                    this.refreshTableReferences();
                     if (this.formsTable && !this.formsTable.tableReady) {
-                        this._('#tabulator-table-forms').buildTable();
+                        this.formsTable.buildTable();
                         this.loadingFormsTable = false;
                         this.showFormsTable = true;
                         this.showSubmissionTables = false;
@@ -662,6 +692,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('submissions')) {
+            this.refreshTableReferences();
             // const oldValue = changedProperties.get('submissions');
             // console.log(`*** [updated] oldValue`, oldValue);
             // console.log(`*** [updated] this.submissions`, this.submissions);
@@ -755,6 +786,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {object} form - form object
      */
     switchToSubmissionTable(form) {
+        this.refreshTableReferences();
         this.activeFormName = form.formName;
         this.activeFormId = form.formId;
         this.showFormsTable = false;
@@ -878,9 +910,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         tagPermissionsForSubmitters,
                     });
 
-                    let btn = this.formsTable.createScopedElement(
-                        'dbp-formalize-get-details-button',
-                    );
+                    let btn = this.createScopedElement('dbp-formalize-get-details-button');
                     btn.setAttribute('subscribe', 'lang');
                     btn.title = i18n.t('manage-forms.open-forms');
                     btn.ariaLabel = i18n.t('manage-forms.open-forms');
@@ -1065,9 +1095,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     activeForm.formName === 'Ethics Proposal' ||
                     activeForm.formName === 'Media Transparency Form'
                 ) {
-                    const submissionDetailsFormButton = this.submissionTables[
-                        state
-                    ].createScopedElement('dbp-formalize-get-submission-link');
+                    const submissionDetailsFormButton = this.createScopedElement(
+                        'dbp-formalize-get-submission-link',
+                    );
                     // Set submission URL
                     const activeFormSlug = activeForm.formSlug ? activeForm.formSlug : null;
                     if (activeFormSlug) {
@@ -1092,7 +1122,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
 
                 // Add button to show submission details in a modal
-                const submissionDetailsButton = this.submissionTables[state].createScopedElement(
+                const submissionDetailsButton = this.createScopedElement(
                     'dbp-formalize-get-details-button',
                 );
                 /*
@@ -1157,9 +1187,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         columnDefinition.download = false;
                         // Add open columnSettings modal button
                         columnDefinition.titleFormatter = (cell, formatterParams, onRendered) => {
-                            let columnSettingsButton = this.submissionTables[
-                                state
-                            ].createScopedElement('dbp-formalize-column-settings-button');
+                            let columnSettingsButton = this.createScopedElement(
+                                'dbp-formalize-column-settings-button',
+                            );
                             columnSettingsButton.setAttribute('subscribe', 'lang');
                             columnSettingsButton.addEventListener('click', () => {
                                 this.openColumnOptionsModal(state);
@@ -1629,15 +1659,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param pos
      */
     requestDetailedSubmission(state, entry, pos) {
-        if (
-            !this._(`#detailed-submission-modal-${state} .content-wrapper`) ||
-            !this._(`#apply-col-settings-${state}`)
-        ) {
+        const modal = this.getSubmissionModal(state);
+        if (!modal) {
             return;
         }
 
-        // Reset modal content
-        this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML = '';
+        const contentItems = [];
 
         if (this.submissionsColumns[state].length !== 0) {
             for (let current_column of this.submissionsColumns[state]) {
@@ -1649,19 +1676,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const labelText = current_column.title
                         ? xss(current_column.title)
                         : xss(current_column.field);
-                    this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                        `<div class='element-left'>` + labelText + `:</div>`;
-
-                    if (current_column.field === 'dateCreated') {
-                        this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                            `<div class='element-right'>` +
-                            this.humanReadableDate(entry[current_column.field]);
-                    } else {
-                        this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                            `<div class='element-right'>` +
-                            xss(entry[current_column.field]) +
-                            `</div>`;
-                    }
+                    const value =
+                        current_column.field === 'dateCreated'
+                            ? this.humanReadableDate(entry[current_column.field])
+                            : xss(entry[current_column.field] ?? '');
+                    contentItems.push({label: labelText, value});
                 }
             }
         } else {
@@ -1669,16 +1688,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Skip the action buttons column and empty keys
                 if (!key || key === 'htmlButtons' || key === 'rowIndex') continue;
 
-                this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                    `<div class='element-left'>` + xss(key) + `:</div>`;
-
-                if (key === 'dateCreated') {
-                    this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                        `<div class='element-right'>` + this.humanReadableDate(value);
-                } else {
-                    this._(`#detailed-submission-modal-${state} .content-wrapper`).innerHTML +=
-                        `<div class='element-right'>` + xss(value) + `</div>`;
-                }
+                contentItems.push({
+                    label: xss(key),
+                    value: key === 'dateCreated' ? this.humanReadableDate(value) : xss(value ?? ''),
+                });
             }
         }
 
@@ -1687,14 +1700,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.isPrevEnabled = pos !== 1;
         this.isNextEnabled = pos + 1 <= this.totalNumberOfItems[state];
 
-        if (this._(`#detailed-submission-modal-${state} .content-wrapper > div:first-child`))
-            this._(
-                `#detailed-submission-modal-${state} .content-wrapper > div:first-child`,
-            ).classList.add('first');
-        if (this._(`#detailed-submission-modal-${state} .content-wrapper > div:nth-child(2)`))
-            this._(
-                `#detailed-submission-modal-${state} .content-wrapper > div:nth-child(2)`,
-            ).classList.add('first');
+        modal.lang = this.lang;
+        modal.state = state;
+        modal.hiddenColumns = this.hiddenColumns;
+        modal.isPrevEnabled = this.isPrevEnabled;
+        modal.isNextEnabled = this.isNextEnabled;
+        modal.currentBeautyId = this.currentBeautyId;
+        modal.totalItems = this.totalNumberOfItems[state];
+        modal.contentItems = contentItems;
 
         this.showDetailedModal(state);
     }
@@ -1874,9 +1887,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Filters the submissions table
      */
     filterTable(state) {
-        let filter = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
-        let search = /** @type {HTMLSelectElement} */ (this._(`#search-select--${state}`));
-        let operator = /** @type {HTMLSelectElement} */ (this._(`#search-operator--${state}`));
+        const submissionsPage = this.getSubmissionsPage();
+        let filter = /** @type {HTMLInputElement} */ (submissionsPage?.getSearchbar(state));
+        let search = /** @type {HTMLSelectElement} */ (submissionsPage?.getSearchSelect(state));
+        let operator = /** @type {HTMLSelectElement} */ (submissionsPage?.getSearchOperator(state));
 
         const table = this.submissionTables[state];
 
@@ -1930,12 +1944,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     clearAllFilters() {
         for (const state of Object.keys(this.submissionTables)) {
-            let searchInput = /** @type {HTMLInputElement} */ (this._(`#searchbar--${state}`));
+            const submissionsPage = this.getSubmissionsPage();
+            let searchInput = /** @type {HTMLInputElement} */ (
+                submissionsPage?.getSearchbar(state)
+            );
             let searchColumn = /** @type {HTMLSelectElement} */ (
-                this._(`#search-select--${state}`)
+                submissionsPage?.getSearchSelect(state)
             );
             let searchOperator = /** @type {HTMLSelectElement} */ (
-                this._(`#search-operator--${state}`)
+                submissionsPage?.getSearchOperator(state)
             );
             const table = this.submissionTables[state];
 
@@ -2022,7 +2039,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state
      */
     openColumnOptionsModal(state) {
-        let modal = this._(`#column-options-modal-${state}`);
+        let modal = this.getSubmissionsPage()?.getColumnOptionsModal(state);
         if (modal) {
             MicroModal.show(modal, {
                 disableScroll: true,
@@ -2031,7 +2048,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         // Scroll list to top disableScroll: true
-        let scrollWrapper = this._('#submission-modal-content');
+        let scrollWrapper = this.getSubmissionsPage()?.getColumnOptionsContent(state);
         if (scrollWrapper) {
             scrollWrapper.scrollTo(0, 0);
         }
@@ -2042,7 +2059,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {string} state
      */
     closeColumnOptionsModal(state) {
-        let modal = this._(`#column-options-modal-${state}`);
+        let modal = this.getSubmissionsPage()?.getColumnOptionsModal(state);
         if (modal) {
             MicroModal.close(modal);
         }
@@ -2052,15 +2069,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Close submission Columns Modal
      * @param {string} state
      */
-    closeDetailModal(state) {
-        let modal = this._(`#detailed-submission-modal-${state}`);
-        if (modal) {
-            // Remove the details part from the URL when closing the modal
-            this.removeDetailsFromUrl();
-            MicroModal.close(modal);
-        }
-    }
-
     /**
      * Append 'details/submissionId' to the URL
      * (called when opening the modal)
@@ -2114,24 +2122,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      *
      */
     showDetailedModal(state) {
-        let modal = this._(`#detailed-submission-modal-${state}`);
+        const modal = this.getSubmissionModal(state);
         if (modal) {
-            MicroModal.show(modal, {
-                disableScroll: true,
-                onClose: () => {
-                    document.removeEventListener(
-                        'keydown',
-                        this.navigateBetweenDetailedSubmissionsHandler,
-                    );
-                },
-                onShow: () => {
-                    document.addEventListener(
-                        'keydown',
-                        this.navigateBetweenDetailedSubmissionsHandler,
-                        true /* useCapture to run before the micromodal's keydown listener.*/,
-                    );
-                },
-            });
+            modal.show();
         }
     }
 
@@ -2159,7 +2152,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     closeActionsDropdown(event) {
         const path = event.composedPath();
-        const actionsContainers = this._a('.actions-container');
+        const actionsContainers = this.getSubmissionsPage()?.getActionsContainers() ?? [];
         const clickedInsideAnyActionsDropdown = Array.from(actionsContainers).some((dropdown) =>
             path.includes(dropdown),
         );
@@ -2183,45 +2176,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             ...this.visibleRowCount,
             [state]: this.submissionTables[state].tabulatorTable.getRows('visible').length,
         };
-    }
-
-    /**
-     * Keydown Event function if left or right pressed, then we can change the detailed submissions
-     *
-     * @param event
-     */
-    navigateBetweenDetailedSubmissions(event) {
-        const state = event
-            .composedPath()
-            .find((element) => element.classList.contains('micromodal-slide'))
-            .getAttribute('data-state');
-        if (!state) return;
-
-        // left
-        if (event.keyCode === 37) {
-            let backBtn = /** @type {HTMLButtonElement} */ (
-                this._(`#detailed-submission-modal-box-${state} .back-btn`)
-            );
-            if (backBtn && !backBtn.disabled) {
-                this.showEntryOfPos(state, this.currentDetailPosition - 1, 'previous');
-            }
-        }
-
-        //right
-        if (event.keyCode === 39) {
-            //and modal is open and left is not disabled
-            let nextBtn = /** @type {HTMLButtonElement} */ (
-                this._(`#detailed-submission-modal-box-${state} .next-btn`)
-            );
-            if (nextBtn && !nextBtn.disabled) {
-                this.showEntryOfPos(state, this.currentDetailPosition + 1, 'next');
-            }
-        }
-
-        // ESC
-        if (event.keyCode === 27) {
-            this.removeDetailsFromUrl();
-        }
     }
 
     /**
@@ -2452,112 +2406,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     width: 1px;
                 }
             }
-        `;
-    }
-
-    renderSubmissionDetailsModal(state) {
-        const i18n = this._i18n;
-
-        return html`
-            <div
-                class="modal micromodal-slide"
-                id="detailed-submission-modal-${state}"
-                data-state=${state}
-                aria-hidden="true">
-                <div class="modal-overlay" tabindex="-2">
-                    <div
-                        class="modal-container detailed-submission-modal-box"
-                        id="detailed-submission-modal-box-${state}"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="detailed-submission-modal-title">
-                        <header class="modal-header">
-                            <dbp-icon-button
-                                title="${i18n.t('manage-forms.modal-close')}"
-                                aria-label="${i18n.t('manage-forms.modal-close')}"
-                                class="modal-close"
-                                icon-name="close"
-                                @click="${() => {
-                                    this.closeDetailModal(state);
-                                }}"></dbp-icon-button>
-                            <h3
-                                id="detailed-submission-modal-title-${state}"
-                                class="detailed-submission-modal-title">
-                                ${i18n.t('manage-forms.detailed-submission-dialog-title')}
-                            </h3>
-                        </header>
-                        <main
-                            class="modal-content detailed-submission-modal-content"
-                            id="detailed-submission-modal-content-${state}">
-                            <div class="content-wrapper"></div>
-                        </main>
-                        <footer class="modal-footer">
-                            <div class="modal-footer-btn">
-                                <label
-                                    class="button-container ${classMap({
-                                        hidden: !this.hiddenColumns,
-                                    })}">
-                                    ${i18n.t('manage-forms.apply-col-settings')}
-                                    <input
-                                        type="checkbox"
-                                        id="apply-col-settings-${state}"
-                                        class="apply-col-settings"
-                                        name="apply-col-settings"
-                                        @click="${() => {
-                                            this.requestDetailedSubmission(
-                                                state,
-                                                this.currentRow,
-                                                this.currentRow.getData(),
-                                            );
-                                        }}"
-                                        checked />
-                                    <span class="checkmark"></span>
-                                </label>
-                                <div class="btn-row-left">
-                                    <dbp-button
-                                        class="back-btn"
-                                        no-spinner-on-click
-                                        title="${i18n.t('manage-forms.previous-entry-btn-title')}"
-                                        @click="${() => {
-                                            this.showEntryOfPos(
-                                                state,
-                                                this.currentDetailPosition - 1,
-                                                'previous',
-                                            );
-                                        }}"
-                                        ?disabled=${!this.isPrevEnabled}>
-                                        <dbp-icon name="chevron-left" aria-hidden="true"></dbp-icon>
-                                        ${i18n.t('manage-forms.previous-entry-btn-title')}
-                                    </dbp-button>
-                                    <div class="page-numbering">
-                                        ${i18n.t('manage-forms.detailed-submission-dialog-id', {
-                                            id: this.currentBeautyId,
-                                            nItems: this.totalNumberOfItems[state],
-                                        })}
-                                    </div>
-                                    <dbp-button
-                                        class="next-btn"
-                                        no-spinner-on-click
-                                        title="${i18n.t('manage-forms.next-entry-btn-title')}"
-                                        @click="${() => {
-                                            this.showEntryOfPos(
-                                                state,
-                                                this.currentDetailPosition + 1,
-                                                'next',
-                                            );
-                                        }}"
-                                        ?disabled=${!this.isNextEnabled}>
-                                        ${i18n.t('manage-forms.next-entry-btn-title')}
-                                        <dbp-icon
-                                            name="chevron-right"
-                                            aria-hidden="true"></dbp-icon>
-                                    </dbp-button>
-                                </div>
-                            </div>
-                        </footer>
-                    </div>
-                </div>
-            </div>
         `;
     }
 
@@ -3391,6 +3239,31 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
     }
 
+    handleBackToOverview() {
+        this.showSubmissionTables = false;
+        this.loadingSubmissionsTables = false;
+        this.clearAllFilters();
+        this.closeAllSearchWidgets();
+        this.loadingFormsTable = false;
+        this.showFormsTable = true;
+        this.activeFormId = null;
+        this.sendSetPropertyEvent('routing-url', '/', true);
+    }
+
+    handleSubmissionModalClose() {
+        this.removeDetailsFromUrl();
+    }
+
+    handleSubmissionModalPrevious(event) {
+        const {state} = event.detail;
+        this.showEntryOfPos(state, this.currentDetailPosition - 1, 'previous');
+    }
+
+    handleSubmissionModalNext(event) {
+        const {state} = event.detail;
+        this.showEntryOfPos(state, this.currentDetailPosition + 1, 'next');
+    }
+
     renderSearchWidget(state) {
         const i18n = this._i18n;
 
@@ -3550,6 +3423,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     render() {
         const i18n = this._i18n;
 
+        if (this.activeFormId) {
+            const activeForm = this.forms.get(this.activeFormId);
+            const allowedSubmissionStates = activeForm?.allowedSubmissionStates;
+            this.enabledStates = {
+                draft: isDraftStateEnabled(allowedSubmissionStates),
+                submitted: isSubmittedStateEnabled(allowedSubmissionStates),
+            };
+        }
+
         // console.log(`this.submissions`, this.submissions);
 
         return html`
@@ -3575,131 +3457,52 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <slot name="additional-information"></slot>
                 </div>
 
-                <div
-                    class="control forms-spinner ${classMap({
-                        hidden: !this.loadingFormsTable || this.showSubmissionTables,
-                    })}">
-                    <span class="loading">
-                        <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
-                    </span>
-                </div>
+                <dbp-formalize-manage-forms-overview-page
+                    lang="${this.lang}"
+                    id="overview-page"
+                    .loadingFormsTable=${this.loadingFormsTable}
+                    .showFormsTable=${this.showFormsTable}
+                    .showSubmissionTables=${this.showSubmissionTables}
+                    .optionsForms=${this.options_forms}></dbp-formalize-manage-forms-overview-page>
 
-                <div class="container forms-table ${classMap({hidden: !this.showFormsTable})}">
-                    <dbp-tabulator-table
+                <dbp-formalize-manage-form-submissions-page
+                    lang="${this.lang}"
+                    id="submissions-page"
+                    .showFormsTable=${this.showFormsTable}
+                    .showSubmissionTables=${this.showSubmissionTables}
+                    .loadingSubmissionTables=${this.loadingSubmissionTables}
+                    .activeFormName=${this.activeFormName}
+                    .createSubmissionUrl=${this.createSubmissionUrl}
+                    .enabledStates=${this.enabledStates}
+                    .noSubmissionAvailable=${this.noSubmissionAvailable}
+                    .searchWidgetIsOpen=${this.searchWidgetIsOpen}
+                    .optionsSubmissions=${this.options_submissions}
+                    .onBack=${() => this.handleBackToOverview()}
+                    .renderActionsWidget=${(state) => this.renderActionsWidget(state)}
+                    .renderSearchWidget=${(state) => this.renderSearchWidget(state)}
+                    .renderExportWidget=${(state) => this.renderExportWidget(state)}
+                    .renderStatusBar=${(state) => this.renderStatusBar(state)}
+                    .renderColumnSettingsModal=${(state) =>
+                        this.renderColumnSettingsModal(
+                            state,
+                        )}></dbp-formalize-manage-form-submissions-page>
+            </div>
+
+            ${Object.values(SUBMISSION_STATES).map(
+                (state) => html`
+                    <dbp-formalize-manage-submission-modal
                         lang="${this.lang}"
-                        class="tabulator-table"
-                        id="tabulator-table-forms"
-                        identifier="forms-table"
-                        pagination-enabled
-                        pagination-size="5"
-                        .options=${this.options_forms}></dbp-tabulator-table>
-                </div>
-
-                <div
-                    class="control submissions-spinner ${classMap({
-                        hidden: !this.loadingSubmissionTables || this.showFormsTable,
-                    })}">
-                    <span class="loading">
-                        <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
-                    </span>
-                </div>
-
-                <div
-                    class="table-wrapper submissions${classMap({
-                        hideWithoutDisplay: !this.showSubmissionTables,
-                    })}">
-                    <span class="back-navigation">
-                        <a
-                            @click="${() => {
-                                this.showSubmissionTables = false;
-                                this.loadingSubmissionsTables = false;
-                                this.clearAllFilters();
-                                this.closeAllSearchWidgets();
-                                this.loadingFormsTable = false;
-                                this.showFormsTable = true;
-                                this.activeFormId = null;
-                                this.sendSetPropertyEvent('routing-url', '/', true);
-                            }}"
-                            title="${i18n.t('manage-forms.back-text')}">
-                            <dbp-icon name="chevron-left"></dbp-icon>
-                            ${i18n.t('manage-forms.back-text')}
-                        </a>
-                    </span>
-                    <div class="table-header submissions">
-                        <h3>${this.activeFormName}</h3>
-                        ${this.createSubmissionUrl
-                            ? html`
-                                  <a
-                                      class="create-submission-button"
-                                      href="${this.createSubmissionUrl}"
-                                      target="_blank">
-                                      ${i18n.t('manage-forms.create-submission-button')}
-                                  </a>
-                              `
-                            : ''}
-                    </div>
-                </div>
-            </div>
-
-            <div
-                class="container submissions-table ${classMap({
-                    hidden: !this.showSubmissionTables,
-                })}">
-                ${Object.values(SUBMISSION_STATES).map((state) => {
-                    const submissionTableTitle = {
-                        draft: i18n.t('manage-forms.submission-table-draft-title'),
-                        submitted: i18n.t('manage-forms.submission-table-submitted-title'),
-                    };
-                    if (this.activeFormId) {
-                        const activeForm = this.forms.get(this.activeFormId);
-                        const allowedSubmissionStates = activeForm.allowedSubmissionStates;
-                        this.enabledStates = {
-                            draft: isDraftStateEnabled(allowedSubmissionStates),
-                            submitted: isSubmittedStateEnabled(allowedSubmissionStates),
-                        };
-                    }
-                    return html`
-                        <div
-                            class="${classMap({
-                                hidden: this.enabledStates[state] ? false : true,
-                            })}">
-                            <h3 class="table-title">${submissionTableTitle[state]}</h3>
-
-                            <div
-                                class="${classMap({
-                                    open: this.searchWidgetIsOpen[state],
-                                    'table-action-header': true,
-                                    [`table-action-header--${state}`]: true,
-                                })}">
-                                ${this.noSubmissionAvailable[state] === true
-                                    ? ''
-                                    : html`
-                                          ${this.renderActionsWidget(state)}
-                                          ${this.renderSearchWidget(state)}
-                                          ${this.renderExportWidget(state)}
-                                      `}
-                            </div>
-                            ${this.noSubmissionAvailable[state] === true
-                                ? ''
-                                : html`
-                                      ${this.renderStatusBar(state)}
-                                  `}
-
-                            <dbp-tabulator-table
-                                lang="${this.lang}"
-                                class="tabulator-table tabulator-table--${state}"
-                                id="tabulator-table-submissions-${state}"
-                                data-state="${state}"
-                                identifier="submissions-table-${state}"
-                                .options=${this.options_submissions[state]}
-                                pagination-size="5"
-                                sticky-header></dbp-tabulator-table>
-                        </div>
-                        ${this.renderColumnSettingsModal(state)}
-                        ${this.renderSubmissionDetailsModal(state)}
-                    `;
-                })}
-            </div>
+                        id="submission-modal-${state}"
+                        .state=${state}
+                        @detail-modal-close=${() => this.handleSubmissionModalClose()}
+                        @detail-modal-previous=${(event) =>
+                            this.handleSubmissionModalPrevious(event)}
+                        @detail-modal-next=${(event) =>
+                            this.handleSubmissionModalNext(
+                                event,
+                            )}></dbp-formalize-manage-submission-modal>
+                `,
+            )}
 
             <dbp-grant-permission-dialog
                 id="grant-permission-dialog"
