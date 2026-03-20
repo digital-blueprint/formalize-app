@@ -72,9 +72,7 @@ import {
 // Accept JSON arrays and comma-separated HTML attribute values.
 function parseFormListAttribute(value) {
     if (Array.isArray(value)) {
-        return value
-            .map((item) => `${item}`.trim())
-            .filter((item) => item !== '');
+        return value.map((item) => `${item}`.trim()).filter((item) => item !== '');
     }
 
     if (typeof value !== 'string') {
@@ -90,15 +88,16 @@ function parseFormListAttribute(value) {
     try {
         const parsedValue = JSON.parse(trimmedValue);
         if (Array.isArray(parsedValue)) {
-            return parsedValue
-                .map((item) => `${item}`.trim())
-                .filter((item) => item !== '');
+            return parsedValue.map((item) => `${item}`.trim()).filter((item) => item !== '');
         }
     } catch {
         // Fallback to comma-separated values for HTML attributes.
     }
 
-    return trimmedValue.split(',').map((item) => item.trim()).filter((item) => item !== '');
+    return trimmedValue
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item !== '');
 }
 
 /**
