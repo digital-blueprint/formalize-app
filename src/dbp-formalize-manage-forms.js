@@ -69,6 +69,38 @@ import {
     updateSubmissionTable,
 } from './manage-forms-table-config.js';
 
+// Accept JSON arrays and comma-separated HTML attribute values.
+function parseFormListAttribute(value) {
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => `${item}`.trim())
+            .filter((item) => item !== '');
+    }
+
+    if (typeof value !== 'string') {
+        return [];
+    }
+
+    const trimmedValue = value.trim();
+
+    if (trimmedValue === '') {
+        return [];
+    }
+
+    try {
+        const parsedValue = JSON.parse(trimmedValue);
+        if (Array.isArray(parsedValue)) {
+            return parsedValue
+                .map((item) => `${item}`.trim())
+                .filter((item) => item !== '');
+        }
+    } catch {
+        // Fallback to comma-separated values for HTML attributes.
+    }
+
+    return trimmedValue.split(',').map((item) => item.trim()).filter((item) => item !== '');
+}
+
 /**
  * @augments {DBPFormalizeLitElement}
  */
@@ -209,6 +241,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.useSubFoldersForExports = true;
         this.downloadFolderNamePattern = '';
+        this.allowListForms = [];
+        this.denyListForms = [];
         this.userNameCache = new Map();
         this.isRequestDetailedView = false;
         this.submissionIdToOpen = null;
@@ -287,6 +321,20 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
             showLoadingIndicator: {type: Boolean, attribute: false},
             attachmentsAreLoading: {type: Object, attribute: false},
+            allowListForms: {
+                type: Array,
+                attribute: 'allow-list-forms',
+                converter: {
+                    fromAttribute: parseFormListAttribute,
+                },
+            },
+            denyListForms: {
+                type: Array,
+                attribute: 'deny-list-forms',
+                converter: {
+                    fromAttribute: parseFormListAttribute,
+                },
+            },
         };
     }
 

@@ -125,14 +125,29 @@ export async function getListOfAllForms(host) {
                 return;
             }
 
+            const allowList = Array.isArray(host.allowListForms) ? host.allowListForms : [];
+            const denyList = Array.isArray(host.denyListForms) ? host.denyListForms : [];
+
+            let id = 0;
             for (let x = 0; x < data['hydra:member'].length; x++) {
                 const entry = data['hydra:member'][x];
-                const id = x + 1;
                 let localizedFormName = entry['localizedNames'].find((localizedName) => {
                     return localizedName.languageTag === host.lang;
                 });
                 const formName = localizedFormName ? localizedFormName.name : entry['name'];
                 const formId = entry['identifier'];
+
+                // Apply allow-list: if non-empty, only include forms whose id is in the list
+                if (allowList.length > 0 && !allowList.includes(formId)) {
+                    continue;
+                }
+
+                // Apply deny-list: skip forms whose id is in the list
+                if (denyList.length > 0 && denyList.includes(formId)) {
+                    continue;
+                }
+
+                id++;
                 const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
                 const tagPermissionsForSubmitters = entry['tagPermissionsForSubmitters'];
                 const allowedSubmissionStates = entry['allowedSubmissionStates'];
