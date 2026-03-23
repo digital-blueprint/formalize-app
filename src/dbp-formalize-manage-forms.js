@@ -253,6 +253,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
         };
         this._abortAttachmentLoading = false;
+        // Guard: prevents updated('submissions') from rebuilding tables while
+        // switchToSubmissionTable is in progress.
+        this._isSwitchingTable = false;
+        // Counter: incremented on each switchToSubmissionTable call so that a
+        // stale .then() callback from an earlier call is discarded.
+        this._switchGeneration = 0;
     }
 
     static get scopedElements() {
@@ -610,10 +616,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
 
-        if (changedProperties.has('submissions')) {
+        if (changedProperties.has('submissions') && !this._isSwitchingTable) {
             this.refreshTableReferences();
 
             for (const state in this.submissions) {
+                if (!this.submissionTables[state]) continue;
+
                 if (this.submissions[state]?.length === 0) {
                     this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: true};
                     disableCheckboxSelection(this, state);
@@ -658,7 +666,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {object} form - form object
      */
     switchToSubmissionTable(form) {
-        this.refreshTableReferences();
         this.activeFormName = form.formName;
         this.activeFormId = form.formId;
         this.showFormsTable = false;
@@ -667,60 +674,108 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Reset availableTags when switching forms
         this.availableTags = [];
 
-        getAllFormSubmissions(this, this.activeFormId).then(async () => {
-            const activeForm = this.forms.get(this.activeFormId);
-            const activeFormSlug = activeForm ? activeForm.formSlug : null;
-            this.createSubmissionUrl = activeFormSlug
-                ? getFormRenderUrl(activeFormSlug, this.lang)
-                : '';
+        // Prevent updated('submissions') from interfering while we load
+        this._isSwitchingTable = true;
 
-            // Fetch available tags for this form before building the table
-            // This ensures availableTags is populated when setDefaultSubmissionTableOrder runs
-            await apiGetTags(this, this.activeFormId);
+        // Reset submissions so stale data from a previous form is never shown.
+        // Done after setting the guard so updated('submissions') won't react.
+        this.submissions = {submitted: [], draft: []};
+        // Invalidate any previous in-flight switchToSubmissionTable call
+        const generation = ++this._switchGeneration;
 
-            // For tabulatorTable 'draft' and 'submitted'
-            for (const state of Object.keys(this.submissionTables)) {
-                if (this.submissionTables[state]) {
-                    if (this.submissions[state].length === 0) {
-                        // There is no submission data
-                        this.loadingSubmissionTables = false;
-                        this.showSubmissionTables = true; // show back button
-                        this.showFormsTable = false;
-                        disableCheckboxSelection(this, state);
-                        disablePagination(this, state);
+        getAllFormSubmissions(this, this.activeFormId)
+            .then(async () => {
+                // If a newer switchToSubmissionTable was called while we were
+                // waiting, discard this stale result.
+                if (generation !== this._switchGeneration) return;
 
-                        // Reset data
-                        this.options_submissions = {
-                            ...this.options_submissions,
-                            [state]: {...this.options_submissions[state], data: []},
-                        };
-                        this.submissionTables[state].buildTable();
-                    } else {
-                        enableCheckboxSelection(this, state);
-                        enablePagination(this, state);
+                // Ensure the child component has rendered so table refs exist
+                const submissionsPage = this.getSubmissionsPage();
+                if (submissionsPage) {
+                    await submissionsPage.updateComplete;
+                }
+                this.refreshTableReferences();
 
-                        this.loadingSubmissionTables = false;
-                        this.showSubmissionTables = true;
-                        this.showFormsTable = false;
+                const activeForm = this.forms.get(this.activeFormId);
+                const activeFormSlug = activeForm ? activeForm.formSlug : null;
+                this.createSubmissionUrl = activeFormSlug
+                    ? getFormRenderUrl(activeFormSlug, this.lang)
+                    : '';
 
-                        // Open submission details modal if /details/[uuid] is in the URL
-                        const routingData = this.getRoutingData();
-                        this.submissionIdToOpen =
-                            routingData.pathSegments[2] &&
-                            routingData.pathSegments[2].match(/[0-9a-f-]+/)
-                                ? routingData.pathSegments[2]
-                                : null;
-                        const isRequestDetailedView =
-                            routingData.pathSegments[1] === 'details' && this.submissionIdToOpen;
+                // Fetch available tags for this form before building the table
+                // This ensures availableTags is populated when setDefaultSubmissionTableOrder runs
+                await apiGetTags(this, this.activeFormId);
 
-                        this.submissionTables[state].buildTable();
+                // Check again after the await — a newer call may have started
+                if (generation !== this._switchGeneration) return;
 
-                        // Open modal from the `dbp-tabulator-table-built` event listener
-                        this.isRequestDetailedView = isRequestDetailedView;
+                // For tabulatorTable 'draft' and 'submitted'
+                for (const state of Object.keys(this.submissionTables)) {
+                    if (this.submissionTables[state]) {
+                        const tableComponent = this.submissionTables[state];
+
+                        // Destroy the old tabulator so stale data and event
+                        // listeners from a previous form don't bleed through.
+                        if (tableComponent.tabulatorTable) {
+                            tableComponent.tabulatorTable.destroy();
+                        }
+                        // Reset the wrapper component's build flags so that a
+                        // subsequent Lit property update doesn't skip buildTable().
+                        tableComponent.tableReady = false;
+                        tableComponent.tableBuilding = false;
+                        // Clear the component-level data so the old array doesn't
+                        // survive into the next buildTable() cycle.
+                        tableComponent.data = [];
+
+                        // Re-create options from scratch so we never inherit stale state
+                        setSubmissionFormOptions(this, state);
+
+                        if (this.submissions[state].length === 0) {
+                            // There is no submission data
+                            this.loadingSubmissionTables = false;
+                            this.showSubmissionTables = true; // show back button
+                            this.showFormsTable = false;
+                            disableCheckboxSelection(this, state);
+                            disablePagination(this, state);
+
+                            this.options_submissions[state].data = [];
+                        } else {
+                            enableCheckboxSelection(this, state);
+                            enablePagination(this, state);
+
+                            // Set the data on the freshly-created options object
+                            this.options_submissions[state].data = this.submissions[state];
+
+                            this.loadingSubmissionTables = false;
+                            this.showSubmissionTables = true;
+                            this.showFormsTable = false;
+
+                            // Open submission details modal if /details/[uuid] is in the URL
+                            const routingData = this.getRoutingData();
+                            this.submissionIdToOpen =
+                                routingData.pathSegments[2] &&
+                                routingData.pathSegments[2].match(/[0-9a-f-]+/)
+                                    ? routingData.pathSegments[2]
+                                    : null;
+                            const isRequestDetailedView =
+                                routingData.pathSegments[1] === 'details' &&
+                                this.submissionIdToOpen;
+
+                            // Open modal from the `dbp-tabulator-table-built` event listener
+                            this.isRequestDetailedView = isRequestDetailedView;
+                        }
                     }
                 }
-            }
-        });
+
+                // Reactively propagate the final options so the child component
+                // has the same reference the tabulator will use.
+                this.options_submissions = {...this.options_submissions};
+
+                this._isSwitchingTable = false;
+            })
+            .catch(() => {
+                this._isSwitchingTable = false;
+            });
     }
 
     // -----------------------------------------------------------------------

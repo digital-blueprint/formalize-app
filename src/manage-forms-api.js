@@ -211,7 +211,6 @@ export async function getAllFormSubmissions(host, formId) {
     let data;
     host.rawSubmissions = [];
     host.submittedFileDetails = {draft: new Map(), submitted: new Map()};
-    host.submissions = {submitted: [], draft: []};
 
     const options = {
         method: 'GET',
@@ -371,7 +370,7 @@ export async function getAllFormSubmissions(host, formId) {
             ? submissions_list.map(({attachments, ...rest}) => rest)
             : submissions_list;
 
-        host.submissions[state] = submissions_list;
+        host.submissions = {...host.submissions, [state]: submissions_list};
 
         host.options_submissions[state].autoColumnsDefinitions = (definitions) => {
             definitions.forEach((columnDefinition) => {
