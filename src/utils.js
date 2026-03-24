@@ -10,11 +10,11 @@ export const getFormRenderUrl = (formUrlSlug, lang) => {
     return `${origin}${basePath}${lang}/render-form/${formUrlSlug}`;
 };
 
-export const getFormShowSubmissionsUrl = (formId, lang) => {
+export const getFormManageFormsUrl = (formId, lang) => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
     const basePath = currentUrl.pathname.replace(/^(.*\/)[de][en]\/.*$/, '$1');
-    return `${origin}${basePath}${lang}/show-submissions/${formId}`;
+    return `${origin}${basePath}${lang}/manage-forms/${formId}`;
 };
 
 // Submission states
@@ -157,5 +157,52 @@ export function handleDeletionCancel(host) {
     if (host._deletionConfirmationResolve) {
         host._deletionConfirmationResolve(false);
         host._deletionConfirmationResolve = null;
+    }
+}
+
+/**
+ * Append 'details/submissionId' to the URL
+ * (called when opening the submission detail modal)
+ * @param {string} submissionId
+ * @param {string} routingName - the routing name from metadata (e.g. 'manage-forms')
+ */
+export function addDetailsToUrl(submissionId, routingName) {
+    const currentUrl = new URL(window.location.href);
+    const pathSegments = currentUrl.pathname.split('/');
+    const baseIndex = pathSegments.indexOf(routingName);
+    if (baseIndex > -1) {
+        pathSegments.splice(0, baseIndex + 1);
+
+        // Check if we already have details in the URL (while paginating)
+        if (
+            pathSegments[0].match(/[0-9a-f-]+/) &&
+            pathSegments[1] === 'details' &&
+            pathSegments[2].match(/[0-9a-f-]+/)
+        ) {
+            currentUrl.pathname = currentUrl.pathname.replace(
+                /\/details\/.*$/,
+                `/details/${submissionId}`,
+            );
+        } else {
+            currentUrl.pathname += `/details/${submissionId}`;
+        }
+
+        const submissionDetailsUrl = new URL(currentUrl.toString());
+        window.history.pushState({}, '', submissionDetailsUrl.toString());
+    }
+}
+
+/**
+ * Remove 'details/submissionId' from the URL
+ * (called when closing the modal or pressing ESC)
+ */
+export function removeDetailsFromUrl() {
+    const currentUrl = new URL(window.location.href);
+    const pathSegments = currentUrl.pathname.split('/');
+    const detailsIndex = pathSegments.indexOf('details');
+    if (detailsIndex > -1) {
+        pathSegments.splice(detailsIndex, 2);
+        currentUrl.pathname = pathSegments.join('/');
+        window.history.pushState({}, '', currentUrl.toString());
     }
 }

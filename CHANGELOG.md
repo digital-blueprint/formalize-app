@@ -2,14 +2,15 @@
 
 ## Unreleased
 
+- CourseSelect: only offer courses from the previous, current, and next semester
 - Format base course teaching term as returned by the Public REST API to match the legacy API format (e.g. "Winter Term 2023/24")
 - Update toolkit and adapt to the new version of PersonSelect
-
 - Extracted common form functionality from `ethicsCommissionForm` to `BaseFormElement`
 - Standardized form UI: buttons, tags, submission info, and validation indicators across all forms
 - Unified permission-based button state management
 - Centralized conditional field handling and tag management
 - Translation keys: Moved common UI to `base-object.*` namespace
+- Manage Forms activity: added `allow-list-forms` and `deny-list-forms` attributes to filter visible forms; attributes accept comma-separated values in HTML and are parsed to arrays internally
 
 ## v1.3.0
 

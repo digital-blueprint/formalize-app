@@ -51,8 +51,8 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         if (courseDataObject != null) {
             // We get the course type and term from the original data object
             // because we will not get the localData with the API request
-            let courseType = courseDataObject['localData']['type'];
-            let courseTerm = courseDataObject['localData']['teachingTerm'];
+            let courseType = courseDataObject['localData']['typeKey'];
+            let courseTerm = courseDataObject['localData']['semesterKey'];
 
             // If the language wasn't German, try to fetch German data
             if (this.lang !== 'de') {

@@ -1,13 +1,14 @@
 import {assert} from 'chai';
 
-import '../src/dbp-formalize-show-submissions';
+import '../src/dbp-formalize-manage-forms';
 import '../src/dbp-formalize.js';
 
-suite('dbp-formalize-show-submissions basics', () => {
+suite('dbp-formalize-manage-forms basics', () => {
     let node;
 
     suiteSetup(async () => {
-        node = document.createElement('dbp-formalize-show-submissions');
+        node = document.createElement('dbp-formalize-manage-forms');
+        node.auth = {token: ''};
         document.body.appendChild(node);
         await node.updateComplete;
     });

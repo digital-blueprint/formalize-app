@@ -78,10 +78,8 @@ export class ColumnSettingsButton extends ScopedElementsMixin(DBPLitElement) {
                 no-spinner-on-click
                 type="is-secondary"
                 icon-name="cog"
-                title="${i18n.t('show-submissions.filter-options-button-text')}"
-                aria-label="${i18n.t(
-                    'show-submissions.filter-options-button-text',
-                )}"></dbp-icon-button>
+                title="${i18n.t('manage-forms.filter-options-button-text')}"
+                aria-label="${i18n.t('manage-forms.filter-options-button-text')}"></dbp-icon-button>
         `;
     }
 }

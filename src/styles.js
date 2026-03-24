@@ -250,7 +250,7 @@ export function getTagsCSS() {
     `;
 }
 
-export function getShowSubmissionCSS() {
+export function getManageFormsCSS() {
     // language=css
     return css`
         .table-wrapper.submissions {

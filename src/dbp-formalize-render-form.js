@@ -8,7 +8,7 @@ import {
     SUBMISSION_STATES_BINARY,
     pascalToKebab,
     getFormRenderUrl,
-    getFormShowSubmissionsUrl,
+    getFormManageFormsUrl,
 } from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
@@ -105,9 +105,30 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.formUrlSlug = formUrlSlug;
             console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
 
+            // Notify the app-shell whether a form slug is present in the URL
+            this._dispatchActivityEnabled(formUrlSlug !== '');
+
             // We need to check permissions, because the user has navigated to a different form
             this.handlePermissionsForCurrentForm();
         }
+    }
+
+    /**
+     * Dispatches an event to the app-shell to toggle menu item disabled state.
+     *
+     * @param {boolean} enabled - true if a form slug is in the URL
+     */
+    _dispatchActivityEnabled(enabled) {
+        this.dispatchEvent(
+            new CustomEvent('dbp-app-shell-activity-enabled', {
+                detail: {
+                    name: 'render-form',
+                    enabled,
+                },
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     async handlePermissionsForCurrentForm() {
@@ -471,14 +492,14 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.usersSubmittedSubmissionCount >= maxNumberOfSubmissionsPerUser) {
             // User can't submit the form again
             // A message is shown that the user already submitted the form
-            // and show a link to the submissions in the show-submissions page
+            // and show a link to the submissions in the manage-forms page
             return html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
                         n: this.usersSubmittedSubmissionCount,
                     })}
                     <a
-                        href="${getFormShowSubmissionsUrl(
+                        href="${getFormManageFormsUrl(
                             this.formIdentifiers[this.formUrlSlug],
                             this.lang,
                         )}">
@@ -491,12 +512,12 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let formAlreadySubmittedWarning = html``;
         if (this.usersSubmittedSubmissionCount > 0) {
             // An empty form is shown with the message that the user already submitted the form
-            // and show a link to the submissions in the show-submissions page
+            // and show a link to the submissions in the manage-forms page
             formAlreadySubmittedWarning = html`
                 <div class="notification is-warning">
                     ${this._i18n.t('render-form.form-already-submitted-warning')}
                     <a
-                        href="${getFormShowSubmissionsUrl(
+                        href="${getFormManageFormsUrl(
                             this.formIdentifiers[this.formUrlSlug],
                             this.lang,
                         )}">

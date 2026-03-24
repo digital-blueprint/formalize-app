@@ -221,8 +221,40 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
             // We want to remove all "." from the search term, because the course code doesn't contain them,
             // but CAMPUSonline has them included in their web applications
             search: params.term.replaceAll('.', '').trim(),
-            includeLocal: 'teachingTerm,type,lecturers',
+            filter: {
+                'localData.semesterKey': {
+                    operator: 'IN',
+                    value: CourseSelect.getSemesterKeys(),
+                },
+            },
+            includeLocal: 'semesterKey,typeKey,lecturers',
         };
+    }
+
+    /**
+     * Gets an array containing the last, current, and next semester's key
+     * in JSON string format (with double quotes).
+     *
+     * @returns {string[]}
+     */
+    static getSemesterKeys() {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1; // Months are 0-indexed
+        const currentYear = now.getFullYear();
+
+        if (currentMonth >= 10 || currentMonth <= 2) {
+            // in winter
+            const winterStartYear =
+                currentMonth >= 10 && currentMonth <= 12 ? currentYear : currentYear - 1;
+            const summerYear = winterStartYear + 1;
+
+            return [`"${winterStartYear}S"`, `"${winterStartYear}W"`, `"${summerYear}S"`];
+        } else {
+            // in summer
+            const yearBefore = currentYear - 1;
+
+            return [`"${yearBefore}W"`, `"${currentYear}S"`, `"${currentYear}W"`];
+        }
     }
 
     /**
@@ -236,11 +268,11 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
     formatCourse(select, course) {
         let courseCode = course['code'];
         let courseName = course['name'];
-        let courseType = course['localData']['type'];
-        let courseTerm = course['localData']['teachingTerm'];
+        let courseType = course['localData']['typeKey'];
+        let courseTerm = course['localData']['semesterKey'];
 
         // the CO Public REST API returns teaching terms like "2025W" or "2026S"
-        const courseTermParts = this.parseTeachingTerm(courseTerm);
+        const courseTermParts = this.parseSemesterKey(courseTerm);
         if (courseTermParts) {
             courseTerm =
                 courseTermParts.term === 'W'
@@ -256,9 +288,9 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
         return `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
     }
 
-    parseTeachingTerm(teachingTerm) {
-        if (typeof teachingTerm !== 'string') return null;
-        const m = teachingTerm.match(/^(\d{4})([WS])$/i);
+    parseSemesterKey(semesterKey) {
+        if (typeof semesterKey !== 'string') return null;
+        const m = semesterKey.match(/^(\d{4})([WS])$/i);
         if (!m) return null;
         return {year: Number(m[1]), term: m[2].toUpperCase()};
     }
