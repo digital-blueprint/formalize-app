@@ -68,12 +68,12 @@
         "forms": {
             "accessible-courses-form": {
                 "adaptations": "Notwendige Anpassungen",
-                "adaptations-placeholder": "Welche der im Erstgespräch vereinbarten und fachärztlich als notwendig erachteten Adaptierungen möchten Sie für diese Lehrveranstaltung beantragen?",
-                "comment": "Kommentar (Auszufüllen vom Universitätspersonal)",
-                "comment-placeholder": "BITTE FREILASSEN. Nur vom Universitätspersonal auszufüllen",
+                "comment": "Kommentar",
+                "comment-placeholder": "Nur vom Universitätspersonal auszufüllen!",
                 "course-data": "Lehrveranstaltungsdaten",
                 "course-information": "Bitte beachten Sie, dass die Anmeldung mindestens 14 Tage im Voraus erfolgen muss.",
                 "course-name": "Lehrveranstaltung",
+                "description": "Welche der im Erstgespräch vereinbarten und fachärztlich als notwendig erachteten Adaptierungen möchten Sie für diese Lehrveranstaltung beantragen?",
                 "email": "E-Mail-Adresse",
                 "family-name": "Nachname",
                 "given-name": "Vorname",

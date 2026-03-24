@@ -68,12 +68,12 @@
         "forms": {
             "accessible-courses-form": {
                 "adaptations": "Needed adaptations",
-                "adaptations-placeholder": "Which of the adjustments agreed upon during the initial consultation and deemed necessary by a medical specialist would you like to request for this course?",
-                "comment": "Comment (to be filled out by the university staff)",
-                "comment-placeholder": "PLEASE LEAVE EMPTY. To be filled out by university staff only.",
+                "comment": "Comment",
+                "comment-placeholder": "To be filled out by university staff only!",
                 "course-data": "Course details",
                 "course-information": "Please note that registration must be submitted at least 14 days in advance.",
                 "course-name": "Course",
+                "description": "Which of the adjustments agreed upon during the initial consultation and deemed necessary by a medical specialist would you like to request for this course?",
                 "email": "E-mail address",
                 "family-name": "Last name",
                 "given-name": "First name",

@@ -225,6 +225,15 @@ class FormalizeFormElement extends BaseFormElement {
                 .title {
                     margin-top: 0;
                 }
+
+                .field-note {
+                    margin-top: 0;
+                    font-style: italic;
+                }
+
+                fieldset {
+                    margin-bottom: 20px;
+                }
             `,
         ];
     }
@@ -270,10 +279,11 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="adaptations"
+                        description=${i18n.t(
+                            'render-form.forms.accessible-courses-form.description',
+                        )}
+                        aria-describedby="adapt-descr"
                         label=${i18n.t('render-form.forms.accessible-courses-form.adaptations')}
-                        placeholder="${i18n.t(
-                            'render-form.forms.accessible-courses-form.adaptations-placeholder',
-                        )}"
                         .value=${data.adaptations || ''}
                         required
                         rows="5"></dbp-form-string-element>
@@ -319,10 +329,10 @@ class FormalizeFormElement extends BaseFormElement {
                         name="comment"
                         label=${i18n.t('render-form.forms.accessible-courses-form.comment')}
                         .value=${data.comment || ''}
-                        rows="5"
-                        placeholder="${i18n.t(
+                        description=${i18n.t(
                             'render-form.forms.accessible-courses-form.comment-placeholder',
-                        )}"></dbp-form-string-element>
+                        )}
+                        rows="5"></dbp-form-string-element>
                 </fieldset>
 
                 ${this.getButtonRowHtml()}
