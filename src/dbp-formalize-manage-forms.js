@@ -1349,7 +1349,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         //         selectedCount > 0 && selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.ADD_TAGS),
         // };
         // Disable batch tagging for now until we implement tag-based permissions
-        this.isBatchTaggingEnabled = false;
+        this.isBatchTaggingEnabled[state] = false;
 
         this.isEditSubmissionPermissionEnabled = {
             ...this.isEditSubmissionPermissionEnabled,
