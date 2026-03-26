@@ -1631,6 +1631,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <dbp-form-date-element
                     subscribe="lang"
                     name="reportingDeadline"
+                    required
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-reporting-deadline-label',
                     )}"
