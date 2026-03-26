@@ -69,8 +69,9 @@ import {
     updateSubmissionTable,
 } from './manage-forms-table-config.js';
 
-// Accept JSON arrays and comma-separated HTML attribute values.
+// Accept JSON arrays and comma-separated HTML attribute values for frontendKey lists.
 function parseFormListAttribute(value) {
+    console.log('parseFormListAttribute input:', value);
     if (Array.isArray(value)) {
         return value.map((item) => `${item}`.trim()).filter((item) => item !== '');
     }
@@ -240,8 +241,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.useSubFoldersForExports = true;
         this.downloadFolderNamePattern = '';
-        this.allowListForms = [];
-        this.denyListForms = [];
+        this.allowListFrontendKeys = [];
+        this.denyListFrontendKeys = [];
         this.userNameCache = new Map();
         this.isRequestDetailedView = false;
         this.submissionIdToOpen = null;
@@ -326,16 +327,18 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
             showLoadingIndicator: {type: Boolean, attribute: false},
             attachmentsAreLoading: {type: Object, attribute: false},
-            allowListForms: {
+            // List of frontendKey values to include; forms without a matching frontendKey are hidden.
+            allowListFrontendKeys: {
                 type: Array,
-                attribute: 'allow-list-forms',
+                attribute: 'allow-list-frontend-keys',
                 converter: {
                     fromAttribute: parseFormListAttribute,
                 },
             },
-            denyListForms: {
+            // List of frontendKey values to exclude; forms with a matching frontendKey are hidden.
+            denyListFrontendKeys: {
                 type: Array,
-                attribute: 'deny-list-forms',
+                attribute: 'deny-list-frontend-keys',
                 converter: {
                     fromAttribute: parseFormListAttribute,
                 },
@@ -655,6 +658,22 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     : '';
                 // To re-create get-submission-links with the new language
                 this.switchToSubmissionTable(activeForm);
+            }
+        }
+
+        if (
+            changedProperties.has('allowListFrontendKeys') ||
+            changedProperties.has('denyListFrontendKeys')
+        ) {
+            console.log(
+                'updated: allowListFrontendKeys/denyListFrontendKeys changed',
+                this.allowListFrontendKeys,
+                this.denyListFrontendKeys,
+                'isLoggedIn:',
+                this.isLoggedIn(),
+            );
+            if (this.isLoggedIn()) {
+                await getListOfAllForms(this);
             }
         }
 

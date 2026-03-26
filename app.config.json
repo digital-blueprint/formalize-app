@@ -8,6 +8,7 @@
         "matomoUrl": "",
         "matomoSiteId": 0,
         "universityShortName": "Local",
-        "universityFullName": "Local Environment"
+        "universityFullName": "Local Environment",
+        "denyListFrontendKeys": ["job-offer"]
     }
 }

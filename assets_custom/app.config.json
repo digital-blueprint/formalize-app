@@ -8,7 +8,8 @@
         "matomoUrl": "",
         "matomoSiteId": "-1",
         "universityShortName": "Test",
-        "universityFullName": "Test Environment"
+        "universityFullName": "Test Environment",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "local": {
         "basePath": "/dist/",
@@ -21,7 +22,8 @@
         "universityShortName": "dbp",
         "universityFullName": "Digital Blueprint",
         "nextcloudBaseURL": "http://localhost:8081",
-        "nextcloudName": "cloud"
+        "nextcloudName": "cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "localCustom": {
         "basePath": "/dist/",
@@ -34,7 +36,8 @@
         "universityShortName": "TU Graz",
         "universityFullName": "Technische Universität Graz",
         "nextcloudBaseURL": "http://localhost:8081",
-        "nextcloudName": "cloud"
+        "nextcloudName": "cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "development": {
         "basePath": "/apps/formalize/",
@@ -47,7 +50,8 @@
         "universityShortName": "dbp",
         "universityFullName": "Digital Blueprint",
         "nextcloudBaseURL": "https://cloud-dev.tugraz.at",
-        "nextcloudName": "cloud"
+        "nextcloudName": "cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "developmentCustom": {
         "basePath": "/tugapps/formalize/",
@@ -60,7 +64,8 @@
         "universityShortName": "TU Graz",
         "universityFullName": "Technische Universität Graz",
         "nextcloudBaseURL": "https://cloud-dev.tugraz.at",
-        "nextcloudName": "cloud"
+        "nextcloudName": "cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "demo": {
         "basePath": "/apps/formalize/",
@@ -71,7 +76,8 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "dbp",
-        "universityFullName": "Digital Blueprint"
+        "universityFullName": "Digital Blueprint",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "demoCustom": {
         "basePath": "/tugapps/formalize/",
@@ -84,7 +90,8 @@
         "universityShortName": "TU Graz",
         "universityFullName": "Technische Universität Graz",
         "nextcloudBaseURL": "https://cloud-demo.tugraz.at",
-        "nextcloudName": "dbp cloud"
+        "nextcloudName": "dbp cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "staging": {
         "basePath": "/",
@@ -97,7 +104,8 @@
         "universityShortName": "TU Graz",
         "universityFullName": "Technische Universität Graz",
         "nextcloudBaseURL": "https://cloud.tugraz.at",
-        "nextcloudName": "TU Graz cloud"
+        "nextcloudName": "TU Graz cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "production": {
         "basePath": "/",
@@ -110,7 +118,8 @@
         "universityShortName": "TU Graz",
         "universityFullName": "Technische Universität Graz",
         "nextcloudBaseURL": "https://cloud.tugraz.at",
-        "nextcloudName": "TU Graz cloud"
+        "nextcloudName": "TU Graz cloud",
+        "denyListFrontendKeys": ["job-offer"]
     },
     "bs": {
         "basePath": "/dist/",
@@ -121,6 +130,7 @@
         "matomoUrl": "https://analytics.tugraz.at/",
         "matomoSiteId": "131",
         "universityShortName": "bs",
-        "universityFullName": "BS Environment"
+        "universityFullName": "BS Environment",
+        "denyListFrontendKeys": ["job-offer"]
     }
 }

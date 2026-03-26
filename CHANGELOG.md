@@ -10,7 +10,7 @@
 - Unified permission-based button state management
 - Centralized conditional field handling and tag management
 - Translation keys: Moved common UI to `base-object.*` namespace
-- Manage Forms activity: added `allow-list-forms` and `deny-list-forms` attributes to filter visible forms; attributes accept comma-separated values in HTML and are parsed to arrays internally
+- Manage Forms activity: added `allow-list-frontend-keys` and `deny-list-frontend-keys` attributes to filter visible forms by `frontendKey`; a single key can match multiple forms, so a group of related forms can be shown or hidden at once; attributes accept comma-separated values in HTML and are parsed to arrays internally
 
 ## v1.3.0
 

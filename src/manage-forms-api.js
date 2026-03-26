@@ -95,6 +95,10 @@ export async function loadModules(host) {
 /**
  * Fetch the list of all forms and populate `host.allForms`.
  *
+ * Forms are filtered by `host.allowListFrontendKeys` and `host.denyListFrontendKeys`,
+ * which contain `frontendKey` values. A single frontendKey may match multiple
+ * forms, so one entry in the list can show a whole group of forms.
+ *
  * @param {object} host - The ManageForms element.
  * @returns {Promise<void>}
  */
@@ -125,8 +129,12 @@ export async function getListOfAllForms(host) {
                 return;
             }
 
-            const allowList = Array.isArray(host.allowListForms) ? host.allowListForms : [];
-            const denyList = Array.isArray(host.denyListForms) ? host.denyListForms : [];
+            const allowList = Array.isArray(host.allowListFrontendKeys)
+                ? host.allowListFrontendKeys
+                : [];
+            const denyList = Array.isArray(host.denyListFrontendKeys)
+                ? host.denyListFrontendKeys
+                : [];
 
             let id = 0;
             for (let x = 0; x < data['hydra:member'].length; x++) {
@@ -136,14 +144,18 @@ export async function getListOfAllForms(host) {
                 });
                 const formName = localizedFormName ? localizedFormName.name : entry['name'];
                 const formId = entry['identifier'];
+                const frontendKey = entry['frontendKey'] ?? null;
 
-                // Apply allow-list: if non-empty, only include forms whose id is in the list
-                if (allowList.length > 0 && !allowList.includes(formId)) {
+                // Apply allow-list: if non-empty, only include forms whose frontendKey is in the list
+                if (
+                    allowList.length > 0 &&
+                    (frontendKey === null || !allowList.includes(frontendKey))
+                ) {
                     continue;
                 }
 
-                // Apply deny-list: skip forms whose id is in the list
-                if (denyList.length > 0 && denyList.includes(formId)) {
+                // Apply deny-list: skip forms whose frontendKey is in the list
+                if (denyList.length > 0 && frontendKey !== null && denyList.includes(frontendKey)) {
                     continue;
                 }
 

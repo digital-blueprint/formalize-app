@@ -18,10 +18,10 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `lang="de"`
 - `entry-point-url` (optional, default is the TU Graz entry point url): entry point url to access the api
     - example `entry-point-url="https://api-dev.tugraz.at"`
-- `allow-list-forms` (optional): comma-separated list of form identifiers that should be shown; if set, only listed forms are displayed
-    - example `allow-list-forms="form-a, form-b"`
-- `deny-list-forms` (optional): comma-separated list of form identifiers that should be hidden
-    - example `deny-list-forms="form-x, form-y"`
+- `allow-list-frontend-keys` (optional): comma-separated list of `frontendKey` values; if set, only forms whose `frontendKey` matches one of the listed values are displayed; one key can match multiple forms (a group)
+    - example `allow-list-frontend-keys="job-offer, ethics-proposal"`
+- `deny-list-frontend-keys` (optional): comma-separated list of `frontendKey` values; forms whose `frontendKey` matches one of the listed values are hidden; one key can hide a whole group of forms
+    - example `deny-list-frontend-keys="job-offer"`
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider

@@ -195,6 +195,7 @@ export default (async () => {
                         nextcloudBaseURL: config.nextcloudBaseURL,
                         nextcloudFileURL: config.nextcloudFileURL,
                         nextcloudName: config.nextcloudName,
+                        denyListFrontendKeys: config.denyListFrontendKeys || [],
                     },
                 }),
             whitelabel &&
@@ -225,6 +226,7 @@ export default (async () => {
                         nextcloudBaseURL: config.nextcloudBaseURL,
                         nextcloudFileURL: config.nextcloudFileURL,
                         nextcloudName: config.nextcloudName,
+                        denyListFrontendKeys: config.denyListFrontendKeys || [],
                     },
                 }),
             checkLicenses &&
