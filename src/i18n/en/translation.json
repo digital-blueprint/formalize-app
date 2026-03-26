@@ -1,4 +1,21 @@
 {
+    "create-form": {
+        "cancel": "Cancel",
+        "create": "Create",
+        "dialog-title": "Create new form",
+        "error-create-failed": "Failed to create form. Response status: {{status}}",
+        "field-description": "Description",
+        "field-description-placeholder": "Describe the purpose of this form...",
+        "field-form-type": "Form type",
+        "field-form-type-placeholder": "-- Please select --",
+        "field-name": "Form name",
+        "field-name-de": "Form name (German)",
+        "field-name-en": "Form name (English)",
+        "section-additional": "Additional Details",
+        "section-general": "General Information",
+        "section-localized-names": "Localized Names",
+        "success-created": "Form created successfully"
+    },
     "error-login-link": "Log in",
     "error-login-message": "Please log in to use this functionality.",
     "errors": {
@@ -45,6 +62,7 @@
         "batch-tagging-message_other": "Select tag(s) that you want to set for the selected {{count}} submissions",
         "batch-tagging-title": "Batch tagging",
         "close-search-filters": "Close filters",
+        "create-form-button": "Create new form",
         "create-submission-button": "Create submission",
         "default-export-select": "Export",
         "delete": "Delete",

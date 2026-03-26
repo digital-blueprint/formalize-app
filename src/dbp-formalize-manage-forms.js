@@ -39,6 +39,7 @@ import {ManageFormSubmissionsPage} from './manage-form-submissions-page.js';
 import {ManageSubmissionModal} from './manage-submission-modal.js';
 import {BatchTaggingModal} from './batch-tagging-modal.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
+import {CreateFormDialog} from './create-form-dialog.js';
 
 // Extracted modules
 import {
@@ -282,6 +283,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-formalize-manage-submission-modal': ManageSubmissionModal,
             'dbp-formalize-batch-tagging-modal': BatchTaggingModal,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
+            'dbp-formalize-create-form-dialog': CreateFormDialog,
         };
     }
 
@@ -1471,6 +1473,61 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         successFailureNotification(this, responseStatus);
     }
 
+    /**
+     * Returns the list of form modules that implement createForm().
+     * Each entry has { formId, formSlug, moduleInstance }.
+     * @returns {Array<object>}
+     */
+    getCreatableModules() {
+        const modules = [];
+        for (const entry of this.forms.values()) {
+            if (entry.moduleInstance && typeof entry.moduleInstance.createForm === 'function') {
+                modules.push({
+                    formId: entry.formId,
+                    formSlug: entry.formSlug,
+                    moduleInstance: entry.moduleInstance,
+                });
+            }
+        }
+        return modules;
+    }
+
+    /**
+     * Opens the create form dialog.
+     */
+    handleOpenCreateFormDialog() {
+        const dialog = this._('#create-form-dialog');
+        if (dialog) {
+            dialog.creatableModules = this.getCreatableModules();
+            dialog.open();
+        }
+    }
+
+    /**
+     * Handles the create form submission from the dialog.
+     * Calls the selected module's createForm() and refreshes the forms list on success.
+     * @param {CustomEvent} event
+     */
+    async handleCreateFormSubmit(event) {
+        const {moduleInstance, ...formData} = event.detail;
+        const dialog = this._('#create-form-dialog');
+
+        const result = await moduleInstance.createForm(this, formData);
+
+        if (dialog) {
+            dialog.submitComplete();
+        }
+
+        if (result) {
+            // Close the dialog on success
+            if (dialog) {
+                dialog.close();
+            }
+            // Reload the forms list to include the newly created form
+            await getListOfAllForms(this);
+        }
+    }
+
     handleEditSubmissions(event, state) {
         const data = this.submissionTables[state].tabulatorTable.getSelectedData();
         const submissionId = data[0].submissionId;
@@ -1779,8 +1836,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .showFormsTable=${this.showFormsTable}
                     .showSubmissionTables=${this.showSubmissionTables}
                     .optionsForms=${this.options_forms}
-                    .noFormsAvailable=${this
-                        .noFormsAvailable}></dbp-formalize-manage-forms-overview-page>
+                    .noFormsAvailable=${this.noFormsAvailable}
+                    @create-form-request=${() =>
+                        this.handleOpenCreateFormDialog()}></dbp-formalize-manage-forms-overview-page>
 
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"
@@ -1868,6 +1926,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 subscribe="lang"
                 @batch-tagging-confirm=${(event) =>
                     this.handleBatchTaggingConfirm(event)}></dbp-formalize-batch-tagging-modal>
+
+            <dbp-formalize-create-form-dialog
+                id="create-form-dialog"
+                lang="${this.lang}"
+                @dbp-create-form-submit=${(event) =>
+                    this.handleCreateFormSubmit(event)}></dbp-formalize-create-form-dialog>
 
             ${this.showLoadingIndicator
                 ? html`

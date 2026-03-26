@@ -78,6 +78,7 @@ export async function loadModules(host) {
                     formName: null,
                     formId: object.getFormIdentifier(),
                     formSlug: object.getUrlSlug(),
+                    moduleInstance: object,
                 });
             }
         }
@@ -722,6 +723,69 @@ export async function apiGetTags(host, identifier) {
 // ---------------------------------------------------------------------------
 // Helpers (re-exported for use by other modules)
 // ---------------------------------------------------------------------------
+
+/**
+ * Create a new form via POST /formalize/forms.
+ *
+ * @param {object} host - The ManageForms element (needs host.auth, host.entryPointUrl, host._i18n).
+ * @param {object} formData - The form payload.
+ * @param {string} formData.name - Default name of the form.
+ * @param {Array<{languageTag: string, name: string}>} formData.localizedNames - Localized names.
+ * @param {string} formData.frontendKey - Frontend key for filtering (e.g. 'job-offer').
+ * @param {object} [formData.additionalData] - Any extra fields to include in the request body.
+ * @returns {Promise<object|null>} The created form object from the API, or null on failure.
+ */
+export async function apiCreateForm(host, formData) {
+    const i18n = host._i18n;
+
+    const body = {
+        name: formData.name,
+        localizedNames: formData.localizedNames,
+        frontendKey: formData.frontendKey,
+        ...(formData.additionalData || {}),
+    };
+
+    try {
+        const response = await fetch(host.entryPointUrl + '/formalize/forms', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/ld+json',
+                Authorization: 'Bearer ' + host.auth.token,
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Failed to create form:', response.status, errorData);
+            sendNotification({
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('create-form.error-create-failed', {status: response.status}),
+                type: 'danger',
+                timeout: 0,
+            });
+            return null;
+        }
+
+        const createdForm = await response.json();
+        sendNotification({
+            summary: i18n.t('success.success-title'),
+            body: i18n.t('create-form.success-created'),
+            type: 'success',
+            timeout: 5,
+        });
+        return createdForm;
+    } catch (error) {
+        console.error('Error creating form:', error);
+        sendNotification({
+            summary: i18n.t('errors.error-title'),
+            body: error.message,
+            type: 'danger',
+            timeout: 0,
+        });
+        return null;
+    }
+}
 
 /**
  * Convert date string to a Unix timestamp (seconds).
