@@ -16,6 +16,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.showFormsTable = false;
         this.showSubmissionTables = false;
         this.optionsForms = {};
+        this.noFormsAvailable = false;
     }
 
     static get scopedElements() {
@@ -33,6 +34,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             showFormsTable: {type: Boolean, attribute: false},
             showSubmissionTables: {type: Boolean, attribute: false},
             optionsForms: {type: Object, attribute: false},
+            noFormsAvailable: {type: Boolean, attribute: false},
         };
     }
 
@@ -76,6 +78,13 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     pagination-enabled
                     pagination-size="5"
                     .options=${this.optionsForms}></dbp-tabulator-table>
+                ${this.noFormsAvailable
+                    ? html`
+                          <p class="no-forms-message">
+                              ${i18n.t('manage-forms.no-forms-available')}
+                          </p>
+                      `
+                    : ''}
             </div>
         `;
     }

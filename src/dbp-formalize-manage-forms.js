@@ -243,6 +243,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.downloadFolderNamePattern = '';
         this.allowListFrontendKeys = [];
         this.denyListFrontendKeys = [];
+        this.noFormsAvailable = false;
         this.userNameCache = new Map();
         this.isRequestDetailedView = false;
         this.submissionIdToOpen = null;
@@ -327,6 +328,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
             showLoadingIndicator: {type: Boolean, attribute: false},
             attachmentsAreLoading: {type: Object, attribute: false},
+            noFormsAvailable: {type: Boolean, attribute: false},
             // List of frontendKey values to include; forms without a matching frontendKey are hidden.
             allowListFrontendKeys: {
                 type: Array,
@@ -553,6 +555,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (changedProperties.has('allForms')) {
             // Build tables
             if (this.allForms && this.allForms.length > 0) {
+                this.noFormsAvailable = false;
                 // We will use the first URL segment after the activity as identifier for the form's submissions
                 const formId = this.getRoutingData().pathSegments[0] || '';
 
@@ -578,6 +581,17 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         this.showSubmissionTables = false;
                     }
                 }
+            } else if (this.allForms) {
+                // allForms is defined but empty — all forms were filtered out by the allow/deny list.
+                // Stop the loading spinner and show an empty table with a message instead.
+                this.noFormsAvailable = true;
+                this.refreshTableReferences();
+                if (this.formsTable) {
+                    this.formsTable.buildTable();
+                }
+                this.loadingFormsTable = false;
+                this.showFormsTable = true;
+                this.showSubmissionTables = false;
             }
         }
 
@@ -1763,7 +1777,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .loadingFormsTable=${this.loadingFormsTable}
                     .showFormsTable=${this.showFormsTable}
                     .showSubmissionTables=${this.showSubmissionTables}
-                    .optionsForms=${this.options_forms}></dbp-formalize-manage-forms-overview-page>
+                    .optionsForms=${this.options_forms}
+                    .noFormsAvailable=${this
+                        .noFormsAvailable}></dbp-formalize-manage-forms-overview-page>
 
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"
