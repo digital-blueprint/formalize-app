@@ -566,7 +566,7 @@ export function restoreSubmissionTableSettings(host, state) {
 
         host.submissionsColumns = {
             ...host.submissionsColumns,
-            [state]: [rowIndexDef, ...options, htmlButtonsDef],
+            [state]: [rowIndexDef, ...options, htmlButtonsDef].filter(Boolean),
         };
         table.setColumns(host.submissionsColumns[state]);
 
