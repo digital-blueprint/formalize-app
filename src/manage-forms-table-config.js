@@ -174,6 +174,7 @@ export function enablePagination(host, state) {
  * @returns {object|null}
  */
 function getFormSchema(activeForm) {
+    if (!activeForm.dataFeedSchema) return null;
     try {
         return JSON.parse(activeForm.dataFeedSchema);
     } catch (e) {
