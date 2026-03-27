@@ -282,7 +282,7 @@ function getSchemaFields(
  */
 function getAttachmentFields(formSchemaFields) {
     const attachmentFields = [];
-    if (formSchemaFields.files && typeof formSchemaFields.files === 'object') {
+    if (formSchemaFields?.files && typeof formSchemaFields.files === 'object') {
         Object.keys(formSchemaFields.files).forEach((attachmentType) => {
             attachmentFields.push({
                 field: `form_files-${attachmentType}`,
