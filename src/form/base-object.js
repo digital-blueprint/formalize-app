@@ -48,7 +48,7 @@ export class BaseObject {
      * "Create new form" dialog's Form type selector.
      * @returns {string}
      */
-    getFormName() {
+    getFormName(_lang) {
         return this.getUrlSlug();
     }
 }

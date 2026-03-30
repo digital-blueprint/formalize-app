@@ -1496,7 +1496,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (entry.moduleInstance && typeof entry.moduleInstance.createForm === 'function') {
                 const formName =
                     typeof entry.moduleInstance.getFormName === 'function'
-                        ? entry.moduleInstance.getFormName()
+                        ? entry.moduleInstance.getFormName(this.lang)
                         : entry.formSlug;
                 modules.push({
                     formId: entry.formId,
