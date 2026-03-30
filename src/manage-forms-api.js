@@ -70,7 +70,11 @@ export async function loadModules(host) {
         const data = await response.json();
 
         for (const path of Object.values(data['forms'])) {
-            const module = await import(path);
+            // Resolve the module path relative to basePath so that relative paths
+            // in modules.json (e.g. "./jobOfferForm.js") work correctly even when
+            // the bundled API file lives in a sub-directory (e.g. /dist/shared/).
+            const absolutePath = new URL(path, window.location.origin + host.basePath).href;
+            const module = await import(absolutePath);
             const object = new module.default();
 
             if (object.getFormIdentifier && object.getUrlSlug) {

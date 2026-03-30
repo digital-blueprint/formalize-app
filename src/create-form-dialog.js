@@ -7,6 +7,7 @@ import {DbpStringElement} from '@dbp-toolkit/form-elements';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n.js';
+import {getSelectorFixCSS} from './styles.js';
 
 /**
  * Dialog for creating a new form via POST /formalize/forms.
@@ -16,6 +17,9 @@ import {createInstance} from './i18n.js';
  * optional description. On submit it dispatches a `dbp-create-form-submit`
  * event with the collected payload plus the selected moduleInstance so
  * the parent component can call moduleInstance.createForm().
+ *
+ * When a form type is selected, the form component from getFormComponent()
+ * is rendered below the selector as a preview of the form layout.
  */
 export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     static get scopedElements() {
@@ -33,7 +37,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this._i18n = createInstance();
         this.lang = this._i18n.language;
 
-        /** @type {Array<{formId: string, formSlug: string, moduleInstance: object}>} */
+        /** @type {Array<{formId: string, formSlug: string, formName: string, moduleInstance: object}>} */
         this.creatableModules = [];
         /** @type {string} Currently selected module slug */
         this._selectedModuleSlug = '';
@@ -47,6 +51,8 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this._description = '';
         /** @type {boolean} Whether the create request is in progress */
         this._isSubmitting = false;
+        /** @type {string|null} Custom element tag name for the selected form component */
+        this._formComponentTag = null;
     }
 
     static get properties() {
@@ -60,6 +66,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
             _formNameDe: {state: true},
             _description: {state: true},
             _isSubmitting: {state: true},
+            _formComponentTag: {state: true},
         };
     }
 
@@ -101,6 +108,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this._formNameDe = '';
         this._description = '';
         this._isSubmitting = false;
+        this._formComponentTag = null;
     }
 
     /** Opens the dialog and resets form state. */
@@ -110,6 +118,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         // Auto-select when there is exactly one option
         if (this.creatableModules.length === 1) {
             this._selectedModuleSlug = this.creatableModules[0].formSlug;
+            this._registerAndSetFormComponent(this.creatableModules[0]);
         }
 
         const dialog = this.renderRoot?.querySelector('dbp-modal');
@@ -127,11 +136,45 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
+     * Registers the form component for the given module entry as a custom element
+     * (if not already registered) and sets _formComponentTag so it gets rendered.
+     * @param {object} moduleEntry - Entry from creatableModules
+     */
+    _registerAndSetFormComponent(moduleEntry) {
+        if (!moduleEntry || typeof moduleEntry.moduleInstance.getFormComponent !== 'function') {
+            this._formComponentTag = null;
+            return;
+        }
+
+        const FormComponent = moduleEntry.moduleInstance.getFormComponent();
+        if (!FormComponent) {
+            this._formComponentTag = null;
+            return;
+        }
+
+        // Derive a stable custom element tag from the form slug
+        const tag = `dbp-create-form-preview-${moduleEntry.formSlug}`;
+
+        // Register the custom element only once
+        if (!customElements.get(tag)) {
+            customElements.define(tag, FormComponent);
+        }
+
+        this._formComponentTag = tag;
+    }
+
+    /**
      * Handles the form type selector change.
      * @param {Event} e
      */
     _onFormTypeChange(e) {
         this._selectedModuleSlug = e.target.value;
+
+        // Render the form component for the newly selected module
+        const selectedModule = this.creatableModules.find(
+            (m) => m.formSlug === this._selectedModuleSlug,
+        );
+        this._registerAndSetFormComponent(selectedModule || null);
     }
 
     /**
@@ -235,25 +278,39 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                             ${t('create-form.field-form-type')}
                             <span class="required-marker">*</span>
                         </label>
-                        <select
-                            id="form-type-select"
-                            class="form-select"
-                            .value="${this._selectedModuleSlug}"
-                            @change="${this._onFormTypeChange}">
-                            <option value="" ?selected="${this._selectedModuleSlug === ''}">
-                                ${t('create-form.field-form-type-placeholder')}
-                            </option>
-                            ${this.creatableModules.map(
-                                (m) => html`
-                                    <option
-                                        value="${m.formSlug}"
-                                        ?selected="${this._selectedModuleSlug === m.formSlug}">
-                                        ${m.formSlug}
-                                    </option>
-                                `,
-                            )}
-                        </select>
+                        <div class="select-wrapper">
+                            <select
+                                id="form-type-select"
+                                class="form-select"
+                                .value="${this._selectedModuleSlug}"
+                                @change="${this._onFormTypeChange}">
+                                <option value="" ?selected="${this._selectedModuleSlug === ''}">
+                                    ${t('create-form.field-form-type-placeholder')}
+                                </option>
+                                ${this.creatableModules.map(
+                                    (m) => html`
+                                        <option
+                                            value="${m.formSlug}"
+                                            ?selected="${this._selectedModuleSlug === m.formSlug}">
+                                            ${m.formName || m.formSlug}
+                                        </option>
+                                    `,
+                                )}
+                            </select>
+                        </div>
                     </div>
+
+                    <!-- Form component preview rendered by the selected module's createForm -->
+                    ${this._formComponentTag
+                        ? html`
+                              <div class="form-preview">
+                                  <${this._formComponentTag}
+                                      lang="${this.lang}"
+                                      subscribe="lang"
+                                  ></${this._formComponentTag}>
+                              </div>
+                          `
+                        : ''}
 
                     <!-- Form name (full width, required) -->
                     <dbp-string-element
@@ -312,6 +369,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getThemeCSS()}
             ${commonStyles.getGeneralCSS()}
             ${commonStyles.getButtonCSS()}
+            ${getSelectorFixCSS()}
 
             /* Match the color of the modal's own close button (--dbp-accent) */
             .title-icon {
@@ -372,20 +430,44 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 color: var(--dbp-danger, #e4154b);
             }
 
+            /* Wrapper provides relative positioning for the chevron icon */
+            .select-wrapper {
+                position: relative;
+            }
+
+            /* Native select styled to match the manage-forms table action header selectors */
             .form-select {
+                box-sizing: border-box;
                 width: 100%;
-                padding: 0.45rem 0.6rem;
+                height: 2.25rem;
+                padding: 0 2rem 0 0.6rem;
                 border: var(--dbp-border);
                 border-radius: var(--dbp-border-radius, 0);
                 font-size: 1rem;
-                background-color: var(--dbp-background);
                 color: var(--dbp-content);
+                background-color: var(--dbp-background);
+                /* background-size is controlled by getSelectorFixCSS() to fix oversized chevron */
                 cursor: pointer;
+                appearance: auto;
             }
 
             .form-select:focus {
                 outline: none;
                 border-color: var(--dbp-accent, #007bff);
+            }
+
+            .form-select:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+
+            /* Form component preview area */
+            .form-preview {
+                border: var(--dbp-border);
+                border-radius: var(--dbp-border-radius, 0);
+                padding: 1rem;
+                margin-bottom: 1rem;
+                background-color: var(--dbp-background);
             }
 
             /* Two-column grid for side-by-side fields */

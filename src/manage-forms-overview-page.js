@@ -17,6 +17,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.showSubmissionTables = false;
         this.optionsForms = {};
         this.noFormsAvailable = false;
+        // Number of modules that implement createForm(); the button is only shown when > 0
+        this.creatableModulesCount = 0;
     }
 
     static get scopedElements() {
@@ -36,6 +38,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             showSubmissionTables: {type: Boolean, attribute: false},
             optionsForms: {type: Object, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
+            creatableModulesCount: {type: Number, attribute: false},
         };
     }
 
@@ -68,6 +71,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 .create-form-btn-icon {
                     flex-shrink: 0;
                     top: 0;
+                }
+
+                .hidden {
+                    display: none;
                 }
             `,
         ];
@@ -103,7 +110,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             </div>
 
             <div class="container forms-table ${classMap({hidden: !this.showFormsTable})}">
-                <div class="forms-table-toolbar">
+                <div
+                    class="forms-table-toolbar ${classMap({
+                        hidden: this.creatableModulesCount === 0,
+                    })}">
                     <button
                         class="button is-primary create-form-btn"
                         type="button"

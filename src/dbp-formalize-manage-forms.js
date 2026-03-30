@@ -245,6 +245,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.allowListFrontendKeys = [];
         this.denyListFrontendKeys = [];
         this.noFormsAvailable = false;
+        // Number of loaded modules that implement createForm(); drives button visibility
+        this.creatableModulesCount = 0;
         this.userNameCache = new Map();
         this.isRequestDetailedView = false;
         this.submissionIdToOpen = null;
@@ -331,6 +333,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             showLoadingIndicator: {type: Boolean, attribute: false},
             attachmentsAreLoading: {type: Object, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
+            creatableModulesCount: {type: Number, attribute: false},
             // List of frontendKey values to include; forms without a matching frontendKey are hidden.
             allowListFrontendKeys: {
                 type: Array,
@@ -542,6 +545,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // we need to init form-loading here.
         if (this.forms.size === 0) {
             await loadModules(this);
+            // Refresh count after modules are loaded so the button visibility is updated
+            this.getCreatableModules();
         }
         await getListOfAllForms(this);
     }
@@ -549,6 +554,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async loginCallback() {
         if (this.forms.size === 0) {
             await loadModules(this);
+            // Refresh count after modules are loaded so the button visibility is updated
+            this.getCreatableModules();
         }
         await getListOfAllForms(this);
     }
@@ -612,6 +619,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (oldUrl !== newUrl) {
                 if (this.forms.size === 0 && this.isLoggedIn()) {
                     await loadModules(this);
+                    // Refresh count after modules are loaded so the button visibility is updated
+                    this.getCreatableModules();
                     await getListOfAllForms(this);
                 }
 
@@ -1475,20 +1484,30 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     /**
      * Returns the list of form modules that implement createForm().
-     * Each entry has { formId, formSlug, moduleInstance }.
+     * Each entry has { formId, formSlug, formName, moduleInstance }.
+     * The formName is retrieved from the module's getFormName() method if available,
+     * falling back to the URL slug for backwards compatibility.
+     * Also updates creatableModulesCount so the overview page can react to it.
      * @returns {Array<object>}
      */
     getCreatableModules() {
         const modules = [];
         for (const entry of this.forms.values()) {
             if (entry.moduleInstance && typeof entry.moduleInstance.createForm === 'function') {
+                const formName =
+                    typeof entry.moduleInstance.getFormName === 'function'
+                        ? entry.moduleInstance.getFormName()
+                        : entry.formSlug;
                 modules.push({
                     formId: entry.formId,
                     formSlug: entry.formSlug,
+                    formName: formName,
                     moduleInstance: entry.moduleInstance,
                 });
             }
         }
+        // Keep creatableModulesCount in sync so dependent components can react
+        this.creatableModulesCount = modules.length;
         return modules;
     }
 
@@ -1837,6 +1856,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .showSubmissionTables=${this.showSubmissionTables}
                     .optionsForms=${this.options_forms}
                     .noFormsAvailable=${this.noFormsAvailable}
+                    .creatableModulesCount=${this.creatableModulesCount}
                     @create-form-request=${() =>
                         this.handleOpenCreateFormDialog()}></dbp-formalize-manage-forms-overview-page>
 

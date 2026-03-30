@@ -41,6 +41,16 @@ export class BaseObject {
     getFormIdentifier() {
         return 'uuid';
     }
+
+    /**
+     * Returns a human-readable display name for this form type.
+     * Override in subclasses to provide a descriptive label shown in the
+     * "Create new form" dialog's Form type selector.
+     * @returns {string}
+     */
+    getFormName() {
+        return this.getUrlSlug();
+    }
 }
 
 export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
