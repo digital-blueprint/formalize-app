@@ -3,7 +3,7 @@ import {css, html} from 'lit';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {Icon, Button, MiniSpinner} from '@dbp-toolkit/common';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
-import {DbpStringElement} from '@dbp-toolkit/form-elements';
+import {Notification} from '@dbp-toolkit/notification';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n.js';
@@ -13,13 +13,14 @@ import {getSelectorFixCSS} from './styles.js';
  * Dialog for creating a new form via POST /formalize/forms.
  *
  * Renders a modal with a form-type selector (only modules that implement
- * createForm()), fields for form name, localized names (en/de), and an
- * optional description. On submit it dispatches a `dbp-create-form-submit`
- * event with the collected payload plus the selected moduleInstance so
- * the parent component can call moduleInstance.createForm().
+ * getCreateFormComponent()). When a form type is selected, the creation form
+ * component from getCreateFormComponent() is rendered below the selector.
+ * That embedded component handles form fields, validation, API call, and
+ * error handling. On success the component dispatches `dbp-create-form-created`
+ * which this dialog relays upward and then closes.
  *
- * When a form type is selected, the form component from getFormComponent()
- * is rendered below the selector as a preview of the form layout.
+ * The create-form component is mounted imperatively into a container div to
+ * avoid issues with dynamic tag names in Lit templates with ScopedElementsMixin.
  */
 export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     static get scopedElements() {
@@ -28,7 +29,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
             'dbp-button': Button,
             'dbp-modal': Modal,
             'dbp-mini-spinner': MiniSpinner,
-            'dbp-string-element': DbpStringElement,
+            'dbp-notification': Notification,
         };
     }
 
@@ -41,30 +42,26 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this.creatableModules = [];
         /** @type {string} Currently selected module slug */
         this._selectedModuleSlug = '';
-        /** @type {string} Default form name */
-        this._formName = '';
-        /** @type {string} English localized name */
-        this._formNameEn = '';
-        /** @type {string} German localized name */
-        this._formNameDe = '';
-        /** @type {string} Optional description text */
-        this._description = '';
         /** @type {boolean} Whether the create request is in progress */
         this._isSubmitting = false;
-        /** @type {string|null} Custom element tag name for the selected form component */
+        /** @type {string|null} Custom element tag name for the selected create-form component */
         this._formComponentTag = null;
+        /** @type {HTMLElement|null} Currently mounted form component instance */
+        this._formComponentInstance = null;
+        /** @type {object} Auth object with token */
+        this.auth = {};
+        /** @type {string} API entry point URL */
+        this.entryPointUrl = '';
     }
 
     static get properties() {
         return {
             ...super.properties,
             lang: {type: String},
+            auth: {type: Object},
+            entryPointUrl: {type: String, attribute: 'entry-point-url'},
             creatableModules: {type: Array, attribute: false},
             _selectedModuleSlug: {state: true},
-            _formName: {state: true},
-            _formNameEn: {state: true},
-            _formNameDe: {state: true},
-            _description: {state: true},
             _isSubmitting: {state: true},
             _formComponentTag: {state: true},
         };
@@ -79,6 +76,54 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         super.update(changedProperties);
     }
 
+    updated(changedProperties) {
+        super.updated(changedProperties);
+
+        // Sync the imperatively-managed form component whenever the tag or passed props change
+        if (
+            changedProperties.has('_formComponentTag') ||
+            changedProperties.has('lang') ||
+            changedProperties.has('auth') ||
+            changedProperties.has('entryPointUrl')
+        ) {
+            this._syncFormComponent();
+        }
+    }
+
+    /**
+     * Mounts or unmounts the create-form component in the container div based on _formComponentTag.
+     * Properties are kept in sync on every relevant update.
+     */
+    _syncFormComponent() {
+        const container = this.renderRoot?.querySelector('#form-component-container');
+        if (!container) {
+            return;
+        }
+
+        if (!this._formComponentTag) {
+            // Remove any existing component
+            container.innerHTML = '';
+            this._formComponentInstance = null;
+            return;
+        }
+
+        // Create a new element if the tag changed or none exists yet
+        if (
+            !this._formComponentInstance ||
+            this._formComponentInstance.tagName.toLowerCase() !== this._formComponentTag
+        ) {
+            container.innerHTML = '';
+            // Use createScopedElement so the element is created in the correct scoped registry
+            this._formComponentInstance = this.createScopedElement(this._formComponentTag);
+            container.appendChild(this._formComponentInstance);
+        }
+
+        // Keep properties in sync
+        this._formComponentInstance.lang = this.lang;
+        this._formComponentInstance.auth = this.auth;
+        this._formComponentInstance.entryPointUrl = this.entryPointUrl;
+    }
+
     /**
      * Returns the currently selected module entry, or null.
      * @returns {object|null}
@@ -88,25 +133,16 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Returns true when all required fields have a non-empty value.
+     * Returns true when a form type is selected and the component is registered.
      * @returns {boolean}
      */
     get _isFormValid() {
-        return (
-            this._selectedModuleSlug !== '' &&
-            this._formName.trim() !== '' &&
-            this._formNameEn.trim() !== '' &&
-            this._formNameDe.trim() !== ''
-        );
+        return this._selectedModuleSlug !== '' && this._formComponentTag !== null;
     }
 
     /** Resets all form fields to empty defaults. */
     _resetForm() {
         this._selectedModuleSlug = '';
-        this._formName = '';
-        this._formNameEn = '';
-        this._formNameDe = '';
-        this._description = '';
         this._isSubmitting = false;
         this._formComponentTag = null;
     }
@@ -136,29 +172,30 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Registers the form component for the given module entry as a custom element
-     * (if not already registered) and sets _formComponentTag so it gets rendered.
+     * Registers the create-form component via ScopedElementsMixin's scoped registry
+     * and sets _formComponentTag so _syncFormComponent() can imperatively mount it.
      * @param {object} moduleEntry - Entry from creatableModules
      */
     _registerAndSetFormComponent(moduleEntry) {
-        if (!moduleEntry || typeof moduleEntry.moduleInstance.getFormComponent !== 'function') {
+        if (
+            !moduleEntry ||
+            typeof moduleEntry.moduleInstance.getCreateFormComponent !== 'function'
+        ) {
             this._formComponentTag = null;
             return;
         }
 
-        const FormComponent = moduleEntry.moduleInstance.getFormComponent();
+        const FormComponent = moduleEntry.moduleInstance.getCreateFormComponent();
         if (!FormComponent) {
             this._formComponentTag = null;
             return;
         }
 
         // Derive a stable custom element tag from the form slug
-        const tag = `dbp-create-form-preview-${moduleEntry.formSlug}`;
+        const tag = `dbp-create-form-${moduleEntry.formSlug}`;
 
-        // Register the custom element only once
-        if (!customElements.get(tag)) {
-            customElements.define(tag, FormComponent);
-        }
+        // Register via the scoped registry so the element is recognised inside this shadow root
+        this.defineScopedElement(tag, FormComponent);
 
         this._formComponentTag = tag;
     }
@@ -170,7 +207,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     _onFormTypeChange(e) {
         this._selectedModuleSlug = e.target.value;
 
-        // Render the form component for the newly selected module
+        // Mount the create-form component for the newly selected module
         const selectedModule = this.creatableModules.find(
             (m) => m.formSlug === this._selectedModuleSlug,
         );
@@ -178,41 +215,33 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Handles the create action. Validates and dispatches the
-     * `dbp-create-form-submit` event with the form payload and
-     * the selected module instance.
+     * Handles the create action. Delegates to the imperatively-mounted
+     * create-form component's submit() method.
      */
-    _onCreate() {
+    async _onCreate() {
         if (!this._isFormValid || this._isSubmitting) {
-            return;
-        }
-
-        const selectedModule = this._selectedModule;
-        if (!selectedModule) {
             return;
         }
 
         this._isSubmitting = true;
 
-        const detail = {
-            moduleInstance: selectedModule.moduleInstance,
-            name: this._formName.trim(),
-            nameEn: this._formNameEn.trim(),
-            nameDe: this._formNameDe.trim(),
-        };
-
-        // Include description if provided
-        if (this._description.trim()) {
-            detail.description = this._description.trim();
+        const formComponent = this._formComponentInstance;
+        if (formComponent && typeof formComponent.submit === 'function') {
+            const result = await formComponent.submit();
+            if (result) {
+                // Relay the success event upward so the parent can refresh
+                this.dispatchEvent(
+                    new CustomEvent('dbp-create-form-created', {
+                        detail: {form: result},
+                        bubbles: true,
+                        composed: true,
+                    }),
+                );
+                this.close();
+            }
         }
 
-        this.dispatchEvent(
-            new CustomEvent('dbp-create-form-submit', {
-                detail,
-                bubbles: true,
-                composed: true,
-            }),
-        );
+        this._isSubmitting = false;
     }
 
     /** Called by the parent after the API call completes (success or failure). */
@@ -237,6 +266,14 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                         <dbp-icon class="title-icon" name="plus" aria-hidden="true"></dbp-icon>
                         ${t('create-form.dialog-title')}
                     </h3>
+                </div>
+
+                <!-- In-dialog notifications (appear above the modal, anchored to it) -->
+                <div slot="header">
+                    <dbp-notification
+                        id="create-form-dialog-notification"
+                        inline
+                        lang="${this.lang}"></dbp-notification>
                 </div>
 
                 <!-- Form content -->
@@ -300,65 +337,11 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                         </div>
                     </div>
 
-                    <!-- Form component preview rendered by the selected module's createForm -->
-                    ${this._formComponentTag
-                        ? html`
-                              <div class="form-preview">
-                                  <${this._formComponentTag}
-                                      lang="${this.lang}"
-                                      subscribe="lang"
-                                  ></${this._formComponentTag}>
-                              </div>
-                          `
-                        : ''}
-
-                    <!-- Form name (full width, required) -->
-                    <dbp-string-element
-                        name="form-name"
-                        lang="${this.lang}"
-                        label="${t('create-form.field-name')}"
-                        .value="${this._formName}"
-                        required
-                        @change="${(e) => (this._formName = e.detail.value)}"></dbp-string-element>
-
-                    <!-- Localized names section -->
-                    <h4 class="form-section-heading">
-                        ${t('create-form.section-localized-names')}
-                    </h4>
-
-                    <!-- English + German names side by side -->
-                    <div class="form-row-2col">
-                        <dbp-string-element
-                            name="form-name-en"
-                            lang="${this.lang}"
-                            label="${t('create-form.field-name-en')}"
-                            .value="${this._formNameEn}"
-                            required
-                            @change="${(e) =>
-                                (this._formNameEn = e.detail.value)}"></dbp-string-element>
-                        <dbp-string-element
-                            name="form-name-de"
-                            lang="${this.lang}"
-                            label="${t('create-form.field-name-de')}"
-                            .value="${this._formNameDe}"
-                            required
-                            @change="${(e) =>
-                                (this._formNameDe = e.detail.value)}"></dbp-string-element>
-                    </div>
-
-                    <!-- Additional section -->
-                    <h4 class="form-section-heading">${t('create-form.section-additional')}</h4>
-
-                    <!-- Description textarea (full width, optional) -->
-                    <dbp-string-element
-                        name="description"
-                        lang="${this.lang}"
-                        label="${t('create-form.field-description')}"
-                        placeholder="${t('create-form.field-description-placeholder')}"
-                        .value="${this._description}"
-                        rows="5"
-                        @change="${(e) =>
-                            (this._description = e.detail.value)}"></dbp-string-element>
+                    <!-- Container where the create-form component is mounted imperatively -->
+                    <div
+                        id="form-component-container"
+                        class="form-component-area"
+                        ?hidden="${!this._formComponentTag}"></div>
                 </div>
             </dbp-modal>
         `;
@@ -461,38 +444,9 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 cursor: not-allowed;
             }
 
-            /* Form component preview area */
-            .form-preview {
-                border: var(--dbp-border);
-                border-radius: var(--dbp-border-radius, 0);
-                padding: 1rem;
-                margin-bottom: 1rem;
-                background-color: var(--dbp-background);
-            }
-
-            /* Two-column grid for side-by-side fields */
-            .form-row-2col {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 1rem;
-                margin-bottom: 0.75rem;
-            }
-
-            @media (max-width: 540px) {
-                .form-row-2col {
-                    grid-template-columns: 1fr;
-                }
-            }
-
-            /* Vertical spacing between consecutive form elements */
-            .dialog-content dbp-string-element {
-                display: block;
-                margin-bottom: 0.75rem;
-            }
-
-            /* Reset bottom margin for elements inside a two-column row */
-            .form-row-2col dbp-string-element {
-                margin-bottom: 0;
+            /* Create-form component area */
+            .form-component-area {
+                margin-top: 1rem;
             }
         `;
     }

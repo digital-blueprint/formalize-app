@@ -1493,7 +1493,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     getCreatableModules() {
         const modules = [];
         for (const entry of this.forms.values()) {
-            if (entry.moduleInstance && typeof entry.moduleInstance.createForm === 'function') {
+            if (
+                entry.moduleInstance &&
+                typeof entry.moduleInstance.getCreateFormComponent === 'function'
+            ) {
                 const formName =
                     typeof entry.moduleInstance.getFormName === 'function'
                         ? entry.moduleInstance.getFormName(this.lang)
@@ -1523,28 +1526,13 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Handles the create form submission from the dialog.
-     * Calls the selected module's createForm() and refreshes the forms list on success.
+     * Handles the form creation success from the dialog's embedded component.
+     * Refreshes the forms list after a new form is created.
      * @param {CustomEvent} event
      */
-    async handleCreateFormSubmit(event) {
-        const {moduleInstance, ...formData} = event.detail;
-        const dialog = this._('#create-form-dialog');
-
-        const result = await moduleInstance.createForm(this, formData);
-
-        if (dialog) {
-            dialog.submitComplete();
-        }
-
-        if (result) {
-            // Close the dialog on success
-            if (dialog) {
-                dialog.close();
-            }
-            // Reload the forms list to include the newly created form
-            await getListOfAllForms(this);
-        }
+    async handleCreateFormCreated(event) {
+        // Reload the forms list to include the newly created form
+        await getListOfAllForms(this);
     }
 
     handleEditSubmissions(event, state) {
@@ -1950,8 +1938,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <dbp-formalize-create-form-dialog
                 id="create-form-dialog"
                 lang="${this.lang}"
-                @dbp-create-form-submit=${(event) =>
-                    this.handleCreateFormSubmit(event)}></dbp-formalize-create-form-dialog>
+                .auth="${this.auth}"
+                entry-point-url="${this.entryPointUrl}"
+                @dbp-create-form-created=${(event) =>
+                    this.handleCreateFormCreated(event)}></dbp-formalize-create-form-dialog>
 
             ${this.showLoadingIndicator
                 ? html`
