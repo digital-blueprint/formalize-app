@@ -58,7 +58,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             css`
                 .forms-table-toolbar {
                     display: flex;
-                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 1rem;
                     margin-bottom: 1rem;
                 }
 
@@ -66,6 +67,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     display: inline-flex;
                     align-items: center;
                     gap: 0.4rem;
+                    margin-left: auto;
                 }
 
                 .create-form-btn-icon {
@@ -100,22 +102,18 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         const i18n = this._i18n;
 
         return html`
-            <div
-                class="control forms-spinner ${classMap({
-                    hidden: !this.loadingFormsTable || this.showSubmissionTables,
-                })}">
-                <span class="loading">
-                    <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
-                </span>
-            </div>
-
             <div class="container forms-table ${classMap({hidden: !this.showFormsTable})}">
-                <div
-                    class="forms-table-toolbar ${classMap({
-                        hidden: this.creatableModulesCount === 0,
-                    })}">
+                <div class="forms-table-toolbar">
+                    <span
+                        class="${classMap({
+                            hidden: !this.loadingFormsTable || this.showSubmissionTables,
+                        })}">
+                        <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
+                    </span>
                     <button
-                        class="button is-primary create-form-btn"
+                        class="button is-primary create-form-btn ${classMap({
+                            hidden: this.creatableModulesCount === 0,
+                        })}"
                         type="button"
                         @click="${this._onCreateFormClick}">
                         <dbp-icon
