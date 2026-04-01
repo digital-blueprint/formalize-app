@@ -145,6 +145,12 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this._selectedModuleSlug = '';
         this._isSubmitting = false;
         this._formComponentTag = null;
+        this._formComponentInstance = null;
+
+        const container = this.renderRoot?.querySelector('#form-component-container');
+        if (container) {
+            container.replaceChildren();
+        }
     }
 
     /** Opens the dialog and resets form state. */
@@ -169,6 +175,8 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         if (dialog) {
             dialog.close();
         }
+
+        this._resetForm();
     }
 
     /**
