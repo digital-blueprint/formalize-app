@@ -736,7 +736,8 @@ export async function apiGetTags(host, identifier) {
  * @param {string} formData.name - Default name of the form.
  * @param {Array<{languageTag: string, name: string}>} formData.localizedNames - Localized names.
  * @param {string} formData.frontendKey - Frontend key for filtering (e.g. 'job-offer').
- * @param {object} [formData.additionalData] - Any extra fields to include in the request body.
+ * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
+ * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
  * @returns {Promise<object|null>} The created form object from the API, or null on failure.
  */
 export async function apiCreateForm(host, formData) {
@@ -746,8 +747,17 @@ export async function apiCreateForm(host, formData) {
         name: formData.name,
         localizedNames: formData.localizedNames,
         frontendKey: formData.frontendKey,
-        ...(formData.additionalData || {}),
     };
+
+    // Store additional metadata as a nested additionalData field on the form
+    if (formData.additionalData) {
+        body.additionalData = formData.additionalData;
+    }
+
+    // Store the JSON Schema for validating submission data
+    if (formData.dataFeedSchema) {
+        body.dataFeedSchema = formData.dataFeedSchema;
+    }
 
     try {
         const response = await fetch(host.entryPointUrl + '/formalize/forms', {
