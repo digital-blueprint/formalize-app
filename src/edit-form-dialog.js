@@ -10,19 +10,19 @@ import {createInstance} from './i18n.js';
 import {getSelectorFixCSS} from './styles.js';
 
 /**
- * Dialog for creating a new form via POST /formalize/forms.
+ * Dialog for creating or editing a form via POST/PATCH /formalize/forms.
  *
  * Renders a modal with a form-type selector (only modules that implement
- * getCreateFormComponent()). When a form type is selected, the creation form
- * component from getCreateFormComponent() is rendered below the selector.
+ * getEditFormComponent()). When a form type is selected, the edit form
+ * component from getEditFormComponent() is rendered below the selector.
  * That embedded component handles form fields, validation, API call, and
- * error handling. On success the component dispatches `dbp-create-form-created`
+ * error handling. On success the component dispatches `dbp-edit-form-saved`
  * which this dialog relays upward and then closes.
  *
- * The create-form component is mounted imperatively into a container div to
+ * The edit-form component is mounted imperatively into a container div to
  * avoid issues with dynamic tag names in Lit templates with ScopedElementsMixin.
  */
-export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
+export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
     static get scopedElements() {
         return {
             'dbp-icon': Icon,
@@ -42,9 +42,9 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this.creatableModules = [];
         /** @type {string} Currently selected module slug */
         this._selectedModuleSlug = '';
-        /** @type {boolean} Whether the create request is in progress */
+        /** @type {boolean} Whether the save request is in progress */
         this._isSubmitting = false;
-        /** @type {string|null} Custom element tag name for the selected create-form component */
+        /** @type {string|null} Custom element tag name for the selected edit-form component */
         this._formComponentTag = null;
         /** @type {HTMLElement|null} Currently mounted form component instance */
         this._formComponentInstance = null;
@@ -99,7 +99,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Mounts or unmounts the create-form component in the container div based on _formComponentTag.
+     * Mounts or unmounts the edit-form component in the container div based on _formComponentTag.
      * Properties are kept in sync on every relevant update.
      */
     _syncFormComponent() {
@@ -202,27 +202,24 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Registers the create-form component via ScopedElementsMixin's scoped registry
+     * Registers the edit-form component via ScopedElementsMixin's scoped registry
      * and sets _formComponentTag so _syncFormComponent() can imperatively mount it.
      * @param {object} moduleEntry - Entry from creatableModules
      */
     _registerAndSetFormComponent(moduleEntry) {
-        if (
-            !moduleEntry ||
-            typeof moduleEntry.moduleInstance.getCreateFormComponent !== 'function'
-        ) {
+        if (!moduleEntry || typeof moduleEntry.moduleInstance.getEditFormComponent !== 'function') {
             this._formComponentTag = null;
             return;
         }
 
-        const FormComponent = moduleEntry.moduleInstance.getCreateFormComponent();
+        const FormComponent = moduleEntry.moduleInstance.getEditFormComponent();
         if (!FormComponent) {
             this._formComponentTag = null;
             return;
         }
 
         // Derive a stable custom element tag from the form slug
-        const tag = `dbp-create-form-${moduleEntry.formSlug}`;
+        const tag = `dbp-edit-form-${moduleEntry.formSlug}`;
 
         // Register via the scoped registry so the element is recognised inside this shadow root
         this.defineScopedElement(tag, FormComponent);
@@ -237,7 +234,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     _onFormTypeChange(e) {
         this._selectedModuleSlug = e.target.value;
 
-        // Mount the create-form component for the newly selected module
+        // Mount the edit-form component for the newly selected module
         const selectedModule = this.creatableModules.find(
             (m) => m.formSlug === this._selectedModuleSlug,
         );
@@ -246,9 +243,9 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Handles the create/save action. Delegates to the imperatively-mounted
-     * create-form component's submit() method.
+     * edit-form component's submit() method.
      */
-    async _onCreate() {
+    async _onSave() {
         if (!this._isFormValid || this._isSubmitting) {
             return;
         }
@@ -294,11 +291,11 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         const i18n = this._i18n;
         const t = (key, opts) => (i18n ? i18n.t(key, opts) : key);
         const isEdit = this._isEditMode;
-        const createDisabled = !this._isFormValid || this._isSubmitting;
+        const saveDisabled = !this._isFormValid || this._isSubmitting;
 
         return html`
             <dbp-modal
-                modal-id="create-form-dialog"
+                modal-id="edit-form-dialog"
                 lang="${this.lang}"
                 sticky-footer
                 style="--dbp-modal-min-width: min(95vw, 740px); --dbp-modal-max-width: min(95vw, 740px); --dbp-modal-max-height: 90vh; --dbp-modal-content-overflow-y: auto;">
@@ -316,7 +313,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 <!-- In-dialog notifications (appear above the modal, anchored to it) -->
                 <div slot="header">
                     <dbp-notification
-                        id="create-form-dialog-notification"
+                        id="edit-form-dialog-notification"
                         inline
                         lang="${this.lang}"></dbp-notification>
                 </div>
@@ -333,10 +330,10 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                             ${t('create-form.cancel')}
                         </button>
                         <button
-                            class="button is-primary create-btn"
+                            class="button is-primary save-btn"
                             type="button"
-                            ?disabled="${createDisabled}"
-                            @click="${this._onCreate}">
+                            ?disabled="${saveDisabled}"
+                            @click="${this._onSave}">
                             ${this._isSubmitting
                                 ? html`
                                       <dbp-mini-spinner></dbp-mini-spinner>
@@ -389,7 +386,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                           `
                         : ''}
 
-                    <!-- Container where the create/edit form component is mounted imperatively -->
+                    <!-- Container where the edit-form component is mounted imperatively -->
                     <div
                         id="form-component-container"
                         class="form-component-area"
@@ -422,7 +419,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 font-weight: 700;
             }
 
-            /* Action bar: Cancel on the left, Create on the right */
+            /* Action bar: Cancel on the left, Save on the right */
             .dialog-actions-bar {
                 display: flex;
                 justify-content: space-between;
@@ -431,7 +428,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
             }
 
             .cancel-btn,
-            .create-btn {
+            .save-btn {
                 display: inline-flex;
                 align-items: center;
                 gap: 0.4rem;
@@ -496,7 +493,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 cursor: not-allowed;
             }
 
-            /* Create-form component area */
+            /* Edit-form component area */
             .form-component-area {
                 margin-top: 1rem;
             }

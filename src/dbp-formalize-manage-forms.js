@@ -39,7 +39,7 @@ import {ManageFormSubmissionsPage} from './manage-form-submissions-page.js';
 import {ManageSubmissionModal} from './manage-submission-modal.js';
 import {BatchTaggingModal} from './batch-tagging-modal.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
-import {CreateFormDialog} from './create-form-dialog.js';
+import {EditFormDialog} from './edit-form-dialog.js';
 
 // Extracted modules
 import {
@@ -285,7 +285,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-formalize-manage-submission-modal': ManageSubmissionModal,
             'dbp-formalize-batch-tagging-modal': BatchTaggingModal,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
-            'dbp-formalize-create-form-dialog': CreateFormDialog,
+            'dbp-formalize-edit-form-dialog': EditFormDialog,
         };
     }
 
@@ -1495,7 +1495,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         for (const entry of this.forms.values()) {
             if (
                 entry.moduleInstance &&
-                typeof entry.moduleInstance.getCreateFormComponent === 'function'
+                typeof entry.moduleInstance.getEditFormComponent === 'function'
             ) {
                 const formName =
                     typeof entry.moduleInstance.getFormName === 'function'
@@ -1515,10 +1515,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Opens the create form dialog.
+     * Opens the edit form dialog for creating a new form.
      */
     handleOpenCreateFormDialog() {
-        const dialog = this._('#create-form-dialog');
+        const dialog = this._('#edit-form-dialog');
         if (dialog) {
             dialog.existingForm = null;
             dialog.creatableModules = this.getCreatableModules();
@@ -1527,11 +1527,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Opens the create form dialog in edit mode for the given form.
+     * Opens the edit form dialog in edit mode for the given form.
      * @param {string} formId - Identifier of the form to edit.
      */
     handleOpenEditFormDialog(formId) {
-        const dialog = this._('#create-form-dialog');
+        const dialog = this._('#edit-form-dialog');
         if (!dialog) return;
 
         const formEntry = this.forms.get(formId);
@@ -1968,14 +1968,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 @batch-tagging-confirm=${(event) =>
                     this.handleBatchTaggingConfirm(event)}></dbp-formalize-batch-tagging-modal>
 
-            <dbp-formalize-create-form-dialog
-                id="create-form-dialog"
+            <dbp-formalize-edit-form-dialog
+                id="edit-form-dialog"
                 lang="${this.lang}"
                 .auth="${this.auth}"
                 entry-point-url="${this.entryPointUrl}"
                 @dbp-create-form-created=${(event) => this.handleCreateFormCreated(event)}
                 @dbp-edit-form-saved=${(event) =>
-                    this.handleEditFormSaved(event)}></dbp-formalize-create-form-dialog>
+                    this.handleEditFormSaved(event)}></dbp-formalize-edit-form-dialog>
 
             ${this.showLoadingIndicator
                 ? html`

@@ -227,10 +227,10 @@ export async function getListOfAllForms(host) {
                 });
                 actionContainer.appendChild(btn);
 
-                // Show an edit button only for forms whose module implements getCreateFormComponent()
+                // Show an edit button only for forms whose module implements getEditFormComponent()
                 if (
                     formEntry.moduleInstance &&
-                    typeof formEntry.moduleInstance.getCreateFormComponent === 'function'
+                    typeof formEntry.moduleInstance.getEditFormComponent === 'function'
                 ) {
                     let editBtn = host.createScopedElement('dbp-icon-button');
                     editBtn.setAttribute('subscribe', 'lang');
