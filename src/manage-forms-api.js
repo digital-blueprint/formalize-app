@@ -170,15 +170,48 @@ export async function getListOfAllForms(host) {
                 const allowedSubmissionStates = entry['allowedSubmissionStates'];
                 const dataFeedSchema = entry['dataFeedSchema'];
 
+                const additionalData = entry['additionalData'] ?? null;
+                const localizedNames = entry['localizedNames'] ?? [];
+
+                // Find the module instance whose frontendKey matches this form's frontendKey.
+                // Modules are stored by their getFormIdentifier() key (which defaults to 'uuid'),
+                // so we cannot look them up by formId directly. Instead we search by frontendKey.
+                let matchedModuleInstance = host.forms.get(formId)?.moduleInstance ?? null;
+                if (!matchedModuleInstance && frontendKey) {
+                    for (const moduleEntry of host.forms.values()) {
+                        if (
+                            moduleEntry.moduleInstance &&
+                            typeof moduleEntry.moduleInstance.getFormFrontendKey === 'function' &&
+                            moduleEntry.moduleInstance.getFormFrontendKey() === frontendKey
+                        ) {
+                            matchedModuleInstance = moduleEntry.moduleInstance;
+                            break;
+                        }
+                    }
+                }
+
                 host.forms.set(formId, {
                     ...host.forms.get(formId),
                     formName,
                     formId,
+                    formSlug:
+                        host.forms.get(formId)?.formSlug ??
+                        matchedModuleInstance?.getUrlSlug?.() ??
+                        formId,
+                    moduleInstance: matchedModuleInstance,
                     allowedSubmissionStates,
                     allowedActionsWhenSubmitted,
                     dataFeedSchema,
                     tagPermissionsForSubmitters,
+                    additionalData,
+                    localizedNames,
                 });
+
+                // Build the action button container (view submissions + optional edit button)
+                const formEntry = host.forms.get(formId);
+                const actionContainer = document.createElement('span');
+                actionContainer.style.cssText =
+                    'display: inline-flex; gap: 0.5rem; align-items: center;';
 
                 let btn = host.createScopedElement('dbp-formalize-get-details-button');
                 btn.setAttribute('subscribe', 'lang');
@@ -192,8 +225,26 @@ export async function getListOfAllForms(host) {
                     window.history.pushState({}, '', url);
                     host.sendSetPropertyEvent('routing-url', `/${formId}`, true);
                 });
+                actionContainer.appendChild(btn);
 
-                let new_form = {id: id, name: formName, actionButton: btn};
+                // Show an edit button only for forms whose module implements getCreateFormComponent()
+                if (
+                    formEntry.moduleInstance &&
+                    typeof formEntry.moduleInstance.getCreateFormComponent === 'function'
+                ) {
+                    let editBtn = host.createScopedElement('dbp-icon-button');
+                    editBtn.setAttribute('subscribe', 'lang');
+                    editBtn.setAttribute('icon-name', 'pencil');
+                    editBtn.title = i18n.t('manage-forms.edit-form-button');
+                    editBtn.setAttribute('aria-label', i18n.t('manage-forms.edit-form-button'));
+                    editBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        host.handleOpenEditFormDialog(formId);
+                    });
+                    actionContainer.appendChild(editBtn);
+                }
+
+                let new_form = {id: id, name: formName, actionButton: actionContainer};
                 forms.push(new_form);
             }
 
@@ -791,6 +842,76 @@ export async function apiCreateForm(host, formData) {
         return createdForm;
     } catch (error) {
         console.error('Error creating form:', error);
+        sendNotification({
+            summary: i18n.t('errors.error-title'),
+            body: error.message,
+            type: 'danger',
+            timeout: 0,
+        });
+        return null;
+    }
+}
+
+/**
+ * Update an existing form via PATCH /formalize/forms/{identifier}.
+ *
+ * @param {object} host - The ManageForms element (needs host.auth, host.entryPointUrl, host._i18n).
+ * @param {string} formIdentifier - The identifier of the form to update.
+ * @param {object} formData - The form payload (same shape as apiCreateForm).
+ * @param {string} formData.name - Default name of the form.
+ * @param {Array<{languageTag: string, name: string}>} formData.localizedNames - Localized names.
+ * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
+ * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
+ * @returns {Promise<object|null>} The updated form object from the API, or null on failure.
+ */
+export async function apiUpdateForm(host, formIdentifier, formData) {
+    const i18n = host._i18n;
+
+    const body = {
+        name: formData.name,
+        localizedNames: formData.localizedNames,
+    };
+
+    if (formData.additionalData) {
+        body.additionalData = formData.additionalData;
+    }
+
+    if (formData.dataFeedSchema) {
+        body.dataFeedSchema = formData.dataFeedSchema;
+    }
+
+    try {
+        const response = await fetch(host.entryPointUrl + '/formalize/forms/' + formIdentifier, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/merge-patch+json',
+                Authorization: 'Bearer ' + host.auth.token,
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Failed to update form:', response.status, errorData);
+            sendNotification({
+                summary: i18n.t('errors.error-title'),
+                body: i18n.t('edit-form.error-update-failed', {status: response.status}),
+                type: 'danger',
+                timeout: 0,
+            });
+            return null;
+        }
+
+        const updatedForm = await response.json();
+        sendNotification({
+            summary: i18n.t('success.success-title'),
+            body: i18n.t('edit-form.success-updated'),
+            type: 'success',
+            timeout: 5,
+        });
+        return updatedForm;
+    } catch (error) {
+        console.error('Error updating form:', error);
         sendNotification({
             summary: i18n.t('errors.error-title'),
             body: error.message,

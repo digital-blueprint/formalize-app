@@ -9,6 +9,12 @@
         "section-general": "Allgemeine Informationen",
         "success-created": "Formular erfolgreich erstellt"
     },
+    "edit-form": {
+        "dialog-title": "Formular bearbeiten",
+        "error-update-failed": "Formular konnte nicht aktualisiert werden. Antwortstatus: {{status}}",
+        "save": "Speichern",
+        "success-updated": "Formular erfolgreich aktualisiert"
+    },
     "error-login-link": "Anmelden",
     "error-login-message": "Bitte melden Sie sich an, um diese Funktion nutzen zu können.",
     "errors": {
@@ -65,6 +71,7 @@
         "delete-selected-submissions-button-text": "Ausgewählte löschen ({{n}})",
         "detailed-submission-dialog-id": "{{id}} von {{nItems}}",
         "detailed-submission-dialog-title": "Detailansicht",
+        "edit-form-button": "Formular bearbeiten",
         "edit-permission-button-text": "Berechtigung bearbeiten",
         "edit-permission-modal-title": "Berechtigung bearbeiten",
         "edit-submission-button-text": "Einreichung bearbeiten",

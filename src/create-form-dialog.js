@@ -52,6 +52,12 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this.auth = {};
         /** @type {string} API entry point URL */
         this.entryPointUrl = '';
+        /**
+         * When set, the dialog operates in edit mode.
+         * Shape: { formId, formSlug, formName, moduleInstance, additionalData, localizedNames }
+         * @type {object|null}
+         */
+        this.existingForm = null;
     }
 
     static get properties() {
@@ -61,6 +67,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             creatableModules: {type: Array, attribute: false},
+            existingForm: {type: Object, attribute: false},
             _selectedModuleSlug: {state: true},
             _isSubmitting: {state: true},
             _formComponentTag: {state: true},
@@ -84,7 +91,8 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
             changedProperties.has('_formComponentTag') ||
             changedProperties.has('lang') ||
             changedProperties.has('auth') ||
-            changedProperties.has('entryPointUrl')
+            changedProperties.has('entryPointUrl') ||
+            changedProperties.has('existingForm')
         ) {
             this._syncFormComponent();
         }
@@ -122,6 +130,8 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this._formComponentInstance.lang = this.lang;
         this._formComponentInstance.auth = this.auth;
         this._formComponentInstance.entryPointUrl = this.entryPointUrl;
+        // Pass the existing form data when in edit mode so the component can pre-populate fields
+        this._formComponentInstance.existingForm = this.existingForm || null;
     }
 
     /**
@@ -130,6 +140,14 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
      */
     get _selectedModule() {
         return this.creatableModules.find((m) => m.formSlug === this._selectedModuleSlug) || null;
+    }
+
+    /**
+     * Returns true when in edit mode.
+     * @returns {boolean}
+     */
+    get _isEditMode() {
+        return this.existingForm !== null && this.existingForm !== undefined;
     }
 
     /**
@@ -157,8 +175,12 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     open() {
         this._resetForm();
 
-        // Auto-select when there is exactly one option
-        if (this.creatableModules.length === 1) {
+        if (this._isEditMode) {
+            // In edit mode, pre-select the module for the existing form
+            this._selectedModuleSlug = this.existingForm.formSlug;
+            this._registerAndSetFormComponent(this.existingForm);
+        } else if (this.creatableModules.length === 1) {
+            // Auto-select when there is exactly one option
             this._selectedModuleSlug = this.creatableModules[0].formSlug;
             this._registerAndSetFormComponent(this.creatableModules[0]);
         }
@@ -223,7 +245,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Handles the create action. Delegates to the imperatively-mounted
+     * Handles the create/save action. Delegates to the imperatively-mounted
      * create-form component's submit() method.
      */
     async _onCreate() {
@@ -237,14 +259,25 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
         if (formComponent && typeof formComponent.submit === 'function') {
             const result = await formComponent.submit();
             if (result) {
-                // Relay the success event upward so the parent can refresh
-                this.dispatchEvent(
-                    new CustomEvent('dbp-create-form-created', {
-                        detail: {form: result},
-                        bubbles: true,
-                        composed: true,
-                    }),
-                );
+                if (this._isEditMode) {
+                    // Relay the edit success event upward so the parent can refresh
+                    this.dispatchEvent(
+                        new CustomEvent('dbp-edit-form-saved', {
+                            detail: {form: result},
+                            bubbles: true,
+                            composed: true,
+                        }),
+                    );
+                } else {
+                    // Relay the create success event upward so the parent can refresh
+                    this.dispatchEvent(
+                        new CustomEvent('dbp-create-form-created', {
+                            detail: {form: result},
+                            bubbles: true,
+                            composed: true,
+                        }),
+                    );
+                }
                 this.close();
             }
         }
@@ -260,6 +293,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
     render() {
         const i18n = this._i18n;
         const t = (key, opts) => (i18n ? i18n.t(key, opts) : key);
+        const isEdit = this._isEditMode;
         const createDisabled = !this._isFormValid || this._isSubmitting;
 
         return html`
@@ -271,8 +305,11 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 <!-- Title -->
                 <div slot="title">
                     <h3 class="dialog-title">
-                        <dbp-icon class="title-icon" name="plus" aria-hidden="true"></dbp-icon>
-                        ${t('create-form.dialog-title')}
+                        <dbp-icon
+                            class="title-icon"
+                            name="${isEdit ? 'pencil' : 'plus'}"
+                            aria-hidden="true"></dbp-icon>
+                        ${isEdit ? t('edit-form.dialog-title') : t('create-form.dialog-title')}
                     </h3>
                 </div>
 
@@ -286,7 +323,7 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
 
                 <!-- Form content -->
                 <div slot="content" class="dialog-content">
-                    <!-- Action bar: Cancel (left) + Create (right) -->
+                    <!-- Action bar: Cancel (left) + Create/Save (right) -->
                     <div class="dialog-actions-bar">
                         <button
                             class="button is-secondary cancel-btn"
@@ -310,42 +347,49 @@ export class CreateFormDialog extends ScopedElementsMixin(DBPLitElement) {
                                           name="save"
                                           aria-hidden="true"></dbp-icon>
                                   `}
-                            ${t('create-form.create')}
+                            ${isEdit ? t('edit-form.save') : t('create-form.create')}
                         </button>
                     </div>
 
                     <!-- General section -->
                     <h4 class="form-section-heading">${t('create-form.section-general')}</h4>
 
-                    <!-- Form type selector -->
-                    <div class="form-field">
-                        <label class="form-label" for="form-type-select">
-                            ${t('create-form.field-form-type')}
-                            <span class="required-marker">*</span>
-                        </label>
-                        <div class="select-wrapper">
-                            <select
-                                id="form-type-select"
-                                class="form-select"
-                                .value="${this._selectedModuleSlug}"
-                                @change="${this._onFormTypeChange}">
-                                <option value="" ?selected="${this._selectedModuleSlug === ''}">
-                                    ${t('create-form.field-form-type-placeholder')}
-                                </option>
-                                ${this.creatableModules.map(
-                                    (m) => html`
-                                        <option
-                                            value="${m.formSlug}"
-                                            ?selected="${this._selectedModuleSlug === m.formSlug}">
-                                            ${m.formName || m.formSlug}
-                                        </option>
-                                    `,
-                                )}
-                            </select>
-                        </div>
-                    </div>
+                    <!-- Form type selector: only shown in create mode -->
+                    ${!isEdit
+                        ? html`
+                              <div class="form-field">
+                                  <label class="form-label" for="form-type-select">
+                                      ${t('create-form.field-form-type')}
+                                      <span class="required-marker">*</span>
+                                  </label>
+                                  <div class="select-wrapper">
+                                      <select
+                                          id="form-type-select"
+                                          class="form-select"
+                                          .value="${this._selectedModuleSlug}"
+                                          @change="${this._onFormTypeChange}">
+                                          <option
+                                              value=""
+                                              ?selected="${this._selectedModuleSlug === ''}">
+                                              ${t('create-form.field-form-type-placeholder')}
+                                          </option>
+                                          ${this.creatableModules.map(
+                                              (m) => html`
+                                                  <option
+                                                      value="${m.formSlug}"
+                                                      ?selected="${this._selectedModuleSlug ===
+                                                      m.formSlug}">
+                                                      ${m.formName || m.formSlug}
+                                                  </option>
+                                              `,
+                                          )}
+                                      </select>
+                                  </div>
+                              </div>
+                          `
+                        : ''}
 
-                    <!-- Container where the create-form component is mounted imperatively -->
+                    <!-- Container where the create/edit form component is mounted imperatively -->
                     <div
                         id="form-component-container"
                         class="form-component-area"

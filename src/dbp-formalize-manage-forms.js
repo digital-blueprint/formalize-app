@@ -1520,9 +1520,33 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     handleOpenCreateFormDialog() {
         const dialog = this._('#create-form-dialog');
         if (dialog) {
+            dialog.existingForm = null;
             dialog.creatableModules = this.getCreatableModules();
             dialog.open();
         }
+    }
+
+    /**
+     * Opens the create form dialog in edit mode for the given form.
+     * @param {string} formId - Identifier of the form to edit.
+     */
+    handleOpenEditFormDialog(formId) {
+        const dialog = this._('#create-form-dialog');
+        if (!dialog) return;
+
+        const formEntry = this.forms.get(formId);
+        if (!formEntry) return;
+
+        // Build the existingForm object the dialog and form component need
+        dialog.existingForm = {
+            formId: formEntry.formId,
+            formSlug: formEntry.formSlug,
+            formName: formEntry.formName,
+            moduleInstance: formEntry.moduleInstance,
+            additionalData: formEntry.additionalData || null,
+            localizedNames: formEntry.localizedNames || [],
+        };
+        dialog.open();
     }
 
     /**
@@ -1532,6 +1556,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     async handleCreateFormCreated(event) {
         // Reload the forms list to include the newly created form
+        await getListOfAllForms(this);
+    }
+
+    /**
+     * Handles the form edit success from the dialog's embedded component.
+     * Refreshes the forms list to reflect the updated form data.
+     * @param {CustomEvent} event
+     */
+    async handleEditFormSaved(event) {
         await getListOfAllForms(this);
     }
 
@@ -1940,8 +1973,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 lang="${this.lang}"
                 .auth="${this.auth}"
                 entry-point-url="${this.entryPointUrl}"
-                @dbp-create-form-created=${(event) =>
-                    this.handleCreateFormCreated(event)}></dbp-formalize-create-form-dialog>
+                @dbp-create-form-created=${(event) => this.handleCreateFormCreated(event)}
+                @dbp-edit-form-saved=${(event) =>
+                    this.handleEditFormSaved(event)}></dbp-formalize-create-form-dialog>
 
             ${this.showLoadingIndicator
                 ? html`

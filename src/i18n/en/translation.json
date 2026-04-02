@@ -9,6 +9,12 @@
         "section-general": "General Information",
         "success-created": "Form created successfully"
     },
+    "edit-form": {
+        "dialog-title": "Edit form",
+        "error-update-failed": "Failed to update form. Response status: {{status}}",
+        "save": "Save",
+        "success-updated": "Form updated successfully"
+    },
     "error-login-link": "Log in",
     "error-login-message": "Please log in to use this functionality.",
     "errors": {
@@ -65,6 +71,7 @@
         "delete-selected-submissions-button-text": "Delete selected ({{n}})",
         "detailed-submission-dialog-id": "{{id}} of {{nItems}}",
         "detailed-submission-dialog-title": "Detailed view",
+        "edit-form-button": "Edit form",
         "edit-permission-button-text": "Edit permissions",
         "edit-permission-modal-title": "Edit permissions",
         "edit-submission-button-text": "Edit submission",
