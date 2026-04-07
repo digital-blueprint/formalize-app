@@ -138,6 +138,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.options_forms = {};
         this.forms = new Map();
+        /** @type {Map<string, {formId: string, formSlug: string, formName: string|null, moduleInstance: object}>} */
+        this.loadedModules = new Map();
 
         this.rawSubmissions = [];
         this.submissionsGrantedActions = new Map();
@@ -1483,7 +1485,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     /**
-     * Returns the list of form modules that implement createForm().
+     * Returns the list of creatable form modules.
      * Each entry has { formId, formSlug, formName, moduleInstance }.
      * The formName is retrieved from the module's getFormName() method if available,
      * falling back to the URL slug for backwards compatibility.
@@ -1492,23 +1494,29 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      */
     getCreatableModules() {
         const modules = [];
-        for (const entry of this.forms.values()) {
+
+        // Iterate only the module definitions loaded from modules.json, not backend form instances.
+        for (const entry of this.loadedModules.values()) {
             if (
-                entry.moduleInstance &&
-                typeof entry.moduleInstance.getEditFormComponent === 'function'
+                !entry.moduleInstance ||
+                typeof entry.moduleInstance.getEditFormComponent !== 'function'
             ) {
-                const formName =
-                    typeof entry.moduleInstance.getFormName === 'function'
-                        ? entry.moduleInstance.getFormName(this.lang)
-                        : entry.formSlug;
-                modules.push({
-                    formId: entry.formId,
-                    formSlug: entry.formSlug,
-                    formName: formName,
-                    moduleInstance: entry.moduleInstance,
-                });
+                continue;
             }
+
+            const formName =
+                typeof entry.moduleInstance.getFormName === 'function'
+                    ? entry.moduleInstance.getFormName(this.lang)
+                    : entry.formSlug;
+
+            modules.push({
+                formId: entry.formId,
+                formSlug: entry.formSlug,
+                formName,
+                moduleInstance: entry.moduleInstance,
+            });
         }
+
         // Keep creatableModulesCount in sync so dependent components can react
         this.creatableModulesCount = modules.length;
         return modules;

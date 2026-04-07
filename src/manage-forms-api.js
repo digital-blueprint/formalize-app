@@ -84,6 +84,14 @@ export async function loadModules(host) {
                     formSlug: object.getUrlSlug(),
                     moduleInstance: object,
                 });
+                // Also store in a dedicated map so getCreatableModules() can enumerate
+                // only module definitions and is not confused by backend form instances.
+                host.loadedModules.set(object.getUrlSlug(), {
+                    formId: object.getFormIdentifier(),
+                    formSlug: object.getUrlSlug(),
+                    formName: null,
+                    moduleInstance: object,
+                });
             }
         }
     } catch (error) {
