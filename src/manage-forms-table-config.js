@@ -365,6 +365,7 @@ export function setDefaultSubmissionTableOrder(host, state) {
         headerSort: false,
         frozen: true,
         width: 30,
+        download: false,
     };
 
     // Separate htmlButtons to place it last
