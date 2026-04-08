@@ -890,7 +890,7 @@ export function getManageFormsCSS() {
 
         .footer-menu {
             padding: 0;
-            justify-content: flex-end;
+            justify-content: space-between;
             display: flex;
             gap: 1em;
             margin-block: 2em 0;

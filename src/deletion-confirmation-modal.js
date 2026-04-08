@@ -1,6 +1,6 @@
 // @ts-nocheck
 import {html} from 'lit';
-import {ScopedElementsMixin, Button} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, Button, Icon} from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n.js';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
@@ -28,6 +28,7 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
         return {
             'dbp-button': Button,
             'dbp-modal': Modal,
+            'dbp-icon': Icon,
         };
     }
 
@@ -95,18 +96,25 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
                 subscribe="lang">
                 <div slot="content">
                     <p>${i18n.t('manage-forms.delete-confirmation-message')}</p>
+                    <ul>
+                        <li>${i18n.t('manage-forms.delete-confirmation-message-li1')}</li>
+                        <li>${i18n.t('manage-forms.delete-confirmation-message-li2')}</li>
+                    </ul>
                 </div>
                 <menu slot="footer" class="footer-menu">
                     <dbp-button
                         type="is-secondary"
                         no-spinner-on-click
                         @click="${() => this._handleCancel()}">
+                        <dbp-icon name="close" aria-hidden="true"></dbp-icon>
                         ${i18n.t('manage-forms.abort')}
                     </dbp-button>
                     <dbp-button
                         type="is-danger"
                         no-spinner-on-click
                         @click="${() => this._handleConfirm()}">
+                        <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
+
                         ${i18n.t('manage-forms.delete')}
                     </dbp-button>
                 </menu>
