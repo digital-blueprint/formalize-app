@@ -1844,11 +1844,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     render() {
         const i18n = this._i18n;
+        let enabledStates = this.enabledStates;
 
         if (this.activeFormId) {
             const activeForm = this.forms.get(this.activeFormId);
             const allowedSubmissionStates = activeForm?.allowedSubmissionStates;
-            this.enabledStates = {
+            enabledStates = {
                 draft: isDraftStateEnabled(allowedSubmissionStates),
                 submitted: isSubmittedStateEnabled(allowedSubmissionStates),
             };
@@ -1897,7 +1898,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .loadingSubmissionTables=${this.loadingSubmissionTables}
                     .activeFormName=${this.activeFormName}
                     .createSubmissionUrl=${this.createSubmissionUrl}
-                    .enabledStates=${this.enabledStates}
+                    .enabledStates=${enabledStates}
                     .noSubmissionAvailable=${this.noSubmissionAvailable}
                     .searchWidgetIsOpen=${this.searchWidgetIsOpen}
                     .actionsWidgetIsOpen=${this.actionsWidgetIsOpen}
