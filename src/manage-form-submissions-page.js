@@ -748,26 +748,25 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
         return html`
             <div
-                class="control submissions-spinner ${classMap({
-                    hidden: !this.loadingSubmissionTables || this.showFormsTable,
-                })}">
-                <span class="loading">
-                    <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
-                </span>
-            </div>
-
-            <div
                 class="table-wrapper submissions${classMap({
                     hideWithoutDisplay: !this.showSubmissionTables,
                 })}">
-                <span class="back-navigation">
-                    <a
-                        @click="${() => this.handleBackToOverview()}"
-                        title="${i18n.t('manage-forms.back-text')}">
-                        <dbp-icon name="chevron-left"></dbp-icon>
-                        ${i18n.t('manage-forms.back-text')}
-                    </a>
-                </span>
+                <div class="submissions-top-bar">
+                    <span class="back-navigation">
+                        <a
+                            @click="${() => this.handleBackToOverview()}"
+                            title="${i18n.t('manage-forms.back-text')}">
+                            <dbp-icon name="chevron-left"></dbp-icon>
+                            ${i18n.t('manage-forms.back-text')}
+                        </a>
+                    </span>
+                    <span
+                        class="loading submissions-spinner ${classMap({
+                            hidden: !this.loadingSubmissionTables || this.showFormsTable,
+                        })}">
+                        <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
+                    </span>
+                </div>
                 <div class="table-header submissions">
                     <h3>${this.activeFormName}</h3>
                     ${this.createSubmissionUrl

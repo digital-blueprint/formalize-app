@@ -359,6 +359,23 @@ export function getManageFormsCSS() {
             padding-top: 1rem;
         }
 
+        .submissions-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .submissions-top-bar .back-navigation {
+            padding-top: 0;
+        }
+
+        .submissions-top-bar .submissions-spinner {
+            margin-left: auto;
+        }
+
         .table-wrapper {
             container-type: inline-size;
             container-name: table-wrapper;
@@ -1180,6 +1197,10 @@ export function getManageFormsCSS() {
             }
 
             .back-navigation {
+                padding-top: 0;
+            }
+
+            .submissions-top-bar {
                 padding-top: 0;
             }
 
