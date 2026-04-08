@@ -744,9 +744,13 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 const activeForm = this.forms.get(this.activeFormId);
                 const activeFormSlug = activeForm ? activeForm.formSlug : null;
-                this.createSubmissionUrl = activeFormSlug
-                    ? getFormRenderUrl(activeFormSlug, this.lang)
-                    : '';
+
+                // if slug is an uuid ["e78869ce-e9b3-4df2-854b-cf88a35285f5"], do not create submission URL as it is not a renderable form
+                this.createSubmissionUrl =
+                    activeFormSlug &&
+                    !activeFormSlug.match(/[\w\d]{8}-[\w\d]{4}-[\w\d]{4}-[\w\d]{4}-[\w\d]{12}/)
+                        ? getFormRenderUrl(activeFormSlug, this.lang)
+                        : '';
 
                 // Fetch available tags for this form before building the table
                 // This ensures availableTags is populated when setDefaultSubmissionTableOrder runs
@@ -1593,7 +1597,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             activeForm.formName === 'Barrierefreie Lehrveranstaltungen' ||
             activeForm.formName === 'Accessible Courses'
         ) {
-            // Go to the readonly view of the form submission
+            // Go to the edit submission
             let formSubmissionUrl =
                 getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
             const url = new URL(formSubmissionUrl);
