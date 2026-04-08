@@ -355,6 +355,10 @@ class FormalizeFormElement extends BaseFormElement {
         this.removeEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
         window.removeEventListener('click', this.handleSelect2Close);
+
+        this.shadowRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
+            capture: true,
+        });
     }
 
     /**
