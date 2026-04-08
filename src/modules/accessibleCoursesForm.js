@@ -737,6 +737,35 @@ class FormalizeFormElement extends BaseFormElement {
                     break;
             }
 
+            if (this.formData) {
+                try {
+                    const lastModifierDetailsResponse = await this.apiGetUserDetails(
+                        this.lastModifiedCreatorId,
+                    );
+                    if (!lastModifierDetailsResponse.ok) {
+                        sendNotification({
+                            summary: i18n.t('errors.error-title'),
+                            body: i18n.t('errors.failed-to-get-last-modifier-details', {
+                                status: lastModifierDetailsResponse.status,
+                            }),
+                            type: 'danger',
+                            timeout: 0,
+                        });
+                    } else {
+                        const lastModifierDetails = await lastModifierDetailsResponse.json();
+                        this.lastModifiedCreatorName = `${lastModifierDetails?.givenName} ${lastModifierDetails?.familyName}`;
+                    }
+                } catch (e) {
+                    console.log(e);
+                    sendNotification({
+                        summary: i18n.t('errors.error-title'),
+                        body: i18n.t('errors.failed-to-get-last-modifier-details'),
+                        type: 'danger',
+                        timeout: 0,
+                    });
+                }
+            }
+
             this.setButtonStates();
             this.isUserAllowedToDownloadPdf = false;
 
