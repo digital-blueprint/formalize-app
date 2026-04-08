@@ -321,6 +321,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.formIdentifiers[this.formUrlSlug]) {
             await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
         }
+        this.requestUpdate();
     }
 
     /**

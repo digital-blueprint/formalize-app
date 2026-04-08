@@ -75,6 +75,81 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         );
     }
 
+    /**
+     * Presets the CourseSelect element with the given course name.
+     * It extracts the course ID from the name, fetches the course data,
+     * and sets the CourseSelect's value and display text accordingly.
+     *
+     * @param {string} courseName - The course name in the format "12345: Course Name (Type, Term)". The number before the colon is used as the course ID.
+     */
+    async presetCourse(courseName) {
+        if (!courseName) return;
+
+        const courseId = courseName.replace(/^(.+?): .*/, '$1');
+        const courseFilter = {
+            'filter[foo][condition][path]': 'code',
+            'filter[foo][condition][operator]': 'EQUALS',
+            'filter[foo][condition][value]': `"${courseId}"`,
+        };
+
+        const courseFilterUrl = new URLSearchParams(courseFilter).toString();
+
+        // Fetch the course object
+        const resp = await fetch(
+            this.entryPointUrl +
+                `/base/courses?includeLocal=typeKey%2CsemesterKey&${courseFilterUrl}`,
+            {headers: {Authorization: 'Bearer ' + this.auth.token}},
+        );
+        if (!resp.ok) return;
+
+        const courseResponse = await resp.json();
+        let course = courseResponse['hydra:member'][0];
+        if (!course) return;
+
+        // If the language isn't German, fetch German data for consistent naming
+        // (same as handleInputValue does)
+        if (this.lang !== 'de') {
+            const germanData = await this.fetchGermanCourseData(course['@id']);
+            if (germanData != null) {
+                // Preserve localData from original since fetchGermanCourseData doesn't include it
+                course = {...germanData, localData: course.localData};
+            }
+        }
+
+        // Get the inner CourseSelect element and its Select2 instance
+        const picker = this.shadowRoot.querySelector('#' + this.name + '-picker');
+        const $select = picker?.$('#' + picker.selectId);
+        if (!$select) return;
+
+        // Format the display text (reuse CourseSelect's formatter)
+        const text = picker.formatCourse(picker, course);
+
+        // Inject the option and select it
+        const option = new Option(text, courseId, true, true);
+        $select.append(option).trigger('change');
+
+        // Also set the data-object so handleInputValue can read it later
+        picker.object = course;
+        // Prevent CourseSelect.update() from calling initSelect2(), which would destroy
+        // the option we just injected above.
+        picker.ignoreValueUpdate = true;
+        picker.value = courseId;
+    }
+
+    updated(changedProperties) {
+        super.updated(changedProperties);
+
+        if (
+            (changedProperties.has('value') || changedProperties.has('auth')) &&
+            this.value &&
+            this.auth?.token
+        ) {
+            this.updateComplete.then(() => {
+                this.presetCourse(this.value);
+            });
+        }
+    }
+
     renderInput() {
         return html`
             <div class="control">

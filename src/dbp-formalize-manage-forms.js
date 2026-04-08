@@ -1589,12 +1589,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (
             activeForm.formName === 'Ethikantrag' ||
             activeForm.formName === 'Ethics Proposal' ||
-            activeForm.formName === 'Media Transparency Form'
+            activeForm.formName === 'Media Transparency Form' ||
+            activeForm.formName === 'Barrierefreie Lehrveranstaltungen' ||
+            activeForm.formName === 'Accessible Courses'
         ) {
             // Go to the readonly view of the form submission
             let formSubmissionUrl =
                 getFormRenderUrl(activeFormSlug, this.lang) + `/${submissionId}`;
             const url = new URL(formSubmissionUrl);
+            url.searchParams.set('validate', 'true');
             window.history.pushState({}, '', url);
 
             // Middle click opens in a new tab

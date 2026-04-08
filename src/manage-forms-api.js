@@ -388,7 +388,9 @@ export async function getAllFormSubmissions(host, formId) {
             if (
                 activeForm.formName === 'Ethikantrag' ||
                 activeForm.formName === 'Ethics Proposal' ||
-                activeForm.formName === 'Media Transparency Form'
+                activeForm.formName === 'Media Transparency Form' ||
+                activeForm.formName === 'Barrierefreie Lehrveranstaltungen' ||
+                activeForm.formName === 'Accessible Courses'
             ) {
                 const submissionDetailsFormButton = host.createScopedElement(
                     'dbp-formalize-get-submission-link',
