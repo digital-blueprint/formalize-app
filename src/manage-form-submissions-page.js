@@ -19,6 +19,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.loadingSubmissionTables = false;
         this.activeFormName = '';
         this.createSubmissionUrl = '';
+        this.hideCreateSubmissionButton = false;
         this.enabledStates = {draft: false, submitted: false};
         this.noSubmissionAvailable = {draft: true, submitted: true};
         this.searchWidgetIsOpen = {draft: false, submitted: false};
@@ -61,6 +62,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             loadingSubmissionTables: {type: Boolean, attribute: false},
             activeFormName: {type: String, attribute: false},
             createSubmissionUrl: {type: String, attribute: false},
+            hideCreateSubmissionButton: {type: Boolean, attribute: false},
             enabledStates: {type: Object, attribute: false},
             noSubmissionAvailable: {type: Object, attribute: false},
             searchWidgetIsOpen: {type: Object, attribute: false},
@@ -769,7 +771,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 </div>
                 <div class="table-header submissions">
                     <h3>${this.activeFormName}</h3>
-                    ${this.createSubmissionUrl
+                    ${this.createSubmissionUrl && !this.hideCreateSubmissionButton
                         ? html`
                               <a
                                   class="create-submission-button"

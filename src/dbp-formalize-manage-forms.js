@@ -246,6 +246,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.downloadFolderNamePattern = '';
         this.allowListFrontendKeys = [];
         this.denyListFrontendKeys = [];
+        this.hideCreateSubmissionButton = false;
         this.noFormsAvailable = false;
         // Number of loaded modules that implement createForm(); drives button visibility
         this.creatableModulesCount = 0;
@@ -351,6 +352,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 converter: {
                     fromAttribute: parseFormListAttribute,
                 },
+            },
+            hideCreateSubmissionButton: {
+                type: Boolean,
+                attribute: 'hide-create-submission-button',
             },
         };
     }
@@ -1904,6 +1909,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .loadingSubmissionTables=${this.loadingSubmissionTables}
                     .activeFormName=${this.activeFormName}
                     .createSubmissionUrl=${this.createSubmissionUrl}
+                    .hideCreateSubmissionButton=${this.hideCreateSubmissionButton}
                     .enabledStates=${this.enabledStates}
                     .noSubmissionAvailable=${this.noSubmissionAvailable}
                     .searchWidgetIsOpen=${this.searchWidgetIsOpen}

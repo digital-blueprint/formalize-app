@@ -22,6 +22,8 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `allow-list-frontend-keys="job-offer, ethics-proposal"`
 - `deny-list-frontend-keys` (optional): comma-separated list of `frontendKey` values; forms whose `frontendKey` matches one of the listed values are hidden; one key can hide a whole group of forms
     - example `deny-list-frontend-keys="job-offer"`
+- `hide-create-submission-button` (optional): hides the create submission button in the submissions view when set
+    - example `hide-create-submission-button`
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
