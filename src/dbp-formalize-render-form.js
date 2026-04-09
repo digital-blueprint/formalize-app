@@ -2,6 +2,7 @@ import {html, css} from 'lit';
 import {html as staticHtml, unsafeStatic} from 'lit/static-html.js';
 import {ScopedElementsMixin, sendNotification} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
+import {Icon} from '@dbp-toolkit/common';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {BaseObject} from './form/base-object.js';
 import {
@@ -41,7 +42,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     static get scopedElements() {
-        return {};
+        return {
+            'dbp-icon': Icon,
+        };
     }
 
     static get properties() {
@@ -388,6 +391,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (formUrlSlug === '') {
             return html`
                 <div class="notification is-warning">
+                    <dbp-icon name="warning-high"></dbp-icon>
                     ${this._i18n.t('render-form.form-not-found')}
                 </div>
             `;
@@ -396,6 +400,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!formComponents[formUrlSlug]) {
             return html`
                 <div class="notification is-warning">
+                    <dbp-icon name="warning-high"></dbp-icon>
                     ${this._i18n.t('render-form.form-with-slug-not-found', {
                         slug: formUrlSlug,
                         interpolation: {escapeValue: false},
@@ -407,6 +412,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!this.submissionAllowed) {
             return html`
                 <div class="notification is-warning">
+                    <dbp-icon name="warning-high"></dbp-icon>
                     ${this._i18n.t('render-form.form-not-accessible')}
                 </div>
             `;
@@ -447,6 +453,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 return html`
                     <div class="notification is-warning">
+                        <dbp-icon name="warning-high"></dbp-icon>
                         ${this._i18n.t('render-form.form-already-submitted-warning')}
                         ${submissionUrl
                             ? html`
@@ -485,6 +492,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.formDisplayDenied) {
             return html`
                 <div class="notification is-warning">
+                    <dbp-icon name="warning-high"></dbp-icon>
                     ${this._i18n.t('render-form.form-not-accessible')}
                 </div>
             `;
@@ -496,6 +504,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // and show a link to the submissions in the manage-forms page
             return html`
                 <div class="notification is-warning">
+                    <dbp-icon name="warning-high"></dbp-icon>
                     ${this._i18n.t('render-form.form-already-submitted-n-times-warning', {
                         n: this.usersSubmittedSubmissionCount,
                     })}
@@ -515,8 +524,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // An empty form is shown with the message that the user already submitted the form
             // and show a link to the submissions in the manage-forms page
             formAlreadySubmittedWarning = html`
-                <div class="notification is-warning">
-                    ${this._i18n.t('render-form.form-already-submitted-warning')}
+                <div class="notification is-info">
+                    <dbp-icon name="information-circle"></dbp-icon>
                     <a
                         href="${getFormManageFormsUrl(
                             this.formIdentifiers[this.formUrlSlug],
@@ -558,6 +567,17 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .notification {
                 margin-bottom: 2em;
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+            }
+
+            .notification dbp-icon {
+                position: static;
+            }
+
+            .notification a {
+                text-underline-offset: 2px;
             }
         `;
     }
