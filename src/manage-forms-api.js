@@ -119,7 +119,14 @@ export async function getListOfAllForms(host) {
     const i18n = host._i18n;
     try {
         host.loadCourses = false;
-        host.loadingFormsTable = true;
+
+        // Only show the loading spinner if the table hasn't been built yet.
+        // On subsequent calls (e.g. triggered by a token refresh) we keep the
+        // existing table visible so the user doesn't see a disruptive flash.
+        const isInitialLoad = !host.allForms || host.allForms.length === 0;
+        if (isInitialLoad) {
+            host.loadingFormsTable = true;
+        }
 
         const response = await fetch(host.entryPointUrl + '/formalize/forms' + '?perPage=9999', {
             headers: {
@@ -254,6 +261,20 @@ export async function getListOfAllForms(host) {
 
                 let new_form = {id: id, name: formName, actionButton: actionContainer};
                 forms.push(new_form);
+            }
+
+            // Avoid replacing allForms when the set of forms hasn't changed.
+            // A token refresh can cause this function to be re-invoked even
+            // though the API returns the same data.  Skipping the assignment
+            // prevents the Lit reactive cycle from re-triggering
+            // updated('allForms'), which would rebuild/reset the tabulator
+            // tables, show a loading spinner, and disrupt the user.
+            const prevIds = (host.allForms || []).map((f) => f.name).join('\0');
+            const nextIds = forms.map((f) => f.name).join('\0');
+            if (prevIds === nextIds && host.allForms.length > 0) {
+                // Forms unchanged — just make sure the loading spinner is hidden.
+                host.loadingFormsTable = false;
+                return;
             }
 
             host.allForms = forms;

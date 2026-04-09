@@ -579,7 +579,18 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     // Check if the form-id is one of the forms identifiers.
                     const form = this.forms.get(formId);
                     if (form) {
-                        this.switchToSubmissionTable(form);
+                        // Skip switching if we are already showing this form's
+                        // submissions and the table is still intact.  This
+                        // prevents a full table destroy/rebuild cycle when
+                        // allForms is reassigned with identical data (e.g.
+                        // after a background token refresh).
+                        const alreadyShowing =
+                            this.activeFormId === formId &&
+                            this.showSubmissionTables &&
+                            !this.loadingSubmissionTables;
+                        if (!alreadyShowing) {
+                            this.switchToSubmissionTable(form);
+                        }
                     } else {
                         sendNotification({
                             summary: this._i18n.t('errors.notfound-title'),
@@ -591,7 +602,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 } else {
                     this.refreshTableReferences();
                     if (this.formsTable) {
-                        this.formsTable.buildTable();
+                        // Only rebuild the forms table when it hasn't been
+                        // built yet.  If it is already showing, just update
+                        // the data in-place so the user doesn't see a flash.
+                        if (!this.formsTable.tableReady) {
+                            this.formsTable.buildTable();
+                        } else {
+                            this.formsTable.setData(this.allForms);
+                        }
                         this.loadingFormsTable = false;
                         this.showFormsTable = true;
                         this.showSubmissionTables = false;
@@ -641,8 +659,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 } else {
                     // Show the forms table
                     this.refreshTableReferences();
-                    if (this.formsTable && !this.formsTable.tableReady) {
-                        this.formsTable.buildTable();
+                    if (this.formsTable) {
+                        if (!this.formsTable.tableReady) {
+                            this.formsTable.buildTable();
+                        }
                         this.loadingFormsTable = false;
                         this.showFormsTable = true;
                         this.showSubmissionTables = false;
@@ -697,14 +717,25 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             changedProperties.has('allowListFrontendKeys') ||
             changedProperties.has('denyListFrontendKeys')
         ) {
-            console.log(
-                'updated: allowListFrontendKeys/denyListFrontendKeys changed',
-                this.allowListFrontendKeys,
-                this.denyListFrontendKeys,
-                'isLoggedIn:',
-                this.isLoggedIn(),
-            );
-            if (this.isLoggedIn()) {
+            // Deep-compare the old and new values so we don't refetch when the
+            // provider re-dispatches the same arrays (e.g. after a token refresh).
+            const oldAllow = changedProperties.get('allowListFrontendKeys');
+            const oldDeny = changedProperties.get('denyListFrontendKeys');
+            const allowChanged =
+                changedProperties.has('allowListFrontendKeys') &&
+                JSON.stringify(oldAllow) !== JSON.stringify(this.allowListFrontendKeys);
+            const denyChanged =
+                changedProperties.has('denyListFrontendKeys') &&
+                JSON.stringify(oldDeny) !== JSON.stringify(this.denyListFrontendKeys);
+
+            if ((allowChanged || denyChanged) && this.isLoggedIn()) {
+                console.log(
+                    'updated: allowListFrontendKeys/denyListFrontendKeys changed',
+                    this.allowListFrontendKeys,
+                    this.denyListFrontendKeys,
+                    'isLoggedIn:',
+                    this.isLoggedIn(),
+                );
                 await getListOfAllForms(this);
             }
         }
