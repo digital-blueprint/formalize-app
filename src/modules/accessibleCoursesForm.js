@@ -552,15 +552,21 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.email_student || ''}
                         disabled></dbp-form-string-element>
 
-                    <dbp-form-string-element
-                        subscribe="lang"
-                        name="comment"
-                        label=${i18n.t('render-form.forms.accessible-courses-form.comment')}
-                        .value=${data.comment || ''}
-                        description=${i18n.t(
-                            'render-form.forms.accessible-courses-form.comment-placeholder',
-                        )}
-                        rows="5"></dbp-form-string-element>
+                    ${this.isAdmin
+                        ? html`
+                              <dbp-form-string-element
+                                  subscribe="lang"
+                                  name="comment"
+                                  label=${i18n.t(
+                                      'render-form.forms.accessible-courses-form.comment',
+                                  )}
+                                  .value=${data.comment || ''}
+                                  description=${i18n.t(
+                                      'render-form.forms.accessible-courses-form.comment-placeholder',
+                                  )}
+                                  rows="5"></dbp-form-string-element>
+                          `
+                        : ''}
                 </fieldset>
             </form>
 
@@ -651,15 +657,21 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.studentEmail || ''}
                         disabled></dbp-form-string-view>
 
-                    <dbp-form-string-view
-                        subscribe="lang"
-                        name="comment"
-                        label=${i18n.t('render-form.forms.accessible-courses-form.comment')}
-                        .value=${data.comment || ''}
-                        description=${i18n.t(
-                            'render-form.forms.accessible-courses-form.comment-placeholder',
-                        )}
-                        rows="5"></dbp-form-string-view>
+                    ${this.isAdmin
+                        ? html`
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="comment"
+                                  label=${i18n.t(
+                                      'render-form.forms.accessible-courses-form.comment',
+                                  )}
+                                  .value=${data.comment || ''}
+                                  description=${i18n.t(
+                                      'render-form.forms.accessible-courses-form.comment-placeholder',
+                                  )}
+                                  rows="5"></dbp-form-string-view>
+                          `
+                        : ''}
                 </fieldset>
             </form>
 
