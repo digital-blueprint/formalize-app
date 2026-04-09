@@ -8,12 +8,7 @@
  */
 
 import {sendNotification} from '@dbp-toolkit/common';
-import {
-    getFormRenderUrl,
-    getFormManageFormsUrl,
-    SUBMISSION_STATES_BINARY,
-    addDetailsToUrl,
-} from './utils.js';
+import {getFormRenderUrl, SUBMISSION_STATES_BINARY, addDetailsToUrl} from './utils.js';
 import metadata from './dbp-formalize-manage-forms.metadata.json';
 import xss from 'xss';
 
@@ -234,10 +229,9 @@ export async function getListOfAllForms(host) {
                 btn.ariaLabel = i18n.t('manage-forms.open-forms');
                 btn.addEventListener('click', async () => {
                     host.loadingSubmissionTables = true;
-                    host.routingUrl = `/${formId}`;
-                    const formSubmissionUrl = getFormManageFormsUrl(formId, host.lang);
-                    const url = new URL(formSubmissionUrl);
-                    window.history.pushState({}, '', url);
+                    // Let the router handle the history entry via sendSetPropertyEvent.
+                    // A manual pushState here would create a duplicate history entry,
+                    // requiring the user to press the back button twice.
                     host.sendSetPropertyEvent('routing-url', `/${formId}`, true);
                 });
                 actionContainer.appendChild(btn);
