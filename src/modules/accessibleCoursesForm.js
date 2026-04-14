@@ -83,11 +83,11 @@ class FormalizeFormElement extends BaseFormElement {
                         courseName: formData.courseName,
                         lecturers: formData.lecturers,
                         adaptations: formData.adaptations,
-                        // @TODO: We should consider storing the names separately instead of concatenating them.
-                        // It's not possible to reliably split them again (e.g. if a person has multiple given names).
-                        studentName: `${formData.givenName} ${formData.familyName}`,
-                        studentEmail: formData.email_student,
-                        comment: formData.comment,
+                        matriculationNumber: formData.matriculationNumber ?? '',
+                        studentGivenName: formData.givenName ?? '',
+                        studentFamilyName: formData.familyName ?? '',
+                        studentEmail: formData.email_student ?? '',
+                        comment: formData.comment ?? '',
                     };
 
                     const body = {
