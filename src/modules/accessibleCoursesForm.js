@@ -32,6 +32,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.saveButtonEnabled = false;
         this.isUserAllowedToDownloadPdf = false;
         this._fetchingUserData = false;
+        this._userDataFetched = false;
 
         // ensuring we have an object to extend
         this.formData = this.formData || {};
@@ -84,9 +85,9 @@ class FormalizeFormElement extends BaseFormElement {
                         lecturers: formData.lecturers,
                         adaptations: formData.adaptations,
                         matriculationNumber: formData.matriculationNumber ?? '',
-                        studentGivenName: formData.givenName ?? '',
-                        studentFamilyName: formData.familyName ?? '',
-                        studentEmail: formData.email_student ?? '',
+                        studentGivenName: formData.studentGivenName ?? '',
+                        studentFamilyName: formData.studentFamilyName ?? '',
+                        studentEmail: formData.studentEmail ?? '',
                         comment: formData.comment ?? '',
                     };
 
@@ -196,10 +197,10 @@ class FormalizeFormElement extends BaseFormElement {
             this.formData = this.formData || {};
 
             this.formData.identifier = `${person['identifier']}`;
-            this.formData.givenName = `${person['givenName']}`;
-            this.formData.familyName = `${person['familyName']}`;
+            this.formData.studentGivenName = `${person['givenName']}`;
+            this.formData.studentFamilyName = `${person['familyName']}`;
             this.formData.matriculationNumber = `${person['localData']['matriculationNumber']}`;
-            this.formData.email_student = `${person['localData']['email']}`;
+            this.formData.studentEmail = `${person['localData']['email']}`;
 
             this.requestUpdate();
         } catch (error) {
@@ -365,12 +366,10 @@ class FormalizeFormElement extends BaseFormElement {
         // Restore the lecturers array — gatherFormDataFromElement converts it to a string
         // because DbpStringElement.value is typed as String
         data.formData.lecturers = this.formData.lecturers || [];
-
-        // Restore studentName and studentEmail — the stored submission uses these keys,
-        // but the edit form uses givenName/familyName/email_student which are undefined
-        // when loading an existing submission (causing them to be patched as empty).
-        data.formData.studentName = `${this.formData.givenName} ${this.formData.familyName}`;
-        data.formData.studentEmail = this.formData.email_student || '';
+        data.formData.studentGivenName = this.formData.studentGivenName || '';
+        data.formData.studentFamilyName = this.formData.studentFamilyName || '';
+        data.formData.studentEmail = this.formData.studentEmail || '';
+        data.formData.matriculationNumber = this.formData.matriculationNumber || '';
 
         const formData = new FormData();
 
@@ -451,11 +450,24 @@ class FormalizeFormElement extends BaseFormElement {
     renderFormElements() {
         const i18n = this._i18n;
 
-        if (!this.formData.givenName && !this.formData.familyName && !this._fetchingUserData) {
-            this._fetchingUserData = true;
-            this.fetchUserData().finally(() => {
-                this._fetchingUserData = false;
-            });
+        if (Object.keys(this.formData).length > 0) {
+            // Check if submission already contains student data (from either key format)
+            if (
+                this.formData.studentGivenName &&
+                this.formData.studentFamilyName &&
+                this.formData.studentEmail &&
+                this.formData.matriculationNumber
+            ) {
+                // Student data is already present, no need to fetch
+                this._userDataFetched = true;
+            } else if (!this._userDataFetched && !this._fetchingUserData) {
+                // No student data from submission, fetch from logged-in user
+                this._fetchingUserData = true;
+                this.fetchUserData().finally(() => {
+                    this._fetchingUserData = false;
+                    this._userDataFetched = true;
+                });
+            }
         }
 
         const data = this.formData || {};
@@ -533,23 +545,23 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-element
                         subscribe="lang"
-                        name="givenName"
+                        name="studentGivenName"
                         label=${i18n.t('render-form.forms.accessible-courses-form.given-name')}
-                        value=${data.givenName || ''}
+                        value=${data.studentGivenName || ''}
                         disabled></dbp-form-string-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
-                        name="familyName"
+                        name="studentFamilyName"
                         label=${i18n.t('render-form.forms.accessible-courses-form.family-name')}
-                        value=${data.familyName || ''}
+                        value=${data.studentFamilyName || ''}
                         disabled></dbp-form-string-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
-                        name="email_student"
+                        name="studentEmail"
                         label=${i18n.t('render-form.forms.accessible-courses-form.email')}
-                        value=${data.email_student || ''}
+                        value=${data.studentEmail || ''}
                         disabled></dbp-form-string-element>
 
                     ${this.isAdmin
@@ -638,21 +650,21 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-view
                         subscribe="lang"
-                        name="givenName"
+                        name="studentGivenName"
                         label=${i18n.t('render-form.forms.accessible-courses-form.given-name')}
-                        value=${(data.studentName || '').split(' ')[0] || ''}
+                        value=${data.studentGivenName || ''}
                         disabled></dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
-                        name="familyName"
+                        name="studentFamilyName"
                         label=${i18n.t('render-form.forms.accessible-courses-form.family-name')}
-                        value=${(data.studentName || '').split(' ').slice(1).join(' ') || ''}
+                        value=${data.studentFamilyName || ''}
                         disabled></dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
-                        name="email_student"
+                        name="studentEmail"
                         label=${i18n.t('render-form.forms.accessible-courses-form.email')}
                         value=${data.studentEmail || ''}
                         disabled></dbp-form-string-view>
