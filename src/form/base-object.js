@@ -419,6 +419,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             tagIsInline: {type: String, attribute: false},
             allowedSubmissionStates: {type: Number, attribute: 'allowed-submission-states'},
             maxNumberOfSubmissionsPerUser: {type: String, attribute: 'max-number-of-submissions'},
+            lastModifiedCreatorName: {type: String, attribute: false},
 
             formProperties: {type: Object},
             userAllSubmissions: {type: Array},
