@@ -297,13 +297,17 @@ function getAttachmentFields(formSchemaFields) {
 
 /**
  * Get system fields that should always be present.
+ * When the form schema explicitly defines a field (e.g. "identifier"), skip it
+ * here so it is only rendered once – via the schema-driven column list.
  * @param {Array} initialColumnDefinitions
+ * @param {object|null} formSchemaFields
  * @returns {Array}
  */
-function getSystemFields(initialColumnDefinitions) {
+function getSystemFields(initialColumnDefinitions, formSchemaFields) {
+    const schemaProperties = formSchemaFields?.properties || {};
     return initialColumnDefinitions.filter(
         (def) =>
-            def.field === 'identifier' ||
+            (def.field === 'identifier' && !Object.hasOwn(schemaProperties, 'identifier')) ||
             def.field === 'submissionId' ||
             def.field === 'htmlButtons',
     );
@@ -345,7 +349,7 @@ export function setDefaultSubmissionTableOrder(host, state) {
         hasTagsColumn,
     );
     const attachmentFields = getAttachmentFields(formSchemaFields);
-    const systemFields = getSystemFields(initialColumnDefinitions);
+    const systemFields = getSystemFields(initialColumnDefinitions, formSchemaFields);
 
     // Ensure rowIndex is included
     const rowIndexDef = initialColumnDefinitions.find((def) => def.field === 'rowIndex');
