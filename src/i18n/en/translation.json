@@ -93,7 +93,7 @@
         "move-column-down": "Move down",
         "move-column-up": "Move up",
         "n-items-selected-label": "{{n}} selected",
-        "n-items-shown-label": "{{n}} shown",
+        "n-items-shown-label": "{{n}} total",
         "name": "Name",
         "next-entry-btn-title": "Next entry",
         "no-available-tags-label": "No tags available",

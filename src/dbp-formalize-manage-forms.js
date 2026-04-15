@@ -497,7 +497,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             this.visibleRowCount = {
                                 ...this.visibleRowCount,
                                 [state]:
-                                    this.submissionTables[state].tabulatorTable.getRows('visible')
+                                    this.submissionTables[state].tabulatorTable.getRows('active')
                                         .length,
                             };
 
@@ -1266,7 +1266,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     setVisibleRowCount(state) {
         this.visibleRowCount = {
             ...this.visibleRowCount,
-            [state]: this.submissionTables[state].tabulatorTable.getRows('visible').length,
+            [state]: this.submissionTables[state].tabulatorTable.getRows('active').length,
         };
     }
 

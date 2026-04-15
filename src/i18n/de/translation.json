@@ -93,7 +93,7 @@
         "move-column-down": "Feld nach unten verschieben",
         "move-column-up": "Feld nach oben verschieben",
         "n-items-selected-label": "{{n}} ausgewählt",
-        "n-items-shown-label": "{{n}} angezeigt",
+        "n-items-shown-label": "{{n}} gesamt",
         "name": "Name",
         "next-entry-btn-title": "Nächster",
         "no-available-tags-label": "Kein Tag verfügbar",
