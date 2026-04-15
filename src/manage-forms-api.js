@@ -364,6 +364,9 @@ export async function getAllFormSubmissions(host, formId) {
             const submissionTags = submission['tags'] || [];
             const submittedFiles = submission['submittedFiles'] || [];
             host.submittedFileDetails[state].set(submissionId, submittedFiles);
+            if (submittedFiles.length > 0) {
+                host.submissionsHasAttachment[state] = true;
+            }
 
             // Group submitted file names by their attribute name so tabulator
             // can display them in the corresponding form_files-* columns.
