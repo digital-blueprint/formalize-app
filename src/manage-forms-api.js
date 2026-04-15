@@ -362,6 +362,22 @@ export async function getAllFormSubmissions(host, formId) {
             let dataFeedElement = JSON.parse(submission['dataFeedElement']);
             let submissionId = submission['identifier'];
             const submissionTags = submission['tags'] || [];
+            const submittedFiles = submission['submittedFiles'] || [];
+            host.submittedFileDetails[state].set(submissionId, submittedFiles);
+
+            // Group submitted file names by their attribute name so tabulator
+            // can display them in the corresponding form_files-* columns.
+            const fileFieldData = {};
+            for (const file of submittedFiles) {
+                const fieldName = `form_files-${file.fileAttributeName}`;
+                if (fileFieldData[fieldName] === undefined) {
+                    fileFieldData[fieldName] = [];
+                }
+                fileFieldData[fieldName].push(file.fileName);
+            }
+            for (const fieldName of Object.keys(fileFieldData)) {
+                fileFieldData[fieldName] = fileFieldData[fieldName].join(', ');
+            }
 
             // Flatten array values, resolve user identifiers
             for (const [key, value] of Object.entries(dataFeedElement)) {
@@ -393,6 +409,7 @@ export async function getAllFormSubmissions(host, formId) {
                     ? submissionTags.map((tag) => `<span class="tag">${xss(tag)}</span>`).join(' ')
                     : '',
                 ...dataFeedElement,
+                ...fileFieldData,
                 submissionId: submissionId,
             };
 
@@ -532,128 +549,6 @@ export async function getAllFormSubmissions(host, formId) {
         host.totalNumberOfItems[state] = submissions_list.length;
     }
     return response;
-}
-
-// ---------------------------------------------------------------------------
-// Attachment details
-// ---------------------------------------------------------------------------
-
-/**
- * Get details of attachment files for a specific submission.
- *
- * @param {object} host
- * @param {string} submissionId
- * @returns {Promise<Array>} List of attachment details.
- */
-export async function getAttachmentFilesDetails(host, submissionId) {
-    let submissionData = {};
-    const options = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/ld+json',
-            Authorization: 'Bearer ' + host.auth.token,
-        },
-    };
-
-    try {
-        const response = await host.httpGetAsync(
-            host.entryPointUrl + '/formalize/submissions/' + submissionId,
-            options,
-        );
-        if (!response.ok) {
-            host.handleErrorResponse(response);
-        }
-        submissionData = await response.json();
-    } catch (e) {
-        console.error(e);
-    }
-
-    if (
-        submissionData['submittedFiles'] &&
-        Array.isArray(submissionData['submittedFiles']) &&
-        submissionData['submittedFiles'].length > 0
-    ) {
-        return submissionData['submittedFiles'];
-    }
-    return [];
-}
-
-/**
- * Load attachment details for all submissions in the given state and update
- * both in-memory data and tabulator rows.
- *
- * @param {object} host
- * @param {string} state - 'draft' or 'submitted'
- */
-export async function loadAttachmentDetails(host, state) {
-    host._abortAttachmentLoading = false;
-    host.attachmentsAreLoading = {...host.attachmentsAreLoading, [state]: true};
-
-    const stateFlag =
-        state === 'submitted' ? SUBMISSION_STATES_BINARY.SUBMITTED : SUBMISSION_STATES_BINARY.DRAFT;
-
-    const submissionsWithFiles = host.rawSubmissions.filter(
-        (submission) =>
-            submission.submissionState === stateFlag &&
-            submission['submittedFiles'] &&
-            Array.isArray(submission['submittedFiles']) &&
-            submission['submittedFiles'].length > 0,
-    );
-
-    if (submissionsWithFiles.length === 0) {
-        host.attachmentsAreLoading = {...host.attachmentsAreLoading, [state]: false};
-        return;
-    }
-
-    host.submissionsHasAttachment[state] = true;
-
-    const tabulatorTable =
-        host.submissionTables[state] && host.submissionTables[state].tabulatorTable;
-
-    for (const submission of submissionsWithFiles) {
-        if (host._abortAttachmentLoading) break;
-        const submissionId = submission['identifier'];
-        let attachmentDetails;
-        try {
-            attachmentDetails = await getAttachmentFilesDetails(host, submissionId);
-            host.submittedFileDetails[state].set(submissionId, attachmentDetails);
-        } catch (e) {
-            console.error(e);
-            continue;
-        }
-
-        // Group file names by field name
-        const attachmentUpdate = {};
-        for (const attachment of attachmentDetails) {
-            const fieldName = `form_files-${attachment.fileAttributeName}`;
-            if (attachmentUpdate[fieldName] === undefined) {
-                attachmentUpdate[fieldName] = [];
-            }
-            attachmentUpdate[fieldName].push(attachment.fileName);
-        }
-
-        // Flatten arrays to comma-separated strings
-        for (const fieldName of Object.keys(attachmentUpdate)) {
-            attachmentUpdate[fieldName] = attachmentUpdate[fieldName].join(', ');
-        }
-
-        // Update the in-memory submission row data
-        const cols = host.submissions[state].find((s) => s.submissionId === submissionId);
-        if (cols) {
-            Object.assign(cols, attachmentUpdate);
-        }
-
-        // Update the tabulator row immediately
-        if (tabulatorTable) {
-            const row = tabulatorTable
-                .getRows()
-                .find((r) => r.getData().submissionId === submissionId);
-            if (row) {
-                row.update(attachmentUpdate);
-            }
-        }
-    }
-    host.attachmentsAreLoading = {...host.attachmentsAreLoading, [state]: false};
 }
 
 // ---------------------------------------------------------------------------

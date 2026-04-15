@@ -46,8 +46,6 @@ import {
     loadModules,
     getListOfAllForms,
     getAllFormSubmissions,
-    getAttachmentFilesDetails,
-    loadAttachmentDetails,
     apiDeleteSubmission,
     apiUpdateSubmissionTags,
     apiGetTags,
@@ -520,8 +518,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.requestDetailedSubmission(state, cols, id);
                                 }
                             }
-                            // Load attachment details for each submissions
-                            loadAttachmentDetails(this, state);
                         }
                     }
                 },
@@ -1009,29 +1005,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 const data = row.getData();
                 selectedRowsSubmissionIds.push(data.submissionId);
             });
-
-            // Stop any background attachment loading before fetching on-demand
-            this._abortAttachmentLoading = true;
-
-            // Fetch attachment details on-demand for any rows not yet loaded
-            const missingIds = selectedRowsSubmissionIds.filter(
-                (id) => !this.submittedFileDetails[state].has(id),
-            );
-            if (missingIds.length > 0) {
-                this.showLoadingIndicator = true;
-                for (const submissionId of missingIds) {
-                    try {
-                        const attachmentDetails = await getAttachmentFilesDetails(
-                            this,
-                            submissionId,
-                        );
-                        this.submittedFileDetails[state].set(submissionId, attachmentDetails);
-                    } catch (e) {
-                        console.error('Failed to load attachment details for', submissionId, e);
-                    }
-                }
-                this.showLoadingIndicator = false;
-            }
 
             for (const [submissionId, attachments] of this.submittedFileDetails[state]) {
                 // If there are selected rows, only download the attachments of the selected rows
