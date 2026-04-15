@@ -69,9 +69,6 @@ class FormalizeFormElement extends BaseFormElement {
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 const formData = event.detail.formData;
 
-                // Identifier of the student
-                formData.identifier = this.formData.identifier;
-
                 // use Lecturer-Array from formData
                 formData.lecturers = this.formData.lecturers || [];
 
@@ -358,28 +355,34 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         if (!event.detail.submissionId) return;
 
-        const data = event.detail;
+        const formData = event.detail.formData;
 
-        // Include unique identifier for person who is submitting
-        data.formData.identifier = this.lastModifiedCreatorId;
+        const payload = {
+            courseName: formData.courseName,
+            lecturers: formData.lecturers,
+            adaptations: formData.adaptations,
+            matriculationNumber: formData.matriculationNumber ?? '',
+            studentGivenName: formData.studentGivenName ?? '',
+            studentFamilyName: formData.studentFamilyName ?? '',
+            studentEmail: formData.studentEmail ?? '',
+            comment: formData.comment ?? '',
+        };
 
-        // Restore the lecturers array — gatherFormDataFromElement converts it to a string
-        // because DbpStringElement.value is typed as String
-        data.formData.lecturers = this.formData.lecturers || [];
-        data.formData.studentGivenName = this.formData.studentGivenName || '';
-        data.formData.studentFamilyName = this.formData.studentFamilyName || '';
-        data.formData.studentEmail = this.formData.studentEmail || '';
-        data.formData.matriculationNumber = this.formData.matriculationNumber || '';
-
-        const formData = new FormData();
-
-        formData.append('dataFeedElement', JSON.stringify(data.formData));
-
-        const options = this._buildRequestOptions(formData, 'PATCH');
-        const url = this._buildSubmissionUrl(event.detail.submissionId);
+        const body = {
+            form: '/formalize/forms/' + '019ada3e-b7ff-7b35-b1dd-7b578d810955',
+            dataFeedElement: JSON.stringify(payload),
+        };
 
         try {
-            const response = await fetch(url, options);
+            // const response = await fetch(url, options);
+            const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: 'Bearer ' + this.auth.token,
+                },
+                body: JSON.stringify(body),
+            });
             if (!response.ok) {
                 await this.displayErrors(response);
             } else {
