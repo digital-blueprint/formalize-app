@@ -303,9 +303,6 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         const isEdit = this._isEditMode;
         const saveDisabled = !this._isFormValid || this._isSubmitting;
         const showFormTypeSelector = !isEdit && this.creatableModules.length > 1;
-        const singleCreatableModule =
-            !isEdit && this.creatableModules.length === 1 ? this.creatableModules[0] : null;
-        const fixedFormTypeModule = isEdit ? this.existingForm : singleCreatableModule;
 
         return html`
             <dbp-modal
@@ -365,7 +362,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                     <!-- General section -->
                     <h4 class="form-section-heading">${t('create-form.section-general')}</h4>
 
-                    <!-- Form type selector or fixed form type display -->
+                    <!-- Form type selector: only shown when there are multiple create options -->
                     ${showFormTypeSelector
                         ? html`
                               <div class="form-field">
@@ -398,27 +395,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                                   </div>
                               </div>
                           `
-                        : fixedFormTypeModule
-                          ? html`
-                                <div class="form-field">
-                                    <span class="form-label">
-                                        ${t('create-form.field-form-type')}
-                                    </span>
-                                    <div class="form-static-value">
-                                        ${fixedFormTypeModule.formName ||
-                                        fixedFormTypeModule.formSlug}
-                                    </div>
-                                    ${singleCreatableModule
-                                        ? html`
-                                              <input
-                                                  type="hidden"
-                                                  .value="${this._selectedModuleSlug ||
-                                                  singleCreatableModule.formSlug}" />
-                                          `
-                                        : ''}
-                                </div>
-                            `
-                          : ''}
+                        : ''}
 
                     <!-- Container where the edit-form component is mounted imperatively -->
                     <div
@@ -525,19 +502,6 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
             .form-select:disabled {
                 opacity: 0.4;
                 cursor: not-allowed;
-            }
-
-            .form-static-value {
-                box-sizing: border-box;
-                display: flex;
-                align-items: center;
-                width: 100%;
-                min-height: 2.25rem;
-                padding: 0 0.6rem;
-                border: var(--dbp-border);
-                border-radius: var(--dbp-border-radius, 0);
-                color: var(--dbp-content);
-                background-color: var(--dbp-muted-background, #f5f5f5);
             }
 
             /* Edit-form component area */
