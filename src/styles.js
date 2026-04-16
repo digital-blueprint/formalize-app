@@ -463,71 +463,7 @@ export function getManageFormsCSS() {
         .actions-container {
             grid-area: actions;
             position: relative;
-            width: 175px;
-        }
-
-        .open-actions-button {
-            width: 100%;
-            position: relative;
-            text-align: left;
-        }
-
-        .actions-container.open .actions-dropdown {
-            opacity: 1;
-        }
-        .actions-container.open .icon-chevron {
-            transform: rotate(180deg);
-        }
-
-        .icon-chevron {
-            transition: transform 250ms ease-in;
-            position: absolute;
-            right: 0.5em;
-            top: 0.5em;
-        }
-
-        .actions-dropdown {
-            opacity: 0;
-            position: absolute;
-            top: 37px;
-            left: 0;
-            transition: opacity 250ms ease-in;
-            z-index: 15;
-            width: 250px;
-            padding: 0.5em;
-            background-color: var(--dbp-background);
-            border: 1px solid var(--dbp-content);
-        }
-
-        .actions-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-        }
-
-        .action:hover {
-            /* @TODO we need a lighter grey than muted */
-            background-color: light-dark(#f7f7f7, #333333);
-            /* background-color: #f7f7f7; */
-            color: var(--dbp-on-muted-surface);
-        }
-
-        .action:hover dbp-icon {
-            transform: scale(1.25);
-        }
-
-        .action dbp-icon {
-            margin-right: 5px;
-            transition: transform 150ms ease-in;
-        }
-
-        @starting-style {
-            .actions-wrapper.open .actions-dropdown {
-                opacity: 0;
-            }
+            width: 110px;
         }
 
         /* search bar */

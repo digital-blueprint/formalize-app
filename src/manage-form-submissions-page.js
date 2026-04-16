@@ -1,7 +1,14 @@
 // @ts-nocheck
 import {html} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
-import {ScopedElementsMixin, Button, Icon, IconButton, MiniSpinner} from '@dbp-toolkit/common';
+import {
+    ScopedElementsMixin,
+    Button,
+    Icon,
+    IconButton,
+    MiniSpinner,
+    DBPSelect,
+} from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n.js';
 import {CustomTabulatorTable} from './table-components.js';
@@ -23,8 +30,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.enabledStates = {draft: false, submitted: false};
         this.noSubmissionAvailable = {draft: true, submitted: true};
         this.searchWidgetIsOpen = {draft: false, submitted: false};
-        this.actionsWidgetIsOpen = {draft: false, submitted: false};
-        this.isActionAvailable = {draft: false, submitted: false};
         this.isEditSubmissionEnabled = {draft: false, submitted: false};
         this.isBatchTaggingEnabled = {draft: false, submitted: false};
         this.isEditSubmissionPermissionEnabled = {draft: false, submitted: false};
@@ -50,6 +55,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             'dbp-icon-button': IconButton,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-tabulator-table': CustomTabulatorTable,
+            'dbp-select': DBPSelect,
         };
     }
 
@@ -66,8 +72,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             enabledStates: {type: Object, attribute: false},
             noSubmissionAvailable: {type: Object, attribute: false},
             searchWidgetIsOpen: {type: Object, attribute: false},
-            actionsWidgetIsOpen: {type: Object, attribute: false},
-            isActionAvailable: {type: Object, attribute: false},
             isEditSubmissionEnabled: {type: Object, attribute: false},
             isBatchTaggingEnabled: {type: Object, attribute: false},
             isEditSubmissionPermissionEnabled: {type: Object, attribute: false},
@@ -205,21 +209,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         };
         this.dispatchEvent(
             new CustomEvent('submission-search-toggle', {
-                detail: {state, open},
-                bubbles: true,
-                composed: true,
-            }),
-        );
-    }
-
-    toggleActionsDropdown(state) {
-        const open = !this.actionsWidgetIsOpen[state];
-        this.actionsWidgetIsOpen = {
-            ...this.actionsWidgetIsOpen,
-            [state]: open,
-        };
-        this.dispatchEvent(
-            new CustomEvent('submission-actions-toggle', {
                 detail: {state, open},
                 bubbles: true,
                 composed: true,
@@ -489,103 +478,97 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         `;
     }
 
+    /**
+     * Handle change events from the actions widget dropdown and buttons
+     * @param {CustomEvent} event
+     */
+    handleActionsDropdownChange(event, state) {
+        // Handle form-specific actions
+        if (event.detail && event.detail.option && event.detail.value) {
+            const option = event.detail.option;
+            // const value = event.detail.value;
+
+            if (option.value === 'edit-submission') {
+                this.handleAction('edit-submission', state, {event});
+                return;
+            }
+
+            if (option.value === 'batch-tagging') {
+                this.handleAction('batch-tagging', state);
+                return;
+            }
+
+            if (option.value === 'edit-permission') {
+                this.handleAction('edit-permission', state);
+                return;
+            }
+
+            if (option.value === 'delete-all') {
+                this.handleAction('delete-all', state);
+                return;
+            }
+
+            if (option.value === 'delete-selection') {
+                this.handleAction('delete-selected', state);
+                return;
+            }
+        }
+    }
+
     renderActionsWidget(state) {
         const i18n = this._i18n;
 
+        const submissionActions = [];
+
+        submissionActions.push({
+            value: 'edit-submission',
+            disabled: !this.isEditSubmissionEnabled[state],
+            label: i18n.t('manage-forms.edit-submission-button-text'),
+            iconName: 'pencil',
+        });
+
+        submissionActions.push({
+            value: 'batch-tagging',
+            disabled: !this.isBatchTaggingEnabled[state],
+            label: i18n.t('manage-forms.batch-tagging-button-text'),
+            iconName: 'tags',
+        });
+
+        submissionActions.push({
+            value: 'edit-permission',
+            disabled: !this.isEditSubmissionPermissionEnabled[state],
+            label: i18n.t('manage-forms.edit-permission-button-text'),
+            iconName: 'edit-permission',
+        });
+
+        if (this.isDeleteAllSubmissionEnabled[state]) {
+            submissionActions.push({
+                value: 'delete-all',
+                label: i18n.t('manage-forms.delete-all-submissions-button-text', {
+                    n: this.allRowCount[state],
+                }),
+                iconName: 'trash',
+            });
+        }
+
+        if (this.isDeleteSelectedSubmissionEnabled[state]) {
+            submissionActions.push({
+                value: 'delete-selection',
+                label: i18n.t('manage-forms.delete-selected-submissions-button-text', {
+                    n: this.selectedRowCount[state],
+                }),
+                iconName: 'delete-selection',
+            });
+        }
+
         return html`
-            <div
-                class="actions-container ${classMap({open: this.actionsWidgetIsOpen[state]})}"
-                id="actions-container--${state}">
-                <button
-                    class="button open-actions-button is-secondary"
-                    id="action-button-${state}"
-                    ?disabled=${!this.isActionAvailable[state]}
-                    @click="${() => {
-                        this.handleAction('prepare-actions', state);
-                        this.toggleActionsDropdown(state);
-                    }}">
-                    ${i18n.t('manage-forms.actions-button-text')}
-                    <dbp-icon
-                        class="icon-chevron"
-                        name="chevron-down"
-                        aria-hidden="true"></dbp-icon>
-                </button>
-                <div class="actions-dropdown" ?inert=${!this.actionsWidgetIsOpen[state]}>
-                    <ul class="actions-list">
-                        <li class="action">
-                            <button
-                                class="button action-button button--edit-submission"
-                                ?disabled=${!this.isEditSubmissionEnabled[state]}
-                                @mousedown="${async (event) => {
-                                    this.handleAction('edit-submission', state, {event});
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="pencil" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.edit-submission-button-text')}
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--batch-tagging"
-                                ?disabled=${!this.isBatchTaggingEnabled[state]}
-                                @click="${async () => {
-                                    this.handleAction('batch-tagging', state);
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="tags" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.batch-tagging-button-text')}
-                            </button>
-                        </li>
-                        <li class="action">
-                            <button
-                                class="button action-button button--edit-permission"
-                                ?disabled=${!this.isEditSubmissionPermissionEnabled[state]}
-                                @click="${async () => {
-                                    this.handleAction('edit-permission', state);
-                                    this.toggleActionsDropdown(state);
-                                }}">
-                                <dbp-icon name="edit-permission" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.edit-permission-button-text')}
-                            </button>
-                        </li>
-                        ${this.isDeleteAllSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--delete-all"
-                                          @click="${async () => {
-                                              this.handleAction('delete-all', state);
-                                          }}">
-                                          <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
-                                          ${i18n.t(
-                                              'manage-forms.delete-all-submissions-button-text',
-                                              {n: this.allRowCount[state]},
-                                          )}
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
-                        ${this.isDeleteSelectedSubmissionEnabled[state]
-                            ? html`
-                                  <li class="action">
-                                      <button
-                                          class="button action-button button--delete-selected"
-                                          @click="${async () => {
-                                              this.handleAction('delete-selected', state);
-                                          }}">
-                                          <dbp-icon
-                                              name="delete-selection"
-                                              aria-hidden="true"></dbp-icon>
-                                          ${i18n.t(
-                                              'manage-forms.delete-selected-submissions-button-text',
-                                              {n: this.selectedRowCount[state]},
-                                          )}
-                                      </button>
-                                  </li>
-                              `
-                            : ''}
-                    </ul>
-                </div>
+            <div class="actions-container" id="actions-container--${state}">
+                <dbp-select
+                    id="action-dropdown--${state}"
+                    @change="${(event) => this.handleActionsDropdownChange(event, state)}"
+                    label="${i18n.t('manage-forms.actions-button-text')}"
+                    align="left"
+                    .options="${submissionActions}"></dbp-select>
             </div>
         `;
     }
