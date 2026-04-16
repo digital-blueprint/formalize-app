@@ -1218,6 +1218,21 @@ class FormalizeFormElement extends BaseFormElement {
         return items;
     }
 
+    getDeadlinePeriodItems() {
+        const i18n = this._i18n;
+        const items = {};
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
+
+        items[''] = i18n.t('render-form.forms.media-transparency-form.please-select-deadline');
+        for (let year = currentYear; year <= nextYear + 1; year++) {
+            items[`${year}/1`] = `${year}/1`;
+            items[`${year}/2`] = `${year}/2`;
+        }
+
+        return items;
+    }
+
     /**
      * Set conditional field visibility and reset related fields based on selected category value.
      * @param {string} selectedValue
@@ -1627,15 +1642,27 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.sapOrderNumber || ''}></dbp-form-string-element>
 
-                <!-- Reporting deadline -->
-                <dbp-form-date-element
+                <!-- Reporting deadline period -->
+                <dbp-form-enum-element
                     subscribe="lang"
                     name="reportingDeadline"
+                    .items=${this.getDeadlinePeriodItems()}
+                    description="Select the first period between January and June, the second between July and December."
                     required
                     label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-reporting-deadline-label',
+                        'render-form.forms.media-transparency-form.field-reporting-deadline-period-label',
                     )}"
-                    .value=${data.reportingDeadline || ''}></dbp-form-date-element>
+                    .customValidator=${(value) => {
+                        return value === 'Bitte wählen Sie den Anmeldezeitraum aus' ||
+                            value === 'Please select deadline period'
+                            ? [
+                                  i18n.t(
+                                      'render-form.forms.media-transparency-form.reporting-deadline-validation-error',
+                                  ),
+                              ]
+                            : [];
+                    }}
+                    .value=${data.reportingDeadline || ''}></dbp-form-enum-element>
 
                 ${this.getFileGroupsFromSchema().map((groupName) =>
                     this.renderFileUploadGroup(groupName),
