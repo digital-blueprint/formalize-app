@@ -302,6 +302,7 @@ export async function getAllFormSubmissions(host, formId) {
     let data;
     host.rawSubmissions = [];
     host.submittedFileDetails = {draft: new Map(), submitted: new Map()};
+    host.submissionsHasAttachment = {draft: false, submitted: false};
 
     const options = {
         method: 'GET',
