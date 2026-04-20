@@ -508,7 +508,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 return;
             }
 
-            if (option.value === 'delete-selection') {
+            if (option.value === 'delete-selected') {
                 this.handleAction('delete-selected', state);
                 return;
             }
@@ -553,7 +553,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
         if (this.isDeleteSelectedSubmissionEnabled[state]) {
             submissionActions.push({
-                value: 'delete-selection',
+                value: 'delete-selected',
                 label: i18n.t('manage-forms.delete-selected-submissions-button-text', {
                     n: this.selectedRowCount[state],
                 }),
@@ -565,6 +565,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             <div class="actions-container" id="actions-container--${state}">
                 <dbp-select
                     id="action-dropdown--${state}"
+                    ?disabled=${!this.isActionAvailable[state]}
                     @change="${(event) => this.handleActionsDropdownChange(event, state)}"
                     label="${i18n.t('manage-forms.actions-button-text')}"
                     align="left"
