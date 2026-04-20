@@ -339,9 +339,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Sends a delete submission event with the submission ID to delete.
-     * @param {object} event
      */
-    sendDeleteSubmission(event) {
+    sendDeleteSubmission() {
         if (!this.submissionId) {
             return;
         }
@@ -360,9 +359,8 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
     /**
      * Sends an save submission event with the submission ID to PATCH.
-     * @param {object} event
      */
-    async sendSaveSubmission(event) {
+    async sendSaveSubmission() {
         if (!this.submissionId) {
             return;
         }
