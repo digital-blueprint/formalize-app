@@ -204,6 +204,11 @@ class FormalizeFormElement extends BaseFormElement {
             console.error(error.message);
         }
     }
+    getLecturerFallbackLabel() {
+        return String(this.lang || '').startsWith('de')
+            ? 'Lehrende*r unbekannt'
+            : 'Unknown lecturer';
+    }
 
     // Reaction to dbp-course-changed
     async handleCourseChange(e) {
@@ -215,61 +220,81 @@ class FormalizeFormElement extends BaseFormElement {
 
         const course = e.detail?.course;
         if (!course) {
-            this.saveButtonEnabled = false;
-
-            // if no course chosen, reset lecturers
-            this.formData.lecturers = [];
+            this.formData.lecturers = [this.getLecturerFallbackLabel()];
             this.requestUpdate();
             return;
         }
 
         const lecturerIds = Array.isArray(course.localData?.lecturers)
-            ? course.localData.lecturers.map((lecturer) =>
-                  typeof lecturer === 'string' ? lecturer : lecturer.personIdentifier,
-              )
+            ? course.localData.lecturers
+                  .map((lecturer) => {
+                      if (typeof lecturer === 'string') {
+                          return lecturer.trim();
+                      }
+
+                      if (lecturer && typeof lecturer === 'object') {
+                          return String(lecturer.personIdentifier || '').trim();
+                      }
+
+                      return '';
+                  })
+                  .filter((lecturerId) => lecturerId !== '')
             : [];
 
         const lecturerStrings = [];
 
-        for (const lecturerId of lecturerIds) {
-            try {
-                const resp = await fetch(
-                    `${this.entryPointUrl}/base/people/${lecturerId}?includeLocal=email`,
-                    {
-                        headers: {
-                            'Content-Type': 'application/ld+json',
-                            Authorization: 'Bearer ' + this.auth.token,
-                        },
-                    },
-                );
-
-                if (!resp.ok) {
-                    console.warn('Lecturer fetch failed for', lecturerId, resp.status);
-                    // Fallback: if person not found, return ID
-                    lecturerStrings.push(lecturerId);
+        // If no lecturer IDs are available at all, use the fallback label.
+        if (lecturerIds.length === 0) {
+            lecturerStrings.push(this.getLecturerFallbackLabel());
+        } else {
+            for (const lecturerId of lecturerIds) {
+                if (!lecturerId) {
+                    lecturerStrings.push(this.getLecturerFallbackLabel());
                     continue;
                 }
 
-                const person = await resp.json();
-                const name = `${person.givenName ?? ''} ${person.familyName ?? ''}`.trim();
-                const email = person.localData?.email ?? null;
+                try {
+                    const resp = await fetch(
+                        `${this.entryPointUrl}/base/people/${lecturerId}?includeLocal=email`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/ld+json',
+                                Authorization: 'Bearer ' + this.auth.token,
+                            },
+                        },
+                    );
 
-                // concat String "Name (mail@tugraz.at)"
-                const label = email ? `${name || lecturerId} (${email})` : name || lecturerId;
+                    if (!resp.ok) {
+                        console.warn('Lecturer fetch failed for', lecturerId, resp.status);
+                        lecturerStrings.push(this.getLecturerFallbackLabel());
+                        continue;
+                    }
 
-                lecturerStrings.push(label);
-            } catch (err) {
-                console.error('Error fetching lecturer', lecturerId, err);
-                lecturerStrings.push(lecturerId); // Fallback bei Fehler
+                    const person = await resp.json();
+                    const name = `${person.givenName ?? ''} ${person.familyName ?? ''}`.trim();
+                    const email = person.localData?.email ?? null;
+
+                    const isOpaqueIdentifier =
+                        typeof lecturerId === 'string' &&
+                        /^[A-Z0-9]{8,}$/.test(lecturerId) &&
+                        !/[\s@]/.test(lecturerId);
+
+                    if (!name && isOpaqueIdentifier) {
+                        lecturerStrings.push(this.getLecturerFallbackLabel());
+                        continue;
+                    }
+
+                    const label = email ? `${name} (${email})` : name;
+                    lecturerStrings.push(label || this.getLecturerFallbackLabel());
+                } catch (err) {
+                    console.error('Error fetching lecturer', lecturerId, err);
+                    lecturerStrings.push(this.getLecturerFallbackLabel());
+                }
             }
         }
-        // Enable submit button only after we have updated the lecturer data
+
         this.saveButtonEnabled = true;
-
-        // store Array in formData
         this.formData.lecturers = lecturerStrings;
-
-        // refresh UI
         this.requestUpdate();
     }
 
@@ -516,7 +541,9 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         name="lecturers"
                         label=${i18n.t('render-form.forms.accessible-courses-form.lecturers')}
-                        value=${data.lecturers || ''}
+                        value=${Array.isArray(data.lecturers)
+                            ? data.lecturers.filter(Boolean).join(', ')
+                            : data.lecturers || ''}
                         disabled></dbp-form-string-element>
 
                     <dbp-form-string-element
@@ -624,7 +651,9 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         name="lecturers"
                         label=${i18n.t('render-form.forms.accessible-courses-form.lecturers')}
-                        value=${data.lecturers || ''}></dbp-form-string-view>
+                        value=${Array.isArray(data.lecturers)
+                            ? data.lecturers.filter(Boolean).join(', ')
+                            : data.lecturers || ''}></dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
