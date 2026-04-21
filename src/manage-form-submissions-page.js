@@ -256,6 +256,44 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         `;
     }
 
+    getExportOptions(state) {
+        const i18n = this._i18n;
+        const exportCount =
+            this.selectedRowCount[state] === 0
+                ? this.allRowCount[state]
+                : this.selectedRowCount[state];
+
+        const exportActions = [];
+
+        exportActions.push({
+            value: 'csv',
+            label: i18n.t('manage-forms.export-csv-label', {n: exportCount}),
+            iconName: 'zip',
+        });
+
+        exportActions.push({
+            value: 'xlsx',
+            label: i18n.t('manage-forms.export-xlsx-label', {n: exportCount}),
+            iconName: 'zip',
+        });
+
+        exportActions.push({
+            value: 'pdf',
+            label: i18n.t('manage-forms.export-pdf-label', {n: exportCount}),
+            iconName: 'zip',
+        });
+
+        if (this.submissionsHasAttachment[state]) {
+            exportActions.push({
+                value: 'attachments',
+                label: i18n.t('manage-forms.export-attachments-label', {n: exportCount}),
+                iconName: 'folder',
+            });
+        }
+
+        return exportActions;
+    }
+
     renderColumnSettingsModal(state) {
         const i18n = this._i18n;
         const columns = this.submissionsColumns[state].filter((column) => {
@@ -434,46 +472,18 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
     renderExportWidget(state) {
         const i18n = this._i18n;
-        const exportCount =
-            this.selectedRowCount[state] === 0
-                ? this.allRowCount[state]
-                : this.selectedRowCount[state];
 
         return html`
             <div class="export-container">
-                <select
-                    id="export-select"
-                    class="dropdown-menu"
-                    aria-label="${i18n.t('manage-forms.export-select-aria-label')}"
-                    @change="${(e) => {
-                        this.handleAction('export', state, {event: e});
-                    }}">
-                    <option value="-" disabled selected>
-                        ${i18n.t('manage-forms.default-export-select')}
-                    </option>
-                    <option value="csv">
-                        ${i18n.t('manage-forms.export-csv-label', {n: exportCount})}
-                    </option>
-                    <option value="xlsx">
-                        ${i18n.t('manage-forms.export-xlsx-label', {n: exportCount})}
-                    </option>
-                    <option value="pdf">
-                        ${i18n.t('manage-forms.export-pdf-label', {n: exportCount})}
-                    </option>
-                    ${this.submissionsHasAttachment[state]
-                        ? html`
-                              <option value="attachments">
-                                  ${i18n.t('manage-forms.export-attachments-label', {
-                                      n: exportCount,
-                                  })}
-                              </option>
-                          `
-                        : ''}
-                </select>
-                <dbp-icon
-                    class="export-select-icon"
-                    name="chevron-down"
-                    aria-hidden="true"></dbp-icon>
+                <dbp-select
+                    id="export-dropdown--${state}"
+                    @change="${(event) => {
+                        this.handleAction('export', state, {event: event});
+                    }}"
+                    label="${i18n.t('manage-forms.default-export-select')}"
+                    align="right"
+                    allow-expand
+                    .options="${this.getExportOptions(state)}"></dbp-select>
             </div>
         `;
     }
@@ -569,6 +579,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     @change="${(event) => this.handleActionsDropdownChange(event, state)}"
                     label="${i18n.t('manage-forms.actions-button-text')}"
                     align="left"
+                    allow-expand
                     .options="${submissionActions}"></dbp-select>
             </div>
         `;

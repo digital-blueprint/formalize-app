@@ -80,7 +80,6 @@
         "export-attachments-label": "Anhänge ({{n}})",
         "export-csv-label": "Tabelle in CSV ({{n}})",
         "export-pdf-label": "Tabelle in PDF ({{n}})",
-        "export-select-aria-label": "Tabellendaten exportieren",
         "export-xlsx-label": "Tabelle in Excel ({{n}})",
         "failed-to-get-forms-body": "Fehler beim Abrufen der Formularliste von der API",
         "failed-to-get-forms-title": "API-Fehler",

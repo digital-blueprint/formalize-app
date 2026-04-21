@@ -422,15 +422,14 @@ export function getManageFormsCSS() {
         .table-action-header {
             display: grid;
             grid-template-areas: 'actions search search search button export';
-            grid-template-columns: 200px 1fr 1fr 1fr 160px 160px;
-            /*grid-template-columns: 1fr;*/
+            grid-template-columns: 115px 1fr 1fr 1fr 160px 133px;
             gap: 0 1em;
             position: relative;
         }
 
         .table-action-header.open {
             grid-template-areas: 'actions search filter-col filter-op button export';
-            grid-template-columns: 200px auto auto auto 160px 160px;
+            grid-template-columns: 115px auto auto auto 160px 133px;
             gap: 0 1em;
             position: relative;
         }
@@ -446,24 +445,16 @@ export function getManageFormsCSS() {
             background-color: var(--dbp-background);
         }
 
-        .table-action-header .export-container select {
-            background-image: none;
-        }
-
-        .table-action-header .action-button {
-            border: 0 none;
-            height: 2.625em;
-            background-color: transparent;
-            width: 100%;
-            text-align: left;
-        }
-
         /* actions */
 
         .actions-container {
             grid-area: actions;
             position: relative;
-            width: 110px;
+            width: 100%;
+        }
+
+        .actions-container dbp-select {
+            width: 100%;
         }
 
         /* search bar */
@@ -624,7 +615,7 @@ export function getManageFormsCSS() {
         @container table-container (width < 1040px) {
             .table-action-header:not(.open) {
                 grid-template-areas:
-                    'actions . . export export'
+                    'actions . . . export'
                     'search search search search button'
                     'filter-col filter-col . filter-op filter-op';
                 grid-template-columns: 115px 1fr 1fr 118px 160px;
@@ -633,7 +624,7 @@ export function getManageFormsCSS() {
 
             .table-action-header.open {
                 grid-template-areas:
-                    'actions . . export export'
+                    'actions . . . export'
                     'search search search search button'
                     'filter-col filter-col filter-op filter-op filter-op';
                 grid-template-columns: 115px 1fr 1fr 118px 160px;
@@ -678,9 +669,10 @@ export function getManageFormsCSS() {
                 transform: translateY(35px);
             }
 
-            .export-container .dropdown-menu {
+            .export-container dbp-select {
                 position: relative;
                 z-index: 10;
+                width: 100%;
             }
         }
 
@@ -774,27 +766,12 @@ export function getManageFormsCSS() {
         .export-container {
             grid-area: export;
             position: relative;
+            text-align: right;
         }
 
-        .export-container .dropdown-menu {
-            padding: 0rem 2rem 0rem 0.5rem;
-            background-image: none !important;
-        }
-
-        .export-container dbp-icon[name='chevron-down'] {
-            transition: transform 250ms ease-in;
-        }
-
-        .export-container select:open + dbp-icon[name='chevron-down'] {
-            transform: rotate(180deg);
-        }
-
-        .export-select-icon {
-            position: absolute;
-            right: 0.5em;
-            top: 0.5em;
-            z-index: 11;
-            pointer-events: none;
+        .export-container dbp-select {
+            padding: 0;
+            width: 100%;
         }
 
         /* TABLE BUTTON HEADER END */
