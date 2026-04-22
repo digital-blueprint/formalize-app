@@ -1,8 +1,11 @@
 // @ts-nocheck
-import {html} from 'lit';
+import {css, html} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
-import {ScopedElementsMixin, Button, Icon, IconButton} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, Button, Icon, IconButton, sendNotification} from '@dbp-toolkit/common';
+import {FileSink} from '@dbp-toolkit/file-handling';
+import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
+import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {createInstance} from './i18n.js';
 import MicroModal from './micromodal.es.js';
 import {MANAGE_FORMS_COMPONENT_STYLES} from './manage-forms-component-styles.js';
@@ -18,8 +21,11 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
         this.isNextEnabled = false;
         this.currentBeautyId = 0;
         this.totalItems = 0;
+        this.auth = {};
+        this.isPdfPreviewOpen = false;
         this.contentItems = [];
         this.boundHandleKeydown = this.handleKeydown.bind(this);
+        this.boundHandlePdfModalClosed = this.handlePdfModalClosed.bind(this);
     }
 
     static get scopedElements() {
@@ -27,6 +33,9 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
             'dbp-button': Button,
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
+            'dbp-file-sink': FileSink,
+            'dbp-modal': Modal,
+            'dbp-pdf-viewer': PdfViewer,
         };
     }
 
@@ -40,6 +49,8 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
             totalItems: {type: Number, attribute: false},
+            auth: {type: Object, attribute: false},
+            isPdfPreviewOpen: {type: Boolean, attribute: false},
             contentItems: {type: Array, attribute: false},
         };
     }
@@ -55,7 +66,14 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
     }
 
     static get styles() {
-        return MANAGE_FORMS_COMPONENT_STYLES;
+        return [
+            MANAGE_FORMS_COMPONENT_STYLES,
+            css`
+                .submitted-files .file-block + .file-block {
+                    margin-top: 0.75rem;
+                }
+            `,
+        ];
     }
 
     getModalElement() {
@@ -64,14 +82,19 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
 
     show() {
         const modal = this.getModalElement();
+        const pdfModal = this.renderRoot?.querySelector('#pdf-view-modal');
         if (!modal) {
             return;
         }
+
+        pdfModal?.addEventListener('dbp-modal-closed', this.boundHandlePdfModalClosed);
 
         MicroModal.show(modal, {
             disableScroll: true,
             onClose: () => {
                 document.removeEventListener('keydown', this.boundHandleKeydown, true);
+                pdfModal?.removeEventListener('dbp-modal-closed', this.boundHandlePdfModalClosed);
+                this.isPdfPreviewOpen = false;
                 this.dispatchEvent(
                     new CustomEvent('detail-modal-close', {
                         detail: {state: this.state},
@@ -94,6 +117,11 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
     }
 
     handleKeydown(event) {
+        if (this.isPdfPreviewOpen && event.key === 'Escape') {
+            event.stopPropagation();
+            return;
+        }
+
         if (event.keyCode === 37 && this.isPrevEnabled) {
             this.dispatchEvent(
                 new CustomEvent('detail-modal-previous', {
@@ -113,6 +141,163 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                 }),
             );
         }
+    }
+
+    handlePdfModalClosed() {
+        this.isPdfPreviewOpen = false;
+    }
+
+    formatFileSize(fileSize) {
+        const normalizedFileSize = Number(fileSize);
+        return Number.isFinite(normalizedFileSize)
+            ? `${(normalizedFileSize / 1024).toFixed(2)} KB`
+            : '';
+    }
+
+    isPdfFile(file) {
+        const mimeType = (file?.mimeType || '').toLowerCase();
+        const fileName = (file?.fileName || '').toLowerCase();
+        return mimeType === 'application/pdf' || fileName.endsWith('.pdf');
+    }
+
+    async fetchDownloadableFile(file) {
+        if (!file?.downloadUrl) {
+            return null;
+        }
+
+        const headers = {};
+        if (this.auth?.token) {
+            headers.Authorization = 'Bearer ' + this.auth.token;
+        }
+
+        const response = await fetch(file.downloadUrl, {
+            method: 'GET',
+            headers,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch file: ${response.status}`);
+        }
+
+        const fileBlob = await response.blob();
+        const downloadableFile = new File([fileBlob], file.fileName, {
+            type: file.mimeType || fileBlob.type || 'application/octet-stream',
+        });
+
+        // FileSink expects this property for non-streamed single-file downloads.
+        downloadableFile.filename = file.fileName;
+        return downloadableFile;
+    }
+
+    async downloadFile(file) {
+        const fileSink = this.renderRoot?.querySelector('#file-sink');
+        if (!fileSink) {
+            return;
+        }
+
+        try {
+            const downloadableFile = await this.fetchDownloadableFile(file);
+            if (!downloadableFile) {
+                return;
+            }
+
+            fileSink.files = [downloadableFile];
+        } catch (error) {
+            console.error(error);
+            sendNotification({
+                summary: this._i18n.t('errors.other-title'),
+                body: this._i18n.t('errors.other-body'),
+                type: 'danger',
+                timeout: 0,
+            });
+        }
+    }
+
+    async previewPdfFile(file) {
+        const pdfModal = this.renderRoot?.querySelector('#pdf-view-modal');
+        const pdfViewer = this.renderRoot?.querySelector('#dbp-pdf-viewer');
+        if (!pdfModal || !pdfViewer || !file?.downloadUrl) {
+            return;
+        }
+
+        try {
+            const pdfFile = await this.fetchDownloadableFile(file);
+            if (!pdfFile) {
+                return;
+            }
+
+            this.isPdfPreviewOpen = true;
+            pdfModal.open();
+            await pdfViewer.showPDF(pdfFile);
+        } catch (error) {
+            console.error(error);
+            sendNotification({
+                summary: this._i18n.t('errors.other-title'),
+                body: this._i18n.t('errors.other-body'),
+                type: 'danger',
+                timeout: 0,
+            });
+        }
+    }
+
+    renderFileItem(file) {
+        const fileSize = this.formatFileSize(file.fileSize);
+
+        return html`
+            <div class="file-block">
+                <span class="file-info">
+                    <strong class="file-name">${file.fileName}</strong>
+                    <span class="additional-data">
+                        ${file.mimeType
+                            ? html`
+                                  <span class="file-type">(${file.mimeType})</span>
+                              `
+                            : ''}
+                        ${fileSize
+                            ? html`
+                                  <span class="file-size">${fileSize}</span>
+                              `
+                            : ''}
+                    </span>
+                </span>
+                <div class="file-action-buttons">
+                    ${this.isPdfFile(file)
+                        ? html`
+                              <button
+                                  class="view-file-button button is-secondary"
+                                  @click=${(event) => {
+                                      event.preventDefault();
+                                      this.previewPdfFile(file);
+                                  }}>
+                                  <dbp-icon name="eye"></dbp-icon>
+                                  ${this._i18n.t('render-form.download-widget.view-attachment')}
+                              </button>
+                          `
+                        : ''}
+                    <button
+                        class="download-file-button button is-secondary"
+                        @click=${(event) => {
+                            event.preventDefault();
+                            this.downloadFile(file);
+                        }}>
+                        <dbp-icon name="download"></dbp-icon>
+                        ${this._i18n.t('render-form.download-widget.download-attachment')}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    renderContentItem(item) {
+        if (item.type === 'files' && item.files?.length > 0) {
+            return html`
+                <div class="fileblock-container submitted-files">
+                    ${item.files.map((file) => this.renderFileItem(file))}
+                </div>
+            `;
+        }
+
+        return item.value;
     }
 
     render() {
@@ -157,7 +342,7 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                                         </div>
                                         <div
                                             class="element-right ${classMap({first: index === 0})}">
-                                            ${item.value}
+                                            ${this.renderContentItem(item)}
                                         </div>
                                     `,
                                 )}
@@ -224,6 +409,28 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                                 </div>
                             </div>
                         </footer>
+
+                        <dbp-file-sink
+                            id="file-sink"
+                            class="file-sink"
+                            lang="${this.lang}"
+                            allowed-mime-types="*/*"
+                            decompress-zip
+                            enabled-targets="local,clipboard,nextcloud"
+                            subscribe="auth,nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
+
+                        <dbp-modal
+                            id="pdf-view-modal"
+                            class="pdf-view-modal"
+                            modal-id="pdf-viewer-modal-${this.state}"
+                            subscribe="lang">
+                            <div slot="content">
+                                <dbp-pdf-viewer
+                                    id="dbp-pdf-viewer"
+                                    lang="${this.lang}"
+                                    auto-resize="cover"></dbp-pdf-viewer>
+                            </div>
+                        </dbp-modal>
                     </div>
                 </div>
             </div>

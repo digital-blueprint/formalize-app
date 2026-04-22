@@ -865,6 +865,23 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     // -----------------------------------------------------------------------
 
     /**
+     * Returns submitted files for a specific schema file field.
+     * @param {string} state - The state of the submission ('draft' or 'submitted').
+     * @param {string} submissionId
+     * @param {string} fieldName
+     * @returns {Array}
+     */
+    getSubmittedFilesForField(state, submissionId, fieldName) {
+        if (!fieldName?.startsWith('form_files-') || !submissionId) {
+            return [];
+        }
+
+        const submittedFiles = this.submittedFileDetails[state]?.get(submissionId) || [];
+        const fileAttributeName = fieldName.replace('form_files-', '');
+        return submittedFiles.filter((file) => file.fileAttributeName === fileAttributeName);
+    }
+
+    /**
      * Gets the detailed data of a specific row
      * @param {string} state - The state of the submission ('draft' or 'submitted').
      * @param entry
@@ -889,11 +906,20 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     const labelText = current_column.title
                         ? xss(current_column.title)
                         : xss(current_column.field);
+                    const files = this.getSubmittedFilesForField(
+                        state,
+                        entry.submissionId,
+                        current_column.field,
+                    );
                     const value =
                         current_column.field === 'dateCreated'
                             ? humanReadableDate(entry[current_column.field])
                             : xss(entry[current_column.field] ?? '');
-                    contentItems.push({label: labelText, value});
+                    contentItems.push(
+                        files.length > 0
+                            ? {label: labelText, type: 'files', files}
+                            : {label: labelText, value},
+                    );
                 }
             }
         } else {
@@ -901,10 +927,23 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Skip the action buttons column and empty keys
                 if (!key || key === 'htmlButtons' || key === 'rowIndex') continue;
 
-                contentItems.push({
-                    label: xss(key),
-                    value: key === 'dateCreated' ? humanReadableDate(value) : xss(value ?? ''),
-                });
+                const files = this.getSubmittedFilesForField(state, entry.submissionId, key);
+
+                contentItems.push(
+                    files.length > 0
+                        ? {
+                              label: xss(key),
+                              type: 'files',
+                              files,
+                          }
+                        : {
+                              label: xss(key),
+                              value:
+                                  key === 'dateCreated'
+                                      ? humanReadableDate(value)
+                                      : xss(value ?? ''),
+                          },
+                );
             }
         }
 
@@ -920,6 +959,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         modal.isNextEnabled = this.isNextEnabled;
         modal.currentBeautyId = this.currentBeautyId;
         modal.totalItems = this.totalNumberOfItems[state];
+        modal.auth = this.auth;
         modal.contentItems = contentItems;
 
         this.showDetailedModal(state);
@@ -1951,6 +1991,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <dbp-formalize-manage-submission-modal
                         lang="${this.lang}"
                         id="submission-modal-${state}"
+                        .auth=${this.auth}
                         .state=${state}
                         @detail-modal-close=${() => this.handleSubmissionModalClose()}
                         @detail-modal-previous=${(event) =>
