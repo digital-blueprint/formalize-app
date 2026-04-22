@@ -357,6 +357,11 @@ export async function getAllFormSubmissions(host, formId) {
         }
 
         let submissions_list = [];
+        const activeForm = host.forms.get(formId);
+        const enumTranslations = activeForm?.moduleInstance?.getEnumTranslations
+            ? activeForm.moduleInstance.getEnumTranslations(host.lang)
+            : {};
+        const commonTranslations = enumTranslations._common || {};
 
         for (let [x, submission] of submissions[state].entries()) {
             let dateCreated = humanReadableDate(submission['dateCreated']);
@@ -406,6 +411,17 @@ export async function getAllFormSubmissions(host, formId) {
                 }
             }
 
+            // Translate enum keys to human-readable labels
+            for (const [key, value] of Object.entries(dataFeedElement)) {
+                if (typeof value !== 'string') continue;
+                const fieldMap = enumTranslations[key] || commonTranslations;
+                if (!fieldMap || Object.keys(fieldMap).length === 0) continue;
+                dataFeedElement[key] = value
+                    .split(', ')
+                    .map((v) => fieldMap[v.trim()] || v.trim())
+                    .join(', ');
+            }
+
             const id = x + 1;
             let cols = {
                 dateCreated: dateCreated,
@@ -418,7 +434,6 @@ export async function getAllFormSubmissions(host, formId) {
             };
 
             let actionButtonsDiv = host.createScopedElement('div');
-            const activeForm = host.forms.get(formId);
 
             // Add link to manage form entry in render form view (only for forms with a slug and read-only mode)
             if (

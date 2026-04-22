@@ -1,4 +1,5 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
+import {createInstance} from '../i18n.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
@@ -49,6 +50,58 @@ export default class extends BaseObject {
 
     getFormIdentifier() {
         return '32297d33-1352-4cf2-ba06-1577911c3537';
+    }
+
+    getEnumTranslations(lang) {
+        const i18n = createInstance();
+        i18n.changeLanguage(lang);
+        const t = (key) => i18n.t(key);
+
+        return {
+            // Fallback applied to any field without a field-specific mapping.
+            // Covers all 69 yes/no enum fields automatically.
+            _common: {
+                yes: t('render-form.forms.ethics-commission-form.yes'),
+                no: t('render-form.forms.ethics-commission-form.no'),
+            },
+
+            // Field-specific mappings for non-yes/no enum fields
+            type: {
+                study: t('render-form.forms.ethics-commission-form.study'),
+                publication: t('render-form.forms.ethics-commission-form.publication'),
+            },
+            fieldsOfExpertise: {
+                'advanced-material-sciences': t(
+                    'render-form.forms.ethics-commission-form.advanced-material-sciences',
+                ),
+                'human-and-biotechnology': t(
+                    'render-form.forms.ethics-commission-form.human-and-biotechnology',
+                ),
+                'information-communication-and-computing': t(
+                    'render-form.forms.ethics-commission-form.information-communication-and-computing',
+                ),
+                'mobility-and-production': t(
+                    'render-form.forms.ethics-commission-form.mobility-and-production',
+                ),
+                'sustainable-systems': t(
+                    'render-form.forms.ethics-commission-form.sustainable-systems',
+                ),
+                keinem: t('render-form.forms.ethics-commission-form.keinem'),
+            },
+            qualificationWork: {
+                bachelor: t('render-form.forms.ethics-commission-form.bachelor-label'),
+                master: t('render-form.forms.ethics-commission-form.master-label'),
+                doctorat: t('render-form.forms.ethics-commission-form.doctorat-label'),
+            },
+            isPublicationPlanned: {
+                'no-publication': t(
+                    'render-form.forms.ethics-commission-form.no-publication-label',
+                ),
+                'one-publication': t(
+                    'render-form.forms.ethics-commission-form.one-publication-label',
+                ),
+            },
+        };
     }
 }
 

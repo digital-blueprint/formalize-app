@@ -61,6 +61,23 @@ export class BaseObject {
     hasReadOnlyMode() {
         return false;
     }
+
+    /**
+     * Returns enum field translation mappings for submission display.
+     * Override in subclasses to translate stored enum keys into
+     * human-readable labels in the manage-forms submissions table.
+     *
+     * The returned object may contain:
+     * - Field-specific mappings: { fieldName: { key: label, ... }, ... }
+     * - A `_common` mapping applied as fallback for any field not listed
+     *   explicitly: { _common: { key: label, ... } }
+     *
+     * @param {string} _lang - Language code ('en', 'de')
+     * @returns {object}
+     */
+    getEnumTranslations(_lang) {
+        return {};
+    }
 }
 
 export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
