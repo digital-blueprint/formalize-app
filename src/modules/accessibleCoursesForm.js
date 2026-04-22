@@ -20,6 +20,10 @@ export default class extends BaseObject {
         return FormalizeFormElement;
     }
 
+    hasReadOnlyMode() {
+        return true;
+    }
+
     // Formalize-Formular-ID for course registration
     getFormIdentifier() {
         return '019ada3e-b7ff-7b35-b1dd-7b578d810955';

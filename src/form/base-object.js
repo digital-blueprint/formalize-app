@@ -51,6 +51,16 @@ export class BaseObject {
     getFormName(_lang) {
         return this.getUrlSlug();
     }
+
+    /**
+     * Indicates whether this form supports a read-only view mode.
+     * Override in subclasses and return true to enable the read-only
+     * submission view and the "open in render-form" actions.
+     * @returns {boolean}
+     */
+    hasReadOnlyMode() {
+        return false;
+    }
 }
 
 export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {

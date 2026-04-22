@@ -420,35 +420,31 @@ export async function getAllFormSubmissions(host, formId) {
             let actionButtonsDiv = host.createScopedElement('div');
             const activeForm = host.forms.get(formId);
 
-            // Add link to manage form entry in render form view (only for supported forms)
+            // Add link to manage form entry in render form view (only for forms with a slug and read-only mode)
             if (
-                activeForm.formName === 'Ethikantrag' ||
-                activeForm.formName === 'Ethics Proposal' ||
-                activeForm.formName === 'Media Transparency Form' ||
-                activeForm.formName === 'Barrierefreie Lehrveranstaltungen' ||
-                activeForm.formName === 'Accessible Courses'
+                activeForm.formSlug &&
+                activeForm.moduleInstance &&
+                typeof activeForm.moduleInstance.hasReadOnlyMode === 'function' &&
+                activeForm.moduleInstance.hasReadOnlyMode()
             ) {
                 const submissionDetailsFormButton = host.createScopedElement(
                     'dbp-formalize-get-submission-link',
                 );
-                const activeFormSlug = activeForm.formSlug ? activeForm.formSlug : null;
-                if (activeFormSlug) {
-                    let formSubmissionUrl =
-                        getFormRenderUrl(activeFormSlug, host.lang) + `/${submissionId}/readonly`;
-                    /*
-                        t('manage-forms.open-detailed-view-form')
-                    */
-                    submissionDetailsFormButton.ariaLabel = 'manage-forms.open-detailed-view-form';
-                    submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
-                    submissionDetailsFormButton.iconName = 'open-new-window';
-                    submissionDetailsFormButton.title = 'manage-forms.open-detailed-view-form';
-                    submissionDetailsFormButton.id = id.toString();
-                    submissionDetailsFormButton.setAttribute('subscribe', 'lang');
-                    submissionDetailsFormButton.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                    });
-                    actionButtonsDiv.appendChild(submissionDetailsFormButton);
-                }
+                let formSubmissionUrl =
+                    getFormRenderUrl(activeForm.formSlug, host.lang) + `/${submissionId}/readonly`;
+                /*
+                    t('manage-forms.open-detailed-view-form')
+                */
+                submissionDetailsFormButton.ariaLabel = 'manage-forms.open-detailed-view-form';
+                submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
+                submissionDetailsFormButton.iconName = 'open-new-window';
+                submissionDetailsFormButton.title = 'manage-forms.open-detailed-view-form';
+                submissionDetailsFormButton.id = id.toString();
+                submissionDetailsFormButton.setAttribute('subscribe', 'lang');
+                submissionDetailsFormButton.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                });
+                actionButtonsDiv.appendChild(submissionDetailsFormButton);
             }
 
             // Add button to show submission details in a modal

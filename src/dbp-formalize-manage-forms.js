@@ -1597,14 +1597,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const activeForm = this.forms.get(this.activeFormId);
         const activeFormSlug = activeForm ? activeForm.formSlug : null;
 
-        // @TODO: LunchLottery don't have a slug
-        // other forms don't have read-only view
         if (
-            activeForm.formName === 'Ethikantrag' ||
-            activeForm.formName === 'Ethics Proposal' ||
-            activeForm.formName === 'Media Transparency Form' ||
-            activeForm.formName === 'Barrierefreie Lehrveranstaltungen' ||
-            activeForm.formName === 'Accessible Courses'
+            activeForm &&
+            activeFormSlug &&
+            activeForm.moduleInstance &&
+            typeof activeForm.moduleInstance.hasReadOnlyMode === 'function' &&
+            activeForm.moduleInstance.hasReadOnlyMode()
         ) {
             // Go to the edit submission
             let formSubmissionUrl =

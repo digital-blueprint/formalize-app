@@ -43,6 +43,10 @@ export default class extends BaseObject {
         return FormalizeFormElement;
     }
 
+    hasReadOnlyMode() {
+        return true;
+    }
+
     getFormIdentifier() {
         return '32297d33-1352-4cf2-ba06-1577911c3537';
     }
