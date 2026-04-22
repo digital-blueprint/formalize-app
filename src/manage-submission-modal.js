@@ -72,6 +72,10 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                 .submitted-files .file-block + .file-block {
                     margin-top: 0.75rem;
                 }
+
+                .submitted-files .file-action-buttons {
+                    margin-top: 0.5rem;
+                }
             `,
         ];
     }
