@@ -1762,7 +1762,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 index++;
             }
-            this.needTableRebuild[state] = true;
             // Update row-indexes
             this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
