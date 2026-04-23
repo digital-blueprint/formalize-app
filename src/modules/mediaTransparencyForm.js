@@ -507,7 +507,7 @@ class FormalizeFormElement extends BaseFormElement {
             : this.auth['user-id'];
 
         // Clean up empty date fields to avoid JSON Schema validation errors
-        const dateFields = ['atFrom', 'to', 'reportingDeadline'];
+        const dateFields = ['atFrom', 'to'];
         dateFields.forEach((field) => {
             if (
                 data.formData[field] === '' ||
@@ -624,7 +624,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.lastModifiedCreatorId;
         // Clean up empty date fields to avoid JSON Schema validation errors
-        const dateFields = ['atFrom', 'to', 'reportingDeadline'];
+        const dateFields = ['atFrom', 'to'];
         dateFields.forEach((field) => {
             if (
                 data.formData[field] === '' ||
@@ -753,7 +753,7 @@ class FormalizeFormElement extends BaseFormElement {
             : this.auth['user-id'];
 
         // Clean up empty date fields to avoid JSON Schema validation errors
-        const dateFields = ['atFrom', 'to', 'reportingDeadline'];
+        const dateFields = ['atFrom', 'to'];
         dateFields.forEach((field) => {
             if (
                 data.formData[field] === '' ||
@@ -1875,15 +1875,15 @@ class FormalizeFormElement extends BaseFormElement {
                     : ''}
 
                 <!-- Reporting deadline -->
-                ${data.sapOrderNumber
+                ${data.reportingDeadline
                     ? html`
-                          <dbp-form-date-view
+                          <dbp-form-enum-view
                               subscribe="lang"
                               name="reportingDeadline"
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-reporting-deadline-label',
                               )}"
-                              .value=${data.reportingDeadline || ''}></dbp-form-date-view>
+                              .value=${data.reportingDeadline || ''}></dbp-form-enum-view>
                       `
                     : ''}
                 ${this.getFileGroupsFromSchema().map((groupName) =>
