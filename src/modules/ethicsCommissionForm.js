@@ -86,7 +86,7 @@ export default class extends BaseObject {
                 'sustainable-systems': t(
                     'render-form.forms.ethics-commission-form.sustainable-systems',
                 ),
-                keinem: t('render-form.forms.ethics-commission-form.keinem'),
+                none: t('render-form.forms.ethics-commission-form.none'),
             },
             qualificationWork: {
                 bachelor: t('render-form.forms.ethics-commission-form.bachelor-label'),
@@ -442,7 +442,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     handleFieldsOfExpertiseItems(event) {
         const selectedValues = event.detail.value || [];
-        const NONE_KEY = 'keinem';
+        const NONE_KEY = 'none';
 
         // Get the enum element
         const enumElement = this._('dbp-form-enum-element[name="fieldsOfExpertise"]');
@@ -1286,7 +1286,7 @@ class FormalizeFormElement extends BaseFormElement {
                             'sustainable-systems': i18n.t(
                                 'render-form.forms.ethics-commission-form.sustainable-systems',
                             ),
-                            keinem: i18n.t('render-form.forms.ethics-commission-form.keinem'),
+                            none: i18n.t('render-form.forms.ethics-commission-form.none'),
                         }}
                         .value=${data.fieldsOfExpertise || ''}>
                     </dbp-form-enum-view>
@@ -3162,7 +3162,7 @@ class FormalizeFormElement extends BaseFormElement {
                             'sustainable-systems': i18n.t(
                                 'render-form.forms.ethics-commission-form.sustainable-systems',
                             ),
-                            keinem: i18n.t('render-form.forms.ethics-commission-form.keinem'),
+                            none: i18n.t('render-form.forms.ethics-commission-form.none'),
                         }}
                         @change=${(e) => this.handleFieldsOfExpertiseItems(e)}
                         .value=${data.fieldsOfExpertise || ''}>
