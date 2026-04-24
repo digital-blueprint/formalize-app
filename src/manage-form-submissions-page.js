@@ -10,6 +10,7 @@ import {
     DBPSelect,
 } from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
+import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
 import {CustomTabulatorTable} from './table-components.js';
 import {SUBMISSION_STATES} from './utils.js';
@@ -21,6 +22,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         super();
         this._i18n = createInstance();
         this.lang = this._i18n.language;
+        this.langDir = '';
         this.showFormsTable = false;
         this.showSubmissionTables = false;
         this.loadingSubmissionTables = false;
@@ -63,6 +65,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         return {
             ...super.properties,
             lang: {type: String},
+            langDir: {type: String, attribute: 'lang-dir'},
             showFormsTable: {type: Boolean, attribute: false},
             showSubmissionTables: {type: Boolean, attribute: false},
             loadingSubmissionTables: {type: Boolean, attribute: false},
@@ -96,9 +99,21 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             if (propName === 'lang') {
                 this._i18n.changeLanguage(this.lang);
             }
+
+            if ((propName === 'lang' || propName === 'langDir') && this.langDir) {
+                setOverridesByGlobalCache(this._i18n, this);
+            }
         });
 
         super.update(changedProperties);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+
+        if (this.langDir) {
+            setOverridesByGlobalCache(this._i18n, this);
+        }
     }
 
     static get styles() {

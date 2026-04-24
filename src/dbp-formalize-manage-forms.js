@@ -695,6 +695,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
 
+        if (changedProperties.has('lang') || changedProperties.has('langDir')) {
+            setSubmissionFormOptions(this, 'draft');
+            setSubmissionFormOptions(this, 'submitted');
+        }
+
         if (changedProperties.has('lang')) {
             await getListOfAllForms(this);
 
@@ -1946,6 +1951,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"
+                    lang-dir="${this.langDir}"
                     id="submissions-page"
                     .showFormsTable=${this.showFormsTable}
                     .showSubmissionTables=${this.showSubmissionTables}
