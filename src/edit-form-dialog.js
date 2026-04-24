@@ -6,6 +6,7 @@ import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {Notification} from '@dbp-toolkit/notification';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
+import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
 import {getSelectorFixCSS} from './styles.js';
 
@@ -37,6 +38,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         super();
         this._i18n = createInstance();
         this.lang = this._i18n.language;
+        this.langDir = '';
 
         /** @type {Array<{formId: string, formSlug: string, formName: string, moduleInstance: object}>} */
         this.creatableModules = [];
@@ -64,6 +66,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         return {
             ...super.properties,
             lang: {type: String},
+            langDir: {type: String, attribute: 'lang-dir'},
             auth: {type: Object},
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             creatableModules: {type: Array, attribute: false},
@@ -74,10 +77,22 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         };
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+
+        if (this.langDir) {
+            setOverridesByGlobalCache(this._i18n, this);
+        }
+    }
+
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             if (propName === 'lang') {
                 this._i18n.changeLanguage(this.lang);
+            }
+
+            if ((propName === 'lang' || propName === 'langDir') && this.langDir) {
+                setOverridesByGlobalCache(this._i18n, this);
             }
         });
         super.update(changedProperties);
@@ -303,6 +318,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         const isEdit = this._isEditMode;
         const saveDisabled = !this._isFormValid || this._isSubmitting;
         const showFormTypeSelector = !isEdit && this.creatableModules.length > 1;
+        const generalSectionTitle = t('create-form.section-general');
 
         return html`
             <dbp-modal
@@ -359,8 +375,11 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                         </button>
                     </div>
 
-                    <!-- General section -->
-                    <h4 class="form-section-heading">${t('create-form.section-general')}</h4>
+                    ${generalSectionTitle
+                        ? html`
+                              <h4 class="form-section-heading">${generalSectionTitle}</h4>
+                          `
+                        : ''}
 
                     <!-- Form type selector: only shown when there are multiple create options -->
                     ${showFormTypeSelector

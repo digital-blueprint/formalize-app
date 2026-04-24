@@ -3,6 +3,7 @@ import {css, html} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
 import {ScopedElementsMixin, MiniSpinner, Icon} from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
+import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
 import {CustomTabulatorTable} from './table-components.js';
 import {MANAGE_FORMS_COMPONENT_STYLES} from './manage-forms-component-styles.js';
@@ -12,6 +13,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         super();
         this._i18n = createInstance();
         this.lang = this._i18n.language;
+        this.langDir = '';
         this.loadingFormsTable = false;
         this.showFormsTable = false;
         this.showSubmissionTables = false;
@@ -33,6 +35,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         return {
             ...super.properties,
             lang: {type: String},
+            langDir: {type: String, attribute: 'lang-dir'},
             loadingFormsTable: {type: Boolean, attribute: false},
             showFormsTable: {type: Boolean, attribute: false},
             showSubmissionTables: {type: Boolean, attribute: false},
@@ -47,9 +50,21 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             if (propName === 'lang') {
                 this._i18n.changeLanguage(this.lang);
             }
+
+            if ((propName === 'lang' || propName === 'langDir') && this.langDir) {
+                setOverridesByGlobalCache(this._i18n, this);
+            }
         });
 
         super.update(changedProperties);
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+
+        if (this.langDir) {
+            setOverridesByGlobalCache(this._i18n, this);
+        }
     }
 
     static get styles() {

@@ -2,6 +2,7 @@ import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {createInstance} from './i18n';
 import {getStackTrace} from '@dbp-toolkit/common/src/error.js';
 import {AuthMixin, LangMixin, sendNotification} from '@dbp-toolkit/common';
+import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 
 export default class DBPFormalizeLitElement extends LangMixin(
     AuthMixin(DBPLitElement),
@@ -12,6 +13,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
         this._initialized = false;
         this.entryPointUrl = '';
         this.basePath = '';
+        this.langDir = '';
     }
 
     static get properties() {
@@ -19,11 +21,16 @@ export default class DBPFormalizeLitElement extends LangMixin(
             ...super.properties,
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
             basePath: {type: String, attribute: 'base-path'},
+            langDir: {type: String, attribute: 'lang-dir'},
         };
     }
 
     connectedCallback() {
         super.connectedCallback();
+
+        if (this.langDir) {
+            setOverridesByGlobalCache(this._i18n, this);
+        }
     }
 
     loginCallback() {
@@ -36,7 +43,11 @@ export default class DBPFormalizeLitElement extends LangMixin(
     initialize() {}
 
     update(changedProperties) {
-        changedProperties.forEach((oldValue, propName) => {});
+        changedProperties.forEach((oldValue, propName) => {
+            if ((propName === 'langDir' || propName === 'lang') && this.langDir) {
+                setOverridesByGlobalCache(this._i18n, this);
+            }
+        });
 
         super.update(changedProperties);
     }

@@ -1933,6 +1933,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 <dbp-formalize-manage-forms-overview-page
                     lang="${this.lang}"
+                    lang-dir="${this.langDir}"
                     id="overview-page"
                     .loadingFormsTable=${this.loadingFormsTable}
                     .showFormsTable=${this.showFormsTable}
@@ -2035,6 +2036,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <dbp-formalize-edit-form-dialog
                 id="edit-form-dialog"
                 lang="${this.lang}"
+                lang-dir="${this.langDir}"
                 .auth="${this.auth}"
                 entry-point-url="${this.entryPointUrl}"
                 @dbp-create-form-created=${(event) => this.handleCreateFormCreated(event)}
