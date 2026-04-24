@@ -21,6 +21,10 @@ import {dateToTimestamp} from './manage-forms-api.js';
  * @param {string} state - 'draft' or 'submitted'
  */
 export function setSubmissionFormOptions(host, state) {
+    const noSubmissionDataPlaceholder = host._i18n
+        ? host._i18n.t('manage-forms.no-submission-data-available')
+        : 'No submission data available';
+
     let lang_submissions = {
         en: {columns: {}},
         de: {columns: {}},
@@ -50,7 +54,7 @@ export function setSubmissionFormOptions(host, state) {
             hozAlign: 'left',
             resizable: false,
         },
-        placeholder: 'No Submission data available',
+        placeholder: noSubmissionDataPlaceholder,
     };
 
     options_submissions.autoColumnsDefinitions = (definitions) => {
