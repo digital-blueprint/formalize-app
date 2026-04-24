@@ -407,43 +407,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        const i18n = this._i18n;
-
-        let langs_forms = {
-            en: {
-                columns: {
-                    id: i18n.t('manage-forms.id', {lng: 'en'}),
-                    name: i18n.t('manage-forms.name', {lng: 'en'}),
-                },
-            },
-            de: {
-                columns: {
-                    id: i18n.t('manage-forms.id', {lng: 'de'}),
-                    name: i18n.t('manage-forms.name', {lng: 'de'}),
-                },
-            },
-        };
-
-        this.options_forms = {
-            langs: langs_forms,
-            layout: 'fitColumns',
-            columns: [
-                {field: 'id', width: 64, sorter: 'number'},
-                {field: 'name', sorter: 'string'},
-                {
-                    field: 'actionButton',
-                    formatter: 'html',
-                    hozAlign: 'right',
-                    minWidth: 64,
-                    headerSort: false,
-                },
-            ],
-            columnDefaults: {
-                vertAlign: 'middle',
-                hozAlign: 'left',
-                resizable: false,
-            },
-        };
+        this.updateFormsTableOptions();
 
         setSubmissionFormOptions(this, 'draft');
         setSubmissionFormOptions(this, 'submitted');
@@ -523,6 +487,46 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 },
             );
         });
+    }
+
+    updateFormsTableOptions() {
+        const i18n = this._i18n;
+
+        let langs_forms = {
+            en: {
+                columns: {
+                    id: i18n.t('manage-forms.id', {lng: 'en'}),
+                    name: i18n.t('manage-forms.name', {lng: 'en'}),
+                },
+            },
+            de: {
+                columns: {
+                    id: i18n.t('manage-forms.id', {lng: 'de'}),
+                    name: i18n.t('manage-forms.name', {lng: 'de'}),
+                },
+            },
+        };
+
+        this.options_forms = {
+            langs: langs_forms,
+            layout: 'fitColumns',
+            columns: [
+                {field: 'id', width: 64, sorter: 'number'},
+                {field: 'name', sorter: 'string'},
+                {
+                    field: 'actionButton',
+                    formatter: 'html',
+                    hozAlign: 'right',
+                    minWidth: 64,
+                    headerSort: false,
+                },
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+        };
     }
 
     getTableState(tableId) {
@@ -696,8 +700,17 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('lang') || changedProperties.has('langDir')) {
+            this.updateFormsTableOptions();
             setSubmissionFormOptions(this, 'draft');
             setSubmissionFormOptions(this, 'submitted');
+
+            this.refreshTableReferences();
+            if (this.formsTable?.tabulatorTable) {
+                this.formsTable.tabulatorTable.destroy();
+                this.formsTable.tableReady = false;
+                this.formsTable.tableBuilding = false;
+                this.formsTable.buildTable();
+            }
         }
 
         if (changedProperties.has('lang')) {
