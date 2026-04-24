@@ -1,6 +1,7 @@
 // @ts-nocheck
 import {css, html} from 'lit';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
+import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {
     Button,
     Icon,
@@ -135,6 +136,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: {},
         };
         this.options_forms = {};
+        this._overridesReady = null;
         this.forms = new Map();
         /** @type {Map<string, {formId: string, formSlug: string, formName: string|null, moduleInstance: object}>} */
         this.loadedModules = new Map();
@@ -407,10 +409,21 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     connectedCallback() {
         super.connectedCallback();
-        this.updateFormsTableOptions();
 
-        setSubmissionFormOptions(this, 'draft');
-        setSubmissionFormOptions(this, 'submitted');
+        // Build table options after overrides are loaded so that column
+        // labels use the overridden text on the very first render.
+        // connectedCallback cannot be async, so we chain the work.
+        const initTableOptions = async () => {
+            if (this.langDir) {
+                await setOverridesByGlobalCache(this._i18n, this);
+            }
+            this.updateFormsTableOptions();
+            setSubmissionFormOptions(this, 'draft');
+            setSubmissionFormOptions(this, 'submitted');
+        };
+
+        // Store the promise so other code paths can await it
+        this._overridesReady = initTableOptions();
 
         this.updateComplete.then(async () => {
             // see: http://tabulator.info/docs/5.1
@@ -568,7 +581,34 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async updated(changedProperties) {
+        // Ensure translation overrides are loaded BEFORE any table is built
+        // so that column labels, placeholders, etc. use overridden text on
+        // the very first render — not just after a second language switch.
+        if (changedProperties.has('lang') || changedProperties.has('langDir')) {
+            if (this.langDir) {
+                await setOverridesByGlobalCache(this._i18n, this);
+            }
+
+            this.updateFormsTableOptions();
+            setSubmissionFormOptions(this, 'draft');
+            setSubmissionFormOptions(this, 'submitted');
+
+            this.refreshTableReferences();
+            if (this.formsTable?.tabulatorTable) {
+                this.formsTable.tabulatorTable.destroy();
+                this.formsTable.tableReady = false;
+                this.formsTable.tableBuilding = false;
+                this.formsTable.buildTable();
+            }
+        }
+
         if (changedProperties.has('allForms')) {
+            // Wait for the initial override load started in connectedCallback
+            // so that column labels are correct on the very first table build.
+            if (this._overridesReady) {
+                await this._overridesReady;
+            }
+
             // Build tables
             if (this.allForms && this.allForms.length > 0) {
                 this.noFormsAvailable = false;
@@ -696,20 +736,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.submissionTables[state].buildTable();
                     this.needTableRebuild[state] = false;
                 }
-            }
-        }
-
-        if (changedProperties.has('lang') || changedProperties.has('langDir')) {
-            this.updateFormsTableOptions();
-            setSubmissionFormOptions(this, 'draft');
-            setSubmissionFormOptions(this, 'submitted');
-
-            this.refreshTableReferences();
-            if (this.formsTable?.tabulatorTable) {
-                this.formsTable.tabulatorTable.destroy();
-                this.formsTable.tableReady = false;
-                this.formsTable.tableBuilding = false;
-                this.formsTable.buildTable();
             }
         }
 
