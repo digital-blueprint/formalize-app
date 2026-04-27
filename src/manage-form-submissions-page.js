@@ -283,19 +283,19 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         exportActions.push({
             value: 'csv',
             label: i18n.t('manage-forms.export-csv-label', {n: exportCount}),
-            iconName: 'zip',
+            iconName: 'download',
         });
 
         exportActions.push({
             value: 'xlsx',
             label: i18n.t('manage-forms.export-xlsx-label', {n: exportCount}),
-            iconName: 'zip',
+            iconName: 'download',
         });
 
         exportActions.push({
             value: 'pdf',
             label: i18n.t('manage-forms.export-pdf-label', {n: exportCount}),
-            iconName: 'zip',
+            iconName: 'download',
         });
 
         if (this.submissionsHasAttachment[state]) {
