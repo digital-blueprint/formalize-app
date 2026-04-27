@@ -301,8 +301,9 @@ export function getManageFormsCSS() {
             width: auto;
             overflow-y: hidden;
             min-height: 0;
-            max-width: 768px;
             min-width: 768px;
+            width: 65vw;
+            max-width: 1280px;
         }
 
         .open-modal-icon {
