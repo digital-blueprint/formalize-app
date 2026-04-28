@@ -386,6 +386,8 @@ class FormalizeFormElement extends BaseFormElement {
 
         const formData = event.detail.formData;
 
+        formData.lecturers = formData.lecturers.split('\n') || [];
+
         const payload = {
             courseName: formData.courseName,
             lecturers: formData.lecturers,
@@ -544,9 +546,12 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="lecturers"
+                        rows=${Array.isArray(data.lecturers) && data.lecturers.length > 1
+                            ? String(data.lecturers.length)
+                            : '1'}
                         label=${i18n.t('render-form.forms.accessible-courses-form.lecturers')}
                         value=${Array.isArray(data.lecturers)
-                            ? data.lecturers.filter(Boolean).join(', ')
+                            ? data.lecturers.filter(Boolean).join('\n')
                             : data.lecturers || ''}
                         disabled></dbp-form-string-element>
 
