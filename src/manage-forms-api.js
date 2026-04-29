@@ -151,6 +151,12 @@ export async function getListOfAllForms(host) {
                 ? host.denyListFrontendKeys
                 : [];
 
+            // Build a set of form identifiers that were loaded from modules.json.
+            const loadedModuleFormIds = new Set();
+            for (const entry of host.loadedModules.values()) {
+                loadedModuleFormIds.add(entry.formId);
+            }
+
             let id = 0;
             for (let x = 0; x < data['hydra:member'].length; x++) {
                 const entry = data['hydra:member'][x];
@@ -171,6 +177,14 @@ export async function getListOfAllForms(host) {
 
                 // Apply deny-list: skip forms whose frontendKey is in the list
                 if (denyList.length > 0 && frontendKey !== null && denyList.includes(frontendKey)) {
+                    continue;
+                }
+
+                // Skip forms whose identifier does not match any locally loaded
+                // module from modules.json.  This ensures that a whitelabel build
+                // (which ships a reduced modules.json) does not display forms it
+                // has no frontend code for.
+                if (!loadedModuleFormIds.has(formId)) {
                     continue;
                 }
 
