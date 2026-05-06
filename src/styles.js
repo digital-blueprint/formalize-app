@@ -384,7 +384,7 @@ export function getManageFormsCSS() {
 
         .container.submissions-table {
             container: table-container / inline-size;
-            margin-top:50px;
+            margin-top: 50px;
         }
 
         .table-wrapper h3 {
@@ -750,7 +750,6 @@ export function getManageFormsCSS() {
                 width: 100px;
             }
         }
-        
 
         /* export button */
 
