@@ -1229,7 +1229,7 @@ class FormalizeFormElement extends BaseFormElement {
         const nextYear = currentYear + 1;
 
         items[''] = i18n.t('render-form.forms.media-transparency-form.please-select-deadline');
-        for (let year = currentYear; year <= nextYear + 1; year++) {
+        for (let year = currentYear; year <= nextYear; year++) {
             items[`${year}/1`] = `${year}/1`;
             items[`${year}/2`] = `${year}/2`;
         }
@@ -1368,7 +1368,11 @@ class FormalizeFormElement extends BaseFormElement {
                                 Transparenz von Werbung an der TU Graz zu erhöhen. Bitte füllen Sie
                                 alle Pflichtfelder aus (gekennzeichnet mit einem roten Stern) und
                                 laden Sie die erforderlichen Dateien hoch, damit Ihre Einreichung
-                                bearbeitet werden kann.
+                                bearbeitet werden kann. Bei Fragen, melden Sie sich bitte bei
+                                <a href="mailto:ulla.lehrmayer@tugraz.at" target="_blank">
+                                    Ulla Lehrmayer
+                                </a>
+                                .
                             </p>
                         </div>
                         <div slot="en">
@@ -1376,7 +1380,12 @@ class FormalizeFormElement extends BaseFormElement {
                                 In this form, you can enter your advertising activities to increase
                                 the transparency of advertising at TU Graz. Please fill in all
                                 required fields (marked with a red asterisk) and upload the
-                                necessary files to ensure that your submission can be processed.
+                                necessary files to ensure that your submission can be processed. If
+                                you have any questions, please contact
+                                <a href="mailto:ulla.lehrmayer@tugraz.at" target="_blank">
+                                    Ulla Lehrmayer
+                                </a>
+                                .
                             </p>
                         </div>
                     </dbp-translated>
@@ -1651,7 +1660,6 @@ class FormalizeFormElement extends BaseFormElement {
                     subscribe="lang"
                     name="reportingDeadline"
                     .items=${this.getDeadlinePeriodItems()}
-                    description="Select the first period between January and June, the second between July and December."
                     required
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-reporting-deadline-period-label',
@@ -1667,6 +1675,11 @@ class FormalizeFormElement extends BaseFormElement {
                             : [];
                     }}
                     .value=${data.reportingDeadline || ''}></dbp-form-enum-element>
+                <p class="field-note">
+                    ${i18n.t(
+                        'render-form.forms.media-transparency-form.field-reporting-deadline-period-description',
+                    )}
+                </p>
 
                 ${this.getFileGroupsFromSchema().map((groupName) =>
                     this.renderFileUploadGroup(groupName),

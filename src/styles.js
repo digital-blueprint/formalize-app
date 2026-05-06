@@ -1975,6 +1975,16 @@ export function getMediaTransparencyFormCSS() {
             border: var(--dbp-border);
         }
 
+        .form-description a {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            transition: text-underline-offset 0.1s ease-in;
+        }
+
+        .form-description a:hover {
+            text-underline-offset: 1px;
+        }
+
         .field-note {
             font-size: 1em;
             font-style: italic;

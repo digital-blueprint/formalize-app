@@ -443,6 +443,7 @@
                 "field-other-medium-name-label": "Other medium name",
                 "field-other-medium-owners-name-label": "Other medium owners name",
                 "field-reporting-deadline-label": "Reporting date",
+                "field-reporting-deadline-period-description": "Select the first period between January and June, the second between July and December.",
                 "field-reporting-deadline-period-label": "Reporting period",
                 "field-sap-order-number-label": "SAP order number",
                 "field-sujet-notes-label": "Sujet notes",
