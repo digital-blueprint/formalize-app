@@ -784,9 +784,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     ${this.createSubmissionUrl && !this.hideCreateSubmissionButton
                         ? html`
                               <a
-                                  class="create-submission-button"
+                                  class="button is-primary"
                                   href="${this.createSubmissionUrl}"
                                   target="_blank">
+                                  <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
                                   ${i18n.t('manage-forms.create-submission-button')}
                               </a>
                           `

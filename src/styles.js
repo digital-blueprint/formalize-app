@@ -384,6 +384,7 @@ export function getManageFormsCSS() {
 
         .container.submissions-table {
             container: table-container / inline-size;
+            margin-top:50px;
         }
 
         .table-wrapper h3 {
@@ -749,18 +750,7 @@ export function getManageFormsCSS() {
                 width: 100px;
             }
         }
-
-        .create-submission-button {
-            background-color: var(--dbp-primary-surface);
-            border-color: var(--dbp-primary-surface-border-color);
-            color: var(--dbp-on-primary-surface);
-            height: 2em;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 1em;
-            margin-bottom: 3em;
-        }
+        
 
         /* export button */
 
