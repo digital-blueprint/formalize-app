@@ -1630,14 +1630,14 @@ export function getEthicsCommissionFormCSS() {
             word-wrap: normal;
         }
 
-        /* animations */
+        /* animations 
         :is(.button, dbp-button):not([disabled]) dbp-icon {
             transition: transform 0.1s ease-in;
         }
 
         :is(.button, dbp-button):not([disabled]):hover dbp-icon {
             transform: scale(1.25);
-        }
+        }*/
 
         @keyframes fadeIn {
             from {
