@@ -144,6 +144,12 @@ class FormalizeFormElement extends BaseFormElement {
             nonEuCountries: false,
             potentiallyStigmatizePeople: false,
             replaceHumanDecisionMaking: false,
+            negativeSocialConsequences: false,
+            informationProcessingWeaponSystem: false,
+            hasNegativeEffects: false,
+            technologyAssessment: false,
+            weaponSystem: false,
+            hasDualUse: false,
             reputationalDamage: false,
             requestedFromAnotherCommittee: false,
             stakeholderParticipationPlanned: false,
@@ -2359,22 +2365,14 @@ class FormalizeFormElement extends BaseFormElement {
                         ${
                             this.conditionalFields.harmfulSubstancesOnSubjects
                                 ? html`
-                                      <dbp-form-enum-view
+                                      <dbp-form-string-view
                                           subscribe="lang"
                                           name="adequateSafetyMeasures"
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
-                                          .items=${{
-                                              yes: i18n.t(
-                                                  'render-form.forms.ethics-commission-form.yes',
-                                              ),
-                                              no: i18n.t(
-                                                  'render-form.forms.ethics-commission-form.no',
-                                              ),
-                                          }}
                                           .value=${data.adequateSafetyMeasures ||
-                                          ''}></dbp-form-enum-view>
+                                          ''}></dbp-form-string-view>
                                   `
                                 : ''
                         }
@@ -2407,7 +2405,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           class="question-group"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
-                                          label="3.4.1. ${i18n.t(
+                                          label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
                                           value=${data.appropriateUseOfResources ||
@@ -2613,6 +2611,7 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-form-enum-view
                             subscribe="lang"
                             name="potentiallyStigmatizePeople"
+                            data-condition="yes"
                             label="5.2. ${i18n.t('render-form.forms.ethics-commission-form.potentially-stigmatize-people-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2623,6 +2622,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            data-condition="yes"
                             name="negativeSocialConsequences"
                             label="5.3. ${i18n.t('render-form.forms.ethics-commission-form.negative-social-consequences-label')}"
                             .items=${{
@@ -2634,6 +2634,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                         <dbp-form-enum-view
                             subscribe="lang"
+                            data-condition="yes"
                             name="informationProcessingWeaponSystem"
                             label="5.4. ${i18n.t('render-form.forms.ethics-commission-form.information-processing-weapon-system-label')}"
                             .items=${{
@@ -2656,6 +2657,10 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-view>
 
                         ${
+                            this.conditionalFields.replaceHumanDecisionMaking ||
+                            this.conditionalFields.potentiallyStigmatizePeople ||
+                            this.conditionalFields.negativeSocialConsequences ||
+                            this.conditionalFields.informationProcessingWeaponSystem ||
                             this.conditionalFields.hasEthicalIssues
                                 ? html`
                                       <dbp-form-string-view
@@ -2961,18 +2966,26 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-view>
 
                     ${
-                        this.conditionalFields.reputationalDamage ||
-                        this.conditionalFields.humanDecisionInfluence
+                        this.conditionalFields.humanDecisionInfluence ||
+                        this.conditionalFields.hasNegativeEffects ||
+                        this.conditionalFields.technologyAssessment ||
+                        this.conditionalFields.weaponSystem ||
+                        this.conditionalFields.hasDualUse ||
+                        this.conditionalFields.reputationalDamage
                             ? html`
                                   <dbp-form-string-view
                                       class="${classMap({
                                           'fade-in':
-                                              this.conditionalFields.reputationalDamage ||
-                                              this.conditionalFields.humanDecisionInfluence,
+                                              this.conditionalFields.humanDecisionInfluence ||
+                                              this.conditionalFields.hasNegativeEffects ||
+                                              this.conditionalFields.technologyAssessment ||
+                                              this.conditionalFields.weaponSystem ||
+                                              this.conditionalFields.hasDualUse ||
+                                              this.conditionalFields.reputationalDamage,
                                       })}"
                                       subscribe="lang"
                                       name="hasNegativeEffectsList"
-                                      label="8.5.1 ${i18n.t(
+                                      label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.has-negative-effects-list-label',
                                       )}"
                                       value=${data.hasNegativeEffectsList ||
@@ -3048,8 +3061,8 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
                                     <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
-                                    <li><p>Hinweis auf die Richtlinie für Hinweisgeber und den elektronischen Briefkasten für anonyme Hinweise an der TU Graz (Whistleblowing)</p></li>
-                                    <li><p>Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a></p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing)</a></p></li>
+                                    <li><p>Hinweis auf die Datenspeicherung (z.B.: welcher Server, wer hat Zugriff), die Aufbewahrungsdauer sowie auf die Frage des Personenbezugs</p></li>
                                     <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
                                 </ol>
                             </div>
@@ -3078,8 +3091,8 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p>Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips (Whistleblowing)</p></li>
-                                    <li><p>Electronic Mailbox for Anonymous Tips (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a>.</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Electronic Mailbox for Anonymous Tips (Whistleblowing)</a>.</p></li>
+                                    <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
                             </div>
@@ -3547,13 +3560,15 @@ class FormalizeFormElement extends BaseFormElement {
                         maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-label')}"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-placeholder')}"
-                        description="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-2')}"
                         value=${data.volunteersCompensation || ''}
                         rows="5"
                         required>
                     </dbp-form-string-element>
 
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}</p>
+                    <p class="field-note">
+                        ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-2')}
+                        ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}
+                    </p>
 
                     <dbp-form-string-element
                         subscribe="lang"
@@ -3990,6 +4005,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     )}"
                                                     maxlength="1000"
                                                     rows="3"
+                                                    required
                                                     value=${data.riskMinimizationSteps ||
                                                     ''}></dbp-form-string-element>
                                             `
@@ -4557,7 +4573,7 @@ class FormalizeFormElement extends BaseFormElement {
                         ${
                             this.conditionalFields.harmfulSubstancesOnSubjects
                                 ? html`
-                                      <dbp-form-enum-element
+                                      <dbp-form-string-element
                                           class="${classMap({
                                               'fade-in':
                                                   this.conditionalFields
@@ -4565,21 +4581,13 @@ class FormalizeFormElement extends BaseFormElement {
                                           })}"
                                           subscribe="lang"
                                           name="adequateSafetyMeasures"
-                                          display-mode="list"
+                                          rows="3"
                                           required
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
-                                          .items=${{
-                                              yes: i18n.t(
-                                                  'render-form.forms.ethics-commission-form.yes',
-                                              ),
-                                              no: i18n.t(
-                                                  'render-form.forms.ethics-commission-form.no',
-                                              ),
-                                          }}
                                           .value=${data.adequateSafetyMeasures ||
-                                          ''}></dbp-form-enum-element>
+                                          ''}></dbp-form-string-element>
                                   `
                                 : ''
                         }
@@ -4619,7 +4627,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
                                           maxlength="1000"
-                                          label="3.4.1. ${i18n.t(
+                                          label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
                                           placeholder="${i18n.t(
@@ -4865,6 +4873,7 @@ class FormalizeFormElement extends BaseFormElement {
                             subscribe="lang"
                             name="potentiallyStigmatizePeople"
                             data-condition="yes"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             label="5.2. ${i18n.t('render-form.forms.ethics-commission-form.potentially-stigmatize-people-label')}"
@@ -4878,6 +4887,7 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-form-enum-element
                             subscribe="lang"
                             name="negativeSocialConsequences"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             label="5.3. ${i18n.t('render-form.forms.ethics-commission-form.negative-social-consequences-label')}"
@@ -4891,6 +4901,7 @@ class FormalizeFormElement extends BaseFormElement {
                         <dbp-form-enum-element
                             subscribe="lang"
                             name="informationProcessingWeaponSystem"
+                            data-condition="yes"
                             display-mode="list"
                             required
                             label="5.4. ${i18n.t('render-form.forms.ethics-commission-form.information-processing-weapon-system-label')}"
@@ -4916,15 +4927,21 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-form-enum-element>
 
                         ${
-                            this.conditionalFields.hasEthicalIssues ||
-                            this.conditionalFields.potentiallyStigmatizePeople
+                            this.conditionalFields.potentiallyStigmatizePeople ||
+                            this.conditionalFields.negativeSocialConsequences ||
+                            this.conditionalFields.informationProcessingWeaponSystem ||
+                            this.conditionalFields.hasEthicalIssues
                                 ? html`
                                       <dbp-form-string-element
                                           class="${classMap({
                                               'fade-in':
-                                                  this.conditionalFields.hasEthicalIssues ||
                                                   this.conditionalFields
-                                                      .potentiallyStigmatizePeople,
+                                                      .potentiallyStigmatizePeople ||
+                                                  this.conditionalFields
+                                                      .negativeSocialConsequences ||
+                                                  this.conditionalFields
+                                                      .informationProcessingWeaponSystem ||
+                                                  this.conditionalFields.hasEthicalIssues,
                                           })}"
                                           subscribe="lang"
                                           name="ethicalIssuesList"
@@ -5309,14 +5326,22 @@ class FormalizeFormElement extends BaseFormElement {
                     </dbp-form-enum-element>
 
                     ${
-                        this.conditionalFields.reputationalDamage ||
-                        this.conditionalFields.humanDecisionInfluence
+                        this.conditionalFields.humanDecisionInfluence ||
+                        this.conditionalFields.hasNegativeEffects ||
+                        this.conditionalFields.technologyAssessment ||
+                        this.conditionalFields.weaponSystem ||
+                        this.conditionalFields.hasDualUse ||
+                        this.conditionalFields.reputationalDamage
                             ? html`
                                   <dbp-form-string-element
                                       class="${classMap({
                                           'fade-in':
-                                              this.conditionalFields.reputationalDamage ||
-                                              this.conditionalFields.humanDecisionInfluence,
+                                              this.conditionalFields.humanDecisionInfluence ||
+                                              this.conditionalFields.hasNegativeEffects ||
+                                              this.conditionalFields.technologyAssessment ||
+                                              this.conditionalFields.weaponSystem ||
+                                              this.conditionalFields.hasDualUse ||
+                                              this.conditionalFields.reputationalDamage,
                                       })}"
                                       subscribe="lang"
                                       name="hasNegativeEffectsList"
@@ -5475,8 +5500,8 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
                                     <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
-                                    <li><p>Hinweis auf die Richtlinie für Hinweisgeber und den elektronischen Briefkasten für anonyme Hinweise an der TU Graz (Whistleblowing)</p></li>
-                                    <li><p>Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a></p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing)</a></p></li>
+                                    <li><p>Hinweis auf die Datenspeicherung (z.B.: welcher Server, wer hat Zugriff), die Aufbewahrungsdauer sowie auf die Frage des Personenbezugs</p></li>
                                     <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
                                 </ol>
                             </div>
@@ -5505,8 +5530,8 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p>Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips (Whistleblowing)</p></li>
-                                    <li><p>Electronic Mailbox for Anonymous Tips (Whistleblowing), <a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">whistleblowing</a>.</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Electronic Mailbox for Anonymous Tips (Whistleblowing)</a>.</p></li>
+                                    <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
                             </div>
