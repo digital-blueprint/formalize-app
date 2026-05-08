@@ -1797,12 +1797,23 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     handleBackToOverview() {
         this.showSubmissionTables = false;
-        this.loadingSubmissionsTables = false;
+        this.loadingSubmissionTables = false;
         this.clearAllFilters();
         this.closeAllSearchWidgets();
         this.loadingFormsTable = false;
         this.showFormsTable = true;
         this.activeFormId = null;
+
+        // Direct links to a submissions page skip the initial overview table build.
+        this.refreshTableReferences();
+        if (this.formsTable) {
+            if (!this.formsTable.tableReady) {
+                this.formsTable.buildTable();
+            } else {
+                this.formsTable.setData(this.allForms);
+            }
+        }
+
         this.sendSetPropertyEvent('routing-url', '/', true);
     }
 
