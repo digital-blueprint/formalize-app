@@ -128,8 +128,7 @@
         "something-went-wrong-body": "Es tut uns leid, etwas ist schief gelaufen.",
         "something-went-wrong-title": "Fehler!",
         "submission-table-draft-title": "Entwurf",
-        "submission-table-submitted-title": "Eingereicht",
-        "table-configuration": "Tabellenkonfiguration"
+        "submission-table-submitted-title": "Eingereicht"
     },
     "render-form": {
         "button-row": {

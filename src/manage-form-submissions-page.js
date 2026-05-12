@@ -1,21 +1,14 @@
 // @ts-nocheck
 import {html} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
-import {
-    ScopedElementsMixin,
-    Button,
-    Icon,
-    IconButton,
-    MiniSpinner,
-    DBPSelect,
-} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, Icon, MiniSpinner, DBPSelect} from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
 import {CustomTabulatorTable} from './table-components.js';
+import {ColumnSettingsModal} from './column-settings-modal.js';
 import {SUBMISSION_STATES} from './utils.js';
 import {MANAGE_FORMS_COMPONENT_STYLES} from './manage-forms-component-styles.js';
-import MicroModal from './micromodal.es.js';
 
 export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement) {
     constructor() {
@@ -52,12 +45,11 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
     static get scopedElements() {
         return {
-            'dbp-button': Button,
             'dbp-icon': Icon,
-            'dbp-icon-button': IconButton,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-select': DBPSelect,
+            'dbp-formalize-column-settings-modal': ColumnSettingsModal,
         };
     }
 
@@ -141,33 +133,19 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
     }
 
     getColumnOptionsModal(state) {
-        return this.renderRoot?.querySelector(`#column-options-modal-${state}`) ?? null;
-    }
-
-    getColumnOptionsContent(state) {
-        return this.renderRoot?.querySelector(`#submission-modal-content-${state}`) ?? null;
+        return (
+            this.renderRoot?.querySelector(
+                `dbp-formalize-column-settings-modal[data-state="${state}"]`,
+            ) ?? null
+        );
     }
 
     openColumnOptionsModal(state) {
-        let modal = this.getColumnOptionsModal(state);
-        if (modal) {
-            MicroModal.show(modal, {
-                disableScroll: true,
-                disableFocus: false,
-            });
-        }
-
-        let scrollWrapper = this.getColumnOptionsContent(state);
-        if (scrollWrapper) {
-            scrollWrapper.scrollTo(0, 0);
-        }
+        this.getColumnOptionsModal(state)?.open();
     }
 
     closeColumnOptionsModal(state) {
-        let modal = this.getColumnOptionsModal(state);
-        if (modal) {
-            MicroModal.close(modal);
-        }
+        this.getColumnOptionsModal(state)?.close();
     }
 
     closeAllSearchWidgets() {
@@ -310,7 +288,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
     }
 
     renderColumnSettingsModal(state) {
-        const i18n = this._i18n;
         const columns = this.submissionsColumns[state].filter((column) => {
             return column && column.frozen !== true;
         });
@@ -320,168 +297,21 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         }
 
         return html`
-            <div
-                class="modal micromodal-slide column-settings-modal"
-                id="column-options-modal-${state}"
-                aria-hidden="true">
-                <div class="modal-overlay" tabindex="-2" data-micromodal-close>
-                    <div
-                        class="modal-container"
-                        id="filter-modal-box"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="submission-modal-title">
-                        <header class="modal-header">
-                            <dbp-icon-button
-                                title="${i18n.t('manage-forms.modal-close')}"
-                                aria-label="${i18n.t('manage-forms.modal-close')}"
-                                class="modal-close"
-                                icon-name="close"
-                                @click="${() => {
-                                    this.closeColumnOptionsModal(state);
-                                }}"></dbp-icon-button>
-                            <div class="modal-title">
-                                <dbp-icon
-                                    class="modal-title-icon"
-                                    aria-label="hidden"
-                                    title="${i18n.t('manage-forms.table-configuration')}"
-                                    name="cog"></dbp-icon>
-                                <h2 id="submission-modal-title">
-                                    ${i18n.t('manage-forms.header-settings')}
-                                </h2>
-                            </div>
-                        </header>
-                        <div class="modal-header-tag">
-                            <p><span class="tag tag--state">${state}</span></p>
-                        </div>
-                        <main
-                            class="modal-content submission-modal-content"
-                            id="submission-modal-content-${state}">
-                            <ul class="headers">
-                                ${columns.map(
-                                    (column, index) => html`
-                                        <li class="header-field" data-index="${index}">
-                                            <div class="header-order">${index + 1}</div>
-                                            <div class="header-title">${column.title}</div>
-                                            <dbp-icon-button
-                                                data-visibility="${column.visible}"
-                                                icon-name=${column.visible
-                                                    ? this.iconNameVisible
-                                                    : this.iconNameHidden}
-                                                @click="${() => {
-                                                    this.handleAction(
-                                                        'toggle-column-visibility',
-                                                        state,
-                                                        {column},
-                                                    );
-                                                }}"
-                                                class="header-visibility-icon"></dbp-icon-button>
-                                            <div class="button-wrapper">
-                                                <div class="header-move">
-                                                    <dbp-icon-button
-                                                        class="arrow-up ${classMap({
-                                                            'first-arrow-up': index === 0,
-                                                        })}"
-                                                        icon-name="arrow-up"
-                                                        title="${i18n.t(
-                                                            'manage-forms.move-column-up',
-                                                        )}"
-                                                        @click="${() => {
-                                                            this.handleAction(
-                                                                'move-column-up',
-                                                                state,
-                                                                {
-                                                                    column,
-                                                                },
-                                                            );
-                                                        }}"></dbp-icon-button>
-                                                    <dbp-icon-button
-                                                        class="header-button arrow-down ${classMap({
-                                                            'last-arrow-down':
-                                                                index === columns.length - 1,
-                                                        })}"
-                                                        icon-name="arrow-down"
-                                                        title="${i18n.t(
-                                                            'manage-forms.move-column-down',
-                                                        )}"
-                                                        @click="${() => {
-                                                            this.handleAction(
-                                                                'move-column-down',
-                                                                state,
-                                                                {column},
-                                                            );
-                                                        }}"></dbp-icon-button>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    `,
-                                )}
-                            </ul>
-                        </main>
-                        <footer class="modal-footer">
-                            <div class="modal-footer-btn">
-                                <div class="top-button-row">
-                                    <button
-                                        title="${i18n.t('manage-forms.reset-filter')}"
-                                        class="check-btn button button--reset is-secondary item-1"
-                                        .disabled="${this.isResetButtonDisabled[state]}"
-                                        @click="${() => {
-                                            this.handleAction('reset-columns', state);
-                                        }}">
-                                        <dbp-icon
-                                            aria-hidden="true"
-                                            name="spinner-arrow-mirrored"></dbp-icon>
-                                        ${i18n.t('manage-forms.reset-filter')}
-                                    </button>
-                                    <button
-                                        title="${i18n.t('manage-forms.all-filters-hide')}"
-                                        class="check-btn button button--hide-all is-secondary item-2"
-                                        @click="${() => {
-                                            this.handleAction('hide-all-columns', state);
-                                        }}">
-                                        <dbp-icon
-                                            aria-hidden="true"
-                                            name="source_icons_eye-off"></dbp-icon>
-                                        ${i18n.t('manage-forms.all-filters-hide')}
-                                    </button>
-                                    <button
-                                        title="${i18n.t('manage-forms.all-filters-show')}"
-                                        class="check-btn button button--show-all is-secondary item-3"
-                                        @click="${() => {
-                                            this.handleAction('show-all-columns', state);
-                                        }}">
-                                        <dbp-icon
-                                            aria-hidden="true"
-                                            name="source_icons_eye-empty"></dbp-icon>
-                                        ${i18n.t('manage-forms.all-filters-show')}
-                                    </button>
-                                </div>
-                                <div class="bottom-button-row">
-                                    <button
-                                        title="${i18n.t('manage-forms.abort')}"
-                                        class="check-btn button is-secondary"
-                                        @click="${() => {
-                                            this.closeColumnOptionsModal(state);
-                                        }}">
-                                        <dbp-icon aria-hidden="true" name="close"></dbp-icon>
-                                        ${i18n.t('manage-forms.abort')}
-                                    </button>
-                                    <button
-                                        class="check-btn button button--save is-primary"
-                                        id="check"
-                                        @click="${() => {
-                                            this.handleAction('save-columns', state);
-                                            this.closeColumnOptionsModal(state);
-                                        }}">
-                                        <dbp-icon aria-hidden="true" name="save"></dbp-icon>
-                                        ${i18n.t('manage-forms.save-columns')}
-                                    </button>
-                                </div>
-                            </div>
-                        </footer>
-                    </div>
-                </div>
-            </div>
+            <dbp-formalize-column-settings-modal
+                data-state="${state}"
+                lang="${this.lang}"
+                state="${state}"
+                .columns="${columns}"
+                .iconNameVisible="${this.iconNameVisible}"
+                .iconNameHidden="${this.iconNameHidden}"
+                .resetButtonDisabled="${this.isResetButtonDisabled[state]}"
+                @column-settings-action="${(event) => {
+                    this.handleAction(
+                        event.detail.action,
+                        event.detail.state,
+                        event.detail.payload,
+                    );
+                }}"></dbp-formalize-column-settings-modal>
         `;
     }
 
