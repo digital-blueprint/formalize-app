@@ -1625,7 +1625,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="testSubjectsVoluntary"
-                                          label="1.1.1 ${i18n.t(
+                                          label="1.1.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-voluntary-label',
                                           )}"
                                           .items=${{
@@ -1807,7 +1807,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 <dbp-form-string-view
                                                     subscribe="lang"
                                                     name="testSubjectsTorturedExamples"
-                                                    label="1.2.3.1 ${i18n.t(
+                                                    label="1.2.3.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
                                                     )}"
                                                     value=${data.testSubjectsTorturedExamples || ''}
@@ -1877,7 +1877,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     })}"
                                                     subscribe="lang"
                                                     name="riskMinimizationSteps"
-                                                    label="${i18n.t(
+                                                    label="1.2.6.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.risk-minimization-steps-label',
                                                     )}"
                                                     value=${data.riskMinimizationSteps ||
@@ -1896,7 +1896,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="testSubjectsReasonableToParticipate"
-                                          label="1.3.1 ${i18n.t(
+                                          label="1.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-reasonable-to-participate-label',
                                           )}"
                                           .items=${{
@@ -2035,7 +2035,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 <dbp-form-enum-view
                                                     subscribe="lang"
                                                     name="stemCellsFromEmbryos"
-                                                    label="${i18n.t(
+                                                    label="1.5.2.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
                                                     )}"
                                                     .items=${{
@@ -2074,7 +2074,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 <dbp-form-enum-view
                                                     subscribe="lang"
                                                     name="stemCellsFromEmbryosDestroyed"
-                                                    label="${i18n.t(
+                                                    label="1.5.3.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
                                                     )}"
                                                     .items=${{
@@ -2111,7 +2111,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           data-condition="no"
                                           subscribe="lang"
                                           name="cellsObtainedInResearch"
-                                          label="1.5.5 ${i18n.t(
+                                          label="1.5.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.cells-obtained-in-research-label',
                                           )}"
                                           .items=${{
@@ -2130,7 +2130,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 <dbp-form-string-view
                                                     subscribe="lang"
                                                     name="tissueOrCellsSource"
-                                                    label="1.5.5.1 ${i18n.t(
+                                                    label="1.5.5.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
                                                     )}"
                                                     value=${data.tissueOrCellsSource ||
@@ -2368,7 +2368,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-string-view
                                           subscribe="lang"
                                           name="adequateSafetyMeasures"
-                                          label="${i18n.t(
+                                          label="3.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
                                           .value=${data.adequateSafetyMeasures ||
@@ -2405,7 +2405,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           class="question-group"
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
-                                          label="${i18n.t(
+                                          label="3.4.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
                                           value=${data.appropriateUseOfResources ||
@@ -2481,7 +2481,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 <dbp-form-enum-view
                                                     subscribe="lang"
                                                     name="questionResearchFounds"
-                                                    label="${i18n.t(
+                                                    label="4.1.2.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.question-research-founds-label',
                                                     )}"
                                                     .items=${{
@@ -2559,7 +2559,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     })}"
                                                     subscribe="lang"
                                                     name="riskCountries"
-                                                    label="${i18n.t(
+                                                    label="4.1.5.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.risk-countries-label',
                                                     )}"
                                                     value=${data.riskCountries ||
@@ -2599,7 +2599,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           })}"
                                           subscribe="lang"
                                           name="replaceHumanDecisionMakingExamples"
-                                          label="${i18n.t(
+                                          label="5.1.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.replace-human-decision-making-examples-label',
                                           )}"
                                           value=${data.replaceHumanDecisionMakingExamples ||
@@ -2666,7 +2666,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-string-view
                                           subscribe="lang"
                                           name="ethicalIssuesList"
-                                          label="${i18n.t(
+                                          label="5.6. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.ethical-issues-list-label',
                                           )}"
                                           value=${data.ethicalIssuesList ||
@@ -2698,7 +2698,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   <dbp-form-string-view
                                       subscribe="lang"
                                       name="conflictOfInterestList"
-                                      label="${i18n.t(
+                                      label="6.1.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-of-interest-list-label',
                                       )}"
                                       value=${data.conflictOfInterestList ||
@@ -2777,7 +2777,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   <dbp-form-string-view
                                       subscribe="lang"
                                       name="conflictInContentControlList"
-                                      label="6.3.1 ${i18n.t(
+                                      label="6.3.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-in-content-control-list-label',
                                       )}"
                                       value=${data.conflictInContentControlList ||
@@ -2804,7 +2804,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   <dbp-form-enum-view
                                       subscribe="lang"
                                       name="hasProvisionForAppropriateRecognition"
-                                      label="${i18n.t(
+                                      label="6.4.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.provision-for-appropriate-recognition-label',
                                       )}"
                                       .items=${{
@@ -2883,7 +2883,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   <dbp-form-string-view
                                       subscribe="lang"
                                       name="diversityAspectsExamples"
-                                      label="${i18n.t(
+                                      label="7.4.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.diversity-aspects-examples-label',
                                       )}"
                                       value=${data.diversityAspectsExamples ||
@@ -2985,7 +2985,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       })}"
                                       subscribe="lang"
                                       name="hasNegativeEffectsList"
-                                      label="${i18n.t(
+                                      label="8.7. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.has-negative-effects-list-label',
                                       )}"
                                       value=${data.hasNegativeEffectsList ||
@@ -3717,7 +3717,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           name="testSubjectsVoluntary"
                                           display-mode="list"
                                           required
-                                          label="1.1.1 ${i18n.t(
+                                          label="1.1.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-voluntary-label',
                                           )}"
                                           .items=${{
@@ -3736,7 +3736,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           name="isSelfExperiment"
                                           display-mode="list"
                                           required
-                                          label="1.1.2 ${i18n.t(
+                                          label="1.1.2. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.is-self-experiment-label',
                                           )}"
                                           .items=${{
@@ -3924,7 +3924,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     name="testSubjectsTorturedExamples"
                                                     maxlength="1000"
                                                     rows="3"
-                                                    label="1.2.3.1 ${i18n.t(
+                                                    label="1.2.3.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
                                                     )}"
                                                     value=${data.testSubjectsTorturedExamples || ''}
@@ -4000,7 +4000,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     })}"
                                                     subscribe="lang"
                                                     name="riskMinimizationSteps"
-                                                    label="${i18n.t(
+                                                    label="1.2.6.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.risk-minimization-steps-label',
                                                     )}"
                                                     maxlength="1000"
@@ -4024,7 +4024,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           name="testSubjectsReasonableToParticipate"
                                           display-mode="list"
                                           required
-                                          label="1.3.1 ${i18n.t(
+                                          label="1.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.test-subjects-reasonable-to-participate-label',
                                           )}"
                                           .items=${{
@@ -4192,7 +4192,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                         name="stemCellsFromEmbryos"
                                                         display-mode="list"
                                                         required
-                                                        label="${i18n.t(
+                                                        label="1.5.2.1. ${i18n.t(
                                                             'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
                                                         )}"
                                                         .items=${{
@@ -4240,7 +4240,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                         name="stemCellsFromEmbryosDestroyed"
                                                         display-mode="list"
                                                         required
-                                                        label="${i18n.t(
+                                                        label="1.5.3.1. ${i18n.t(
                                                             'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
                                                         )}"
                                                         .items=${{
@@ -4281,7 +4281,7 @@ class FormalizeFormElement extends BaseFormElement {
                                               data-condition="no"
                                               display-mode="list"
                                               required
-                                              label="1.5.5 ${i18n.t(
+                                              label="1.5.5. ${i18n.t(
                                                   'render-form.forms.ethics-commission-form.cells-obtained-in-research-label',
                                               )}"
                                               .items=${{
@@ -4307,7 +4307,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                         name="tissueOrCellsSource"
                                                         maxlength="1000"
                                                         rows="3"
-                                                        label="1.5.5.1 ${i18n.t(
+                                                        label="1.5.5.1. ${i18n.t(
                                                             'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
                                                         )}"
                                                         value=${data.tissueOrCellsSource || ''}
@@ -4583,7 +4583,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           name="adequateSafetyMeasures"
                                           rows="3"
                                           required
-                                          label="${i18n.t(
+                                          label="3.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
                                           .value=${data.adequateSafetyMeasures ||
@@ -4627,7 +4627,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           subscribe="lang"
                                           name="appropriateUseOfResources"
                                           maxlength="1000"
-                                          label="${i18n.t(
+                                          label="3.4.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
                                           placeholder="${i18n.t(
@@ -4723,7 +4723,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     name="questionResearchFounds"
                                                     display-mode="list"
                                                     required
-                                                    label="${i18n.t(
+                                                    label="4.1.2.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.question-research-founds-label',
                                                     )}"
                                                     .items=${{
@@ -4809,7 +4809,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                     name="riskCountries"
                                                     maxlength="1000"
                                                     rows="3"
-                                                    label="${i18n.t(
+                                                    label="4.1.5.1. ${i18n.t(
                                                         'render-form.forms.ethics-commission-form.risk-countries-label',
                                                     )}"
                                                     value=${data.riskCountries || ''}
@@ -4860,7 +4860,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       name="replaceHumanDecisionMakingExamples"
                                       maxlength="1000"
                                       rows="3"
-                                      label="${i18n.t(
+                                      label="5.1.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.replace-human-decision-making-examples-label',
                                       )}"
                                       value=${data.replaceHumanDecisionMakingExamples || ''}
@@ -4946,7 +4946,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           subscribe="lang"
                                           name="ethicalIssuesList"
                                           maxlength="1000"
-                                          label="${i18n.t(
+                                          label="5.6. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.ethical-issues-list-label',
                                           )}"
                                           value=${data.ethicalIssuesList || ''}
@@ -4985,7 +4985,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       subscribe="lang"
                                       name="conflictOfInterestList"
                                       maxlength="1000"
-                                      label="${i18n.t(
+                                      label="6.1.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-of-interest-list-label',
                                       )}"
                                       placeholder="Liste der Interessenskonflikten hier"
@@ -5101,7 +5101,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       subscribe="lang"
                                       name="conflictInContentControlList"
                                       maxlength="1000"
-                                      label="6.3.1 ${i18n.t(
+                                      label="6.3.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-in-content-control-list-label',
                                       )}"
                                       placeholder="Liste der Interessenskonflikten hier"
@@ -5139,7 +5139,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       name="hasProvisionForAppropriateRecognition"
                                       display-mode="list"
                                       required
-                                      label="${i18n.t(
+                                      label="6.4.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.provision-for-appropriate-recognition-label',
                                       )}"
                                       .items=${{
@@ -5231,7 +5231,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       subscribe="lang"
                                       name="diversityAspectsExamples"
                                       maxlength="1000"
-                                      label="${i18n.t(
+                                      label="7.4.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.diversity-aspects-examples-label',
                                       )}"
                                       value=${data.diversityAspectsExamples || ''}
@@ -5346,7 +5346,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       subscribe="lang"
                                       name="hasNegativeEffectsList"
                                       maxlength="1000"
-                                      label="${i18n.t(
+                                      label="8.7. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.has-negative-effects-list-label',
                                       )}"
                                       rows="3"
