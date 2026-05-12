@@ -159,11 +159,6 @@ export function getFileHandlingCss() {
             align-items: center;
         }
 
-        .micromodal-slide .modal-container,
-        .micromodal-slide .modal-overlay {
-            will-change: auto;
-        }
-
         /**************************\\
          Tablet Portrait Styles
        \\**************************/
@@ -286,24 +281,6 @@ export function getManageFormsCSS() {
         .back-btn dbp-icon {
             margin-left: -0.4em;
             margin-right: 0.2em;
-        }
-
-        .detailed-submission-modal-title {
-            margin-bottom: 10px;
-        }
-
-        .detailed-submission-modal-content {
-            padding: 0 20px 0 20px;
-        }
-
-        .detailed-submission-modal-box {
-            height: auto;
-            width: auto;
-            overflow-y: hidden;
-            min-height: 0;
-            min-width: 768px;
-            width: 65vw;
-            max-width: 1280px;
         }
 
         .open-modal-icon {
@@ -1060,20 +1037,6 @@ export function getManageFormsCSS() {
                 height: 40px;
             }
 
-            .detailed-submission-modal-box {
-                min-width: 320px;
-            }
-
-            .detailed-submission-modal-box .modal-footer .modal-footer-btn {
-                padding: 6px 12px 6px 12px;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .detailed-submission-modal-box .modal-content {
-                align-items: flex-start;
-            }
-
             .export-buttons {
                 gap: 0;
             }
@@ -1134,12 +1097,6 @@ export function getManageFormsCSS() {
             }
 
             #filter-modal-box,
-            .detailed-submission-modal-box {
-                width: 100%;
-                height: 100%;
-                max-width: 100%;
-            }
-
             .submission-modal-content,
             .detailed-submission-modal-content {
                 height: 100%;

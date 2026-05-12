@@ -1,13 +1,12 @@
 // @ts-nocheck
 import {css, html} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
-import {ScopedElementsMixin, Button, Icon, IconButton, sendNotification} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, Button, Icon, sendNotification} from '@dbp-toolkit/common';
 import {FileSink} from '@dbp-toolkit/file-handling';
 import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {createInstance} from './i18n.js';
-import MicroModal from './micromodal.es.js';
 import {MANAGE_FORMS_COMPONENT_STYLES} from './manage-forms-component-styles.js';
 
 export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
@@ -26,13 +25,13 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
         this.contentItems = [];
         this.boundHandleKeydown = this.handleKeydown.bind(this);
         this.boundHandlePdfModalClosed = this.handlePdfModalClosed.bind(this);
+        this.boundHandleModalClosed = this.handleModalClosed.bind(this);
     }
 
     static get scopedElements() {
         return {
             'dbp-button': Button,
             'dbp-icon': Icon,
-            'dbp-icon-button': IconButton,
             'dbp-file-sink': FileSink,
             'dbp-modal': Modal,
             'dbp-pdf-viewer': PdfViewer,
@@ -76,12 +75,37 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                 .submitted-files .file-action-buttons {
                     margin-top: 0.5rem;
                 }
+
+                dbp-modal.detailed-submission-modal {
+                    --dbp-modal-width: 65vw;
+                    --dbp-modal-max-width: 1280px;
+                    --dbp-modal-min-width: 768px;
+                    --dbp-modal-min-height: 0;
+                }
+
+                .detailed-submission-footer .modal-footer-btn {
+                    padding: 16px 0 0;
+                }
+
+                @media only screen and (max-width: 900px) {
+                    dbp-modal.detailed-submission-modal {
+                        --dbp-modal-width: calc(100vw - 40px);
+                        --dbp-modal-max-width: calc(100vw - 40px);
+                        --dbp-modal-min-width: 0;
+                    }
+
+                    .detailed-submission-footer .modal-footer-btn {
+                        padding: 16px 12px 6px;
+                        flex-direction: column;
+                        gap: 10px;
+                    }
+                }
             `,
         ];
     }
 
     getModalElement() {
-        return this.renderRoot?.querySelector(`#detailed-submission-modal-${this.state}`) ?? null;
+        return this.renderRoot?.querySelector('#detailed-submission-modal') ?? null;
     }
 
     show() {
@@ -92,32 +116,33 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
         }
 
         pdfModal?.addEventListener('dbp-modal-closed', this.boundHandlePdfModalClosed);
-
-        MicroModal.show(modal, {
-            disableScroll: true,
-            onClose: () => {
-                document.removeEventListener('keydown', this.boundHandleKeydown, true);
-                pdfModal?.removeEventListener('dbp-modal-closed', this.boundHandlePdfModalClosed);
-                this.isPdfPreviewOpen = false;
-                this.dispatchEvent(
-                    new CustomEvent('detail-modal-close', {
-                        detail: {state: this.state},
-                        bubbles: true,
-                        composed: true,
-                    }),
-                );
-            },
-            onShow: () => {
-                document.addEventListener('keydown', this.boundHandleKeydown, true);
-            },
-        });
+        modal.addEventListener('dbp-modal-closed', this.boundHandleModalClosed);
+        document.addEventListener('keydown', this.boundHandleKeydown, true);
+        modal.open();
     }
 
     close() {
         const modal = this.getModalElement();
         if (modal) {
-            MicroModal.close(modal);
+            modal.close();
         }
+    }
+
+    handleModalClosed() {
+        const modal = this.getModalElement();
+        const pdfModal = this.renderRoot?.querySelector('#pdf-view-modal');
+
+        document.removeEventListener('keydown', this.boundHandleKeydown, true);
+        modal?.removeEventListener('dbp-modal-closed', this.boundHandleModalClosed);
+        pdfModal?.removeEventListener('dbp-modal-closed', this.boundHandlePdfModalClosed);
+        this.isPdfPreviewOpen = false;
+        this.dispatchEvent(
+            new CustomEvent('detail-modal-close', {
+                detail: {state: this.state},
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     handleKeydown(event) {
@@ -308,136 +333,112 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
         const i18n = this._i18n;
 
         return html`
-            <div
-                class="modal micromodal-slide"
-                id="detailed-submission-modal-${this.state}"
-                data-state="${this.state}"
-                aria-hidden="true">
-                <div class="modal-overlay" tabindex="-2">
-                    <div
-                        class="modal-container detailed-submission-modal-box"
-                        id="detailed-submission-modal-box-${this.state}"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="detailed-submission-modal-title-${this.state}">
-                        <header class="modal-header">
-                            <dbp-icon-button
-                                title="${i18n.t('manage-forms.modal-close')}"
-                                aria-label="${i18n.t('manage-forms.modal-close')}"
-                                class="modal-close"
-                                icon-name="close"
-                                @click="${() => {
-                                    this.close();
-                                }}"></dbp-icon-button>
-                            <h3
-                                id="detailed-submission-modal-title-${this.state}"
-                                class="detailed-submission-modal-title">
-                                ${i18n.t('manage-forms.detailed-submission-dialog-title')}
-                            </h3>
-                        </header>
-                        <main
-                            class="modal-content detailed-submission-modal-content"
-                            id="detailed-submission-modal-content-${this.state}">
-                            <div class="content-wrapper">
-                                ${this.contentItems.map(
-                                    (item, index) => html`
-                                        <div class="element-left ${classMap({first: index === 0})}">
-                                            ${item.label}:
-                                        </div>
-                                        <div
-                                            class="element-right ${classMap({first: index === 0})}">
-                                            ${this.renderContentItem(item)}
-                                        </div>
-                                    `,
-                                )}
-                            </div>
-                        </main>
-                        <footer class="modal-footer">
-                            <div class="modal-footer-btn">
-                                <label
-                                    class="button-container ${classMap({
-                                        hidden: !this.hiddenColumns,
-                                    })}">
-                                    ${i18n.t('manage-forms.apply-col-settings')}
-                                    <input
-                                        type="checkbox"
-                                        id="apply-col-settings-${this.state}"
-                                        class="apply-col-settings"
-                                        name="apply-col-settings"
-                                        checked />
-                                    <span class="checkmark"></span>
-                                </label>
-                                <div class="btn-row-left">
-                                    <dbp-button
-                                        class="back-btn"
-                                        no-spinner-on-click
-                                        title="${i18n.t('manage-forms.previous-entry-btn-title')}"
-                                        @click="${() => {
-                                            this.dispatchEvent(
-                                                new CustomEvent('detail-modal-previous', {
-                                                    detail: {state: this.state},
-                                                    bubbles: true,
-                                                    composed: true,
-                                                }),
-                                            );
-                                        }}"
-                                        ?disabled=${!this.isPrevEnabled}>
-                                        <dbp-icon name="chevron-left" aria-hidden="true"></dbp-icon>
-                                        ${i18n.t('manage-forms.previous-entry-btn-title')}
-                                    </dbp-button>
-                                    <div class="page-numbering">
-                                        ${i18n.t('manage-forms.detailed-submission-dialog-id', {
-                                            id: this.currentBeautyId,
-                                            nItems: this.totalItems,
-                                        })}
-                                    </div>
-                                    <dbp-button
-                                        class="next-btn"
-                                        no-spinner-on-click
-                                        title="${i18n.t('manage-forms.next-entry-btn-title')}"
-                                        @click="${() => {
-                                            this.dispatchEvent(
-                                                new CustomEvent('detail-modal-next', {
-                                                    detail: {state: this.state},
-                                                    bubbles: true,
-                                                    composed: true,
-                                                }),
-                                            );
-                                        }}"
-                                        ?disabled=${!this.isNextEnabled}>
-                                        ${i18n.t('manage-forms.next-entry-btn-title')}
-                                        <dbp-icon
-                                            name="chevron-right"
-                                            aria-hidden="true"></dbp-icon>
-                                    </dbp-button>
+            <dbp-modal
+                id="detailed-submission-modal"
+                class="detailed-submission-modal"
+                modal-id="detailed-submission-modal-${this.state}"
+                title="${i18n.t('manage-forms.detailed-submission-dialog-title')}"
+                sticky-footer
+                subscribe="lang">
+                <div
+                    slot="content"
+                    class="detailed-submission-modal-content"
+                    id="detailed-submission-modal-content-${this.state}">
+                    <div class="content-wrapper">
+                        ${this.contentItems.map(
+                            (item, index) => html`
+                                <div class="element-left ${classMap({first: index === 0})}">
+                                    ${item.label}:
                                 </div>
-                            </div>
-                        </footer>
-
-                        <dbp-file-sink
-                            id="file-sink"
-                            class="file-sink"
-                            lang="${this.lang}"
-                            allowed-mime-types="*/*"
-                            decompress-zip
-                            enabled-targets="local,clipboard,nextcloud"
-                            subscribe="auth,nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
-
-                        <dbp-modal
-                            id="pdf-view-modal"
-                            class="pdf-view-modal"
-                            modal-id="pdf-viewer-modal-${this.state}"
-                            subscribe="lang">
-                            <div slot="content">
-                                <dbp-pdf-viewer
-                                    id="dbp-pdf-viewer"
-                                    lang="${this.lang}"
-                                    auto-resize="cover"></dbp-pdf-viewer>
-                            </div>
-                        </dbp-modal>
+                                <div class="element-right ${classMap({first: index === 0})}">
+                                    ${this.renderContentItem(item)}
+                                </div>
+                            `,
+                        )}
                     </div>
                 </div>
-            </div>
+                <div slot="footer" class="detailed-submission-footer">
+                    <div class="modal-footer-btn">
+                        <label
+                            class="button-container ${classMap({
+                                hidden: !this.hiddenColumns,
+                            })}">
+                            ${i18n.t('manage-forms.apply-col-settings')}
+                            <input
+                                type="checkbox"
+                                id="apply-col-settings-${this.state}"
+                                class="apply-col-settings"
+                                name="apply-col-settings"
+                                checked />
+                            <span class="checkmark"></span>
+                        </label>
+                        <div class="btn-row-left">
+                            <dbp-button
+                                class="back-btn"
+                                no-spinner-on-click
+                                title="${i18n.t('manage-forms.previous-entry-btn-title')}"
+                                @click="${() => {
+                                    this.dispatchEvent(
+                                        new CustomEvent('detail-modal-previous', {
+                                            detail: {state: this.state},
+                                            bubbles: true,
+                                            composed: true,
+                                        }),
+                                    );
+                                }}"
+                                ?disabled=${!this.isPrevEnabled}>
+                                <dbp-icon name="chevron-left" aria-hidden="true"></dbp-icon>
+                                ${i18n.t('manage-forms.previous-entry-btn-title')}
+                            </dbp-button>
+                            <div class="page-numbering">
+                                ${i18n.t('manage-forms.detailed-submission-dialog-id', {
+                                    id: this.currentBeautyId,
+                                    nItems: this.totalItems,
+                                })}
+                            </div>
+                            <dbp-button
+                                class="next-btn"
+                                no-spinner-on-click
+                                title="${i18n.t('manage-forms.next-entry-btn-title')}"
+                                @click="${() => {
+                                    this.dispatchEvent(
+                                        new CustomEvent('detail-modal-next', {
+                                            detail: {state: this.state},
+                                            bubbles: true,
+                                            composed: true,
+                                        }),
+                                    );
+                                }}"
+                                ?disabled=${!this.isNextEnabled}>
+                                ${i18n.t('manage-forms.next-entry-btn-title')}
+                                <dbp-icon name="chevron-right" aria-hidden="true"></dbp-icon>
+                            </dbp-button>
+                        </div>
+                    </div>
+                </div>
+            </dbp-modal>
+
+            <dbp-file-sink
+                id="file-sink"
+                class="file-sink"
+                lang="${this.lang}"
+                allowed-mime-types="*/*"
+                decompress-zip
+                enabled-targets="local,clipboard,nextcloud"
+                subscribe="auth,nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
+
+            <dbp-modal
+                id="pdf-view-modal"
+                class="pdf-view-modal"
+                modal-id="pdf-viewer-modal-${this.state}"
+                subscribe="lang">
+                <div slot="content">
+                    <dbp-pdf-viewer
+                        id="dbp-pdf-viewer"
+                        lang="${this.lang}"
+                        auto-resize="cover"></dbp-pdf-viewer>
+                </div>
+            </dbp-modal>
         `;
     }
 }
