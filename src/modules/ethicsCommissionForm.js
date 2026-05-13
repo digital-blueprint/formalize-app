@@ -111,7 +111,8 @@ class FormalizeFormElement extends BaseFormElement {
 
         this.scrollTimeout = null;
         this.needValidationOnLoad = false;
-
+        this._submissionDataMail = null;
+        this._submissionDataMailPromise = null;
         // Bind event handlers
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
@@ -316,7 +317,51 @@ class FormalizeFormElement extends BaseFormElement {
             console.error('Error parsing submission data:', e);
         }
     }
+    async getCurrentUserEmail() {
+        if (this._submissionDataMail !== null) {
+            return this._submissionDataMail;
+        }
 
+        if (this._submissionDataMailPromise) {
+            return this._submissionDataMailPromise;
+        }
+
+        this._submissionDataMailPromise = (async () => {
+            const response = await fetch(
+                this.entryPointUrl + '/base/people/' + this.auth['user-id'] + '?includeLocal=email',
+                {
+                    headers: {
+                        'Content-Type': 'application/ld+json',
+                        Authorization: 'Bearer ' + this.auth.token,
+                    },
+                },
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch current user email: ${response.status}`);
+            }
+
+            const person = await response.json();
+            const email = person?.localData?.email ?? '';
+
+            this._submissionDataMail = email;
+            return email;
+        })();
+
+        try {
+            return await this._submissionDataMailPromise;
+        } finally {
+            this._submissionDataMailPromise = null;
+        }
+    }
+
+    async ensureSubmissionDataMail(formData) {
+        if (formData.submissiondatamail && String(formData.submissiondatamail).trim() !== '') {
+            return;
+        }
+
+        formData.submissiondatamail = await this.getCurrentUserEmail();
+    }
     /**
      * Reset submission / state related fields end emit DbpFormalizeFormReset event.
      */
@@ -528,6 +573,7 @@ class FormalizeFormElement extends BaseFormElement {
         data.formData.identifier = isExistingDraft
             ? this.lastModifiedCreatorId
             : this.auth['user-id'];
+        await this.ensureSubmissionDataMail(data.formData);
         const formData = new FormData();
 
         // Iterate over all file groups dynamically
@@ -663,6 +709,7 @@ class FormalizeFormElement extends BaseFormElement {
         data.formData.identifier = isExistingDraft
             ? this.lastModifiedCreatorId
             : this.auth['user-id'];
+        await this.ensureSubmissionDataMail(data.formData);
 
         const formData = new FormData();
 
@@ -841,6 +888,7 @@ class FormalizeFormElement extends BaseFormElement {
         const data = event.detail;
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.lastModifiedCreatorId;
+        await this.ensureSubmissionDataMail(data.formData);
         const formData = new FormData();
 
         // Iterate over all file groups dynamically
