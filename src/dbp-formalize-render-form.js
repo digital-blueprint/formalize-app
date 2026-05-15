@@ -34,6 +34,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionAllowed = false;
         this.formDisplayDenied = false;
         this.disableBeforeUnloadWarning = false;
+        this._modulesLoaded = false;
+        this._initialDataLoaded = false;
+        this._formDataLoading = true;
 
         this._onReceiveBeforeUnload = this.onReceiveBeforeUnload.bind(this);
         this._onDisableBeforeunloadWarning = this.onDisableBeforeunloadWarning.bind(this);
@@ -55,6 +58,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             loadedSubmission: {type: Object, attribute: false},
             userAllSubmissions: {type: Object, attribute: false},
             formProperties: {type: Array, attribute: false},
+            _formDataLoading: {type: Boolean, attribute: false},
         };
     }
 
@@ -239,6 +243,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.requestUpdate();
         } catch (error) {
             console.error('Error loading modules:', error);
+        } finally {
+            this._modulesLoaded = true;
+            this._updateFormDataLoading();
         }
     }
 
@@ -554,6 +561,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 max-number-of-submissions=${maxNumberOfSubmissionsPerUser}
                 allowed-submission-states=${allowedSubmissionStates}
                 ?read-only=${this.readOnly}
+                ?form-loading=${this._formDataLoading}
                 .formProperties=${this.formProperties}
                 .userAllSubmissions=${this.userAllSubmissions}
                 .data=${data}></${unsafeStatic(tagName)}>
@@ -604,14 +612,23 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         `;
     }
 
+    _updateFormDataLoading() {
+        this._formDataLoading = !(this._modulesLoaded && this._initialDataLoaded);
+    }
+
     async update(changedProperties) {
         if (changedProperties.has('auth')) {
             if (!this.authTokenExists && this.auth.token !== '') {
                 this.authTokenExists = true;
-                this.handlePermissionsForCurrentForm();
+                try {
+                    await this.handlePermissionsForCurrentForm();
 
-                await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
-                await this.getSubmissionData();
+                    await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+                    await this.getSubmissionData();
+                } finally {
+                    this._initialDataLoaded = true;
+                    this._updateFormDataLoading();
+                }
             }
         }
         if (changedProperties.has('routingUrl')) {

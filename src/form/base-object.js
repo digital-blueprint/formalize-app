@@ -151,6 +151,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         this.isDownloadButtonAllowed = false;
         this.isSaveButtonEnabled = false;
+        this.formLoading = true;
 
         // Event handlers
         this.handleChangeEvents = this.handleChangeEvents.bind(this);
@@ -458,6 +459,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             isSubmitButtonEnabled: {type: Boolean, attribute: false},
             isPrintButtonAllowed: {type: Boolean, attribute: false},
             isDownloadButtonAllowed: {type: Boolean, attribute: false},
+            formLoading: {type: Boolean, attribute: 'form-loading'},
         };
     }
 
@@ -558,7 +560,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 <div class="submission-info-wrapper">${this.renderSubmissionInfo()}</div>
                 <div class="tag-management">${this.renderHeaderTags()}</div>
             </div>
-            <div class="buttons-wrapper">
+            <div class="buttons-wrapper" style="${this.formLoading ? 'visibility:hidden' : ''}">
                 <div class="status-tags-wrapper">
                     ${this.renderStatusTags()}
                     ${this.readOnly ? '' : this.renderFormValidityIndicator()}
