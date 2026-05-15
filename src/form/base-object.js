@@ -1162,7 +1162,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             // });
         }
 
-        if (changedProperties.has('userAllSubmissions')) {
+        if (changedProperties.has('userAllSubmissions') || changedProperties.has('readOnly')) {
             this.setButtonStates();
         }
 
