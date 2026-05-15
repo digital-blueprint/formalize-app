@@ -2911,6 +2911,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="hasNegativeEffects"
+                        data-condition="yes"
                         label="8.2. ${i18n.t('render-form.forms.ethics-commission-form.has-negative-effects-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2922,6 +2923,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="technologyAssessment"
+                        data-condition="yes"
                         label="8.3. ${i18n.t('render-form.forms.ethics-commission-form.technology-assessment-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2933,6 +2935,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="weaponSystem"
+                        data-condition="yes"
                         label="8.4. ${i18n.t('render-form.forms.ethics-commission-form.weapon-system-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -2944,6 +2947,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="hasDualUse"
+                        data-condition="yes"
                         label="8.5. ${i18n.t('render-form.forms.ethics-commission-form.has-dual-use-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
@@ -5262,6 +5266,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-element
                         subscribe="lang"
                         name="hasNegativeEffects"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="8.2. ${i18n.t('render-form.forms.ethics-commission-form.has-negative-effects-label')}"
@@ -5275,6 +5280,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-element
                         subscribe="lang"
                         name="technologyAssessment"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="8.3. ${i18n.t('render-form.forms.ethics-commission-form.technology-assessment-label')}"
@@ -5288,6 +5294,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-element
                         subscribe="lang"
                         name="weaponSystem"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="8.4. ${i18n.t('render-form.forms.ethics-commission-form.weapon-system-label')}"
@@ -5301,6 +5308,7 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-element
                         subscribe="lang"
                         name="hasDualUse"
+                        data-condition="yes"
                         display-mode="list"
                         required
                         label="8.5. ${i18n.t('render-form.forms.ethics-commission-form.has-dual-use-label')}"
