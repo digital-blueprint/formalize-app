@@ -7,6 +7,7 @@ import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 export class CustomTabulatorTable extends TabulatorTable {
     static get scopedElements() {
         return {
+            ...super.scopedElements,
             'dbp-formalize-column-settings-button': ColumnSettingsButton,
             'dbp-formalize-get-details-button': GetDetailsButton,
             'dbp-formalize-get-submission-link': GetSubmissionLink,
