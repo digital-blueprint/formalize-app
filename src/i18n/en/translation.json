@@ -176,6 +176,7 @@
                 "email": "E-mail address",
                 "family-name": "Last name",
                 "given-name": "First name",
+                "group-assignment": "Which group/teacher are you assigned to (if known)?",
                 "lecturers": "Lecturers",
                 "mandatory-fields": "Please fill out all required fields.",
                 "matriculation-number": "Matriculation number",
