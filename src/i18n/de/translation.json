@@ -176,6 +176,7 @@
                 "email": "E-Mail-Adresse",
                 "family-name": "Nachname",
                 "given-name": "Vorname",
+                "group-assignment": "Welcher Gruppe/Lehrperson sind Sie zugeordnet (falls bekannt)?",
                 "lecturers": "Vortragende",
                 "mandatory-fields": "Bitte füllen Sie alle Pflichtfelder aus.",
                 "matriculation-number": "Matrikelnummer",

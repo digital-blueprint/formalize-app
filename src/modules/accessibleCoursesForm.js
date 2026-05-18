@@ -84,6 +84,7 @@ class FormalizeFormElement extends BaseFormElement {
                     const payload = {
                         courseName: formData.courseName,
                         lecturers: formData.lecturers,
+                        groupAssignment: formData.groupAssignment ?? '',
                         adaptations: formData.adaptations,
                         matriculationNumber: formData.matriculationNumber ?? '',
                         studentGivenName: formData.studentGivenName ?? '',
@@ -213,7 +214,20 @@ class FormalizeFormElement extends BaseFormElement {
             ? 'Lehrende*r unbekannt'
             : 'Unknown lecturer';
     }
+    getLecturerList(lecturers) {
+        if (Array.isArray(lecturers)) {
+            return lecturers.map((lecturer) => String(lecturer).trim()).filter(Boolean);
+        }
 
+        if (typeof lecturers === 'string') {
+            return lecturers
+                .split('\n')
+                .map((lecturer) => lecturer.trim())
+                .filter(Boolean);
+        }
+
+        return [];
+    }
     // Reaction to dbp-course-changed
     async handleCourseChange(e) {
         this.saveButtonEnabled = false;
@@ -222,7 +236,10 @@ class FormalizeFormElement extends BaseFormElement {
             this.formData = {};
         }
 
+        this.formData.groupAssignment = '';
+
         const course = e.detail?.course;
+
         if (!course) {
             this.formData.lecturers = [this.getLecturerFallbackLabel()];
             this.requestUpdate();
@@ -386,11 +403,11 @@ class FormalizeFormElement extends BaseFormElement {
 
         const formData = event.detail.formData;
 
-        formData.lecturers = formData.lecturers.split('\n') || [];
-
+        formData.lecturers = this.getLecturerList(formData.lecturers);
         const payload = {
             courseName: formData.courseName,
             lecturers: formData.lecturers,
+            groupAssignment: formData.groupAssignment ?? '',
             adaptations: formData.adaptations,
             matriculationNumber: formData.matriculationNumber ?? '',
             studentGivenName: formData.studentGivenName ?? '',
@@ -505,6 +522,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         const data = this.formData || {};
+        const hasMultipleLecturers = this.getLecturerList(data.lecturers).length > 1;
 
         // Extract courseId from courseName if available
         data.courseId = data.courseName ? data.courseName.replace(/^([a-zA-Z0-9]+): .*/, '$1') : '';
@@ -554,6 +572,18 @@ class FormalizeFormElement extends BaseFormElement {
                             ? data.lecturers.filter(Boolean).join('\n')
                             : data.lecturers || ''}
                         disabled></dbp-form-string-element>
+
+                    ${hasMultipleLecturers
+                        ? html`
+                              <dbp-form-string-element
+                                  subscribe="lang"
+                                  name="groupAssignment"
+                                  label=${i18n.t(
+                                      'render-form.forms.accessible-courses-form.group-assignment',
+                                  )}
+                                  .value=${data.groupAssignment || ''}></dbp-form-string-element>
+                          `
+                        : ''}
 
                     <dbp-form-string-element
                         subscribe="lang"
@@ -630,6 +660,7 @@ class FormalizeFormElement extends BaseFormElement {
     renderFormViews() {
         const i18n = this._i18n;
         const data = this.formData || {};
+        const hasMultipleLecturers = this.getLecturerList(data.lecturers).length > 1;
 
         return html`
             <form
@@ -664,6 +695,17 @@ class FormalizeFormElement extends BaseFormElement {
                             ? data.lecturers.filter(Boolean).join(', ')
                             : data.lecturers || ''}></dbp-form-string-view>
 
+                    ${hasMultipleLecturers
+                        ? html`
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="groupAssignment"
+                                  label=${i18n.t(
+                                      'render-form.forms.accessible-courses-form.group-assignment',
+                                  )}
+                                  .value=${data.groupAssignment || ''}></dbp-form-string-view>
+                          `
+                        : ''}
                     <dbp-form-string-view
                         subscribe="lang"
                         name="adaptations"
