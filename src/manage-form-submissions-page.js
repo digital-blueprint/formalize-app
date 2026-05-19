@@ -550,17 +550,20 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
     renderStatusBar(state) {
         const i18n = this._i18n;
+        const visibleCount = this.visibleRowCount?.[state] ?? 0;
+        const selectedCount = this.selectedRowCount?.[state] ?? 0;
 
         return html`
             <div class="statusbar" role="status" aria-live="polite" aria-atomic="true">
                 <span class="selection-info">
                     ${i18n.t('manage-forms.n-items-shown-label', {
-                        n: this.visibleRowCount[state],
-                    })}${this.selectedRowCount[state] > 0
+                        n: visibleCount,
+                    })}
+                    ${selectedCount > 0
                         ? html`
                               ,
                               ${i18n.t('manage-forms.n-items-selected-label', {
-                                  n: this.selectedRowCount[state],
+                                  n: selectedCount,
                               })}
                           `
                         : ''}
@@ -579,6 +582,15 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 </button>
             </div>
         `;
+    }
+
+    handleSelectionCountChanged(state, event) {
+        const count = event.detail?.count ?? 0;
+
+        this.selectedRowCount = {
+            ...this.selectedRowCount,
+            [state]: count,
+        };
     }
 
     render() {
@@ -665,7 +677,13 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                 identifier="submissions-table-${state}"
                                 .options=${this.optionsSubmissions[state]}
                                 pagination-size="5"
-                                sticky-header></dbp-tabulator-table>
+                                sticky-header
+                                select-rows-enabled
+                                @dbp-tabulator-table-selection-count-changed=${(event) =>
+                                    this.handleSelectionCountChanged(
+                                        state,
+                                        event,
+                                    )}></dbp-tabulator-table>
                         </div>
                         ${this.renderColumnSettingsModal(state)}
                     `,
