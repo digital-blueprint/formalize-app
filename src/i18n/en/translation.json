@@ -181,8 +181,6 @@
                 "mandatory-fields": "Please fill out all required fields.",
                 "matriculation-number": "Matriculation number",
                 "personal-data": "Personal data (prefilled)",
-                "submission-error": "Something went wrong.",
-                "submission-error-notification": "Your data could not be submitted. Please try again later.",
                 "submission-result-notification": "We have received your request for an accessible course. You will receive confirmation by email.",
                 "submission-result-thanks": "Thank you very much!",
                 "title": "Accessible Course Registration"
@@ -210,8 +208,6 @@
                 "online": "This is an online exam",
                 "personal-data": "Personal data (prefilled)",
                 "room": "Original room",
-                "submission-error": "Sorry, something went wrong.",
-                "submission-error-notification": "Your data could not be submitted. Please try again later.",
                 "submission-result-notification": "You have registered for an accessible exam date. You will receive a confirmation by e-mail.",
                 "submission-result-thanks": "Thank you for your registration!",
                 "time-validation-error": "Please choose an end time that is past the begin time of the exam.",

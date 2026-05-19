@@ -181,8 +181,6 @@
                 "mandatory-fields": "Bitte füllen Sie alle Pflichtfelder aus.",
                 "matriculation-number": "Matrikelnummer",
                 "personal-data": "Persönliche Daten (vorausgefüllt)",
-                "submission-error": "Fehler beim Absenden",
-                "submission-error-notification": "Fehler beim Absenden",
                 "submission-result-notification": "Ihre Anfrage für eine barrierefreie Lehrveranstaltung ist eingegangen. Sie erhalten eine Bestätigung per E-Mail.",
                 "submission-result-thanks": "Vielen Dank!",
                 "title": "Barrierefreie Lehrveranstaltungsteilnahme"
@@ -210,8 +208,6 @@
                 "online": "Es handelt sich um eine Online-Prüfung",
                 "personal-data": "Persönliche Daten (vorausgefüllt)",
                 "room": "Raum der Prüfung",
-                "submission-error": "Hoppla, da ist etwas schiefgelaufen.",
-                "submission-error-notification": "Ihre Daten konnten nicht abgeschickt werden. Bitte versuchen Sie es später noch einmal.",
                 "submission-result-notification": "Sie haben sich für einen barrierefreien Prüfungstermin angemeldet. Sie erhalten eine Bestätigung per E-Mail.",
                 "submission-result-thanks": "Vielen Dank für Ihre Anmeldung!",
                 "time-validation-error": "Bitte wählen Sie eine Endzeit, die nach der Beginnzeit der Prüfung liegt.",

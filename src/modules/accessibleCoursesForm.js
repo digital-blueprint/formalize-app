@@ -49,7 +49,6 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
-            submissionError: {type: Boolean},
         };
     }
 
@@ -72,6 +71,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 const formData = event.detail.formData;
+                const i18n = this._i18n;
 
                 // use Lecturer-Array from formData
                 formData.lecturers = this.formData.lecturers || [];
@@ -108,15 +108,21 @@ class FormalizeFormElement extends BaseFormElement {
                     });
 
                     if (!response.ok) {
-                        this.submissionError = true;
                         this.saveButtonEnabled = true;
-                        throw new Error(`Response status: ${response.status}`);
+
+                        await this.displayErrors(response);
                     } else {
                         this.wasSubmissionSuccessful = true;
-                        this.submissionError = false;
                         this._('.form-title').style.display = 'none';
                         this._('.description').style.display = 'none';
                         this._('#accessible-courses-form').style.display = 'none';
+
+                        sendNotification({
+                            summary: i18n.t('success.success-title'),
+                            body: i18n.t('success.form-saved-successfully'),
+                            type: 'success',
+                            timeout: 5,
+                        });
 
                         // Notify parent component to refresh submission data
                         window.dispatchEvent(
@@ -653,7 +659,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             <dbp-deletion-confirmation-modal id="deletion-modal"></dbp-deletion-confirmation-modal>
 
-            ${this.renderResult(this.submitted)} ${this.renderErrorMessage(this.submissionError)}
+            ${this.renderResult(this.submitted)}
         `;
     }
 
@@ -788,24 +794,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <p>
                         ${i18n.t(
                             'render-form.forms.accessible-courses-form.submission-result-notification',
-                        )}
-                    </p>
-                </div>
-            `;
-        }
-        return html``;
-    }
-
-    renderErrorMessage(submissionError) {
-        const i18n = this._i18n;
-
-        if (submissionError) {
-            return html`
-                <div class="container">
-                    <h2>${i18n.t('render-form.forms.accessible-courses-form.submission-error')}</h2>
-                    <p>
-                        ${i18n.t(
-                            'render-form.forms.accessible-courses-form.submission-error-notification',
                         )}
                     </p>
                 </div>

@@ -7,6 +7,7 @@ import {
     DbpTimeElement,
     DbpBooleanElement,
 } from '@dbp-toolkit/form-elements';
+import {sendNotification} from '@dbp-toolkit/common';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {PersonSelect} from '@dbp-toolkit/person-select';
 import {CourseSelect} from './course-select.js';
@@ -43,7 +44,6 @@ class FormalizeFormElement extends BaseFormElement {
     static get properties() {
         return {
             ...super.properties,
-            submissionError: {type: Boolean},
             examinerTextDisabled: {type: Boolean},
         };
     }
@@ -54,6 +54,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.updateComplete.then(() => {
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
+                const i18n = this._i18n;
                 // Get the form data from the event detail
                 const formData = event.detail.formData;
                 // Include unique identifier for the person who is submitting
@@ -109,12 +110,18 @@ class FormalizeFormElement extends BaseFormElement {
                     });
 
                     if (!response.ok) {
-                        this.submissionError = true;
                         this.saveButtonEnabled = true;
                         await this.displayErrors(response);
                     } else {
                         this.wasSubmissionSuccessful = true;
-                        this.submissionError = false;
+
+                        sendNotification({
+                            summary: i18n.t('success.success-title'),
+                            body: i18n.t('success.form-saved-successfully'),
+                            type: 'success',
+                            timeout: 5,
+                        });
+
                         // Hide form after successful submission
                         this._('#title').style.display = 'none';
                         this._('#description').style.display = 'none';
@@ -401,7 +408,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${this.getButtonRowHtml()}
             </form>
-            ${this.renderResult(this.submitted)} ${this.renderErrorMessage(this.submissionError)}
+            ${this.renderResult(this.submitted)}
         `;
     }
 
@@ -449,25 +456,6 @@ class FormalizeFormElement extends BaseFormElement {
                     <p>
                         ${i18n.t(
                             'render-form.forms.accessible-exams-form.submission-result-notification',
-                        )}
-                    </p>
-                </div>
-            `;
-        }
-
-        return html``;
-    }
-
-    renderErrorMessage(submissionError) {
-        const i18n = this._i18n;
-
-        if (submissionError) {
-            return html`
-                <div class="container">
-                    <h2>${i18n.t('render-form.forms.accessible-exams-form.submission-error')}</h2>
-                    <p>
-                        ${i18n.t(
-                            'render-form.forms.accessible-exams-form.submission-error-notification',
                         )}
                     </p>
                 </div>
