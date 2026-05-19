@@ -130,10 +130,6 @@
         "submission-table-submitted-title": "Eingereicht"
     },
     "render-form": {
-        "button-row": {
-            "reset": "Zurücksetzen",
-            "submit": "Abschicken"
-        },
         "check-previous-submissions-warning": "Hier können Sie Ihre früheren Einreichungen überprüfen.",
         "course-select": {
             "login-required": "Anmeldung erforderlich",

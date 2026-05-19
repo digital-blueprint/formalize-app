@@ -1,6 +1,7 @@
 import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
+import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -123,8 +124,8 @@ class FormalizeFormElement extends BaseFormElement {
                         });
 
                         // Hide form after successful submission
-                        this._('#title').style.display = 'none';
-                        this._('#description').style.display = 'none';
+                        this._('.form-title').style.display = 'none';
+                        this._('.description').style.display = 'none';
                         this._('#accessible-exams-form').style.display = 'none';
                     }
 
@@ -142,6 +143,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     static get scopedElements() {
         return {
+            ...super.scopedElements,
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-time-element': DbpTimeElement,
@@ -217,9 +219,15 @@ class FormalizeFormElement extends BaseFormElement {
     static get styles() {
         return [
             super.styles,
+            commonStyles.getButtonCSS(),
             css`
-                #title {
+                .field-note {
                     margin-top: 0;
+                    font-style: italic;
+                }
+
+                fieldset {
+                    margin-bottom: 20px;
                 }
             `,
         ];
@@ -237,13 +245,25 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.formData || {};
 
         return html`
-            <h2 id="title">${i18n.t('render-form.forms.accessible-exams-form.title')}</h2>
-            <p id="description">
-                ${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}
-                <br />
-                ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}
-            </p>
-            <form id="accessible-exams-form" class="formalize-form">
+            <form
+                id="accessible-exams-form"
+                class=${classMap({
+                    hidden: this.hideForm,
+                    'readonly-mode': this.readOnly,
+                    'edit-mode': !this.readOnly,
+                    'formalize-form': true,
+                })}>
+                <div class="form-header">${this.getButtonRowHtml()}</div>
+
+                <h2 class="form-title">
+                    ${i18n.t('render-form.forms.accessible-exams-form.title')}
+                </h2>
+                <p class="description">
+                    ${i18n.t('render-form.forms.accessible-exams-form.mandatory-fields')}
+                    <br />
+                    ${i18n.t('render-form.forms.accessible-exams-form.exam-date')}
+                </p>
+
                 <fieldset>
                     <legend>${i18n.t('render-form.forms.accessible-exams-form.exam-data')}</legend>
                     <dbp-course-select-element
@@ -405,8 +425,6 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.email_student || ''}
                         disabled></dbp-form-string-element>
                 </fieldset>
-
-                ${this.getButtonRowHtml()}
             </form>
             ${this.renderResult(this.submitted)}
         `;
@@ -416,30 +434,6 @@ class FormalizeFormElement extends BaseFormElement {
         return evaluationData.examinerText === '' && evaluationData.examiner === ''
             ? [this._i18n.t('render-form.forms.accessible-exams-form.examiner-validation-error')]
             : [];
-    }
-
-    /**
-     * Render the buttons needed for the form.
-     * @returns {import('lit').TemplateResult} HTML for the button row.
-     */
-    getButtonRowHtml() {
-        const i18n = this._i18n;
-        return html`
-            <div class="button-row">
-                <button class="button is-secondary" type="button" @click=${this.resetForm} hidden>
-                    ${i18n.t('render-form.button-row.reset')}
-                </button>
-                <button
-                    class="button is-primary"
-                    type="submit"
-                    ?disabled=${!this.saveButtonEnabled}
-                    @click=${(event) => this.validateAndSendSubmission(event)}>
-                    ${i18n.t('render-form.button-row.submit')}
-                    <dbp-mini-spinner
-                        class="${classMap({hidden: this.saveButtonEnabled})}"></dbp-mini-spinner>
-                </button>
-            </div>
-        `;
     }
 
     renderResult(submitted) {

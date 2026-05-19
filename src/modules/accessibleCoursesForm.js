@@ -476,10 +476,6 @@ class FormalizeFormElement extends BaseFormElement {
             super.styles,
             commonStyles.getButtonCSS(),
             css`
-                .title {
-                    margin-top: 0;
-                }
-
                 .field-note {
                     margin-top: 0;
                     font-style: italic;
