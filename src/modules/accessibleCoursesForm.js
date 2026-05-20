@@ -117,6 +117,8 @@ class FormalizeFormElement extends BaseFormElement {
                         this._('.description').style.display = 'none';
                         this._('#accessible-courses-form').style.display = 'none';
 
+                        this.disableLeavePageWarning();
+
                         sendNotification({
                             summary: i18n.t('success.success-title'),
                             body: i18n.t('success.form-saved-successfully'),
@@ -452,6 +454,8 @@ class FormalizeFormElement extends BaseFormElement {
                         composed: true,
                     }),
                 );
+
+                this.disableLeavePageWarning();
 
                 sendNotification({
                     summary: i18n.t('success.success-title'),
