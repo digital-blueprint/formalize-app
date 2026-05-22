@@ -335,7 +335,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 {currentCount: failed.currentCount, minCount: failed.minCount},
                             ),
                             type: 'warning',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     }
 
@@ -346,7 +346,7 @@ class FormalizeFormElement extends BaseFormElement {
                             summary: i18n.t('errors.warning-title'),
                             body: i18n.t('errors.form-validation-warning-notification-body'),
                             type: 'warning',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     }
                 }
@@ -491,7 +491,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: i18n.t('errors.error-title'),
                 body: `${i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
             this.saveButtonEnabled = true;
             return;
