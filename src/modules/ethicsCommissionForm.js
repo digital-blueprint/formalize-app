@@ -214,7 +214,7 @@ class FormalizeFormElement extends BaseFormElement {
                             summary: i18n.t('errors.warning-title'),
                             body: i18n.t('errors.form-validation-warning-notification-body'),
                             type: 'warning',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     }
                 }

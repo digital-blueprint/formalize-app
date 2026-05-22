@@ -4,6 +4,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {getMediaTransparencyFormCSS} from '../styles.js';
 import {Translated, sendNotification} from '@dbp-toolkit/common';
+import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
 import {
@@ -261,6 +262,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
             'dbp-translated': Translated,
+            'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
             'dbp-file-source': FileSource,
             'dbp-file-sink': FileSink,
@@ -333,7 +335,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 {currentCount: failed.currentCount, minCount: failed.minCount},
                             ),
                             type: 'warning',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     }
 
@@ -344,7 +346,7 @@ class FormalizeFormElement extends BaseFormElement {
                             summary: i18n.t('errors.warning-title'),
                             body: i18n.t('errors.form-validation-warning-notification-body'),
                             type: 'warning',
-                            timeout: 5,
+                            timeout: 0,
                         });
                     }
                 }
@@ -489,7 +491,7 @@ class FormalizeFormElement extends BaseFormElement {
                 summary: i18n.t('errors.error-title'),
                 body: `${i18n.t('render-form.forms.media-transparency-form.min-file-upload-error', {currentCount: failed.currentCount, minCount: failed.minCount})}`,
                 type: 'danger',
-                timeout: 5,
+                timeout: 0,
             });
             this.saveButtonEnabled = true;
             return;
@@ -891,6 +893,11 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (option.value === 'download' && value === 'download') {
                 this.downloadAllFiles();
+                return;
+            }
+
+            if (option.value === 'edit-permissions' && value === 'edit-permissions') {
+                this._('#grant-permission-dialog').open();
                 return;
             }
         }
@@ -1912,6 +1919,15 @@ class FormalizeFormElement extends BaseFormElement {
                 enabled-targets="local,clipboard,nextcloud"
                 filename="media-transparency-form-${this.formData?.id || ''}-attachments.zip"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
+
+            <dbp-grant-permission-dialog
+                id="grant-permission-dialog"
+                lang="${this.lang}"
+                modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
+                subscribe="auth"
+                entry-point-url="${this.entryPointUrl}"
+                resource-identifier="${this.submissionId}"
+                resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
 
             <!-- Deletion Confirmation Modal -->
             <dbp-modal
