@@ -184,9 +184,9 @@ export async function getListOfAllForms(host) {
                 // module from modules.json.  This ensures that a whitelabel build
                 // (which ships a reduced modules.json) does not display forms it
                 // has no frontend code for.
-                if (!loadedModuleFormIds.has(formId)) {
-                    continue;
-                }
+                // if (!loadedModuleFormIds.has(formId)) {
+                //     continue;
+                // }
 
                 id++;
                 const allowedActionsWhenSubmitted = entry['allowedActionsWhenSubmitted'];
