@@ -255,7 +255,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionIdToOpen = null;
         this.submissionIdsForTagging = [];
         this.availableTags = [];
-        this.showLoadingIndicator = false;
         this.attachmentsAreLoading = {
             draft: false,
             submitted: false,
@@ -333,7 +332,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             visibleRowCount: {type: Object, attribute: false},
             searchIsActive: {type: Object, attribute: false},
             justAddTagsForBatchTagging: {type: Boolean, attribute: false},
-            showLoadingIndicator: {type: Boolean, attribute: false},
             attachmentsAreLoading: {type: Object, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
             creatableModulesCount: {type: Number, attribute: false},
@@ -1328,12 +1326,38 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     handleFileSinkDownloadStarted(event) {
-        this.showLoadingIndicator = true;
+        this._downloadStreamingStarted = false;
+        const modal = this.renderRoot?.querySelector('#loading-indicator-modal');
+        if (modal) {
+            modal.open();
+        }
     }
 
     handleSwMessage(event) {
         if (event.data?.type === 'DOWNLOAD_STARTED') {
-            this.showLoadingIndicator = false;
+            const modal = this.renderRoot?.querySelector('#loading-indicator-modal');
+            if (modal) {
+                // Mark streaming as started so the close handler does not cancel the download
+                this._downloadStreamingStarted = true;
+                modal.close();
+            }
+        }
+    }
+
+    /**
+     * Handle the loading indicator modal being closed.
+     * If the download has already started streaming, closing the modal is just
+     * cleanup and we must not cancel. Otherwise the user closed the modal
+     * (via X button or Escape) to abort the in-flight preparation requests.
+     */
+    handleLoadingIndicatorModalClosed() {
+        if (this._downloadStreamingStarted) {
+            return;
+        }
+
+        const fileSink = this._('#file-sink');
+        if (fileSink) {
+            fileSink.cancelStreamedDownload();
         }
     }
 
@@ -2098,16 +2122,17 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 @dbp-edit-form-saved=${(event) =>
                     this.handleEditFormSaved(event)}></dbp-formalize-edit-form-dialog>
 
-            ${this.showLoadingIndicator
-                ? html`
-                      <div class="loading-indicator">
-                          <dbp-mini-spinner
-                              text="${i18n.t(
-                                  'manage-forms.preparing-download',
-                              )}"></dbp-mini-spinner>
-                      </div>
-                  `
-                : ''}
+            <dbp-modal
+                id="loading-indicator-modal"
+                class="modal modal--loading-indicator"
+                modal-id="loading-indicator-modal"
+                title="${i18n.t('manage-forms.preparing-download')}"
+                subscribe="lang"
+                @dbp-modal-closed=${() => this.handleLoadingIndicatorModalClosed()}>
+                <div slot="content">
+                    <dbp-mini-spinner style="font-size: 4em"></dbp-mini-spinner>
+                </div>
+            </dbp-modal>
         `;
     }
 }

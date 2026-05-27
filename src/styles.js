@@ -575,20 +575,14 @@ export function getManageFormsCSS() {
             transform: rotate(360deg);
         }
 
-        .loading-indicator {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 99;
-            width: 300px;
-            background: var(--dbp-background);
-            border: var(--dbp-border);
-            height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.25em;
+        .modal--loading-indicator {
+            --dbp-modal-width: 300px;
+            --dbp-modal-max-height: 300px;
+            --dbp-modal-content-overflow-y: hidden;
+        }
+
+        .modal--loading-indicator [slot='content'] {
+            text-align: center;
         }
 
         @container table-container (width < 1040px) {
@@ -1587,7 +1581,7 @@ export function getEthicsCommissionFormCSS() {
             word-wrap: normal;
         }
 
-        /* animations 
+        /* animations
         :is(.button, dbp-button):not([disabled]) dbp-icon {
             transition: transform 0.1s ease-in;
         }
