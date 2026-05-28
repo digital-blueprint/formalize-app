@@ -7,6 +7,7 @@ import {Translated, sendNotification} from '@dbp-toolkit/common';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {FileSource, FileSink} from '@dbp-toolkit/file-handling';
+import {PdfViewer} from '@dbp-toolkit/pdf-viewer';
 import {
     DbpStringElement,
     DbpDateElement,
@@ -266,6 +267,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-modal': Modal,
             'dbp-file-source': FileSource,
             'dbp-file-sink': FileSink,
+            'dbp-pdf-viewer': PdfViewer,
         };
     }
 
@@ -1648,6 +1650,19 @@ class FormalizeFormElement extends BaseFormElement {
                 filename="media-transparency-form-${this.formData?.id || ''}-attachments.zip"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
+            <dbp-modal
+                id="pdf-view-modal"
+                class="pdf-view-modal"
+                modal-id="pdf-viewer-modal"
+                subscribe="lang">
+                <div slot="content">
+                    <dbp-pdf-viewer
+                        id="dbp-pdf-viewer"
+                        lang="${this.lang}"
+                        auto-resize="cover"></dbp-pdf-viewer>
+                </div>
+            </dbp-modal>
+
             ${this.renderResult(this.submitted)}
         `;
     }
@@ -1807,6 +1822,19 @@ class FormalizeFormElement extends BaseFormElement {
                 enabled-targets="local,clipboard,nextcloud"
                 filename="media-transparency-form-${this.formData?.id || ''}-attachments.zip"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
+
+            <dbp-modal
+                id="pdf-view-modal"
+                class="pdf-view-modal"
+                modal-id="pdf-viewer-modal"
+                subscribe="lang">
+                <div slot="content">
+                    <dbp-pdf-viewer
+                        id="dbp-pdf-viewer"
+                        lang="${this.lang}"
+                        auto-resize="cover"></dbp-pdf-viewer>
+                </div>
+            </dbp-modal>
 
             <dbp-grant-permission-dialog
                 id="grant-permission-dialog"

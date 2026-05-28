@@ -1521,7 +1521,9 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      */
     addFileBlock(file, identifier, fileGroup = 'attachments', viewPdf = true) {
         const groupData = this.getOrCreateFileGroup(fileGroup);
-        const canViewPdf = viewPdf && this._('#pdf-view-modal') && this._('dbp-pdf-viewer');
+        const isPdf = file.type === 'application/pdf';
+        const canViewPdf =
+            viewPdf && isPdf && this._('#pdf-view-modal') && this._('dbp-pdf-viewer');
 
         return html`
             <div class="file-block">
