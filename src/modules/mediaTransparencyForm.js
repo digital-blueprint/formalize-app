@@ -1535,24 +1535,6 @@ class FormalizeFormElement extends BaseFormElement {
                               )}"
                               .value=${data.otherMediumName || ''}></dbp-form-string-element>
 
-                          <dbp-translated subscribe="lang">
-                              <div slot="de">
-                                  <p class="field-note">
-                                      Bitte zuerst schauen, ob der Name des Medieninhabers in der
-                                      2024_TU Graz Medienliste (siehe eigenes Tabellenblatt [add
-                                      link here?]) vorkommt.
-                                  </p>
-                              </div>
-                              <div slot="en">
-                                  <p class="field-note">
-                                      First, please check whether the medium appears in 2024_TU Graz
-                                      Medienliste (see separate spreadsheet [add link here?]) and
-                                      adhere strictly to the spelling and combination of
-                                      medium/media owner.
-                                  </p>
-                              </div>
-                          </dbp-translated>
-
                           <dbp-form-string-element
                               subscribe="lang"
                               name="otherMediumOwnersName"
