@@ -437,7 +437,6 @@
                 "field-reporting-deadline-period-description": "Wählen Sie den ersten Zeitraum zwischen Januar und Juni, den zweiten zwischen Juli und Dezember.",
                 "field-reporting-deadline-period-label": "Berichtszeitraum",
                 "field-sap-order-number-label": "SAP-Bestellnummer",
-                "field-sujet-notes-label": "Notizen - Sujetlink",
                 "field-to-label": "bis",
                 "invalid-attachment-filename-error": "Ungültiger Dateiname '{{filename}}'. Erforderliches Format: NN_Wort_Wort_Wort.Endung (z. B. 01_Medium_Kampagne_Sujet.pdf) — NN = zweistellige Zahl, jedes Wort = nur Buchstaben, Endung = Dateiendung.",
                 "media-name-validation-error": "Sie müssen einen Mediennamen auswählen.",

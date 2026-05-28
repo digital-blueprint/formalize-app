@@ -1606,21 +1606,6 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.campaignTitle || ''}></dbp-form-string-element>
 
-                ${this.selectedCategory === 'Online'
-                    ? html`
-                          <!-- Sujet notes -->
-                          <dbp-form-string-element
-                              subscribe="lang"
-                              name="sujetNotes"
-                              rows="5"
-                              maxlength="1000"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-sujet-notes-label',
-                              )}"
-                              .value=${data.sujetNotes || ''}></dbp-form-string-element>
-                      `
-                    : ''}
-
                 <!-- Notes -->
                 <dbp-form-string-element
                     subscribe="lang"
@@ -1830,19 +1815,6 @@ class FormalizeFormElement extends BaseFormElement {
                                   'render-form.forms.media-transparency-form.field-campaign-title-label',
                               )}"
                               .value=${data.campaignTitle || ''}></dbp-form-string-view>
-                      `
-                    : ''}
-                ${data.sujetNotes
-                    ? html`
-                          <!-- Sujet notes -->
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="sujetNotes"
-                              rows="5"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-sujet-notes-label',
-                              )}"
-                              .value=${data.sujetNotes || ''}></dbp-form-string-view>
                       `
                     : ''}
 
