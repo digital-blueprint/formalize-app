@@ -1615,38 +1615,6 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t('render-form.forms.media-transparency-form.field-notes-label')}"
                     .value=${data.notes || ''}></dbp-form-string-element>
 
-                ${this.selectedCategory === 'Online'
-                    ? html`
-                          <!-- at/from -->
-                          <dbp-form-date-element
-                              subscribe="lang"
-                              name="atFrom"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-at-from-label',
-                              )}"
-                              .value=${data.atFrom || ''}></dbp-form-date-element>
-
-                          <!-- to -->
-                          <dbp-form-date-element
-                              subscribe="lang"
-                              name="to"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-to-label',
-                              )}"
-                              .value=${data.to || ''}></dbp-form-date-element>
-                      `
-                    : ''}
-
-                <!-- SAP order number -->
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="sapOrderNumber"
-                    maxlength="100"
-                    label="${i18n.t(
-                        'render-form.forms.media-transparency-form.field-sap-order-number-label',
-                    )}"
-                    .value=${data.sapOrderNumber || ''}></dbp-form-string-element>
-
                 <!-- Reporting deadline period -->
                 <dbp-form-enum-element
                     subscribe="lang"
@@ -1829,40 +1797,6 @@ class FormalizeFormElement extends BaseFormElement {
                                   'render-form.forms.media-transparency-form.field-notes-label',
                               )}"
                               .value=${data.notes || ''}></dbp-form-string-view>
-                      `
-                    : ''}
-                ${data.atFrom || data.to
-                    ? html`
-                          <!-- at/from -->
-                          <dbp-form-date-view
-                              subscribe="lang"
-                              name="atFrom"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-at-from-label',
-                              )}"
-                              .value=${data.atFrom || ''}></dbp-form-date-view>
-
-                          <!-- to -->
-                          <dbp-form-date-view
-                              subscribe="lang"
-                              name="to"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-to-label',
-                              )}"
-                              .value=${data.to || ''}></dbp-form-date-view>
-                      `
-                    : ''}
-
-                <!-- SAP order number -->
-                ${data.sapOrderNumber
-                    ? html`
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="sapOrderNumber"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-sap-order-number-label',
-                              )}"
-                              .value=${data.sapOrderNumber || ''}></dbp-form-string-view>
                       `
                     : ''}
 
