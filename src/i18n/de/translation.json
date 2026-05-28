@@ -435,7 +435,6 @@
                 "field-reporting-deadline-label": "Meldedatum",
                 "field-reporting-deadline-period-description": "Wählen Sie den ersten Zeitraum zwischen Januar und Juni, den zweiten zwischen Juli und Dezember.",
                 "field-reporting-deadline-period-label": "Berichtszeitraum",
-                "invalid-attachment-filename-error": "Ungültiger Dateiname '{{filename}}'. Erforderliches Format: NN_Wort_Wort_Wort.Endung (z. B. 01_Medium_Kampagne_Sujet.pdf) — NN = zweistellige Zahl, jedes Wort = nur Buchstaben, Endung = Dateiendung.",
                 "media-name-validation-error": "Sie müssen einen Mediennamen auswählen.",
                 "min-file-upload-error": "Die Mindestanzahl der erforderlichen Dateien beträgt {{minCount}}. Es wurden nur {{currentCount}} hochgeladen.",
                 "please-select-deadline": "Bitte wählen Sie den Anmeldezeitraum aus",

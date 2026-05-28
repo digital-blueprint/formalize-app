@@ -435,7 +435,6 @@
                 "field-reporting-deadline-label": "Reporting date",
                 "field-reporting-deadline-period-description": "Select the first period between January and June, the second between July and December.",
                 "field-reporting-deadline-period-label": "Reporting period",
-                "invalid-attachment-filename-error": "Invalid filename '{{filename}}'. Required format: NN_Word_Word_Word.ext (e.g. 01_Medium_Campaign_Sujet.pdf) — NN = two-digit number, each Word = letters only, ext = file extension.",
                 "media-name-validation-error": "You need to select a media name",
                 "min-file-upload-error": "Minimum required files is count is {{minCount}}. Only {{currentCount}} is uploaded",
                 "please-select-deadline": "Please select deadline period",

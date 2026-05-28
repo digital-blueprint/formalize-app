@@ -1926,38 +1926,14 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {CustomEvent} event - The event object containing the file data.
      */
     async handleFilesToSubmit(event) {
-        const isValid = this.validateAttachmentFileName(event.detail.file);
-        if (isValid) {
-            // Call base class method to handle file addition
-            super.handleFilesToSubmit(event);
+        // Call base class method to handle file addition
+        super.handleFilesToSubmit(event);
 
-            // Update validation widget status
-            const formElement = this.shadowRoot.querySelector('form');
-            const requiredFieldsValidated = await validateRequiredFields(formElement, true);
-            const fileValidation = this.validateMinimumFileUploads();
+        // Update validation widget status
+        const formElement = this.shadowRoot.querySelector('form');
+        const requiredFieldsValidated = await validateRequiredFields(formElement, true);
+        const fileValidation = this.validateMinimumFileUploads();
 
-            this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
-        }
-    }
-
-    validateAttachmentFileName(file, maxUpload) {
-        const i18n = this._i18n;
-        const fileNamePattern = /^\d{2}_[A-Za-z]+_[A-Za-z]+_[A-Za-z]+\.[A-Za-z0-9]+$/;
-
-        if (!fileNamePattern.test(file.name)) {
-            sendNotification({
-                summary: i18n.t('errors.error-title'),
-                body: i18n.t(
-                    'render-form.forms.media-transparency-form.invalid-attachment-filename-error',
-                    {
-                        filename: file.name,
-                    },
-                ),
-                type: 'danger',
-                timeout: 0,
-            });
-            return false;
-        }
-        return true;
+        this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
     }
 }
