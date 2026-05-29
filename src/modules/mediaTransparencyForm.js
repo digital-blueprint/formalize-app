@@ -1103,7 +1103,8 @@ class FormalizeFormElement extends BaseFormElement {
                 <button
                     class="button is-secondary upload-button upload-button--attachment"
                     .disabled=${this.fileUploadCounts[groupName] >=
-                    this.fileUploadLimits?.allowedFileUploadCount?.[groupName]}
+                        this.fileUploadLimits?.allowedFileUploadCount?.[groupName] &&
+                    this.filesByGroup['Sujet-Speichername']?.filesToRemove?.size === 0}
                     @click="${(event) => {
                         this.currentUploadGroup = groupName;
                         this.openFilePicker(event);
