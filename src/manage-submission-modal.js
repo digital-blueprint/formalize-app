@@ -81,6 +81,7 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                     --dbp-modal-max-width: 1280px;
                     --dbp-modal-min-width: 768px;
                     --dbp-modal-min-height: 0;
+                    --dbp-modal-content-overflow-y: hidden;
                 }
 
                 .detailed-submission-footer .modal-footer-btn {
