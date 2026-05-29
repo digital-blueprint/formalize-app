@@ -1228,6 +1228,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (searchValue !== 'all') {
             let filter_object = {field: searchValue, type: operatorValue, value: filterValue};
+            table.tabulatorTable.deselectRow();
+
             table.setFilter([filter_object]);
         } else {
             const columns = table.getColumnsFields();
@@ -1238,6 +1240,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     listOfFilters.push(filter_object);
                 }
             }
+            table.tabulatorTable.deselectRow();
             table.setFilter([listOfFilters]);
 
             this.setVisibleRowCount(state);
