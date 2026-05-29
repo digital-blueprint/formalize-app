@@ -60,6 +60,10 @@ export class ColumnSettingsModal extends ScopedElementsMixin(DBPLitElement) {
                     --dbp-modal-min-height: auto;
                 }
 
+                dbp-modal.column-settings-modal .modal-content {
+                    padding: 0;
+                }
+
                 @media only screen and (max-width: 768px) {
                     dbp-modal.column-settings-modal {
                         --dbp-modal-width: calc(100vw - 40px);
