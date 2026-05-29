@@ -905,6 +905,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Silently update validation widget status (without showing field errors)
         // Only run if in edit mode (not readonly)
         if (!this.readOnly) {
+            await this.updateComplete;
             const formElement = this.shadowRoot.querySelector('form');
             if (formElement) {
                 const requiredFieldsValidated = await validateRequiredFields(formElement, true);
