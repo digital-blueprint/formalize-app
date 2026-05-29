@@ -171,7 +171,6 @@ export const MEDIA_NAME_OWNER_MAPPING = {
         },
     },
     'Out of Home': {
-        // poster: {},
         Plakat: {
             Ankünder: 'Ankünder GmbH',
             'BS Vertriebsagentur e.U.': 'BS Vertriebsagentur e.U.',
@@ -185,10 +184,7 @@ export const MEDIA_NAME_OWNER_MAPPING = {
         'Digitaler Screen': {},
         outdoorAdvertising: {},
         Kino: {},
-        Sonstiges: {
-            'CompanyCode Werbe GmbH': 'CompanyCode Werbe GmbH',
-            'Grazetta GmbH': 'Grazetta GmbH',
-        },
+        Sonstiges: {},
     },
     Fernsehen: {
         _items: {
@@ -196,7 +192,9 @@ export const MEDIA_NAME_OWNER_MAPPING = {
         },
     },
     Hörfunk: {
-        _items: {},
+        _items: {
+            'Radio Soundportal (Graz)': 'Soundportal Graz GmbH',
+        },
     },
 };
 export default class extends BaseObject {
@@ -1311,6 +1309,12 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {string} subcategory
      */
     setMediaNameItemsByValue(subcategory) {
+        // Store the selected subcategory so getMediaNameItems() uses the correct mapping.
+        // This is needed because the inline @change handler fires before the base-class
+        // handleChangeEvents can update formData.advertisementSubcategory.
+        if (this.formData) {
+            this.formData.advertisementSubcategory = subcategory;
+        }
         // Always show the mediaName dropdown so its `required` attribute can be satisfied.
         // When the mapping is empty the only available option is 'Sonstiges', which is
         // pre-selected by the caller; hiding the field would break browser/schema validation.
@@ -1520,6 +1524,7 @@ class FormalizeFormElement extends BaseFormElement {
                                             'render-form.forms.media-transparency-form.field-media-owners-name-label',
                                         )}"
                                         disabled
+                                        required
                                         .value=${data.mediumOwnersName ||
                                         ''}></dbp-form-string-element>
                                 `
@@ -1531,10 +1536,11 @@ class FormalizeFormElement extends BaseFormElement {
                           <dbp-form-string-element
                               subscribe="lang"
                               name="otherMediumName"
-                              maxlength="1000"
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-other-medium-name-label',
                               )}"
+                              required
+                              maxlength="1000"
                               .value=${data.otherMediumName || ''}></dbp-form-string-element>
 
                           <dbp-form-string-element
@@ -1543,6 +1549,7 @@ class FormalizeFormElement extends BaseFormElement {
                               label="${i18n.t(
                                   'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                               )}"
+                              required
                               maxlength="1000"
                               .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
                       `
