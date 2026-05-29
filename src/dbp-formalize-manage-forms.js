@@ -1231,6 +1231,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             table.tabulatorTable.deselectRow();
 
             table.setFilter([filter_object]);
+
+            this.setVisibleRowCount(state);
+            this.searchIsActive = {...this.searchIsActive, [state]: true};
         } else {
             const columns = table.getColumnsFields();
             let listOfFilters = [];
