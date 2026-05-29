@@ -251,10 +251,16 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
     getExportOptions(state) {
         const i18n = this._i18n;
+
+        // If a filter is active only export the visible rows.
+        // If anything is selected export the selected rows.
+        // If no filter is active and nothing is selected export all rows.
         const exportCount =
-            this.selectedRowCount[state] === 0
-                ? this.allRowCount[state]
-                : this.selectedRowCount[state];
+            this.selectedRowCount[state] > 0
+                ? this.selectedRowCount[state]
+                : this.searchIsActive[state]
+                  ? this.visibleRowCount[state]
+                  : this.allRowCount[state];
 
         const exportActions = [];
 
