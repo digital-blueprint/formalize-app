@@ -35,7 +35,7 @@ export function setSubmissionFormOptions(host, state) {
         autoColumns: 'full',
         rowHeight: 64,
         layout: 'fitDataStretch',
-        layoutColumnsOnNewData: true,
+        // layoutColumnsOnNewData: true,
         selectableRows: 'highlight',
         rowHeader: {
             formatter: 'rowSelection',
