@@ -711,11 +711,20 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 if (this.submissions[state]?.length === 0) {
                     this.noSubmissionAvailable = {...this.noSubmissionAvailable, [state]: true};
-                    disableCheckboxSelection(this, state);
                     disablePagination(this, state);
                     if (this.submissionTables[state].tabulatorTable) {
                         this.submissionTables[state].tabulatorTable.destroy();
                         setSubmissionFormOptions(this, state);
+                        // disableCheckboxSelection must be called after setSubmissionFormOptions
+                        // because setSubmissionFormOptions creates a fresh options object,
+                        // overwriting any prior headerVisible/rowHeader changes.
+                        disableCheckboxSelection(this, state);
+                        // Push the fresh empty options directly onto the component
+                        // so buildTable() doesn't read stale options.data that is
+                        // still cached from ManageFormSubmissionsPage's previous
+                        // render cycle.
+                        this.submissionTables[state].options = this.options_submissions[state];
+                        this.submissionTables[state].data = [];
                         this.submissionTables[state].buildTable();
                     }
                 } else {
@@ -1790,6 +1799,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     failedRequestToSelect.push(submission.submissionId);
                 }
                 index++;
+            }
+
+            // When every row has been deleted, explicitly clear the table so
+            // the last row doesn't stick around due to stale Tabulator state.
+            if (this.submissions[state].length === 0) {
+                this.submissionTables[state].tabulatorTable.clearData();
             }
 
             // Update status bar counters and action buttons state
