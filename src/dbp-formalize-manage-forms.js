@@ -466,13 +466,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 );
                             }
                             this.setIsActionAvailable(state);
-
-                            this.visibleRowCount = {
-                                ...this.visibleRowCount,
-                                [state]:
-                                    this.submissionTables[state].tabulatorTable.getRows('active')
-                                        .length,
-                            };
+                            this.setVisibleRowCount(state);
 
                             // Open detailed view modal if /details/[uuid] is in the URL
                             if (this.isRequestDetailedView) {
@@ -1331,6 +1325,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
     }
 
+    setSelectedRowCount(state) {
+        const selectedRows = this.submissionTables[state].tabulatorTable.getSelectedRows();
+        this.selectedRowCount = {...this.selectedRowCount, [state]: selectedRows.length};
+    }
+
     handleFileSinkDownloadStarted(event) {
         this._downloadStreamingStarted = false;
         const modal = this.renderRoot?.querySelector('#loading-indicator-modal');
@@ -1792,6 +1791,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 }
                 index++;
             }
+
+            // Update status bar counters and action buttons state
+            this.setVisibleRowCount(state);
+            this.setSelectedRowCount(state);
+            this.setIsActionAvailable(state);
+
             // Update row-indexes
             this.submissionTables[state].tabulatorTable.redraw(true);
             // Report
