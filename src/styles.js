@@ -364,7 +364,7 @@ export function getManageFormsCSS() {
             margin-top: 50px;
         }
 
-        .table-wrapper h3 {
+        .table-wrapper .form-name {
             margin-top: 0.5em;
             margin-bottom: 1em;
         }
@@ -1070,7 +1070,7 @@ export function getManageFormsCSS() {
                 align-items: center;
             }*/
 
-            .table-wrapper h3,
+            .table-wrapper .form-name,
             .table-action-header {
                 margin-bottom: 0.5em;
             }

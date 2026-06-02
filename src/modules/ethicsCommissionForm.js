@@ -1615,12 +1615,12 @@ class FormalizeFormElement extends BaseFormElement {
                         this.conditionalFields.testSubjects
                             ? html`
                                   <div class="question-group">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           1.1.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.human-participants-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1743,12 +1743,12 @@ class FormalizeFormElement extends BaseFormElement {
                                   </div>
 
                                   <div class="question-group">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           1.2.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.interventions-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1887,12 +1887,12 @@ class FormalizeFormElement extends BaseFormElement {
                                   </div>
 
                                   <div class="question-group">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           1.3.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.reasonableness-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="testSubjectsReasonableToParticipate"
@@ -1914,11 +1914,11 @@ class FormalizeFormElement extends BaseFormElement {
                             : ''
                     }
 
-                    <h4 class="question-group-title">
+                    <h5 class="question-group-title">
                         1.4. ${i18n.t(
                             'render-form.forms.ethics-commission-form.dead-bodies-subtitle',
                         )}
-                    </h4>
+                    </h5>
 
                     <dbp-form-enum-view
                         data-condition="yes"
@@ -1974,11 +1974,11 @@ class FormalizeFormElement extends BaseFormElement {
                             : ''
                     }
 
-                    <h4 class="question-group-title">
+                    <h5 class="question-group-title">
                         1.5. ${i18n.t(
                             'render-form.forms.ethics-commission-form.human-stem-cells-subtitle',
                         )}
-                    </h4>
+                    </h5>
 
                     <dbp-form-enum-view
                         data-condition="yes"
@@ -2144,7 +2144,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">2. ${i18n.t('render-form.forms.ethics-commission-form.section-animals-title')}</h3>
+                    <h4 class="section-sub-title">2. ${i18n.t('render-form.forms.ethics-commission-form.section-animals-title')}</h4>
 
                     <dbp-form-enum-view
                         data-condition="yes"
@@ -2162,12 +2162,12 @@ class FormalizeFormElement extends BaseFormElement {
                         this.conditionalFields.animalsInvolved
                             ? html`
                                   <div class="question-group ">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           2.1.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.section-animals-in-research-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="isAnimalVertebrate"
@@ -2326,7 +2326,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">3. ${i18n.t('render-form.forms.ethics-commission-form.section-sustainability-title')}</h3>
+                    <h4 class="section-sub-title">3. ${i18n.t('render-form.forms.ethics-commission-form.section-sustainability-title')}</h4>
 
                         <dbp-form-enum-view
                             subscribe="lang"
@@ -2418,7 +2418,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">4. ${i18n.t('render-form.forms.ethics-commission-form.section-non-eu-states-title')}</h3>
+                    <h4 class="section-sub-title">4. ${i18n.t('render-form.forms.ethics-commission-form.section-non-eu-states-title')}</h4>
                     <dbp-form-enum-view
                         data-condition="yes"
                         subscribe="lang"
@@ -2435,12 +2435,12 @@ class FormalizeFormElement extends BaseFormElement {
                         this.conditionalFields.nonEuCountries
                             ? html`
                                   <div class="question-group">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           4.1
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.section-non-eu-countries-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2573,7 +2573,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">5. ${i18n.t('render-form.forms.ethics-commission-form.section-information-systems-title')}</h3>
+                    <h4 class="section-sub-title">5. ${i18n.t('render-form.forms.ethics-commission-form.section-information-systems-title')}</h4>
 
                     <div class="question-group">
 
@@ -2678,7 +2678,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">6. ${i18n.t('render-form.forms.ethics-commission-form.section-conflicts-of-interest-title')}</h3>
+                    <h4 class="section-sub-title">6. ${i18n.t('render-form.forms.ethics-commission-form.section-conflicts-of-interest-title')}</h4>
 
                     <dbp-form-enum-view
                         data-condition="yes"
@@ -2821,7 +2821,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">7. ${i18n.t('render-form.forms.ethics-commission-form.section-working-conditions-title')}</h3>
+                    <h4 class="section-sub-title">7. ${i18n.t('render-form.forms.ethics-commission-form.section-working-conditions-title')}</h4>
 
                     <dbp-form-enum-view
                         subscribe="lang"
@@ -2894,7 +2894,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">8. ${i18n.t('render-form.forms.ethics-commission-form.section-ethics-compass-title')}</h3>
+                    <h4 class="section-sub-title">8. ${i18n.t('render-form.forms.ethics-commission-form.section-ethics-compass-title')}</h4>
 
                     <dbp-form-enum-view
                         subscribe="lang"
@@ -3709,12 +3709,12 @@ class FormalizeFormElement extends BaseFormElement {
                                       class="question-group ${classMap({
                                           'fade-in': this.conditionalFields.testSubjects,
                                       })}">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           1.1.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.human-participants-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3851,12 +3851,12 @@ class FormalizeFormElement extends BaseFormElement {
                                   </div>
 
                                   <div class="question-group">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           1.2.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.interventions-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4017,12 +4017,12 @@ class FormalizeFormElement extends BaseFormElement {
                                   </div>
 
                                   <div class="question-group">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           1.3.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.reasonableness-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
                                       <dbp-form-enum-element
                                           subscribe="lang"
                                           name="testSubjectsReasonableToParticipate"
@@ -4047,11 +4047,11 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     <div class="question-group">
-                        <h4 class="question-group-title">
+                        <h5 class="question-group-title">
                             1.4. ${i18n.t(
                                 'render-form.forms.ethics-commission-form.dead-bodies-subtitle',
                             )}
-                        </h4>
+                        </h5>
 
                         <dbp-form-enum-element
                             subscribe="lang"
@@ -4118,11 +4118,11 @@ class FormalizeFormElement extends BaseFormElement {
                     </div>
 
                     <div class="question-group">
-                        <h4 class="question-group-title">
+                        <h5 class="question-group-title">
                             1.5. ${i18n.t(
                                 'render-form.forms.ethics-commission-form.human-stem-cells-subtitle',
                             )}
-                        </h4>
+                        </h5>
 
                         <dbp-form-enum-element
                             subscribe="lang"
@@ -4326,7 +4326,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">2. ${i18n.t('render-form.forms.ethics-commission-form.section-animals-title')}</h3>
+                    <h4 class="section-sub-title">2. ${i18n.t('render-form.forms.ethics-commission-form.section-animals-title')}</h4>
 
                     <dbp-form-enum-element
                         subscribe="lang"
@@ -4349,12 +4349,12 @@ class FormalizeFormElement extends BaseFormElement {
                                       class="question-group ${classMap({
                                           'fade-in': this.conditionalFields.animalsInvolved,
                                       })}">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           2.1.
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.section-animals-in-research-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
                                       <dbp-form-enum-element
                                           subscribe="lang"
                                           name="isAnimalVertebrate"
@@ -4532,7 +4532,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">3. ${i18n.t('render-form.forms.ethics-commission-form.section-sustainability-title')}</h3>
+                    <h4 class="section-sub-title">3. ${i18n.t('render-form.forms.ethics-commission-form.section-sustainability-title')}</h4>
 
                         <dbp-form-enum-element
                             subscribe="lang"
@@ -4647,7 +4647,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">4. ${i18n.t('render-form.forms.ethics-commission-form.section-non-eu-states-title')}</h3>
+                    <h4 class="section-sub-title">4. ${i18n.t('render-form.forms.ethics-commission-form.section-non-eu-states-title')}</h4>
                     <dbp-form-enum-element
                         subscribe="lang"
                         name="nonEuCountries"
@@ -4669,12 +4669,12 @@ class FormalizeFormElement extends BaseFormElement {
                                       class="question-group ${classMap({
                                           'fade-in': this.conditionalFields.nonEuCountries,
                                       })}">
-                                      <h4 class="question-group-title">
+                                      <h5 class="question-group-title">
                                           4.1
                                           ${i18n.t(
                                               'render-form.forms.ethics-commission-form.section-non-eu-countries-subtitle',
                                           )}
-                                      </h4>
+                                      </h5>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4829,7 +4829,7 @@ class FormalizeFormElement extends BaseFormElement {
 
 
                 <article>
-                    <h3 class="section-sub-title">5. ${i18n.t('render-form.forms.ethics-commission-form.section-information-systems-title')}</h3>
+                    <h4 class="section-sub-title">5. ${i18n.t('render-form.forms.ethics-commission-form.section-information-systems-title')}</h4>
 
                     <div class="question-group">
                         <p>
@@ -4963,7 +4963,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">6. ${i18n.t('render-form.forms.ethics-commission-form.section-conflicts-of-interest-title')}</h3>
+                    <h4 class="section-sub-title">6. ${i18n.t('render-form.forms.ethics-commission-form.section-conflicts-of-interest-title')}</h4>
 
                     <dbp-form-enum-element
                         subscribe="lang"
@@ -5160,7 +5160,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">7. ${i18n.t('render-form.forms.ethics-commission-form.section-working-conditions-title')}</h3>
+                    <h4 class="section-sub-title">7. ${i18n.t('render-form.forms.ethics-commission-form.section-working-conditions-title')}</h4>
 
                     <dbp-form-enum-element
                         subscribe="lang"
@@ -5247,7 +5247,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </article>
 
                 <article>
-                    <h3 class="section-sub-title">8. ${i18n.t('render-form.forms.ethics-commission-form.section-ethics-compass-title')}</h3>
+                    <h4 class="section-sub-title">8. ${i18n.t('render-form.forms.ethics-commission-form.section-ethics-compass-title')}</h4>
 
                     <dbp-form-enum-element
                         subscribe="lang"

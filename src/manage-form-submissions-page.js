@@ -628,7 +628,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     </span>
                 </div>
                 <div class="table-header submissions">
-                    <h3>${this.activeFormName}</h3>
+                    <h2 class="form-name">${this.activeFormName}</h2>
                     ${this.createSubmissionUrl && !this.hideCreateSubmissionButton
                         ? html`
                               <a
