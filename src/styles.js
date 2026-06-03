@@ -1936,6 +1936,17 @@ export function getMediaTransparencyFormCSS() {
             text-underline-offset: 1px;
         }
 
+        .file-upload-container dbp-translated a {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            transition: text-underline-offset 0.1s ease-in;
+            word-break: break-all;
+        }
+
+        .file-upload-container dbp-translated a:hover {
+            text-underline-offset: 1px;
+        }
+
         .field-note {
             font-size: 1em;
             font-style: italic;

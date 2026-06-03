@@ -1036,6 +1036,9 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderFileUploadGroup(groupName) {
         const i18n = this._i18n;
+        const INFO_PDF_URL = `https://cloud.tugraz.at/
+index.php/apps/files/files/1254181333?dir=/Shared/Systemarchitektur/Compound-Tasks
+/DBP%20formalize%20%28Electronic%20Forms%29/68913%20Formalize%20Media%20Transparency&openfile=true`;
         return html`
             <div class="file-upload-container">
                 <div class="file-upload-title-container">
@@ -1059,42 +1062,52 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-translated subscribe="lang">
                         <div slot="de">
+                            <p>Bitte benennen Sie Ihr Sujet nach folgenden Kriterien:</p>
+                            <ol>
+                                <li>Fortlaufende zweistellige Nummer: 01, 02, 03, &hellip;</li>
+                                <li>Abkürzung der OE/Institutes/ &hellip;</li>
+                                <li>Kategorie</li>
+                                <li>Medium</li>
+                                <li>Thema</li>
+                            </ol>
                             <p>
-                                Der Dateiname muss folgendem Muster entsprechen:
-                                <br />
-                                <code>NN_Wort_Wort_Wort.Endung</code>
-                                (z.&nbsp;B.
-                                <code>01_Medium_Kampagne_Sujet.pdf</code>
-                                )
-                                <br />
-                                <strong>NN</strong>
-                                = zweistellige Nummer
-                                <br />
-                                <strong>Wort</strong>
-                                = nur Buchstaben, keine Zahlen oder Sonderzeichen
-                                <br />
-                                <strong>Endung</strong>
-                                = Dateiendung (Buchstaben/Ziffern)
+                                Zum Beispiel:
+                                <code>01_KM_Print_HelleKoepfe_DerGrazer_Motorenforschung.pdf</code>
                             </p>
+
+                            <p>Punkte 2-5 dürfen keine Ziffern enthalten!</p>
+
+                            <p>
+                                Die Kategoriekürzel sind fix vorgegeben, siehe
+                                <a href="${INFO_PDF_URL}" target="_blank">
+                                    “MT_2025_02_Sujets_Bezeichnungslogik_final.pdf”.
+                                </a>
+                            </p>
+                            <p>Die zulässige Dateiformate sind PDF, JPG, PNG, MP3 und MP4.</p>
                         </div>
                         <div slot="en">
+                            <p>Please name your file according to the following criteria:</p>
+                            <ol>
+                                <li>Sequential two-digit number: 01, 02, 03, &hellip;</li>
+                                <li>Abbreviation of the organizational unit/institute/ &hellip;</li>
+                                <li>Category</li>
+                                <li>Medium</li>
+                                <li>Topic</li>
+                            </ol>
                             <p>
-                                The filename must match the following pattern:
-                                <br />
-                                <code>NN_Word_Word_Word.ext</code>
-                                (e.g.
-                                <code>01_Medium_Campaign_Sujet.pdf</code>
-                                )
-                                <br />
-                                <strong>NN</strong>
-                                = two-digit number
-                                <br />
-                                <strong>Word</strong>
-                                = letters only, no digits or special characters
-                                <br />
-                                <strong>ext</strong>
-                                = file extension (letters/digits)
+                                For example:
+                                <code>01_KM_Print_HelleKoepfe_DerGrazer_Motorenforschung.pdf</code>
                             </p>
+
+                            <p>Items 2–5 must not contain any numbers!</p>
+
+                            <p>
+                                The category codes are predefined: see
+                                <a href="${INFO_PDF_URL}" target="_blank">
+                                    “MT_2025_02_Sujets_Bezeichnungslogik_final.pdf”.
+                                </a>
+                            </p>
+                            <p>The accepted file formats are PDF, JPG, PNG, MP3, and MP4.</p>
                         </div>
                     </dbp-translated>
                 </div>
