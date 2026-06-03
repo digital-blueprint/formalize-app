@@ -465,6 +465,26 @@
             "placeholder": "Bitte wählen Sie einen Raum aus"
         }
     },
+    "submission-edit": {
+        "back-to-forms": "Zurück zu Eintragsformularen",
+        "cancel": "Abbrechen",
+        "create-item": "Eintrag erstellen",
+        "delete-item": "Löschen",
+        "edit-item": "Bearbeiten",
+        "item-created": "Eintrag erfolgreich erstellt",
+        "item-deleted": "Eintrag erfolgreich gelöscht",
+        "item-updated": "Eintrag erfolgreich aktualisiert",
+        "load-error": "Einträge konnten nicht geladen werden.",
+        "no-form": "Kein passendes Formular für Einträge verfügbar.",
+        "no-items": "Keine Einträge verfügbar.",
+        "no-module": "Kein Modul für Einträge konfiguriert.",
+        "open-form": "Öffnen",
+        "save-item": "Eintrag speichern",
+        "title": "Einträge",
+        "unknown-form": "Das angeforderte Eintragsformular ist nicht verfügbar.",
+        "unknown-item": "Der angeforderte Eintrag ist nicht verfügbar.",
+        "unnamed-item": "Unbenannter Eintrag"
+    },
     "success": {
         "form-saved-successfully": "Formularübermittlung erfolgreich gespeichert",
         "form-submission-deleted-successfully": "Formularübermittlung erfolgreich gelöscht",

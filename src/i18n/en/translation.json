@@ -465,6 +465,26 @@
             "placeholder": "Please select a room"
         }
     },
+    "submission-edit": {
+        "back-to-forms": "Back to item forms",
+        "cancel": "Cancel",
+        "create-item": "Create item",
+        "delete-item": "Delete",
+        "edit-item": "Edit",
+        "item-created": "Item created successfully",
+        "item-deleted": "Item deleted successfully",
+        "item-updated": "Item updated successfully",
+        "load-error": "Failed to load items.",
+        "no-form": "No matching item form is available.",
+        "no-items": "No items available.",
+        "no-module": "No item module is configured.",
+        "open-form": "Open",
+        "save-item": "Save item",
+        "title": "Items",
+        "unknown-form": "The requested item form is not available.",
+        "unknown-item": "The requested item is not available.",
+        "unnamed-item": "Unnamed item"
+    },
     "success": {
         "form-saved-successfully": "Form submission saved successfully",
         "form-submission-deleted-successfully": "form submission deleted successfully",

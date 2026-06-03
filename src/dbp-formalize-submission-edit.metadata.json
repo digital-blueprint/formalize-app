@@ -1,0 +1,18 @@
+{
+    "element": "dbp-formalize-submission-edit",
+    "module_src": "dbp-formalize-submission-edit.js",
+    "routing_name": "submission-edit",
+    "name": {
+        "de": "Einträge verwalten",
+        "en": "Manage items"
+    },
+    "short_name": {
+        "de": "Einträge",
+        "en": "Items"
+    },
+    "description": {
+        "de": "Ermöglicht das Erstellen, Bearbeiten und Löschen von Einträgen",
+        "en": "Enables creating, editing and deleting items"
+    },
+    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,item-frontend-keys"
+}
