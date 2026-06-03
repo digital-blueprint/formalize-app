@@ -415,11 +415,10 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 return;
             }
 
-            let savedItem = {};
             try {
-                savedItem = await response.json();
+                await response.json();
             } catch {
-                savedItem = {};
+                // The API may return an empty body for PATCH responses.
             }
 
             sendNotification({
@@ -434,12 +433,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             });
 
             await this.loadSubmissions();
-            const itemIdentifier = this.selectedItem?.identifier || savedItem.identifier;
-            if (itemIdentifier) {
-                this.setRoute(`/${this.activeForm.identifier}/${itemIdentifier}/edit`);
-            } else {
-                this.setRoute(`/${this.activeForm.identifier}`);
-            }
+            this.setRoute(`/${this.activeForm.identifier}`);
         } finally {
             this.saving = false;
         }
@@ -792,7 +786,6 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .item-row {
                 align-items: center;
                 border: var(--dbp-border);
-                border-radius: 0.25rem;
                 display: flex;
                 gap: 1rem;
                 justify-content: space-between;
