@@ -1036,9 +1036,6 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderFileUploadGroup(groupName) {
         const i18n = this._i18n;
-        const INFO_PDF_URL = `https://cloud.tugraz.at/
-index.php/apps/files/files/1254181333?dir=/Shared/Systemarchitektur/Compound-Tasks
-/DBP%20formalize%20%28Electronic%20Forms%29/68913%20Formalize%20Media%20Transparency&openfile=true`;
         return html`
             <div class="file-upload-container">
                 <div class="file-upload-title-container">
@@ -1076,13 +1073,6 @@ index.php/apps/files/files/1254181333?dir=/Shared/Systemarchitektur/Compound-Tas
                             </p>
 
                             <p>Punkte 2-5 dürfen keine Ziffern enthalten!</p>
-
-                            <p>
-                                Die Kategoriekürzel sind fix vorgegeben, siehe
-                                <a href="${INFO_PDF_URL}" target="_blank">
-                                    “MT_2025_02_Sujets_Bezeichnungslogik_final.pdf”.
-                                </a>
-                            </p>
                             <p>Die zulässige Dateiformate sind PDF, JPG, PNG, MP3 und MP4.</p>
                         </div>
                         <div slot="en">
@@ -1098,15 +1088,7 @@ index.php/apps/files/files/1254181333?dir=/Shared/Systemarchitektur/Compound-Tas
                                 For example:
                                 <code>01_KM_Print_HelleKoepfe_DerGrazer_Motorenforschung.pdf</code>
                             </p>
-
                             <p>Items 2–5 must not contain any numbers!</p>
-
-                            <p>
-                                The category codes are predefined: see
-                                <a href="${INFO_PDF_URL}" target="_blank">
-                                    “MT_2025_02_Sujets_Bezeichnungslogik_final.pdf”.
-                                </a>
-                            </p>
                             <p>The accepted file formats are PDF, JPG, PNG, MP3, and MP4.</p>
                         </div>
                     </dbp-translated>
