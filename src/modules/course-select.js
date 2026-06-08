@@ -156,9 +156,13 @@ export class CourseSelect extends ScopedElementsMixin(AdapterLitElement) {
                         let members = data['hydra:member'];
                         const results = [];
                         members.forEach((course) => {
+                            const id = course['@id'];
                             results.push({
-                                id: course['@id'],
+                                id,
                                 text: this.formatCourse(this, course),
+                                // Select2 4.1.0 normalizes AJAX items with an unbound method.
+                                // Providing _resultId avoids its broken access to this.container.
+                                _resultId: `${this.selectId}-result-${id}`,
                             });
                         });
 
