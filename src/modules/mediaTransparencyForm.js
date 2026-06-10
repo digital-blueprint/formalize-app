@@ -508,18 +508,6 @@ class FormalizeFormElement extends BaseFormElement {
             ? this.lastModifiedCreatorId
             : this.auth['user-id'];
 
-        // Clean up empty date fields to avoid JSON Schema validation errors
-        const dateFields = ['atFrom', 'to'];
-        dateFields.forEach((field) => {
-            if (
-                data.formData[field] === '' ||
-                data.formData[field] === null ||
-                data.formData[field] === undefined
-            ) {
-                delete data.formData[field];
-            }
-        });
-
         const formData = new FormData();
 
         // Iterate over all file groups dynamically
@@ -625,17 +613,6 @@ class FormalizeFormElement extends BaseFormElement {
         const data = event.detail;
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.lastModifiedCreatorId;
-        // Clean up empty date fields to avoid JSON Schema validation errors
-        const dateFields = ['atFrom', 'to'];
-        dateFields.forEach((field) => {
-            if (
-                data.formData[field] === '' ||
-                data.formData[field] === null ||
-                data.formData[field] === undefined
-            ) {
-                delete data.formData[field];
-            }
-        });
 
         const formData = new FormData();
 
@@ -753,18 +730,6 @@ class FormalizeFormElement extends BaseFormElement {
         data.formData.identifier = isExistingDraft
             ? this.lastModifiedCreatorId
             : this.auth['user-id'];
-
-        // Clean up empty date fields to avoid JSON Schema validation errors
-        const dateFields = ['atFrom', 'to'];
-        dateFields.forEach((field) => {
-            if (
-                data.formData[field] === '' ||
-                data.formData[field] === null ||
-                data.formData[field] === undefined
-            ) {
-                delete data.formData[field];
-            }
-        });
 
         const formData = new FormData();
 
