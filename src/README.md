@@ -56,8 +56,8 @@ An activity for editing submissions as generic items. The activity loads item mo
 #### Attributes
 
 - `item-frontend-keys` (optional): comma-separated list of form `frontendKey` values to show in the activity. If set, only matching item modules are loaded and the form collection request is filtered with `whereFrontendKeyIn[]`.
-    - example `item-frontend-keys="company"`
-    - example `item-frontend-keys="company,event"`
+    - example `item-frontend-keys="bulletin-company"`
+    - example `item-frontend-keys="bulletin-company,event"`
 - `lang` (optional, default: `de`): set to `de` or `en` for German or English
     - example `lang="de"`
 - `entry-point-url` (optional, default is the TU Graz entry point url): entry point url to access the api
@@ -71,7 +71,7 @@ For example, an application shell can expose the company item form with:
 ```html
 <dbp-formalize-submission-edit
     subscribe="lang,entry-point-url,auth,base-path,item-frontend-keys"
-    item-frontend-keys="company"></dbp-formalize-submission-edit>
+    item-frontend-keys="bulletin-company"></dbp-formalize-submission-edit>
 ```
 
 If the activity shows "No matching item form is available.", verify that a form with the configured `frontendKey` exists and that the current user may read that form through the Formalize authorization rules.
