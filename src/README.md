@@ -49,7 +49,7 @@ An activity, hidden by the application, that renders forms for the user to fill 
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
 
-### dbp-formalize-submission-edit
+### dbp-formalize-manage-fields
 
 An activity for editing submissions as generic items. The activity loads item modules from `modules.json` and uses the module's `getFormFrontendKey()` value to find matching forms in the Formalize API. If multiple matching forms are available, the activity first shows a form list so the user can choose which form to create submissions for.
 
@@ -69,9 +69,9 @@ An activity for editing submissions as generic items. The activity loads item mo
 For example, an application shell can expose the company item form with:
 
 ```html
-<dbp-formalize-submission-edit
+<dbp-formalize-manage-fields
     subscribe="lang,entry-point-url,auth,base-path,item-frontend-keys"
-    item-frontend-keys="bulletin-company"></dbp-formalize-submission-edit>
+    item-frontend-keys="bulletin-company"></dbp-formalize-manage-fields>
 ```
 
 If the activity shows "No matching item form is available.", verify that a form with the configured `frontendKey` exists and that the current user may read that form through the Formalize authorization rules.

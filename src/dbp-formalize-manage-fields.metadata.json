@@ -1,7 +1,7 @@
 {
-    "element": "dbp-formalize-submission-edit",
-    "module_src": "dbp-formalize-submission-edit.js",
-    "routing_name": "submission-edit",
+    "element": "dbp-formalize-manage-fields",
+    "module_src": "dbp-formalize-manage-fields.js",
+    "routing_name": "manage-fields",
     "name": {
         "de": "Einträge verwalten",
         "en": "Manage items"

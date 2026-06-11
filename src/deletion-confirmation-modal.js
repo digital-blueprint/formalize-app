@@ -90,8 +90,8 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
 
     getMessage() {
         const i18n = this._i18n;
-        if (this.messageKey === 'submission-edit.delete-confirmation-message') {
-            return i18n.t('submission-edit.delete-confirmation-message');
+        if (this.messageKey === 'manage-fields.delete-confirmation-message') {
+            return i18n.t('manage-fields.delete-confirmation-message');
         }
 
         return i18n.t('manage-forms.delete-confirmation-message');
@@ -99,8 +99,8 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
 
     getMessageLi2() {
         const i18n = this._i18n;
-        if (this.messageLi2Key === 'submission-edit.delete-confirmation-message-li2') {
-            return i18n.t('submission-edit.delete-confirmation-message-li2');
+        if (this.messageLi2Key === 'manage-fields.delete-confirmation-message-li2') {
+            return i18n.t('manage-fields.delete-confirmation-message-li2');
         }
 
         return i18n.t('manage-forms.delete-confirmation-message-li2');

@@ -70,7 +70,7 @@ function getLocalizedFormName(form, lang) {
 const itemFormsCache = new Map();
 const itemFormsInflight = new Map();
 
-class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
+class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.formRef = createRef();
@@ -167,7 +167,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             await this.applyRoute();
         } catch (error) {
             console.error(error);
-            this.errorMessage = this._i18n.t('submission-edit.load-error');
+            this.errorMessage = this._i18n.t('manage-fields.load-error');
         } finally {
             this._isLoadingForms = false;
             this.loading = false;
@@ -476,9 +476,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             sendNotification({
                 summary: this._i18n.t('success.success-title'),
                 body: this._i18n.t(
-                    this.selectedItem
-                        ? 'submission-edit.item-updated'
-                        : 'submission-edit.item-created',
+                    this.selectedItem ? 'manage-fields.item-updated' : 'manage-fields.item-created',
                 ),
                 type: 'success',
                 timeout: 5,
@@ -516,7 +514,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         sendNotification({
             summary: this._i18n.t('success.success-title'),
-            body: this._i18n.t('submission-edit.item-deleted'),
+            body: this._i18n.t('manage-fields.item-deleted'),
             type: 'success',
             timeout: 5,
         });
@@ -528,7 +526,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const data = parseSubmissionData(item);
         return (
             this.activeModule?.getItemText?.(data, this.lang) ||
-            this._i18n.t('submission-edit.unnamed-item')
+            this._i18n.t('manage-fields.unnamed-item')
         );
     }
 
@@ -576,8 +574,8 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const i18n = this._i18n;
         const openButton = this.createScopedElement('dbp-formalize-get-details-button');
         openButton.setAttribute('subscribe', 'lang');
-        openButton.title = i18n.t('submission-edit.open-form');
-        openButton.ariaLabel = i18n.t('submission-edit.open-form');
+        openButton.title = i18n.t('manage-fields.open-form');
+        openButton.ariaLabel = i18n.t('manage-fields.open-form');
         openButton.addEventListener('click', (event) => {
             event.stopPropagation();
             this.openForm(entry);
@@ -585,7 +583,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return this.createTableActions([
             openButton,
-            this.createTableActionButton('plus', i18n.t('submission-edit.create-item'), () =>
+            this.createTableActionButton('plus', i18n.t('manage-fields.create-item'), () =>
                 this.createItem(entry),
             ),
         ]);
@@ -594,10 +592,10 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
     createItemActions(item) {
         const i18n = this._i18n;
         return this.createTableActions([
-            this.createTableActionButton('pencil', i18n.t('submission-edit.edit-item'), () =>
+            this.createTableActionButton('pencil', i18n.t('manage-fields.edit-item'), () =>
                 this.editItem(item),
             ),
-            this.createTableActionButton('trash', i18n.t('submission-edit.delete-item'), () =>
+            this.createTableActionButton('trash', i18n.t('manage-fields.delete-item'), () =>
                 this.deleteItem(item),
             ),
         ]);
@@ -608,12 +606,12 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const langsForms = {
             en: {
                 columns: {
-                    name: i18n.t('submission-edit.form', {lng: 'en'}),
+                    name: i18n.t('manage-fields.form', {lng: 'en'}),
                 },
             },
             de: {
                 columns: {
-                    name: i18n.t('submission-edit.form', {lng: 'de'}),
+                    name: i18n.t('manage-fields.form', {lng: 'de'}),
                 },
             },
         };
@@ -628,7 +626,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
-            placeholder: i18n.t('submission-edit.no-form'),
+            placeholder: i18n.t('manage-fields.no-form'),
             columns: [
                 {field: 'name', sorter: 'string', minWidth: 220},
                 {
@@ -647,14 +645,14 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const langsItems = {
             en: {
                 columns: {
-                    title: i18n.t('submission-edit.item', {lng: 'en'}),
-                    dateCreated: i18n.t('submission-edit.date-created', {lng: 'en'}),
+                    title: i18n.t('manage-fields.item', {lng: 'en'}),
+                    dateCreated: i18n.t('manage-fields.date-created', {lng: 'en'}),
                 },
             },
             de: {
                 columns: {
-                    title: i18n.t('submission-edit.item', {lng: 'de'}),
-                    dateCreated: i18n.t('submission-edit.date-created', {lng: 'de'}),
+                    title: i18n.t('manage-fields.item', {lng: 'de'}),
+                    dateCreated: i18n.t('manage-fields.date-created', {lng: 'de'}),
                 },
             },
         };
@@ -669,7 +667,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
-            placeholder: i18n.t('submission-edit.no-items'),
+            placeholder: i18n.t('manage-fields.no-items'),
             columns: [
                 {field: 'title', sorter: 'string', minWidth: 220},
                 {field: 'dateCreated', sorter: 'string', minWidth: 180},
@@ -734,7 +732,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (this.itemFormEntries.length === 0) {
             return html`
-                <div class="notification is-warning">${i18n.t('submission-edit.no-form')}</div>
+                <div class="notification is-warning">${i18n.t('manage-fields.no-form')}</div>
             `;
         }
 
@@ -742,8 +740,8 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <dbp-tabulator-table
                 lang="${this.lang}"
                 class="tabulator-table"
-                id="submission-edit-form-table"
-                identifier="submission-edit-form-table"
+                id="manage-fields-form-table"
+                identifier="manage-fields-form-table"
                 pagination-enabled
                 pagination-size="5"
                 .options=${this.getFormTableOptions()}></dbp-tabulator-table>
@@ -760,12 +758,12 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     no-spinner-on-click
                     @click=${() => this.setRoute('/')}>
                     <dbp-icon name="arrow-left" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('submission-edit.back-to-forms')}
+                    ${i18n.t('manage-fields.back-to-forms')}
                 </dbp-button>
                 <h2>${getLocalizedFormName(this.activeForm, this.lang)}</h2>
                 <dbp-button type="is-primary" no-spinner-on-click @click=${() => this.createItem()}>
                     <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('submission-edit.create-item')}
+                    ${i18n.t('manage-fields.create-item')}
                 </dbp-button>
             </div>
 
@@ -775,14 +773,14 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                   `
                 : this.items.length === 0
                   ? html`
-                        <p class="empty-state">${i18n.t('submission-edit.no-items')}</p>
+                        <p class="empty-state">${i18n.t('manage-fields.no-items')}</p>
                     `
                   : html`
                         <dbp-tabulator-table
                             lang="${this.lang}"
                             class="tabulator-table"
-                            id="submission-edit-item-table"
-                            identifier="submission-edit-item-table"
+                            id="manage-fields-item-table"
+                            identifier="manage-fields-item-table"
                             pagination-enabled
                             pagination-size="5"
                             .options=${this.getItemTableOptions()}></dbp-tabulator-table>
@@ -798,8 +796,8 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 <div>
                     <h2>
                         ${this.selectedItem
-                            ? i18n.t('submission-edit.edit-item')
-                            : i18n.t('submission-edit.create-item')}
+                            ? i18n.t('manage-fields.edit-item')
+                            : i18n.t('manage-fields.create-item')}
                     </h2>
                     <span>${getLocalizedFormName(this.activeForm, this.lang)}</span>
                 </div>
@@ -808,7 +806,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     no-spinner-on-click
                     @click=${() => this.cancelEdit()}>
                     <dbp-icon name="close" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('submission-edit.cancel')}
+                    ${i18n.t('manage-fields.cancel')}
                 </dbp-button>
             </div>
             ${this.getFormHtml()}
@@ -819,7 +817,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     no-spinner-on-click
                     @click=${() => this.saveItem()}>
                     <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('submission-edit.save-item')}
+                    ${i18n.t('manage-fields.save-item')}
                 </dbp-button>
             </div>
         `;
@@ -833,7 +831,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.mode === 'unknown-form') {
             return html`
                 <div class="notification is-warning">
-                    ${this._i18n.t('submission-edit.unknown-form')}
+                    ${this._i18n.t('manage-fields.unknown-form')}
                 </div>
                 ${this.renderFormOverview()}
             `;
@@ -842,7 +840,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.mode === 'unknown-item') {
             return html`
                 <div class="notification is-warning">
-                    ${this._i18n.t('submission-edit.unknown-item')}
+                    ${this._i18n.t('manage-fields.unknown-item')}
                 </div>
                 ${this.renderList()}
             `;
@@ -884,17 +882,17 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (this.itemModules.length === 0) {
             return html`
-                <div class="notification is-warning">${i18n.t('submission-edit.no-module')}</div>
+                <div class="notification is-warning">${i18n.t('manage-fields.no-module')}</div>
             `;
         }
 
         return html`
             <dbp-formalize-deletion-confirmation-modal
                 subscribe="lang"
-                message-key="submission-edit.delete-confirmation-message"
-                message-li2-key="submission-edit.delete-confirmation-message-li2"></dbp-formalize-deletion-confirmation-modal>
-            <section class="submission-edit">
-                <h1>${i18n.t('submission-edit.title')}</h1>
+                message-key="manage-fields.delete-confirmation-message"
+                message-li2-key="manage-fields.delete-confirmation-message-li2"></dbp-formalize-deletion-confirmation-modal>
+            <section class="manage-fields">
+                <h1>${i18n.t('manage-fields.title')}</h1>
                 ${this.renderContent()}
             </section>
         `;
@@ -930,8 +928,8 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             changedProperties.has('lang') ||
             changedProperties.has('mode')
         ) {
-            this.syncTabulatorTable('#submission-edit-form-table', this.getFormTableOptions());
-            this.syncTabulatorTable('#submission-edit-item-table', this.getItemTableOptions());
+            this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());
+            this.syncTabulatorTable('#manage-fields-item-table', this.getItemTableOptions());
         }
     }
 
@@ -946,7 +944,7 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 display: block;
             }
 
-            .submission-edit {
+            .manage-fields {
                 display: grid;
                 gap: 1rem;
             }
@@ -992,4 +990,4 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 }
 
-commonUtils.defineCustomElement('dbp-formalize-submission-edit', SubmissionEdit);
+commonUtils.defineCustomElement('dbp-formalize-manage-fields', ManageFields);
