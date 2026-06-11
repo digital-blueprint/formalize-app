@@ -306,12 +306,37 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    getNormalizedRouteSegments() {
+        const segments = [...this.getRoutingData().pathSegments];
+        const basePathSegments = new URL(this.basePath || '/', window.location.origin).pathname
+            .split('/')
+            .filter((segment) => segment !== '');
+
+        while (basePathSegments.length > 0 && segments[0] === basePathSegments[0]) {
+            segments.shift();
+            basePathSegments.shift();
+        }
+
+        if (this._i18n.languages.includes(segments[0])) {
+            segments.shift();
+        }
+
+        const formSegmentIndex = segments.findIndex((segment) => {
+            return this.itemFormEntries.some((entry) => entry.form.identifier === segment);
+        });
+        if (formSegmentIndex > 0) {
+            return segments.slice(formSegmentIndex);
+        }
+
+        return segments;
+    }
+
     async applyRoute() {
         if (!this._hasLoadedForms) {
             return;
         }
 
-        const pathSegments = this.getRoutingData().pathSegments;
+        const pathSegments = this.getNormalizedRouteSegments();
         const formIdentifier = pathSegments[0] || '';
         const actionOrItemIdentifier = pathSegments[1] || '';
         const editMarker = pathSegments[2] || '';
