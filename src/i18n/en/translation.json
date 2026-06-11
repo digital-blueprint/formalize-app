@@ -456,6 +456,7 @@
                 "field-media-owners-name-label": "Media owner's name",
                 "field-notes-label": "Notes",
                 "field-other-medium-name-label": "Other media",
+                "field-other-medium-owners-name-custom-label": "Enter custom media owner name",
                 "field-other-medium-owners-name-label": "Other media owner",
                 "field-reporting-deadline-label": "Reporting date",
                 "field-reporting-deadline-period-description": "Select the first period between January and June, the second between July and December.",

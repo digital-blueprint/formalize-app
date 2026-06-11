@@ -28,6 +28,7 @@ import {
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
 const OTHER_MEDIA_VALUE = 'Sonstiges';
+const NOTHING_SELECTED = 'nothing-selected';
 
 /**
  * Lookup maps: camelCase key → full i18n translation key.
@@ -184,7 +185,10 @@ export const MEDIA_NAME_OWNER_MAPPING = {
         'Digitaler Screen': {},
         outdoorAdvertising: {},
         Kino: {},
-        Sonstiges: {},
+        Sonstiges: {
+            'Gazzetta GmbH': 'Gazzetta GmbH',
+            'CompanyCode Werbe GmbH': 'CompanyCode Werbe GmbH',
+        },
     },
     Fernsehen: {
         _items: {
@@ -233,6 +237,7 @@ class FormalizeFormElement extends BaseFormElement {
             category: false,
             advertisementSubcategory: false,
             mediaName: false,
+            outOfHomeOtherMediunOwner: false,
         };
 
         // Event handlers
@@ -409,6 +414,30 @@ class FormalizeFormElement extends BaseFormElement {
                 this.conditionalFields.mediaName = true;
             }
 
+            if (this.formData?.category === 'Out of Home') {
+                this.conditionalFields.mediaName = false;
+                this.conditionalFields.mediumOwnersName = false;
+
+                // Check if the saved otherMediumOwnersName is a known dropdown option or a custom value
+                const savedOwnerName = this.formData.otherMediumOwnersName;
+                const mediaNameItems = this.getMediaNameItems();
+                const isKnownOption = savedOwnerName && savedOwnerName in mediaNameItems;
+
+                if (isKnownOption) {
+                    // Known dropdown option — no custom text input needed
+                    this.conditionalFields.outOfHomeOtherMediunOwner = false;
+                } else {
+                    // Custom value or "Sonstiges" — show custom text input
+                    this.conditionalFields.outOfHomeOtherMediunOwner = true;
+                    if (savedOwnerName && savedOwnerName !== OTHER_MEDIA_VALUE) {
+                        // Move the custom value to the temporary field for the text input
+                        this.formData.otherMediumOwnersNameCustom = savedOwnerName;
+                        // Set the dropdown to "Sonstiges" so it displays correctly
+                        this.formData.otherMediumOwnersName = OTHER_MEDIA_VALUE;
+                    }
+                }
+            }
+
             // Initialize file groups from schema
             this.initializeFileGroups();
 
@@ -475,6 +504,29 @@ class FormalizeFormElement extends BaseFormElement {
     }
 
     /**
+     * Clean up form data before submission.
+     * - Merges the custom owner name field for the Out of Home / Sonstiges case.
+     * - Converts the NOTHING_SELECTED placeholder back to an empty string so it
+     *   is not persisted as a real value.
+     * @param {object} formData - The form data object to clean up.
+     */
+    _cleanFormDataBeforeSubmit(formData) {
+        // Merge custom owner name for Out of Home / Sonstiges case
+        if (formData.otherMediumOwnersNameCustom !== undefined) {
+            formData.otherMediumOwnersName = formData.otherMediumOwnersNameCustom;
+            delete formData.otherMediumOwnersNameCustom;
+        }
+
+        // Convert placeholder values back to empty strings
+        if (formData.mediaName === NOTHING_SELECTED) {
+            formData.mediaName = '';
+        }
+        if (formData.otherMediumOwnersName === NOTHING_SELECTED) {
+            formData.otherMediumOwnersName = '';
+        }
+    }
+
+    /**
      * Handle saving submission.
      * @param {object} event - The event object containing the form data.
      */
@@ -482,6 +534,9 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         // Access the data from the event detail
         const data = event.detail;
+
+        // Merge custom owner name for Out of Home / Sonstiges case
+        this._cleanFormDataBeforeSubmit(data.formData);
 
         // Validate minimum file upload counts
         const fileValidation = this.validateMinimumFileUploads();
@@ -611,6 +666,10 @@ class FormalizeFormElement extends BaseFormElement {
         if (!event.detail.submissionId) return;
 
         const data = event.detail;
+
+        // Merge custom owner name for Out of Home / Sonstiges case
+        this._cleanFormDataBeforeSubmit(data.formData);
+
         // Include unique identifier for person who is submitting
         data.formData.identifier = this.lastModifiedCreatorId;
 
@@ -719,6 +778,9 @@ class FormalizeFormElement extends BaseFormElement {
         // Access the data from the event detail
         const data = event.detail;
         // const validationResult = data.validationResult;
+
+        // Merge custom owner name for Out of Home / Sonstiges case
+        this._cleanFormDataBeforeSubmit(data.formData);
 
         // POST or PATCH
         let isExistingDraft = false;
@@ -1182,12 +1244,17 @@ class FormalizeFormElement extends BaseFormElement {
             return {[OTHER_MEDIA_VALUE]: OTHER_MEDIA_VALUE};
         }
         const items = {
-            '': i18n.t('render-form.forms.media-transparency-form.please-select-media'),
+            [NOTHING_SELECTED]: i18n.t(
+                'render-form.forms.media-transparency-form.please-select-media',
+            ),
         };
         Object.keys(mapping).forEach((name) => {
             items[name] = name;
         });
-        items[OTHER_MEDIA_VALUE] = OTHER_MEDIA_VALUE;
+        // Add 'Other' option if there are known media names or if category is Out of Home (which has only subcategories but no known media names)
+        if (subcategoryKey !== OTHER_MEDIA_VALUE || this.selectedCategory === 'Out of Home') {
+            items[OTHER_MEDIA_VALUE] = OTHER_MEDIA_VALUE;
+        }
         return items;
     }
 
@@ -1226,7 +1293,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Set conditional field visibility and reset related fields based on selected subcategory value.
-     * @param {CustomEvent} e - change event from subcategory dropdown, used to get the selected subcategory value
+     * @param {CustomEvent} e - change event from subcategory radio button group, used to get the selected subcategory value
      */
     setSubcategoryItems(e) {
         const selectedValue = e.currentTarget.value;
@@ -1243,7 +1310,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         if (this.categoryHasSubcategories(selectedValue)) {
             // Category with subcategories (online, outOfHome): wait for subcategory selection
-            data.mediaName = '';
+            data.mediaName = NOTHING_SELECTED;
             this.conditionalFields.advertisementSubcategory = false;
         } else {
             // Category without subcategories (print, television, radio)
@@ -1253,7 +1320,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (hasMediaNames) {
                 // Reset to 'Please select'
-                data.mediaName = '';
+                data.mediaName = NOTHING_SELECTED;
                 this.conditionalFields.mediaName = false;
             } else {
                 // No known media names — only 'Other' available
@@ -1420,7 +1487,7 @@ class FormalizeFormElement extends BaseFormElement {
                                                 this.conditionalFields.mediaName = true;
                                             } else {
                                                 // Reset to 'Please select'
-                                                data.mediaName = '';
+                                                data.mediaName = NOTHING_SELECTED;
                                                 this.conditionalFields.mediaName = false;
                                             }
 
@@ -1448,8 +1515,7 @@ class FormalizeFormElement extends BaseFormElement {
                               display-mode="dropdown"
                               .items=${this.getMediaNameItems()}
                               .customValidator=${(value) => {
-                                  return value === 'Bitte wählen Sie einen Mediennamen aus.' ||
-                                      value === 'Please select a media name.'
+                                  return value === NOTHING_SELECTED
                                       ? [
                                             i18n.t(
                                                 'render-form.forms.media-transparency-form.media-name-validation-error',
@@ -1461,8 +1527,11 @@ class FormalizeFormElement extends BaseFormElement {
                                   const selectedValue = e.currentTarget.value;
                                   data.mediaName = selectedValue;
 
-                                  // If 'Other' is selected, show other medium fields
-                                  if (selectedValue === OTHER_MEDIA_VALUE) {
+                                  // If 'Other' or placeholder is selected, show other medium fields
+                                  if (
+                                      selectedValue === OTHER_MEDIA_VALUE ||
+                                      selectedValue === NOTHING_SELECTED
+                                  ) {
                                       this.conditionalFields.mediaName = true;
                                       data.mediumOwnersName = '';
                                   } else {
@@ -1473,7 +1542,7 @@ class FormalizeFormElement extends BaseFormElement {
                                   }
                                   this.requestUpdate();
                               }}
-                              .value=${data.mediaName || ''}
+                              .value=${data.mediaName || NOTHING_SELECTED}
                               required></dbp-form-enum-element>
 
                           ${!this.conditionalFields.mediaName
@@ -1514,6 +1583,75 @@ class FormalizeFormElement extends BaseFormElement {
                               required
                               maxlength="1000"
                               .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
+                      `
+                    : ''}
+                ${data.category === 'Out of Home' && data.advertisementSubcategory === 'Sonstiges'
+                    ? html`
+                          <div style="visibility:hidden; height:0; margin:0; padding:0; border:0;">
+                              <dbp-form-string-element
+                                  subscribe="lang"
+                                  name="otherMediumName"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                                  )}"
+                                  maxlength="1000"
+                                  value=""></dbp-form-string-element>
+                          </div>
+
+                          <dbp-form-enum-element
+                              subscribe="lang"
+                              name="otherMediumOwnersName"
+                              label="${i18n.t(
+                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                              )}"
+                              display-mode="dropdown"
+                              .items=${this.getMediaNameItems()}
+                              @change=${(e) => {
+                                  const selectedValue = e.currentTarget.value;
+
+                                  // If 'Other' or placeholder is selected, show other medium fields
+                                  if (
+                                      selectedValue === OTHER_MEDIA_VALUE ||
+                                      selectedValue === NOTHING_SELECTED
+                                  ) {
+                                      this.conditionalFields.outOfHomeOtherMediunOwner = true;
+                                      data.otherMediumOwnersName = '';
+                                      data.otherMediumOwnersNameCustom = '';
+                                  } else {
+                                      this.conditionalFields.outOfHomeOtherMediunOwner = false;
+                                      data.otherMediumOwnersNameCustom = '';
+                                      // Auto-fill owner name from mapping
+                                      const owner = this.getOwnerForMediaName(selectedValue);
+                                      data.otherMediumOwnersName = owner ?? '';
+                                  }
+                                  this.requestUpdate();
+                              }}
+                              .customValidator=${(value) => {
+                                  return value === NOTHING_SELECTED
+                                      ? [
+                                            i18n.t(
+                                                'render-form.forms.media-transparency-form.media-name-validation-error',
+                                            ),
+                                        ]
+                                      : [];
+                              }}
+                              .value=${data.otherMediumOwnersName || NOTHING_SELECTED}
+                              required></dbp-form-enum-element>
+
+                          ${this.conditionalFields.outOfHomeOtherMediunOwner
+                              ? html`
+                                    <dbp-form-string-element
+                                        subscribe="lang"
+                                        name="otherMediumOwnersNameCustom"
+                                        label="${i18n.t(
+                                            'render-form.forms.media-transparency-form.field-other-medium-owners-name-custom-label',
+                                        )}"
+                                        required
+                                        maxlength="1000"
+                                        .value=${data.otherMediumOwnersNameCustom ||
+                                        ''}></dbp-form-string-element>
+                                `
+                              : ''}
                       `
                     : ''}
 
