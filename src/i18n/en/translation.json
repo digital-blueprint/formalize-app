@@ -470,6 +470,8 @@
         "cancel": "Cancel",
         "create-item": "Create item",
         "date-created": "Date created",
+        "delete-confirmation-message": "Are you sure you want to delete the selected item?",
+        "delete-confirmation-message-li2": "Deleted items will be permanently lost.",
         "delete-item": "Delete",
         "edit-item": "Edit",
         "form": "Form",

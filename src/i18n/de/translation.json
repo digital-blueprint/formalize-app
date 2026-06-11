@@ -470,6 +470,8 @@
         "cancel": "Abbrechen",
         "create-item": "Eintrag erstellen",
         "date-created": "Erstellt am",
+        "delete-confirmation-message": "Sind Sie sicher, dass Sie den ausgewählten Eintrag löschen möchten?",
+        "delete-confirmation-message-li2": "Gelöschte Einträge gehen unwiderruflich verloren.",
         "delete-item": "Löschen",
         "edit-item": "Bearbeiten",
         "form": "Formular",

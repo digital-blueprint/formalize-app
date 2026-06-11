@@ -865,7 +865,9 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return html`
             <dbp-formalize-deletion-confirmation-modal
-                subscribe="lang"></dbp-formalize-deletion-confirmation-modal>
+                subscribe="lang"
+                message-key="submission-edit.delete-confirmation-message"
+                message-li2-key="submission-edit.delete-confirmation-message-li2"></dbp-formalize-deletion-confirmation-modal>
             <section class="submission-edit">
                 <h1>${i18n.t('submission-edit.title')}</h1>
                 ${this.renderContent()}

@@ -22,6 +22,8 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
         this._i18n = createInstance();
         this.lang = this._i18n.language;
         this._resolve = null;
+        this.messageKey = 'manage-forms.delete-confirmation-message';
+        this.messageLi2Key = 'manage-forms.delete-confirmation-message-li2';
     }
 
     static get scopedElements() {
@@ -36,6 +38,8 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
         return {
             ...super.properties,
             lang: {type: String},
+            messageKey: {type: String, attribute: 'message-key'},
+            messageLi2Key: {type: String, attribute: 'message-li2-key'},
         };
     }
 
@@ -84,6 +88,24 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
         }
     }
 
+    getMessage() {
+        const i18n = this._i18n;
+        if (this.messageKey === 'submission-edit.delete-confirmation-message') {
+            return i18n.t('submission-edit.delete-confirmation-message');
+        }
+
+        return i18n.t('manage-forms.delete-confirmation-message');
+    }
+
+    getMessageLi2() {
+        const i18n = this._i18n;
+        if (this.messageLi2Key === 'submission-edit.delete-confirmation-message-li2') {
+            return i18n.t('submission-edit.delete-confirmation-message-li2');
+        }
+
+        return i18n.t('manage-forms.delete-confirmation-message-li2');
+    }
+
     render() {
         const i18n = this._i18n;
 
@@ -95,10 +117,10 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
                 title="${i18n.t('manage-forms.delete-confirmation-title')}"
                 subscribe="lang">
                 <div slot="content">
-                    <p>${i18n.t('manage-forms.delete-confirmation-message')}</p>
+                    <p>${this.getMessage()}</p>
                     <ul>
                         <li>${i18n.t('manage-forms.delete-confirmation-message-li1')}</li>
-                        <li>${i18n.t('manage-forms.delete-confirmation-message-li2')}</li>
+                        <li>${this.getMessageLi2()}</li>
                     </ul>
                 </div>
                 <menu slot="footer" class="footer-menu">
