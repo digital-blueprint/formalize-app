@@ -92,6 +92,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this._routeApplyPromise = Promise.resolve();
         this._submissionsLoadPromise = null;
         this._submissionsLoadFormIdentifier = '';
+        this._editHeaderObserved = false;
+        this._editHeaderObserver = null;
     }
 
     static get scopedElements() {
@@ -126,6 +128,48 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async initialize() {
         await this.loadItemForms();
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback?.();
+        this.disconnectEditHeaderObserver();
+    }
+
+    disconnectEditHeaderObserver() {
+        if (this._editHeaderObserver) {
+            this._editHeaderObserver.disconnect();
+            this._editHeaderObserver = null;
+        }
+        this._editHeaderObserved = false;
+    }
+
+    stickyEditHeaderObserver() {
+        if (this._editHeaderObserved || this.mode !== 'edit') {
+            return;
+        }
+
+        const editHeader = this.renderRoot?.querySelector('.edit-header');
+        const sentinel = this.renderRoot?.querySelector('.edit-header-sentinel');
+        if (!editHeader || !sentinel) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    editHeader.classList.toggle('is-pinned', !entry.isIntersecting);
+                });
+            },
+            {
+                rootMargin: '0px',
+                scrollMargin: '0px',
+                threshold: 0,
+            },
+        );
+
+        observer.observe(sentinel);
+        this._editHeaderObserver = observer;
+        this._editHeaderObserved = true;
     }
 
     async loadItemForms() {
@@ -792,6 +836,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const i18n = this._i18n;
 
         return html`
+            <div class="edit-header-sentinel" aria-hidden="true"></div>
             <div class="edit-header">
                 <div>
                     <h2>
@@ -801,25 +846,25 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     </h2>
                     <span>${getLocalizedFormName(this.activeForm, this.lang)}</span>
                 </div>
-                <dbp-button
-                    type="is-secondary"
-                    no-spinner-on-click
-                    @click=${() => this.cancelEdit()}>
-                    <dbp-icon name="close" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('manage-fields.cancel')}
-                </dbp-button>
+                <div class="edit-actions">
+                    <dbp-button
+                        type="is-secondary"
+                        no-spinner-on-click
+                        @click=${() => this.cancelEdit()}>
+                        <dbp-icon name="close" aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-fields.cancel')}
+                    </dbp-button>
+                    <dbp-button
+                        type="is-primary"
+                        ?disabled=${this.saving}
+                        no-spinner-on-click
+                        @click=${() => this.saveItem()}>
+                        <dbp-icon name="save" aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-fields.save-item')}
+                    </dbp-button>
+                </div>
             </div>
             ${this.getFormHtml()}
-            <div class="button-row">
-                <dbp-button
-                    type="is-primary"
-                    ?disabled=${this.saving}
-                    no-spinner-on-click
-                    @click=${() => this.saveItem()}>
-                    <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('manage-fields.save-item')}
-                </dbp-button>
-            </div>
         `;
     }
 
@@ -931,6 +976,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());
             this.syncTabulatorTable('#manage-fields-item-table', this.getItemTableOptions());
         }
+
+        if (changedProperties.has('mode')) {
+            this.disconnectEditHeaderObserver();
+        }
+        this.stickyEditHeaderObserver();
     }
 
     static get styles() {
@@ -950,12 +1000,29 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             .active-form-header,
-            .edit-header,
-            .button-row {
+            .edit-header {
                 align-items: center;
                 display: flex;
                 gap: 0.75rem;
                 justify-content: space-between;
+            }
+
+            .edit-header {
+                background: var(--dbp-background);
+                border: 1px solid var(--dbp-content);
+                min-width: 250px;
+                padding: 1em;
+                position: sticky;
+                top: 0;
+                z-index: 9;
+            }
+
+            .edit-header.is-pinned {
+                box-shadow: 0px 4px 8px 2px rgba(0, 0, 0, 0.2);
+            }
+
+            .edit-header-sentinel {
+                block-size: 1px;
             }
 
             .active-form-header h2,
@@ -970,6 +1037,13 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 margin-top: 0.25rem;
             }
 
+            .edit-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                justify-content: flex-end;
+            }
+
             .tabulator-table {
                 width: 100%;
             }
@@ -980,9 +1054,12 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             @media (max-width: 640px) {
                 .active-form-header,
-                .edit-header,
-                .button-row {
+                .edit-header {
                     align-items: stretch;
+                    flex-direction: column;
+                }
+
+                .edit-actions {
                     flex-direction: column;
                 }
             }
