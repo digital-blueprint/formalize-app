@@ -90,6 +90,8 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this._isLoadingForms = false;
         this._lastFrontendKeys = '';
         this._routeApplyPromise = Promise.resolve();
+        this._submissionsLoadPromise = null;
+        this._submissionsLoadFormIdentifier = '';
     }
 
     static get scopedElements() {
@@ -255,32 +257,52 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return;
         }
 
+        const formIdentifier = this.activeForm.identifier;
+        if (
+            this._submissionsLoadPromise &&
+            this._submissionsLoadFormIdentifier === formIdentifier
+        ) {
+            await this._submissionsLoadPromise;
+            return;
+        }
+
         this.loadingItems = true;
-
-        try {
-            const response = await fetch(
-                this.entryPointUrl +
-                    '/formalize/submissions?formIdentifier=' +
-                    this.activeForm.identifier +
-                    '&perPage=9999',
-                {
-                    headers: {
-                        'Content-Type': 'application/ld+json',
-                        Authorization: 'Bearer ' + this.auth.token,
-                    },
-                },
-            );
-
-            if (!response.ok) {
-                this.handleErrorResponse(response);
-                this.items = [];
-                return;
+        this._submissionsLoadFormIdentifier = formIdentifier;
+        const loadPromise = this.fetchSubmissions(formIdentifier).finally(() => {
+            if (this._submissionsLoadPromise === loadPromise) {
+                this._submissionsLoadPromise = null;
+                this._submissionsLoadFormIdentifier = '';
+                this.loadingItems = false;
             }
+        });
+        this._submissionsLoadPromise = loadPromise;
 
-            const data = await response.json();
+        await this._submissionsLoadPromise;
+    }
+
+    async fetchSubmissions(formIdentifier) {
+        const response = await fetch(
+            this.entryPointUrl +
+                '/formalize/submissions?formIdentifier=' +
+                formIdentifier +
+                '&perPage=9999',
+            {
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: 'Bearer ' + this.auth.token,
+                },
+            },
+        );
+
+        if (!response.ok) {
+            this.handleErrorResponse(response);
+            this.items = [];
+            return;
+        }
+
+        const data = await response.json();
+        if (this.activeForm?.identifier === formIdentifier) {
             this.items = data['hydra:member'] || [];
-        } finally {
-            this.loadingItems = false;
         }
     }
 
@@ -637,14 +659,23 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
     }
 
-    syncTabulatorTable(selector, options) {
+    async syncTabulatorTable(selector, options) {
         const table = this.renderRoot?.querySelector(selector);
-        if (!table?.tabulatorTable) {
+        if (!table) {
             return;
         }
 
         table.options = options;
         table.data = options.data;
+
+        if (!table.tabulatorTable) {
+            await table.updateComplete;
+            if (!table.tabulatorTable && !table.tableBuilding) {
+                table.buildTable();
+            }
+            return;
+        }
+
         table.tabulatorTable.setColumns(options.columns);
         table.tabulatorTable.setLocale(this.lang);
         table.tabulatorTable.replaceData(options.data);
