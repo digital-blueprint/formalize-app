@@ -5,6 +5,7 @@ import {
     ScopedElementsMixin,
     Button,
     Icon,
+    IconButton,
     MiniSpinner,
     sendNotification,
 } from '@dbp-toolkit/common';
@@ -13,6 +14,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {SUBMISSION_STATES_BINARY} from './utils.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
+import {CustomTabulatorTable, GetDetailsButton} from './table-components.js';
 import {
     gatherFormDataFromElement,
     validateRequiredFields,
@@ -94,7 +96,10 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return {
             'dbp-button': Button,
             'dbp-icon': Icon,
+            'dbp-icon-button': IconButton,
             'dbp-mini-spinner': MiniSpinner,
+            'dbp-formalize-get-details-button': GetDetailsButton,
+            'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
         };
     }
@@ -480,6 +485,171 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         );
     }
 
+    getFormTableData() {
+        return this.itemFormEntries.map((entry) => ({
+            name: getLocalizedFormName(entry.form, this.lang),
+            entry,
+        }));
+    }
+
+    getItemTableData() {
+        return this.items.map((item) => ({
+            title: this.getItemTitle(item),
+            dateCreated: item.dateCreated || '',
+            item,
+        }));
+    }
+
+    createTableActionButton(iconName, title, onClick) {
+        const button = this.createScopedElement('dbp-icon-button');
+        button.setAttribute('subscribe', 'lang');
+        button.setAttribute('icon-name', iconName);
+        button.title = title;
+        button.setAttribute('aria-label', title);
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            onClick();
+        });
+
+        return button;
+    }
+
+    createTableActions(buttons) {
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.flexWrap = 'wrap';
+        actions.style.gap = '0.5rem';
+        actions.style.alignItems = 'center';
+        actions.style.justifyContent = 'flex-end';
+        buttons.forEach((button) => actions.append(button));
+        return actions;
+    }
+
+    createFormActions(entry) {
+        const i18n = this._i18n;
+        const openButton = this.createScopedElement('dbp-formalize-get-details-button');
+        openButton.setAttribute('subscribe', 'lang');
+        openButton.title = i18n.t('submission-edit.open-form');
+        openButton.ariaLabel = i18n.t('submission-edit.open-form');
+        openButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.openForm(entry);
+        });
+
+        return this.createTableActions([
+            openButton,
+            this.createTableActionButton('plus', i18n.t('submission-edit.create-item'), () =>
+                this.createItem(entry),
+            ),
+        ]);
+    }
+
+    createItemActions(item) {
+        const i18n = this._i18n;
+        return this.createTableActions([
+            this.createTableActionButton('pencil', i18n.t('submission-edit.edit-item'), () =>
+                this.editItem(item),
+            ),
+            this.createTableActionButton('trash', i18n.t('submission-edit.delete-item'), () =>
+                this.deleteItem(item),
+            ),
+        ]);
+    }
+
+    getFormTableOptions() {
+        const i18n = this._i18n;
+        const langsForms = {
+            en: {
+                columns: {
+                    name: i18n.t('submission-edit.form', {lng: 'en'}),
+                },
+            },
+            de: {
+                columns: {
+                    name: i18n.t('submission-edit.form', {lng: 'de'}),
+                },
+            },
+        };
+
+        return {
+            langs: langsForms,
+            data: this.getFormTableData(),
+            layout: 'fitColumns',
+            rowHeight: 64,
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+            placeholder: i18n.t('submission-edit.no-form'),
+            columns: [
+                {field: 'name', sorter: 'string', minWidth: 220},
+                {
+                    field: 'actions',
+                    headerSort: false,
+                    hozAlign: 'right',
+                    formatter: (cell) => this.createFormActions(cell.getRow().getData().entry),
+                    minWidth: 120,
+                },
+            ],
+        };
+    }
+
+    getItemTableOptions() {
+        const i18n = this._i18n;
+        const langsItems = {
+            en: {
+                columns: {
+                    title: i18n.t('submission-edit.item', {lng: 'en'}),
+                    dateCreated: i18n.t('submission-edit.date-created', {lng: 'en'}),
+                },
+            },
+            de: {
+                columns: {
+                    title: i18n.t('submission-edit.item', {lng: 'de'}),
+                    dateCreated: i18n.t('submission-edit.date-created', {lng: 'de'}),
+                },
+            },
+        };
+
+        return {
+            langs: langsItems,
+            data: this.getItemTableData(),
+            layout: 'fitColumns',
+            rowHeight: 64,
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+            placeholder: i18n.t('submission-edit.no-items'),
+            columns: [
+                {field: 'title', sorter: 'string', minWidth: 220},
+                {field: 'dateCreated', sorter: 'string', minWidth: 180},
+                {
+                    field: 'actions',
+                    headerSort: false,
+                    hozAlign: 'right',
+                    formatter: (cell) => this.createItemActions(cell.getRow().getData().item),
+                    minWidth: 120,
+                },
+            ],
+        };
+    }
+
+    syncTabulatorTable(selector, options) {
+        const table = this.renderRoot?.querySelector(selector);
+        if (!table?.tabulatorTable) {
+            return;
+        }
+
+        table.options = options;
+        table.data = options.data;
+        table.tabulatorTable.setColumns(options.columns);
+        table.tabulatorTable.setLocale(this.lang);
+        table.tabulatorTable.replaceData(options.data);
+    }
+
     getFormHtml() {
         if (!this.activeModule || !this.activeForm) {
             return html``;
@@ -513,34 +683,14 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         return html`
-            <div class="form-list">
-                ${this.itemFormEntries.map(
-                    (entry) => html`
-                        <article class="form-row">
-                            <div>
-                                <strong>${getLocalizedFormName(entry.form, this.lang)}</strong>
-                                <span>${entry.form.frontendKey || entry.form.identifier}</span>
-                            </div>
-                            <div class="item-actions">
-                                <dbp-button
-                                    type="is-secondary"
-                                    no-spinner-on-click
-                                    @click=${() => this.openForm(entry)}>
-                                    <dbp-icon name="list" aria-hidden="true"></dbp-icon>
-                                    ${i18n.t('submission-edit.open-form')}
-                                </dbp-button>
-                                <dbp-button
-                                    type="is-primary"
-                                    no-spinner-on-click
-                                    @click=${() => this.createItem(entry)}>
-                                    <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                                    ${i18n.t('submission-edit.create-item')}
-                                </dbp-button>
-                            </div>
-                        </article>
-                    `,
-                )}
-            </div>
+            <dbp-tabulator-table
+                lang="${this.lang}"
+                class="tabulator-table"
+                id="submission-edit-form-table"
+                identifier="submission-edit-form-table"
+                pagination-enabled
+                pagination-size="5"
+                .options=${this.getFormTableOptions()}></dbp-tabulator-table>
         `;
     }
 
@@ -572,38 +722,14 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         <p class="empty-state">${i18n.t('submission-edit.no-items')}</p>
                     `
                   : html`
-                        <div class="item-list">
-                            ${this.items.map(
-                                (item) => html`
-                                    <article class="item-row">
-                                        <div>
-                                            <strong>${this.getItemTitle(item)}</strong>
-                                            <span>${item.dateCreated || ''}</span>
-                                        </div>
-                                        <div class="item-actions">
-                                            <dbp-button
-                                                type="is-secondary"
-                                                no-spinner-on-click
-                                                @click=${() => this.editItem(item)}>
-                                                <dbp-icon
-                                                    name="pencil"
-                                                    aria-hidden="true"></dbp-icon>
-                                                ${i18n.t('submission-edit.edit-item')}
-                                            </dbp-button>
-                                            <dbp-button
-                                                type="is-danger"
-                                                no-spinner-on-click
-                                                @click=${() => this.deleteItem(item)}>
-                                                <dbp-icon
-                                                    name="trash"
-                                                    aria-hidden="true"></dbp-icon>
-                                                ${i18n.t('submission-edit.delete-item')}
-                                            </dbp-button>
-                                        </div>
-                                    </article>
-                                `,
-                            )}
-                        </div>
+                        <dbp-tabulator-table
+                            lang="${this.lang}"
+                            class="tabulator-table"
+                            id="submission-edit-item-table"
+                            identifier="submission-edit-item-table"
+                            pagination-enabled
+                            pagination-size="5"
+                            .options=${this.getItemTableOptions()}></dbp-tabulator-table>
                     `}
         `;
     }
@@ -737,6 +863,20 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+
+        if (
+            changedProperties.has('itemFormEntries') ||
+            changedProperties.has('items') ||
+            changedProperties.has('lang') ||
+            changedProperties.has('mode')
+        ) {
+            this.syncTabulatorTable('#submission-edit-form-table', this.getFormTableOptions());
+            this.syncTabulatorTable('#submission-edit-item-table', this.getItemTableOptions());
+        }
+    }
+
     static get styles() {
         return css`
             ${commonStyles.getThemeCSS()}
@@ -767,36 +907,15 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 margin: 0;
             }
 
-            .edit-header span,
-            .form-row span,
-            .item-row span {
+            .edit-header span {
                 color: var(--dbp-muted);
                 display: block;
                 font-size: 0.875rem;
                 margin-top: 0.25rem;
             }
 
-            .form-list,
-            .item-list {
-                display: grid;
-                gap: 0.75rem;
-            }
-
-            .form-row,
-            .item-row {
-                align-items: center;
-                border: var(--dbp-border);
-                display: flex;
-                gap: 1rem;
-                justify-content: space-between;
-                padding: 1rem;
-            }
-
-            .item-actions {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5rem;
-                justify-content: end;
+            .tabulator-table {
+                width: 100%;
             }
 
             .empty-state {
@@ -806,15 +925,9 @@ class SubmissionEdit extends ScopedElementsMixin(DBPFormalizeLitElement) {
             @media (max-width: 640px) {
                 .active-form-header,
                 .edit-header,
-                .button-row,
-                .form-row,
-                .item-row {
+                .button-row {
                     align-items: stretch;
                     flex-direction: column;
-                }
-
-                .item-actions {
-                    justify-content: start;
                 }
             }
         `;
