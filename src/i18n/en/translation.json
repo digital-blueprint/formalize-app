@@ -247,7 +247,7 @@
                 "form-validity-invalid-text": "Invalid",
                 "form-validity-invalid-tooltip": "The form contains validation errors. Please fix them before submitting the form.",
                 "form-validity-valid-text": "Valid",
-                "form-validity-valid-tooltip": "The form is validated, you can submit it now.",
+                "form-validity-valid-tooltip": "The form has been validated successfully and is ready to be submitted.",
                 "last-modified-by-name-label": "Last modified by",
                 "last-modified-date-label": "Last modified",
                 "save-button-text": "Save",
