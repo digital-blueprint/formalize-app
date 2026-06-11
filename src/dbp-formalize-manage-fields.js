@@ -7,6 +7,7 @@ import {
     Icon,
     IconButton,
     MiniSpinner,
+    DBPSelect,
     sendNotification,
 } from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
@@ -84,6 +85,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.loading = true;
         this.loadingItems = false;
         this.saving = false;
+        this.deletingItems = false;
+        this.selectedItemCount = 0;
         this.errorMessage = '';
         this.itemFrontendKeys = '';
         this._hasLoadedForms = false;
@@ -101,6 +104,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-button': Button,
             'dbp-icon': Icon,
             'dbp-icon-button': IconButton,
+            'dbp-select': DBPSelect,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-formalize-get-details-button': GetDetailsButton,
             'dbp-tabulator-table': CustomTabulatorTable,
@@ -121,6 +125,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             loading: {type: Boolean, attribute: false},
             loadingItems: {type: Boolean, attribute: false},
             saving: {type: Boolean, attribute: false},
+            deletingItems: {type: Boolean, attribute: false},
+            selectedItemCount: {type: Number, attribute: false},
             errorMessage: {type: String, attribute: false},
             itemFrontendKeys: {type: String, attribute: 'item-frontend-keys'},
         };
@@ -390,6 +396,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.activeModule = null;
             this.selectedItem = null;
             this.items = [];
+            this.selectedItemCount = 0;
             this.mode = 'forms';
             return;
         }
@@ -403,6 +410,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.activeModule = null;
             this.selectedItem = null;
             this.items = [];
+            this.selectedItemCount = 0;
             this.mode = 'unknown-form';
             return;
         }
@@ -412,6 +420,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.activeModule = entry.module;
 
         if (activeFormChanged || this.items.length === 0) {
+            this.selectedItemCount = 0;
             await this.loadSubmissions();
         }
 
@@ -534,6 +543,20 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async deleteItem(item) {
+        await this.deleteItems([item]);
+    }
+
+    async deleteItems(items) {
+        if (!items || items.length === 0) {
+            sendNotification({
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('errors.no-submission-selected'),
+                type: 'warning',
+                timeout: 10,
+            });
+            return;
+        }
+
         const confirmed = await this.renderRoot
             .querySelector('dbp-formalize-deletion-confirmation-modal')
             ?.confirm();
@@ -541,29 +564,56 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return;
         }
 
-        const response = await fetch(
-            this.entryPointUrl + '/formalize/submissions/' + item.identifier,
-            {
-                method: 'DELETE',
-                headers: {
-                    Authorization: 'Bearer ' + this.auth.token,
-                },
-            },
-        );
+        this.deletingItems = true;
+        let deletedCount = 0;
+        try {
+            for (const item of items) {
+                const response = await fetch(
+                    this.entryPointUrl + '/formalize/submissions/' + item.identifier,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            Authorization: 'Bearer ' + this.auth.token,
+                        },
+                    },
+                );
 
-        if (!response.ok) {
-            this.handleErrorResponse(response);
+                if (!response.ok) {
+                    this.handleErrorResponse(response);
+                    continue;
+                }
+
+                deletedCount++;
+            }
+        } finally {
+            this.deletingItems = false;
+        }
+
+        if (deletedCount === 0) {
             return;
         }
 
         sendNotification({
             summary: this._i18n.t('success.success-title'),
-            body: this._i18n.t('manage-fields.item-deleted'),
+            body: this._i18n.t('manage-fields.items-deleted', {count: deletedCount}),
             type: 'success',
             timeout: 5,
         });
         await this.loadSubmissions();
+        this.selectedItemCount = 0;
         this.setRoute(`/${this.activeForm.identifier}`);
+    }
+
+    async deleteSelectedItems() {
+        const selectedData =
+            this.renderRoot
+                ?.querySelector('#manage-fields-item-table')
+                ?.tabulatorTable?.getSelectedData() || [];
+        await this.deleteItems(selectedData.map((row) => row.item).filter(Boolean));
+    }
+
+    async deleteAllItems() {
+        await this.deleteItems([...this.items]);
     }
 
     getItemTitle(item) {
@@ -712,6 +762,18 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 resizable: false,
             },
             placeholder: i18n.t('manage-fields.no-items'),
+            selectableRows: true,
+            rowHeader: {
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                titleFormatterParams: {rowRange: 'visible'},
+                headerSort: false,
+                resizable: false,
+                frozen: true,
+                width: 40,
+                headerHozAlign: 'center',
+                hozAlign: 'center',
+            },
             columns: [
                 {field: 'title', sorter: 'string', minWidth: 220},
                 {field: 'dateCreated', sorter: 'string', minWidth: 180},
@@ -724,6 +786,50 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 },
             ],
         };
+    }
+
+    getItemActionOptions() {
+        const i18n = this._i18n;
+
+        if (this.selectedItemCount > 0) {
+            return [
+                {
+                    value: 'delete-selected',
+                    label: i18n.t('manage-fields.delete-selected-items', {
+                        n: this.selectedItemCount,
+                    }),
+                    iconName: 'delete-selection',
+                },
+            ];
+        }
+
+        return [
+            {
+                value: 'delete-all',
+                label: i18n.t('manage-fields.delete-all-items', {n: this.items.length}),
+                iconName: 'trash',
+            },
+        ];
+    }
+
+    handleItemAction(event) {
+        const option = event.detail?.option;
+        if (!option) {
+            return;
+        }
+
+        if (option.value === 'delete-selected') {
+            this.deleteSelectedItems();
+            return;
+        }
+
+        if (option.value === 'delete-all') {
+            this.deleteAllItems();
+        }
+    }
+
+    handleItemSelectionCountChanged(event) {
+        this.selectedItemCount = event.detail?.count ?? 0;
     }
 
     async syncTabulatorTable(selector, options) {
@@ -820,6 +926,15 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         <p class="empty-state">${i18n.t('manage-fields.no-items')}</p>
                     `
                   : html`
+                        <div class="items-action-header">
+                            <dbp-select
+                                ?disabled=${this.deletingItems}
+                                @change=${(event) => this.handleItemAction(event)}
+                                label="${i18n.t('manage-fields.actions-button-text')}"
+                                align="left"
+                                allow-expand
+                                .options=${this.getItemActionOptions()}></dbp-select>
+                        </div>
                         <dbp-tabulator-table
                             lang="${this.lang}"
                             class="tabulator-table"
@@ -827,6 +942,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             identifier="manage-fields-item-table"
                             pagination-enabled
                             pagination-size="5"
+                            select-rows-enabled
+                            @dbp-tabulator-table-selection-count-changed=${(event) =>
+                                this.handleItemSelectionCountChanged(event)}
                             .options=${this.getItemTableOptions()}></dbp-tabulator-table>
                     `}
         `;
@@ -1046,6 +1164,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .tabulator-table {
                 width: 100%;
+            }
+
+            .items-action-header {
+                display: flex;
+                justify-content: flex-start;
             }
 
             .empty-state {
