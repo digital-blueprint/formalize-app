@@ -1665,7 +1665,7 @@ class FormalizeFormElement extends BaseFormElement {
                                         subscribe="lang"
                                         name="otherMediumOwnersNameCustom"
                                         label="${i18n.t(
-                                            'render-form.forms.media-transparency-form.field-other-medium-owners-name-custom-label',
+                                            'render-form.forms.media-transparency-form.field-media-owners-name-label',
                                         )}"
                                         required
                                         maxlength="1000"
