@@ -1312,6 +1312,13 @@ class FormalizeFormElement extends BaseFormElement {
             // Category with subcategories (online, outOfHome): wait for subcategory selection
             data.mediaName = NOTHING_SELECTED;
             this.conditionalFields.advertisementSubcategory = false;
+
+            // After the parent and child have both finished rendering,
+            // explicitly clear the `checked` property on every radio button so the
+            // group shows no preselected value.
+            this.updateComplete.then(async () => {
+                await this.uncheckRadioButtons();
+            });
         } else {
             // Category without subcategories (print, television, radio)
             // Check whether there are any known media names under _items
@@ -1363,6 +1370,20 @@ class FormalizeFormElement extends BaseFormElement {
             ? this.formData.advertisementSubcategory
             : '_items';
         return categoryData[subcategoryKey]?.[mediaName] ?? null;
+    }
+
+    async uncheckRadioButtons() {
+        const subcategoryEl = this._('[name="advertisementSubcategory"]');
+        if (subcategoryEl) {
+            // Wait for the child component to finish its own render cycle
+            await subcategoryEl.updateComplete;
+            const radios = subcategoryEl.shadowRoot?.querySelectorAll('input[type="radio"]');
+            if (radios) {
+                radios.forEach((radio) => {
+                    radio.checked = false;
+                });
+            }
+        }
     }
 
     render() {
