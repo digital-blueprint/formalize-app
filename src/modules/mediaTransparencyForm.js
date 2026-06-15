@@ -47,6 +47,7 @@ const SUBCATEGORY_TRANSLATION_KEYS = {
     Plakat: 'render-form.forms.media-transparency-form.sub-categories-billboard',
     Verkehrsmittel: 'render-form.forms.media-transparency-form.sub-categories-transportation',
     'Digitaler Screen': 'render-form.forms.media-transparency-form.sub-categories-digital-screen',
+    Bande: 'render-form.forms.media-transparency-form.sub-categories-banner',
     // outdoorAdvertising:
     //     'render-form.forms.media-transparency-form.sub-categories-outdoor-advertising',
     Kino: 'render-form.forms.media-transparency-form.sub-categories-cinema',
@@ -77,6 +78,7 @@ const _i18nExtractKeys = (t) => {
     t('render-form.forms.media-transparency-form.sub-categories-video');
     t('render-form.forms.media-transparency-form.sub-categories-else');
     t('render-form.forms.media-transparency-form.sub-categories-billboard');
+    t('render-form.forms.media-transparency-form.sub-categories-banner');
     t('render-form.forms.media-transparency-form.sub-categories-transportation');
     t('render-form.forms.media-transparency-form.sub-categories-digital-screen');
     t('render-form.forms.media-transparency-form.sub-categories-outdoor-advertising');
@@ -184,6 +186,7 @@ export const MEDIA_NAME_OWNER_MAPPING = {
         },
         'Digitaler Screen': {},
         outdoorAdvertising: {},
+        Bande: {},
         Kino: {},
         Sonstiges: {
             'Gazzetta GmbH': 'Gazzetta GmbH',
