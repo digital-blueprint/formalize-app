@@ -2,7 +2,7 @@ import {BaseFormElement, BaseObject} from '../form/base-object.js';
 import {html, css} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
-import {sendNotification} from '@dbp-toolkit/common';
+import {sendNotification, Translated} from '@dbp-toolkit/common';
 import {DbpStringElement, DbpStringView} from '@dbp-toolkit/form-elements';
 import {CourseSelect} from './course-select.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
@@ -182,6 +182,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-course-select-element': DbpCourseSelectElement,
             'dbp-course-select': CourseSelect,
             'dbp-deletion-confirmation-modal': DeletionConfirmationModal,
+            'dbp-translated': Translated,
         };
     }
 
@@ -488,6 +489,16 @@ class FormalizeFormElement extends BaseFormElement {
                 fieldset {
                     margin-bottom: 20px;
                 }
+
+                .description a {
+                    text-decoration: underline;
+                    text-underline-offset: 2px;
+                    transition: text-underline-offset 0.1s ease-in;
+                }
+
+                .description a:hover {
+                    text-underline-offset: 1px;
+                }
             `,
         ];
     }
@@ -547,11 +558,53 @@ class FormalizeFormElement extends BaseFormElement {
                 <h2 class="form-title">
                     ${i18n.t('render-form.forms.accessible-courses-form.title')}
                 </h2>
-                <p class="description">
-                    ${i18n.t('render-form.forms.accessible-courses-form.mandatory-fields')}
-                    <br />
-                    ${i18n.t('render-form.forms.accessible-courses-form.course-information')}
-                </p>
+                <div class="description">
+                    <dbp-translated subscribe="lang">
+                        <div slot="de">
+                            <p class="field-note">
+                                Bitte beachten Sie, dass die Bearbeitung von Anfragen zur
+                                barrierefreien Lehrveranstaltungsteilnahme mehrere Werktage in
+                                Anspruch nehmen kann. Kurzfristige Anfragen und Anfragen, die sich
+                                auf rückwirkende Anpassungen beziehen, können nicht berücksichtigt
+                                werden. In diesen Fällen wenden Sie sich bitte direkt an
+                                <a href="mailto:barrierefrei-studieren@tugraz.at">
+                                    barrierefrei-studieren@tugraz.at
+                                </a>
+                                . Anpassungen, die ausschließlich Prüfungen betreffen, bitte
+                                rechtzeitig über das entsprechende Formular angeben:
+                                <a
+                                    href="https://formulare.tugraz.at/de/render-form/accessible-exams"
+                                    target="_blank">
+                                    Barrierefreie Lehrveranstaltungen
+                                </a>
+                                . Handelt es sich um eine Lehrveranstaltung, für die Anpassungen
+                                über die Prüfung hinaus erforderlich sind, bitte hier im Formular
+                                alle notwendigen Anpassungen angeben.
+                            </p>
+                        </div>
+                        <div slot="en">
+                            <p class="field-note">
+                                Please note that processing requests for accessible participation in
+                                courses may take several business days. Last-minute requests and
+                                requests for retroactive adjustments cannot be considered. In such
+                                cases, please contact
+                                <a href="mailto:barrierefrei-studieren@tugraz.at">
+                                    barrierefrei-studieren@tugraz.at
+                                </a>
+                                directly. Please submit requests for adjustments that pertain
+                                exclusively to exams in a timely manner using the appropriate form:
+                                <a
+                                    href="https://formulare.tugraz.at/de/render-form/accessible-exams"
+                                    target="_blank">
+                                    accessible exams
+                                </a>
+                                . If the course requires adjustments beyond the exam, please list
+                                all necessary adjustments here in the form.
+                            </p>
+                        </div>
+                    </dbp-translated>
+                    <p>${i18n.t('render-form.forms.accessible-courses-form.mandatory-fields')}</p>
+                </div>
 
                 <fieldset>
                     <legend>
@@ -594,14 +647,39 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="adaptations"
-                        description=${i18n.t(
-                            'render-form.forms.accessible-courses-form.description',
-                        )}
                         aria-describedby="adapt-descr"
                         label=${i18n.t('render-form.forms.accessible-courses-form.adaptations')}
                         .value=${data.adaptations || ''}
                         required
-                        rows="5"></dbp-form-string-element>
+                        rows="5">
+                        <div slot="description">
+                            <dbp-translated subscribe="lang">
+                                <div slot="de">
+                                    <p>
+                                        Gutes Beispiel: Anstelle von Tafelübungen vor den
+                                        Kommiliton*innen bitte ich um eine Übung im Einzelsetting.
+                                        <br />
+                                        Schlechtes Beispiel 1: Bitte keine Tafelübungen.
+                                        <br />
+                                        Schlechtes Beispiel 2: Bitte alle ausgemachten Adaptierungen
+                                        für diese LV anfragen.
+                                    </p>
+                                </div>
+                                <div slot="en">
+                                    <p>
+                                        Good example: Instead of board exercises in front of my
+                                        classmates, I’d prefer to do an exercise in a one-on-one
+                                        setting.
+                                        <br />
+                                        Bad example 1: Please, no board exercises.
+                                        <br />
+                                        Bad example 2: Please ask about all the adjustments for this
+                                        course.
+                                    </p>
+                                </div>
+                            </dbp-translated>
+                        </div>
+                    </dbp-form-string-element>
                 </fieldset>
 
                 <fieldset>
