@@ -1126,7 +1126,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 gap: 1rem;
             }
 
-            .active-form-header,
             .edit-header {
                 align-items: center;
                 display: flex;
@@ -1135,9 +1134,12 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             .active-form-header {
-                align-items: flex-start;
-                flex-direction: column;
-                justify-content: flex-start;
+                display: block;
+            }
+
+            .active-form-header .button {
+                display: inline-flex;
+                width: auto;
             }
 
             .active-form-top-bar {
@@ -1226,7 +1228,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             @media (max-width: 640px) {
-                .active-form-header,
                 .edit-header {
                     align-items: stretch;
                     flex-direction: column;
@@ -1234,6 +1235,20 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 .edit-actions {
                     flex-direction: column;
+                }
+            }
+
+            @media only screen and (orientation: portrait) and (max-width: 768px) {
+                .back-navigation {
+                    padding-top: 0;
+                }
+
+                .active-form-top-bar {
+                    padding-top: 0;
+                }
+
+                .active-form-header .form-name {
+                    margin-bottom: 0.5em;
                 }
             }
         `;
