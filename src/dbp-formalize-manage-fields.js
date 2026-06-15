@@ -902,19 +902,24 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const i18n = this._i18n;
 
         return html`
-            <div class="active-form-header">
-                <dbp-button
-                    type="is-secondary"
-                    no-spinner-on-click
-                    @click=${() => this.setRoute('/')}>
-                    <dbp-icon name="arrow-left" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('manage-fields.back-to-forms')}
-                </dbp-button>
-                <h2>${getLocalizedFormName(this.activeForm, this.lang)}</h2>
-                <dbp-button type="is-primary" no-spinner-on-click @click=${() => this.createItem()}>
-                    <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('manage-fields.create-item')}
-                </dbp-button>
+            <div class="active-form-wrapper">
+                <div class="active-form-top-bar">
+                    <span class="back-navigation">
+                        <a
+                            @click=${() => this.setRoute('/')}
+                            title="${i18n.t('manage-fields.back-to-forms')}">
+                            <dbp-icon name="chevron-left"></dbp-icon>
+                            ${i18n.t('manage-fields.back-to-forms')}
+                        </a>
+                    </span>
+                </div>
+                <div class="active-form-header">
+                    <h2 class="form-name">${getLocalizedFormName(this.activeForm, this.lang)}</h2>
+                    <button class="button is-primary" @click=${() => this.createItem()}>
+                        <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-fields.create-item')}
+                    </button>
+                </div>
             </div>
 
             ${this.loadingItems
@@ -1055,7 +1060,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 message-key="manage-fields.delete-confirmation-message"
                 message-li2-key="manage-fields.delete-confirmation-message-li2"></dbp-formalize-deletion-confirmation-modal>
             <section class="manage-fields">
-                <h1>${i18n.t('manage-fields.title')}</h1>
+                ${this.mode === 'list' || this.mode === 'unknown-item'
+                    ? ''
+                    : html`
+                          <h1>${i18n.t('manage-fields.title')}</h1>
+                      `}
                 ${this.renderContent()}
             </section>
         `;
@@ -1125,6 +1134,42 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 justify-content: space-between;
             }
 
+            .active-form-header {
+                align-items: flex-start;
+                flex-direction: column;
+                justify-content: flex-start;
+            }
+
+            .active-form-top-bar {
+                align-items: center;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1rem;
+                justify-content: space-between;
+                padding-top: 1rem;
+            }
+
+            .back-navigation dbp-icon {
+                font-size: 0.8em;
+                padding-bottom: 2px;
+                padding-right: 7px;
+            }
+
+            .back-navigation:hover {
+                background-color: var(--dbp-hover-background-color);
+                color: var(--dbp-hover-color, var(--dbp-content));
+            }
+
+            .back-navigation:hover::before {
+                background-color: var(--dbp-hover-color, var(--dbp-content));
+            }
+
+            .back-navigation a {
+                color: inherit;
+                cursor: pointer;
+                text-decoration: none;
+            }
+
             .edit-header {
                 background: var(--dbp-background);
                 border: 1px solid var(--dbp-content);
@@ -1146,6 +1191,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .active-form-header h2,
             .edit-header h2 {
                 margin: 0;
+            }
+
+            .active-form-header .form-name {
+                margin-top: 0.5em;
+                margin-bottom: 1em;
             }
 
             .edit-header span {
