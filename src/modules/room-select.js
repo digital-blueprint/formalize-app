@@ -157,6 +157,8 @@ export class RoomSelect extends ScopedElementsMixin(AdapterLitElement) {
                         members.forEach((room) => {
                             results.push({
                                 id: room['@id'],
+                                // https://github.com/select2/select2/issues/6423#issuecomment-4691206011
+                                _resultId: `result-${room['@id']}`,
                                 text: that.formatRoom(that, room),
                             });
                         });
