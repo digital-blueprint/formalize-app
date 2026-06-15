@@ -1183,6 +1183,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             .edit-header.is-pinned {
+                border-top: none;
                 box-shadow: 0px 4px 8px 2px rgba(0, 0, 0, 0.2);
             }
 
