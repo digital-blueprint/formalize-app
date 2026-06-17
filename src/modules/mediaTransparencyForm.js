@@ -24,6 +24,7 @@ import {
     handleDeletionCancel,
     SUBMISSION_STATES,
     SUBMISSION_STATES_BINARY,
+    getFormManageFormsUrl,
 } from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
@@ -2010,6 +2011,7 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderResult(submitted) {
         const i18n = this._i18n;
+        const currentUrl = window.location.href.split('?')[0]; // Remove query parameters
 
         if (submitted) {
             return html`
@@ -2024,6 +2026,23 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.media-transparency-form.submission-result-notification',
                         )}
                     </p>
+                    <div class="after-submission-button-container">
+                        <a href="${currentUrl}" class="button button--new-submission">
+                            <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                            ${i18n.t(
+                                'render-form.forms.media-transparency-form.create-new-submission-button-label',
+                            )}
+                        </a>
+
+                        <a
+                            href="${getFormManageFormsUrl(this.formIdentifier, this.lang)}"
+                            class="button button---back-to-submissions-list">
+                            <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                            ${i18n.t(
+                                'render-form.forms.media-transparency-form.back-to-submissions-list-button-label',
+                            )}
+                        </a>
+                    </div>
                 </div>
             `;
         }
