@@ -10,7 +10,6 @@ import {
 } from '@dbp-toolkit/form-elements';
 import {sendNotification} from '@dbp-toolkit/common';
 import {DbpPersonSelectElement} from '../form/elements/personselect.js';
-import {PersonSelect} from '@dbp-toolkit/person-select';
 import {CourseSelect} from './course-select.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 import {DbpRoomSelectElement} from '../form/elements/roomselect.js';
@@ -151,7 +150,6 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-room-select-element': DbpRoomSelectElement,
             'dbp-course-select': CourseSelect,
             'dbp-person-select-element': DbpPersonSelectElement,
-            'dbp-person-select': PersonSelect,
         };
     }
 

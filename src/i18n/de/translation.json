@@ -489,6 +489,9 @@
                 "validation-amount-in-euro-label": "Der Betrag darf maximal 2 Nachkommastellen enthalten und kein Eurozeichen."
             }
         },
+        "person-select": {
+            "placeholder": "Bitte wählen Sie eine Person aus"
+        },
         "required-files-asterisk": "* ",
         "required-files-text": "kennzeichnet ein Pflichtfeld",
         "room-select": {

@@ -1,8 +1,75 @@
-import {css, html} from 'lit';
+import {html} from 'lit';
 import * as commonUtils from '@dbp-toolkit/common/utils.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base-element.js';
-import {PersonSelect} from '@dbp-toolkit/person-select';
+import {ResourceSelect} from '@dbp-toolkit/resource-select';
+import {createInstance} from '../../i18n.js';
+
+export class PersonSelect extends ResourceSelect {
+    constructor() {
+        super();
+        this._personI18n = createInstance();
+        this.resourcePath = '/base/people';
+        this.fetchMode = 'search';
+        this.placeholder = this._getPersonPlaceholder();
+    }
+
+    update(changedProperties) {
+        if (changedProperties.has('lang')) {
+            this._personI18n.changeLanguage(this.lang);
+            this.placeholder = this._getPersonPlaceholder();
+        }
+
+        super.update(changedProperties);
+    }
+
+    _getPersonPlaceholder() {
+        return this._personI18n.t('render-form.person-select.placeholder');
+    }
+
+    getCollectionQueryParameters(select) {
+        return {
+            sort: 'familyName',
+            preparedFilter: 'staffAccountsOnly',
+            includeLocal: 'email',
+        };
+    }
+
+    getSearchQueryParameters(select, searchTerm) {
+        return {
+            search: searchTerm.trim(),
+        };
+    }
+
+    getItemQueryParameters(select) {
+        return {
+            includeLocal: 'email',
+        };
+    }
+
+    formatResource(select, person) {
+        let text = person.givenName ?? '';
+        if (person.familyName) {
+            text += ` ${person.familyName}`;
+        }
+
+        const localDataText = this.formatLocalData(person);
+        if (localDataText) {
+            text += ` ${localDataText}`;
+        }
+
+        return text;
+    }
+
+    formatLocalData(person) {
+        const attributes = person.localData ?? {};
+        if (Object.values(attributes).length === 0) {
+            return '';
+        }
+
+        return `(${Object.values(attributes).join(', ')})`;
+    }
+}
 
 export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) {
     constructor() {
@@ -17,30 +84,14 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
     static get scopedElements() {
         return {
-            'dbp-person-select': PersonSelect,
+            'dbp-person-resource-select': PersonSelect,
         };
     }
 
-    firstUpdated() {
-        super.firstUpdated();
-
-        console.log(this.name);
-        let dbpPersonSelect = this.querySelector('#' + this.name + '-picker');
-        if (dbpPersonSelect) {
-            dbpPersonSelect.getFilterQueryParameters = this.getFilterQueryParameters;
-        }
-    }
-
-    getFilterQueryParameters(select, searchTerm) {
-        let queryParameters = PersonSelect.getFilterQueryParametersDefault(select, searchTerm);
-        queryParameters['preparedFilter'] = 'staffAccountsOnly';
-
-        return queryParameters;
-    }
-
     handleInputValue(e) {
-        let dataObjectText = e.target.getAttribute('data-object');
-        let personDataObject = dataObjectText ? JSON.parse(dataObjectText) : null;
+        e.stopPropagation();
+
+        const personDataObject = e.detail.object;
         // Specify the value to be included in the form submission
         if (personDataObject != null) {
             let name = `${personDataObject.givenName} ${personDataObject.familyName}`;
@@ -57,6 +108,7 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                     value: personDataObject,
                 },
                 bubbles: true,
+                composed: true,
             }),
         );
     }
@@ -64,27 +116,13 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
     renderInput() {
         return html`
             <div class="control">
-                <dbp-person-select
+                <dbp-person-resource-select
                     id="${this.name}-picker"
                     name="${this.name}Picker"
                     subscribe="lang, auth, entry-point-url"
-                    local-data-attributes='["email"]'
-                    @change="${this.handleInputValue}"></dbp-person-select>
+                    @change="${this.handleInputValue}"></dbp-person-resource-select>
             </div>
         `;
-    }
-
-    static get styles() {
-        return [
-            ...super.styles,
-            // language=css
-            css`
-                /* For some reasons the selector chevron was very large */
-                select:not(.select) {
-                    background-size: 1em;
-                }
-            `,
-        ];
     }
 }
 

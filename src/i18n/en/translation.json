@@ -489,6 +489,9 @@
                 "validation-amount-in-euro-label": "The amount may contain a maximum of two decimal places and no euro sign."
             }
         },
+        "person-select": {
+            "placeholder": "Please select a person"
+        },
         "required-files-asterisk": "* ",
         "required-files-text": "indicates a required field",
         "room-select": {
