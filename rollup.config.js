@@ -5,13 +5,7 @@ import serve from 'rollup-plugin-serve';
 import license from 'rollup-plugin-license';
 import emitEJS from 'rollup-plugin-emit-ejs';
 import {getBabelOutputPlugin} from '@rollup/plugin-babel';
-import {
-    getPackagePath,
-    getBuildInfo,
-    generateTLSConfig,
-    getDistPath,
-    assetPlugin,
-} from '@dbp-toolkit/dev-utils';
+import {getPackagePath, getBuildInfo, getDistPath, assetPlugin} from '@dbp-toolkit/dev-utils';
 import {createRequire} from 'module';
 
 const require = createRequire(import.meta.url);
@@ -24,7 +18,6 @@ let doMinify = buildFull;
 let useBabel = buildFull;
 let checkLicenses = buildFull;
 let treeshake = buildFull;
-let useHTTPS = true;
 
 // if true, app assets and configs are whitelabel
 let whitelabel;
@@ -370,7 +363,6 @@ export default (async () => {
                       host: '127.0.0.1',
                       port: 8001,
                       historyApiFallback: config.basePath + appName + '.html',
-                      https: useHTTPS ? await generateTLSConfig() : false,
                       headers: {
                           'Content-Security-Policy': config.CSP,
                       },
