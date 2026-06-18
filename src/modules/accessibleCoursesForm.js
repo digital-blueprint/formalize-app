@@ -4,7 +4,6 @@ import {classMap} from 'lit/directives/class-map.js';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import {sendNotification, Translated} from '@dbp-toolkit/common';
 import {DbpStringElement, DbpStringView} from '@dbp-toolkit/form-elements';
-import {CourseSelect} from './course-select.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 import {DeletionConfirmationModal} from '../deletion-confirmation-modal.js';
 import {getFormRenderUrl, SUBMISSION_STATES} from '../utils.js';
@@ -180,7 +179,6 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-string-view': DbpStringView,
             'dbp-course-select-element': DbpCourseSelectElement,
-            'dbp-course-select': CourseSelect,
             'dbp-deletion-confirmation-modal': DeletionConfirmationModal,
             'dbp-translated': Translated,
         };

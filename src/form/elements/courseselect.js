@@ -1,8 +1,107 @@
-import {css, html} from 'lit';
+import {html} from 'lit';
 import * as commonUtils from '@dbp-toolkit/common/utils.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base-element.js';
-import {CourseSelect} from '../../modules/course-select.js';
+import {ResourceSelect} from '@dbp-toolkit/resource-select';
+import {createInstance} from '../../i18n.js';
+
+export class CourseSelect extends ResourceSelect {
+    constructor() {
+        super();
+        this._courseI18n = createInstance();
+        this.resourcePath = '/base/courses';
+        this.fetchMode = 'search';
+        this.placeholder = this._getCoursePlaceholder();
+    }
+
+    update(changedProperties) {
+        if (changedProperties.has('lang')) {
+            this._courseI18n.changeLanguage(this.lang);
+            this.placeholder = this._getCoursePlaceholder();
+        }
+
+        super.update(changedProperties);
+    }
+
+    _getCoursePlaceholder() {
+        return this._courseI18n.t('render-form.course-select.placeholder');
+    }
+
+    getCollectionQueryParameters(select) {
+        return [
+            ['includeLocal', 'semesterKey,typeKey,lecturers'],
+            ['filter[localData.semesterKey][operator]', 'IN'],
+            ...CourseSelect.getSemesterKeys().map((semesterKey) => [
+                'filter[localData.semesterKey][value][]',
+                semesterKey,
+            ]),
+        ];
+    }
+
+    getSearchQueryParameters(select, searchTerm) {
+        return {
+            // Course codes do not contain dots, but CAMPUSonline displays them with dots.
+            search: searchTerm.replaceAll('.', '').trim(),
+        };
+    }
+
+    getItemQueryParameters(select) {
+        return {
+            includeLocal: 'semesterKey,typeKey,lecturers',
+        };
+    }
+
+    static getSemesterKeys() {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        if (currentMonth >= 10 || currentMonth <= 2) {
+            const winterStartYear =
+                currentMonth >= 10 && currentMonth <= 12 ? currentYear : currentYear - 1;
+            const summerYear = winterStartYear + 1;
+
+            return [`"${winterStartYear}S"`, `"${winterStartYear}W"`, `"${summerYear}S"`];
+        }
+
+        const yearBefore = currentYear - 1;
+        return [`"${yearBefore}W"`, `"${currentYear}S"`, `"${currentYear}W"`];
+    }
+
+    formatResource(select, course) {
+        return this.formatCourse(course);
+    }
+
+    formatCourse(course) {
+        const courseCode = course.code ?? '';
+        const courseName = course.name ?? '';
+        const courseType = course.localData?.typeKey ?? '';
+        let courseTerm = course.localData?.semesterKey ?? '';
+
+        const courseTermParts = this.parseSemesterKey(courseTerm);
+        if (courseTermParts) {
+            courseTerm =
+                courseTermParts.term === 'W'
+                    ? this._courseI18n.t('render-form.course-select.winter-term', {
+                          year: courseTermParts.year,
+                          nextYear: courseTermParts.year + 1,
+                      })
+                    : this._courseI18n.t('render-form.course-select.summer-term', {
+                          year: courseTermParts.year,
+                      });
+        }
+
+        return `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+    }
+
+    parseSemesterKey(semesterKey) {
+        if (typeof semesterKey !== 'string') return null;
+        const match = semesterKey.match(/^(\d{4})([WS])$/i);
+        if (!match) return null;
+
+        return {year: Number(match[1]), term: match[2].toUpperCase()};
+    }
+}
 
 export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) {
     constructor() {
@@ -44,7 +143,9 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
     }
 
     async handleInputValue(e) {
-        let courseDataObject = JSON.parse(e.target.getAttribute('data-object'));
+        e.stopPropagation();
+
+        let courseDataObject = e.detail.object;
         const originalCourseObject = courseDataObject;
 
         // Specify the value to be included in the form submission
@@ -65,7 +166,10 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
             let courseCode = courseDataObject['code'];
             let courseName = courseDataObject['name'];
             this.value = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+        } else {
+            this.value = '';
         }
+
         this.dispatchEvent(
             new CustomEvent('dbp-course-changed', {
                 detail: {course: originalCourseObject},
@@ -73,81 +177,6 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                 composed: true,
             }),
         );
-    }
-
-    /**
-     * Presets the CourseSelect element with the given course name.
-     * It extracts the course ID from the name, fetches the course data,
-     * and sets the CourseSelect's value and display text accordingly.
-     *
-     * @param {string} courseName - The course name in the format "12345: Course Name (Type, Term)". The number before the colon is used as the course ID.
-     */
-    async presetCourse(courseName) {
-        if (!courseName) return;
-
-        const courseId = courseName.replace(/^(.+?): .*/, '$1');
-        const courseFilter = {
-            'filter[foo][condition][path]': 'code',
-            'filter[foo][condition][operator]': 'EQUALS',
-            'filter[foo][condition][value]': `"${courseId}"`,
-        };
-
-        const courseFilterUrl = new URLSearchParams(courseFilter).toString();
-
-        // Fetch the course object
-        const resp = await fetch(
-            this.entryPointUrl +
-                `/base/courses?includeLocal=typeKey%2CsemesterKey&${courseFilterUrl}`,
-            {headers: {Authorization: 'Bearer ' + this.auth.token}},
-        );
-        if (!resp.ok) return;
-
-        const courseResponse = await resp.json();
-        let course = courseResponse['hydra:member'][0];
-        if (!course) return;
-
-        // If the language isn't German, fetch German data for consistent naming
-        // (same as handleInputValue does)
-        if (this.lang !== 'de') {
-            const germanData = await this.fetchGermanCourseData(course['@id']);
-            if (germanData != null) {
-                // Preserve localData from original since fetchGermanCourseData doesn't include it
-                course = {...germanData, localData: course.localData};
-            }
-        }
-
-        // Get the inner CourseSelect element and its Select2 instance
-        const picker = this.shadowRoot.querySelector('#' + this.name + '-picker');
-        const $select = picker?.$('#' + picker.selectId);
-        if (!$select) return;
-
-        // Format the display text (reuse CourseSelect's formatter)
-        const text = picker.formatCourse(picker, course);
-
-        // Inject the option and select it
-        const option = new Option(text, courseId, true, true);
-        $select.append(option).trigger('change');
-
-        // Also set the data-object so handleInputValue can read it later
-        picker.object = course;
-        // Prevent CourseSelect.update() from calling initSelect2(), which would destroy
-        // the option we just injected above.
-        picker.ignoreValueUpdate = true;
-        picker.value = courseId;
-    }
-
-    updated(changedProperties) {
-        super.updated(changedProperties);
-
-        if (
-            (changedProperties.has('value') || changedProperties.has('auth')) &&
-            this.value &&
-            this.auth?.token
-        ) {
-            this.updateComplete.then(() => {
-                this.presetCourse(this.value);
-            });
-        }
     }
 
     renderInput() {
@@ -160,19 +189,6 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
                     @change="${(e) => this.handleInputValue(e)}"></dbp-course-select>
             </div>
         `;
-    }
-
-    static get styles() {
-        return [
-            ...super.styles,
-            // language=css
-            css`
-                /* For some reasons the selector chevron was very large */
-                select:not(.select) {
-                    background-size: 1em;
-                }
-            `,
-        ];
     }
 }
 
