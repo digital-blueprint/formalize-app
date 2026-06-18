@@ -118,7 +118,7 @@ function getOrigin(url) {
 config.CSP = `default-src 'self' 'unsafe-inline' \
     ${getOrigin(config.matomoUrl)} ${getOrigin(config.keyCloakBaseURL)} ${getOrigin(
         config.entryPointURL,
-    )};\
+    )} ${getOrigin(config.nextcloudBaseURL)};\
     img-src * blob: data:`;
 
 let input = [
