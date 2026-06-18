@@ -161,7 +161,6 @@
     "render-form": {
         "check-previous-submissions-warning": "You can check your previous submissions here.",
         "course-select": {
-            "login-required": "Login required",
             "placeholder": "Please select a course",
             "summer-term": "Summer Term {{year}}",
             "winter-term": "Winter Term {{year}}/{{nextYear}}"

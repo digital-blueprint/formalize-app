@@ -161,7 +161,6 @@
     "render-form": {
         "check-previous-submissions-warning": "Hier können Sie Ihre früheren Einreichungen überprüfen.",
         "course-select": {
-            "login-required": "Anmeldung erforderlich",
             "placeholder": "Bitte wählen Sie einen Kurs aus",
             "summer-term": "Sommersemester {{year}}",
             "winter-term": "Wintersemester {{year}}/{{nextYear}}"
