@@ -492,7 +492,6 @@
         "required-files-asterisk": "* ",
         "required-files-text": "kennzeichnet ein Pflichtfeld",
         "room-select": {
-            "login-required": "Anmeldung erforderlich",
             "placeholder": "Bitte wählen Sie einen Raum aus"
         }
     },

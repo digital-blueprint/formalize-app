@@ -2,7 +2,41 @@ import {css, html} from 'lit';
 import * as commonUtils from '@dbp-toolkit/common/utils.js';
 import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base-element.js';
-import {RoomSelect} from '../../modules/room-select.js';
+import {ResourceSelect} from '@dbp-toolkit/resource-select';
+import {createInstance} from '../../i18n.js';
+
+export class RoomSelect extends ResourceSelect {
+    constructor() {
+        super();
+        this._roomI18n = createInstance();
+        this.resourcePath = '/base/rooms';
+        this.fetchMode = 'search';
+        this.placeholder = this._getRoomPlaceholder();
+    }
+
+    update(changedProperties) {
+        if (changedProperties.has('lang')) {
+            this._roomI18n.changeLanguage(this.lang);
+            this.placeholder = this._getRoomPlaceholder();
+        }
+
+        super.update(changedProperties);
+    }
+
+    _getRoomPlaceholder() {
+        return this._roomI18n.t('render-form.room-select.placeholder');
+    }
+
+    getSearchQueryParameters(select, searchTerm) {
+        return {
+            search: searchTerm.trim(),
+        };
+    }
+
+    formatResource(select, room) {
+        return room.code ?? '';
+    }
+}
 
 export class DbpRoomSelectElement extends ScopedElementsMixin(DbpBaseElement) {
     constructor() {
@@ -22,10 +56,13 @@ export class DbpRoomSelectElement extends ScopedElementsMixin(DbpBaseElement) {
     }
 
     handleInputValue(e) {
-        let roomDataObject = JSON.parse(e.target.getAttribute('data-object'));
+        const roomDataObject = e.detail.object;
+
         // Specify the value to be included in the form submission
         if (roomDataObject != null) {
             this.value = roomDataObject.code;
+        } else {
+            this.value = '';
         }
     }
 
