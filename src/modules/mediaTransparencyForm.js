@@ -2011,8 +2011,6 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderResult(submitted) {
         const i18n = this._i18n;
-        const currentFormUrl = new URL(window.location.href);
-        const cleanFormUrl = currentFormUrl.origin + currentFormUrl.pathname;
 
         if (submitted) {
             return html`
@@ -2031,7 +2029,9 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="after-submission-button-container">
                         ${this.userCanSubmitForm()
                             ? html`
-                                  <a href="${cleanFormUrl}" class="button button--new-submission">
+                                  <a
+                                      href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
+                                      class="button button--new-submission">
                                       <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
                                       ${i18n.t('success.create-new-submission-button-label')}
                                   </a>
