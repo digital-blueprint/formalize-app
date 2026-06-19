@@ -153,6 +153,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
 
         // Keep properties in sync
         this._formComponentInstance.lang = this.lang;
+        this._formComponentInstance.langDir = this.langDir;
         this._formComponentInstance.auth = this.auth;
         this._formComponentInstance.entryPointUrl = this.entryPointUrl;
         // Pass the existing form data when in edit mode so the component can pre-populate fields
