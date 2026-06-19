@@ -59,7 +59,7 @@
         "delete-item": "Löschen",
         "delete-selected-items": "Ausgewählte löschen ({{n}})",
         "edit-item": "Bearbeiten",
-        "edit-item-title": "{{name}} bearbeiten",
+        "edit-item-title-with-name": "{{name}} bearbeiten: {{itemName}}",
         "form": "Formular",
         "item": "Eintrag",
         "item-created": "Eintrag erfolgreich erstellt",

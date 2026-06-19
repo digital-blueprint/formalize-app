@@ -13,7 +13,7 @@ import {
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
-import {SUBMISSION_STATES_BINARY} from './utils.js';
+import {formatDate, SUBMISSION_STATES_BINARY} from './utils.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
 import {CustomTabulatorTable, GetDetailsButton, ColumnSettingsButton} from './table-components.js';
 import {ColumnSettingsModal} from './column-settings-modal.js';
@@ -69,6 +69,14 @@ function getLocalizedFormName(form, lang) {
     return localizedName?.name || form?.name || form?.identifier || '';
 }
 
+function getSentenceCaseItemName(name, lang) {
+    if (lang !== 'en' || !name) {
+        return name;
+    }
+
+    return name.charAt(0).toLowerCase() + name.slice(1);
+}
+
 const itemFormsCache = new Map();
 const itemFormsInflight = new Map();
 
@@ -88,6 +96,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.saving = false;
         this.deletingItems = false;
         this.selectedItemCount = 0;
+        this.lastModifiedByName = '';
         this.errorMessage = '';
         this.itemColumns = [];
         this.itemColumnsInitial = [];
@@ -103,6 +112,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this._editHeaderObserved = false;
         this._editHeaderObserver = null;
         this._itemColumnSettingsButton = null;
+        this._userNameCache = new Map();
+        this._failedUserNameLookups = new Set();
     }
 
     static get scopedElements() {
@@ -135,6 +146,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             saving: {type: Boolean, attribute: false},
             deletingItems: {type: Boolean, attribute: false},
             selectedItemCount: {type: Number, attribute: false},
+            lastModifiedByName: {type: String, attribute: false},
             errorMessage: {type: String, attribute: false},
             itemColumns: {type: Array, attribute: false},
             itemFrontendKeys: {type: String, attribute: 'item-frontend-keys'},
@@ -631,6 +643,93 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.activeModule?.getItemText?.(data, this.lang) ||
             this._i18n.t('manage-fields.unnamed-item')
         );
+    }
+
+    getLastModifiedByIdentifier(item) {
+        const lastModifiedBy = item?.lastModifiedBy || item?.lastModifiedByPerson || null;
+        const identifier =
+            item?.lastModifiedById || lastModifiedBy?.identifier || lastModifiedBy?.['@id'] || '';
+
+        return `${identifier}`.trim();
+    }
+
+    async loadLastModifiedByName(item = this.selectedItem) {
+        const identifier = this.getLastModifiedByIdentifier(item);
+        this.lastModifiedByName = '';
+
+        if (!identifier || !this.auth?.token || this._failedUserNameLookups.has(identifier)) {
+            return;
+        }
+
+        if (this._userNameCache.has(identifier)) {
+            this.lastModifiedByName = this._userNameCache.get(identifier);
+            return;
+        }
+
+        try {
+            const response = await this.apiGetUserDetails(identifier);
+            if (!response.ok) {
+                this._failedUserNameLookups.add(identifier);
+                return;
+            }
+
+            const user = await response.json();
+            const fullName =
+                [user?.givenName, user?.familyName].filter(Boolean).join(' ') || user?.name || '';
+            this._userNameCache.set(identifier, fullName);
+
+            if (this.getLastModifiedByIdentifier(this.selectedItem) === identifier) {
+                this.lastModifiedByName = fullName;
+            }
+        } catch (error) {
+            console.error('Failed to load last modifier details:', error);
+        }
+    }
+
+    getLastModifiedByName(item) {
+        const lastModifiedBy = item?.lastModifiedBy || item?.lastModifiedByPerson || null;
+
+        return (
+            item?.lastModifiedByName ||
+            lastModifiedBy?.name ||
+            [lastModifiedBy?.givenName, lastModifiedBy?.familyName].filter(Boolean).join(' ') ||
+            this.lastModifiedByName
+        );
+    }
+
+    renderEditMetadata() {
+        const i18n = this._i18n;
+        const item = this.selectedItem || {};
+        const emptyValue = html`
+            &mdash;
+        `;
+        const metadata = [
+            {
+                label: i18n.t('render-form.forms.base-object.submission-creation-date-label'),
+                value: formatDate(item.dateCreated),
+            },
+            {
+                label: i18n.t('render-form.forms.base-object.last-modified-date-label'),
+                value: formatDate(item.dateLastModified),
+            },
+            {
+                label: i18n.t('render-form.forms.base-object.last-modified-by-name-label'),
+                value: this.getLastModifiedByName(item),
+            },
+        ];
+
+        return html`
+            <div class="edit-metadata">
+                ${metadata.map(
+                    (entry) => html`
+                        <div>
+                            <span class="label">${entry.label}:</span>
+                            <span class="value">${entry.value || emptyValue}</span>
+                        </div>
+                    `,
+                )}
+            </div>
+        `;
     }
 
     getFormTableData() {
@@ -1132,31 +1231,36 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.activeModule?.getFormName?.(this.lang) ||
             getLocalizedFormName(this.activeForm, this.lang) ||
             i18n.t('manage-fields.item');
+        const titleName = getSentenceCaseItemName(formName, this.lang);
+        const itemName = this.selectedItem ? this.getItemTitle(this.selectedItem) : '';
         const titleKey = this.selectedItem
-            ? 'manage-fields.edit-item-title'
+            ? 'manage-fields.edit-item-title-with-name'
             : 'manage-fields.create-item-title';
 
         return html`
             <div class="edit-header-sentinel" aria-hidden="true"></div>
             <div class="edit-header">
-                <h2>${i18n.t(titleKey, {name: formName})}</h2>
-            </div>
-            <div class="edit-actions">
-                <dbp-button
-                    type="is-secondary"
-                    no-spinner-on-click
-                    @click=${() => this.cancelEdit()}>
-                    <dbp-icon name="close" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('manage-fields.cancel')}
-                </dbp-button>
-                <dbp-button
-                    type="is-primary"
-                    ?disabled=${this.saving}
-                    no-spinner-on-click
-                    @click=${() => this.saveItem()}>
-                    <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                    ${i18n.t('manage-fields.save-item')}
-                </dbp-button>
+                <div>
+                    <h2>${i18n.t(titleKey, {name: titleName, itemName})}</h2>
+                    ${this.renderEditMetadata()}
+                </div>
+                <div class="edit-actions">
+                    <dbp-button
+                        type="is-secondary"
+                        no-spinner-on-click
+                        @click=${() => this.cancelEdit()}>
+                        <dbp-icon name="close" aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-fields.cancel')}
+                    </dbp-button>
+                    <dbp-button
+                        type="is-primary"
+                        ?disabled=${this.saving}
+                        no-spinner-on-click
+                        @click=${() => this.saveItem()}>
+                        <dbp-icon name="save" aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-fields.save-item')}
+                    </dbp-button>
+                </div>
             </div>
             ${this.getFormHtml()}
         `;
@@ -1301,6 +1405,10 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.syncTabulatorTable('#manage-fields-item-table', this.getItemTableOptions());
         }
 
+        if (changedProperties.has('selectedItem') || changedProperties.has('auth')) {
+            this.loadLastModifiedByName();
+        }
+
         if (changedProperties.has('mode')) {
             this.disconnectEditHeaderObserver();
         }
@@ -1324,7 +1432,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             .edit-header {
-                align-items: center;
+                align-items: flex-end;
                 display: flex;
                 gap: 0.75rem;
                 justify-content: space-between;
@@ -1396,6 +1504,22 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .active-form-header .form-name {
                 margin-top: 0.5em;
                 margin-bottom: 1em;
+            }
+
+            .edit-metadata {
+                display: grid;
+                gap: 0.25rem;
+                margin-top: 0.75rem;
+            }
+
+            .edit-metadata > div {
+                align-items: baseline;
+                display: flex;
+                gap: 0.25rem;
+            }
+
+            .edit-metadata .label {
+                font-weight: bold;
             }
 
             .edit-actions {

@@ -59,7 +59,7 @@
         "delete-item": "Delete",
         "delete-selected-items": "Delete selected ({{n}})",
         "edit-item": "Edit",
-        "edit-item-title": "Edit {{name}}",
+        "edit-item-title-with-name": "Edit {{name}}: {{itemName}}",
         "form": "Form",
         "item": "Item",
         "item-created": "Item created successfully",
