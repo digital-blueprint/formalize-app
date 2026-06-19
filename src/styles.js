@@ -1984,5 +1984,10 @@ export function getMediaTransparencyFormCSS() {
             gap: 1em;
             margin-block: 2em 0;
         }
+
+        .after-submission-button-container.after-saving {
+            justify-content: flex-end;
+            animation: fadeIn 0.25s ease-in-out forwards;
+        }
     `;
 }

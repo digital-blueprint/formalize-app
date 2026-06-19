@@ -244,6 +244,8 @@ class FormalizeFormElement extends BaseFormElement {
             outOfHomeOtherMediunOwner: false,
         };
 
+        this.submissionIsSaved = false;
+
         // Event handlers
         this.handleFormSubmission = this.handleFormSubmission.bind(this);
         this.handleSaveDraft = this.handleSaveDraft.bind(this);
@@ -256,6 +258,7 @@ class FormalizeFormElement extends BaseFormElement {
 
             selectedCategory: {type: String, attribute: false},
             otherMediumNameEnabled: {type: Boolean, attribute: false},
+            submissionIsSaved: {type: Boolean, attribute: false},
         };
     }
 
@@ -718,6 +721,7 @@ class FormalizeFormElement extends BaseFormElement {
             const response = await fetch(url, options);
             if (!response.ok) {
                 await this.displayErrors(response);
+                this.submissionIsSaved = false;
             } else {
                 const responseBody = await response.json();
                 // Process all submitted files by group
@@ -736,6 +740,8 @@ class FormalizeFormElement extends BaseFormElement {
                     groupData.filesToSubmit = new Map();
                     groupData.filesToRemove = new Map();
                 }
+
+                this.submissionIsSaved = true;
 
                 // formDataUpdated event to notify parent component
                 this.dispatchEvent(
@@ -760,6 +766,8 @@ class FormalizeFormElement extends BaseFormElement {
             for (const [fileGroup, backup] of Object.entries(filesByGroupBackup)) {
                 this.filesByGroup[fileGroup] = backup;
             }
+
+            this.submissionIsSaved = false;
 
             this.requestUpdate();
 
@@ -1423,6 +1431,44 @@ class FormalizeFormElement extends BaseFormElement {
                 })}">
                 <div class="form-header">${this.getButtonRowHtml()}</div>
 
+                ${this.submissionIsSaved &&
+                (this.userCanSubmitForm() || this.userCanViewSubmissions())
+                    ? html`
+                          <div class="after-submission-button-container after-saving">
+                              ${this.userCanSubmitForm()
+                                  ? html`
+                                        <a
+                                            href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
+                                            class="button button--new-submission"
+                                            @click="${() => {
+                                                this.disableLeavePageWarning();
+                                            }}">
+                                            <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                            ${i18n.t('success.create-new-submission-button-label')}
+                                        </a>
+                                    `
+                                  : ''}
+                              ${this.userCanViewSubmissions()
+                                  ? html`
+                                        <a
+                                            href="${getFormManageFormsUrl(
+                                                this.formIdentifier,
+                                                this.lang,
+                                            )}"
+                                            class="button button--back-to-submissions-list"
+                                            @click="${() => {
+                                                this.disableLeavePageWarning();
+                                            }}">
+                                            <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                                            ${i18n.t(
+                                                'success.back-to-submissions-list-button-label',
+                                            )}
+                                        </a>
+                                    `
+                                  : ''}
+                          </div>
+                      `
+                    : ''}
                 <h2 class="form-title">
                     ${i18n.t('render-form.forms.media-transparency-form.title')}
                 </h2>
