@@ -179,6 +179,65 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         );
     }
 
+    /**
+     * Extracts the course code from a formatted course name string.
+     * @param {string} courseName - e.g. "661071: Course Name (Type, Term)"
+     * @returns {string|null} The course code, or null if not found.
+     */
+    _extractCourseCode(courseName) {
+        if (!courseName) return null;
+        const match = courseName.match(/^([^:]+):/);
+        return match ? match[1].trim() : null;
+    }
+
+    /**
+     * Presets the inner CourseSelect with the course from a loaded submission.
+     * Extracts the course code from the formatted value string, looks up the
+     * course by code to get its `@id`, then sets the ResourceSelect value so it
+     * can fetch and display the course.
+     *
+     * @param {string} courseName - The formatted course name string.
+     */
+    async _presetCourse(courseName) {
+        const courseCode = this._extractCourseCode(courseName);
+        if (!courseCode) return;
+
+        const picker = this.shadowRoot?.querySelector('#' + this.name + '-picker');
+        if (!picker) return;
+
+        // Look up the course by code to get its @id (code !== identifier)
+        const params = new URLSearchParams({
+            'filter[foo][condition][path]': 'code',
+            'filter[foo][condition][operator]': 'EQUALS',
+            'filter[foo][condition][value]': `"${courseCode}"`,
+        });
+
+        const resp = await fetch(`${this.entryPointUrl}/base/courses?${params.toString()}`, {
+            headers: {
+                Authorization: 'Bearer ' + this.auth.token,
+            },
+        });
+        if (!resp.ok) return;
+
+        const data = await resp.json();
+        const course = data['hydra:member']?.[0];
+        if (!course?.['@id']) return;
+
+        picker.value = course['@id'];
+    }
+
+    updated(changedProperties) {
+        super.updated(changedProperties);
+
+        if (
+            (changedProperties.has('value') || changedProperties.has('auth')) &&
+            this.value &&
+            this.auth?.token
+        ) {
+            this._presetCourse(this.value);
+        }
+    }
+
     renderInput() {
         return html`
             <div class="control">
