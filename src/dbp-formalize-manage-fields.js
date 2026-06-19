@@ -1128,35 +1128,35 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     renderEdit() {
         const i18n = this._i18n;
+        const formName =
+            this.activeModule?.getFormName?.(this.lang) ||
+            getLocalizedFormName(this.activeForm, this.lang) ||
+            i18n.t('manage-fields.item');
+        const titleKey = this.selectedItem
+            ? 'manage-fields.edit-item-title'
+            : 'manage-fields.create-item-title';
 
         return html`
             <div class="edit-header-sentinel" aria-hidden="true"></div>
             <div class="edit-header">
-                <div>
-                    <h2>
-                        ${this.selectedItem
-                            ? i18n.t('manage-fields.edit-item')
-                            : i18n.t('manage-fields.create-item')}
-                    </h2>
-                    <span>${getLocalizedFormName(this.activeForm, this.lang)}</span>
-                </div>
-                <div class="edit-actions">
-                    <dbp-button
-                        type="is-secondary"
-                        no-spinner-on-click
-                        @click=${() => this.cancelEdit()}>
-                        <dbp-icon name="close" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('manage-fields.cancel')}
-                    </dbp-button>
-                    <dbp-button
-                        type="is-primary"
-                        ?disabled=${this.saving}
-                        no-spinner-on-click
-                        @click=${() => this.saveItem()}>
-                        <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('manage-fields.save-item')}
-                    </dbp-button>
-                </div>
+                <h2>${i18n.t(titleKey, {name: formName})}</h2>
+            </div>
+            <div class="edit-actions">
+                <dbp-button
+                    type="is-secondary"
+                    no-spinner-on-click
+                    @click=${() => this.cancelEdit()}>
+                    <dbp-icon name="close" aria-hidden="true"></dbp-icon>
+                    ${i18n.t('manage-fields.cancel')}
+                </dbp-button>
+                <dbp-button
+                    type="is-primary"
+                    ?disabled=${this.saving}
+                    no-spinner-on-click
+                    @click=${() => this.saveItem()}>
+                    <dbp-icon name="save" aria-hidden="true"></dbp-icon>
+                    ${i18n.t('manage-fields.save-item')}
+                </dbp-button>
             </div>
             ${this.getFormHtml()}
         `;
@@ -1396,13 +1396,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .active-form-header .form-name {
                 margin-top: 0.5em;
                 margin-bottom: 1em;
-            }
-
-            .edit-header span {
-                color: var(--dbp-muted);
-                display: block;
-                font-size: 0.875rem;
-                margin-top: 0.25rem;
             }
 
             .edit-actions {
