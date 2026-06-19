@@ -445,13 +445,11 @@
             },
             "media-transparency-form": {
                 "attachments-title": "Sujet hochladen",
-                "back-to-submissions-list-button-label": "Früheren Einreichungen",
                 "categories-online": "Online",
                 "categories-out-of-home": "Out of home",
                 "categories-print": "Print",
                 "categories-radio": "Hörfunk",
                 "categories-television": "Fernsehen",
-                "create-new-submission-button-label": "Neue Einreichung erstellen",
                 "field-advertisement-subcategory-label": "Art der Werbeleistung-Subkategorie",
                 "field-amount-in-euro-label": "Betrag in Euro",
                 "field-campaign-title-label": "Kampagnentitel",
@@ -498,6 +496,8 @@
         }
     },
     "success": {
+        "back-to-submissions-list-button-label": "Früheren Einreichungen",
+        "create-new-submission-button-label": "Neue Einreichung erstellen",
         "form-saved-successfully": "Formularübermittlung erfolgreich gespeichert",
         "form-submission-deleted-successfully": "Formularübermittlung erfolgreich gelöscht",
         "form-submitted-successfully": "Das Formular wurde erfolgreich übermittelt",

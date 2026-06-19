@@ -445,13 +445,11 @@
             },
             "media-transparency-form": {
                 "attachments-title": "Upload sujet",
-                "back-to-submissions-list-button-label": "Previous submissions",
                 "categories-online": "Online",
                 "categories-out-of-home": "Out of home",
                 "categories-print": "Print",
                 "categories-radio": "Radio",
                 "categories-television": "Television",
-                "create-new-submission-button-label": "Create new submission",
                 "field-advertisement-subcategory-label": "Advertisement subcategory",
                 "field-amount-in-euro-label": "Amount in euro",
                 "field-campaign-title-label": "Campaign title",
@@ -498,6 +496,8 @@
         }
     },
     "success": {
+        "back-to-submissions-list-button-label": "Previous submissions",
+        "create-new-submission-button-label": "Create new submission",
         "form-saved-successfully": "Form submission saved successfully",
         "form-submission-deleted-successfully": "form submission deleted successfully",
         "form-submitted-successfully": "The form has been submitted successfully",

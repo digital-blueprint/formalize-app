@@ -6,7 +6,7 @@ import {sendNotification, Translated} from '@dbp-toolkit/common';
 import {DbpStringElement, DbpStringView} from '@dbp-toolkit/form-elements';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 import {DeletionConfirmationModal} from '../deletion-confirmation-modal.js';
-import {getFormRenderUrl, SUBMISSION_STATES} from '../utils.js';
+import {getFormRenderUrl, SUBMISSION_STATES, getFormManageFormsUrl} from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
 export default class extends BaseObject {
@@ -858,6 +858,8 @@ class FormalizeFormElement extends BaseFormElement {
 
     renderResult(submitted) {
         const i18n = this._i18n;
+        const currentFormUrl = new URL(window.location.href);
+        const cleanFormUrl = currentFormUrl.origin + currentFormUrl.pathname;
 
         if (submitted) {
             return html`
@@ -872,6 +874,30 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.accessible-courses-form.submission-result-notification',
                         )}
                     </p>
+
+                    <div class="after-submission-button-container">
+                        ${this.userCanSubmitForm()
+                            ? html`
+                                  <a href="${cleanFormUrl}" class="button button--new-submission">
+                                      <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                      ${i18n.t('success.create-new-submission-button-label')}
+                                  </a>
+                              `
+                            : ''}
+                        ${this.userCanViewSubmissions()
+                            ? html`
+                                  <a
+                                      href="${getFormManageFormsUrl(
+                                          this.formIdentifier,
+                                          this.lang,
+                                      )}"
+                                      class="button button--back-to-submissions-list">
+                                      <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                                      ${i18n.t('success.back-to-submissions-list-button-label')}
+                                  </a>
+                              `
+                            : ''}
+                    </div>
                 </div>
             `;
         }

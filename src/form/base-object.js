@@ -480,6 +480,17 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 ${getFormHeaderCSS()}
                 ${getTagsCSS()}
                 ${getFileUploadWidgetCSS()}
+
+                .after-submission-button-container {
+                    display: flex;
+                    justify-content: flex-start;
+                    gap: 1em;
+                    margin-top: 2em;
+                }
+
+                .after-submission-button-container .button dbp-icon {
+                    padding-right: 0.5em;
+                }
             }
         `;
     }
@@ -1717,6 +1728,52 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 this._formHeaderObserver = observer;
             }
         }
+    }
+
+    /**
+     * Checks if the user can submit the form.
+     * Verifies the user hasn't exceeded the max submissions limit and has
+     * the required collection-level permissions (create_submissions or manage).
+     * @returns {boolean}
+     */
+    userCanSubmitForm() {
+        const numSubmissions = this.formProperties?.numSubmissionsByCurrentUser ?? 0;
+        const maxSubmissions = this.formProperties?.maxNumSubmissionsPerCreator;
+
+        if (maxSubmissions != null && numSubmissions >= maxSubmissions) {
+            return false;
+        }
+
+        return (
+            this.formGrantedSubmissionCollectionActions?.includes(
+                SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
+            ) ||
+            this.formGrantedSubmissionCollectionActions?.includes(
+                SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
+            ) ||
+            false
+        );
+    }
+
+    /**
+     * Checks if the user can view their submissions.
+     * Returns true if the user has collection-level manage permissions,
+     * or if the form allows reading/managing submissions after submission.
+     * @returns {boolean}
+     */
+    userCanViewSubmissions() {
+        return (
+            this.formGrantedSubmissionCollectionActions?.includes(
+                SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
+            ) ||
+            this.formProperties?.allowedActionsWhenSubmitted?.includes(
+                SUBMISSION_PERMISSIONS.READ,
+            ) ||
+            this.formProperties?.allowedActionsWhenSubmitted?.includes(
+                SUBMISSION_PERMISSIONS.MANAGE,
+            ) ||
+            false
+        );
     }
 
     render() {

@@ -2011,7 +2011,8 @@ class FormalizeFormElement extends BaseFormElement {
      */
     renderResult(submitted) {
         const i18n = this._i18n;
-        const currentUrl = window.location.href.split('?')[0]; // Remove query parameters
+        const currentFormUrl = new URL(window.location.href);
+        const cleanFormUrl = currentFormUrl.origin + currentFormUrl.pathname;
 
         if (submitted) {
             return html`
@@ -2026,22 +2027,29 @@ class FormalizeFormElement extends BaseFormElement {
                             'render-form.forms.media-transparency-form.submission-result-notification',
                         )}
                     </p>
-                    <div class="after-submission-button-container">
-                        <a href="${currentUrl}" class="button button--new-submission">
-                            <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                            ${i18n.t(
-                                'render-form.forms.media-transparency-form.create-new-submission-button-label',
-                            )}
-                        </a>
 
-                        <a
-                            href="${getFormManageFormsUrl(this.formIdentifier, this.lang)}"
-                            class="button button---back-to-submissions-list">
-                            <dbp-icon name="list" aria-hidden="true"></dbp-icon>
-                            ${i18n.t(
-                                'render-form.forms.media-transparency-form.back-to-submissions-list-button-label',
-                            )}
-                        </a>
+                    <div class="after-submission-button-container">
+                        ${this.userCanSubmitForm()
+                            ? html`
+                                  <a href="${cleanFormUrl}" class="button button--new-submission">
+                                      <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                      ${i18n.t('success.create-new-submission-button-label')}
+                                  </a>
+                              `
+                            : ''}
+                        ${this.userCanViewSubmissions()
+                            ? html`
+                                  <a
+                                      href="${getFormManageFormsUrl(
+                                          this.formIdentifier,
+                                          this.lang,
+                                      )}"
+                                      class="button button--back-to-submissions-list">
+                                      <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                                      ${i18n.t('success.back-to-submissions-list-button-label')}
+                                  </a>
+                              `
+                            : ''}
                     </div>
                 </div>
             `;

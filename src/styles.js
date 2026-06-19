@@ -1984,16 +1984,5 @@ export function getMediaTransparencyFormCSS() {
             gap: 1em;
             margin-block: 2em 0;
         }
-
-        .after-submission-button-container {
-            display: flex;
-            justify-content: flex-start;
-            gap: 1em;
-            margin-top: 2em;
-        }
-
-        .after-submission-button-container .button dbp-icon {
-            padding-right: 0.5em;
-        }
     `;
 }
