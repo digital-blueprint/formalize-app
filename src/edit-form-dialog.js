@@ -338,16 +338,8 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                     </h3>
                 </div>
 
-                <!-- In-dialog notifications (appear above the modal, anchored to it) -->
+                <!-- Header content stays pinned above the scrollable modal content. -->
                 <div slot="header">
-                    <dbp-notification
-                        id="edit-form-dialog-notification"
-                        inline
-                        lang="${this.lang}"></dbp-notification>
-                </div>
-
-                <!-- Form content -->
-                <div slot="content" class="dialog-content">
                     <!-- Action bar: Cancel (left) + Create/Save (right) -->
                     <div class="dialog-actions-bar">
                         <button
@@ -376,6 +368,22 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                         </button>
                     </div>
 
+                    <p class="required-fields-hint">
+                        <span class="required-marker">
+                            ${t('render-form.required-files-asterisk')}
+                        </span>
+                        ${t('render-form.required-files-text')}
+                    </p>
+
+                    <!-- In-dialog notifications (appear above the modal, anchored to it) -->
+                    <dbp-notification
+                        id="edit-form-dialog-notification"
+                        inline
+                        lang="${this.lang}"></dbp-notification>
+                </div>
+
+                <!-- Form content -->
+                <div slot="content" class="dialog-content">
                     ${generalSectionTitle
                         ? html`
                               <h4 class="form-section-heading">${generalSectionTitle}</h4>
@@ -455,7 +463,11 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 1.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .required-fields-hint {
+                margin: 0 0 0.75rem;
             }
 
             .cancel-btn,
