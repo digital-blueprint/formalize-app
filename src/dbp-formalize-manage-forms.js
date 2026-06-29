@@ -1639,6 +1639,26 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 continue;
             }
 
+            const frontendKey =
+                typeof entry.moduleInstance.getFormFrontendKey === 'function'
+                    ? entry.moduleInstance.getFormFrontendKey()
+                    : null;
+
+            if (
+                this.allowListFrontendKeys.length > 0 &&
+                (frontendKey === null || !this.allowListFrontendKeys.includes(frontendKey))
+            ) {
+                continue;
+            }
+
+            if (
+                this.denyListFrontendKeys.length > 0 &&
+                frontendKey !== null &&
+                this.denyListFrontendKeys.includes(frontendKey)
+            ) {
+                continue;
+            }
+
             const formName =
                 typeof entry.moduleInstance.getFormName === 'function'
                     ? entry.moduleInstance.getFormName(this.lang)
