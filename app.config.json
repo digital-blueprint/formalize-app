@@ -9,6 +9,6 @@
         "matomoSiteId": 0,
         "universityShortName": "Local",
         "universityFullName": "Local Environment",
-        "denyListFrontendKeys": ["job-offer", "bulletin-company"]
+        "denyListFrontendKeys": ["job-offer", "bulletin-company", "student-profile"]
     }
 }
