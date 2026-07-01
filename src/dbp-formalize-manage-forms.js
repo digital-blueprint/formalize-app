@@ -109,6 +109,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         super();
         this.allForms = [];
         this.isLoadingModules = false;
+        // Holds the in-flight loadModules() promise so concurrent callers await
+        // the same load instead of returning early while modules resolve.
+        this.loadModulesPromise = null;
         this.boundKeyEventHandler = this.handleKeyEvents.bind(this);
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);

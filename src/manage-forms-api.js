@@ -57,43 +57,52 @@ function throwSomethingWentWrongNotification(host) {
  * @returns {Promise<void>}
  */
 export async function loadModules(host) {
-    if (host.isLoadingModules) return;
+    // If a load is already in flight, return the same promise so concurrent
+    // callers await the same completion instead of returning early and then
+    // proceeding while modules are still resolving.
+    if (host.loadModulesPromise) return host.loadModulesPromise;
+
     host.isLoadingModules = true;
+    host.loadModulesPromise = (async () => {
+        try {
+            const response = await fetch(host.basePath + 'modules.json');
+            const data = await response.json();
 
-    try {
-        const response = await fetch(host.basePath + 'modules.json');
-        const data = await response.json();
+            for (const path of Object.values(data['forms'])) {
+                // Resolve the module path relative to basePath so that relative paths
+                // in modules.json (e.g. "./jobOfferForm.js") work correctly even when
+                // the bundled API file lives in a sub-directory (e.g. /dist/shared/).
+                const absolutePath = new URL(path, window.location.origin + host.basePath).href;
+                const module = await import(absolutePath);
+                const object = new module.default();
 
-        for (const path of Object.values(data['forms'])) {
-            // Resolve the module path relative to basePath so that relative paths
-            // in modules.json (e.g. "./jobOfferForm.js") work correctly even when
-            // the bundled API file lives in a sub-directory (e.g. /dist/shared/).
-            const absolutePath = new URL(path, window.location.origin + host.basePath).href;
-            const module = await import(absolutePath);
-            const object = new module.default();
-
-            if (object.getFormIdentifier && object.getUrlSlug) {
-                host.forms.set(object.getFormIdentifier(), {
-                    formName: null,
-                    formId: object.getFormIdentifier(),
-                    formSlug: object.getUrlSlug(),
-                    moduleInstance: object,
-                });
-                // Also store in a dedicated map so getCreatableModules() can enumerate
-                // only module definitions and is not confused by backend form instances.
-                host.loadedModules.set(object.getUrlSlug(), {
-                    formId: object.getFormIdentifier(),
-                    formSlug: object.getUrlSlug(),
-                    formName: null,
-                    moduleInstance: object,
-                });
+                if (object.getFormIdentifier && object.getUrlSlug) {
+                    host.forms.set(object.getFormIdentifier(), {
+                        formName: null,
+                        formId: object.getFormIdentifier(),
+                        formSlug: object.getUrlSlug(),
+                        moduleInstance: object,
+                    });
+                    // Also store in a dedicated map so getCreatableModules() can enumerate
+                    // only module definitions and is not confused by backend form instances.
+                    host.loadedModules.set(object.getUrlSlug(), {
+                        formId: object.getFormIdentifier(),
+                        formSlug: object.getUrlSlug(),
+                        formName: null,
+                        moduleInstance: object,
+                    });
+                }
             }
+        } catch (error) {
+            console.error('Error loading modules:', error);
+        } finally {
+            host.isLoadingModules = false;
+            // Clear the in-flight promise so a future call can trigger a fresh load.
+            host.loadModulesPromise = null;
         }
-    } catch (error) {
-        console.error('Error loading modules:', error);
-    } finally {
-        host.isLoadingModules = false;
-    }
+    })();
+
+    return host.loadModulesPromise;
 }
 
 // ---------------------------------------------------------------------------
@@ -112,6 +121,13 @@ export async function loadModules(host) {
  */
 export async function getListOfAllForms(host) {
     const i18n = host._i18n;
+    // Make sure module loading has finished before building the list. Several
+    // reactive triggers (lang, allow/deny lists, routing) can call this while a
+    // loadModules() started by another trigger is still in flight; awaiting it
+    // here guarantees moduleInstance is resolved so the edit button is included.
+    if (host.loadModulesPromise) {
+        await host.loadModulesPromise;
+    }
     try {
         host.loadCourses = false;
 
