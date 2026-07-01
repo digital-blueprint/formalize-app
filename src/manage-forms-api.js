@@ -198,11 +198,13 @@ export async function getListOfAllForms(host) {
                 const localizedNames = entry['localizedNames'] ?? [];
 
                 // Find the module instance whose frontendKey matches this form's frontendKey.
-                // Modules are stored by their getFormIdentifier() key (which defaults to 'uuid'),
-                // so we cannot look them up by formId directly. Instead we search by frontendKey.
+                // Modules are enumerated from host.loadedModules (keyed by unique getUrlSlug()),
+                // because host.forms keys by getFormIdentifier() which defaults to 'uuid' and
+                // collides across modules. A form type is identified by its frontendKey, not by
+                // a single UUID, since each backend form instance has its own generated UUID.
                 let matchedModuleInstance = host.forms.get(formId)?.moduleInstance ?? null;
                 if (!matchedModuleInstance && frontendKey) {
-                    for (const moduleEntry of host.forms.values()) {
+                    for (const moduleEntry of host.loadedModules.values()) {
                         if (
                             moduleEntry.moduleInstance &&
                             typeof moduleEntry.moduleInstance.getFormFrontendKey === 'function' &&
