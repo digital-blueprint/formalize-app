@@ -136,6 +136,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: {},
         };
         this.options_forms = {};
+        // Initialize the forms table options (including `langs`) up front so the
+        // table can be built before the `lang`/`langDir` branch of updated() runs.
+        // Otherwise buildTable() may access options.langs while it is still undefined.
+        this.updateFormsTableOptions();
         this._overridesReady = null;
         this.forms = new Map();
         /** @type {Map<string, {formId: string, formSlug: string, formName: string|null, moduleInstance: object}>} */
