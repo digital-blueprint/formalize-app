@@ -408,41 +408,32 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         if (!event.detail.submissionId) return;
 
-        const formData = event.detail.formData;
+        const data = event.detail.formData;
+        const formData = new FormData();
 
-        formData.lecturers = this.getLecturerList(formData.lecturers);
+        data.lecturers = this.getLecturerList(data.lecturers);
         const payload = {
-            courseName: formData.courseName,
-            lecturers: formData.lecturers,
-            groupAssignment: formData.groupAssignment ?? '',
-            adaptations: formData.adaptations,
-            matriculationNumber: formData.matriculationNumber ?? '',
-            studentGivenName: formData.studentGivenName ?? '',
-            studentFamilyName: formData.studentFamilyName ?? '',
-            studentEmail: formData.studentEmail ?? '',
-            comment: formData.comment ?? '',
+            courseName: data.courseName,
+            lecturers: data.lecturers,
+            groupAssignment: data.groupAssignment ?? '',
+            adaptations: data.adaptations,
+            matriculationNumber: data.matriculationNumber ?? '',
+            studentGivenName: data.studentGivenName ?? '',
+            studentFamilyName: data.studentFamilyName ?? '',
+            studentEmail: data.studentEmail ?? '',
+            comment: data.comment ?? '',
         };
 
-        const body = {
-            form: '/formalize/forms/' + '019ada3e-b7ff-7b35-b1dd-7b578d810955',
-            dataFeedElement: JSON.stringify(payload),
-        };
+        formData.append('dataFeedElement', JSON.stringify(payload));
+
+        const options = this._buildRequestOptions(formData, 'PATCH');
+        const url = this._buildSubmissionUrl(event.detail.submissionId);
 
         try {
-            // const response = await fetch(url, options);
-            const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/ld+json',
-                    Authorization: 'Bearer ' + this.auth.token,
-                },
-                body: JSON.stringify(body),
-            });
+            const response = await fetch(url, options);
             if (!response.ok) {
                 await this.displayErrors(response);
             } else {
-                // const responseBody = await response.json();
-
                 // formDataUpdated event to notify parent component
                 this.dispatchEvent(
                     new CustomEvent('dbpFormDataUpdated', {
