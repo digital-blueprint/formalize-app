@@ -107,6 +107,10 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
     constructor() {
         super();
         this.entryPointUrl = null;
+        // True while the course is being set programmatically (e.g. presetting a
+        // loaded submission). Used to suppress the `dbp-course-changed` event so
+        // it is only dispatched for genuine user selections.
+        this._presettingCourse = false;
     }
 
     static get properties() {
@@ -170,6 +174,13 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
             this.value = '';
         }
 
+        // Suppress the event for programmatic presets (e.g. loading a submission)
+        // so it only fires for genuine user selections.
+        if (this._presettingCourse) {
+            this._presettingCourse = false;
+            return;
+        }
+
         this.dispatchEvent(
             new CustomEvent('dbp-course-changed', {
                 detail: {course: originalCourseObject},
@@ -223,6 +234,13 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         const course = data['hydra:member']?.[0];
         if (!course?.['@id']) return;
 
+        // Skip if the picker already holds this course to avoid redundant
+        // change events on re-renders (e.g. when `auth` gets a new reference).
+        if (picker.value === course['@id']) return;
+
+        // Mark this as a programmatic change so `handleInputValue` does not
+        // dispatch `dbp-course-changed` (which would reset dependent fields).
+        this._presettingCourse = true;
         picker.value = course['@id'];
     }
 
