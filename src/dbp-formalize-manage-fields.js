@@ -1338,7 +1338,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 ${this.mode === 'list' || this.mode === 'unknown-item'
                     ? ''
                     : html`
-                          <h1>${i18n.t('manage-fields.title')}</h1>
+                          <h2>${i18n.t('manage-fields.title')}</h2>
                       `}
                 ${this.renderContent()}
             </section>
@@ -1429,6 +1429,10 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .manage-fields {
                 display: grid;
                 gap: 1rem;
+            }
+
+            .manage-fields h2 {
+                font-weight: bold;
             }
 
             .edit-header {
