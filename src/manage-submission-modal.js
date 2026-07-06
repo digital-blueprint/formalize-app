@@ -278,32 +278,38 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                 <span class="file-info">
                     <strong class="file-name">${file.fileName}</strong>
                     <span class="additional-data">
-                        ${file.mimeType
-                            ? html`
-                                  <span class="file-type">(${file.mimeType})</span>
-                              `
-                            : ''}
-                        ${fileSize
-                            ? html`
-                                  <span class="file-size">${fileSize}</span>
-                              `
-                            : ''}
+                        ${
+                            file.mimeType
+                                ? html`
+                                      <span class="file-type">(${file.mimeType})</span>
+                                  `
+                                : ''
+                        }
+                        ${
+                            fileSize
+                                ? html`
+                                      <span class="file-size">${fileSize}</span>
+                                  `
+                                : ''
+                        }
                     </span>
                 </span>
                 <div class="file-action-buttons">
-                    ${this.isPdfFile(file)
-                        ? html`
-                              <button
-                                  class="view-file-button button is-secondary"
-                                  @click=${(event) => {
-                                      event.preventDefault();
-                                      this.previewPdfFile(file);
-                                  }}>
-                                  <dbp-icon name="eye"></dbp-icon>
-                                  ${this._i18n.t('render-form.download-widget.view-attachment')}
-                              </button>
-                          `
-                        : ''}
+                    ${
+                        this.isPdfFile(file)
+                            ? html`
+                                  <button
+                                      class="view-file-button button is-secondary"
+                                      @click=${(event) => {
+                                          event.preventDefault();
+                                          this.previewPdfFile(file);
+                                      }}>
+                                      <dbp-icon name="eye"></dbp-icon>
+                                      ${this._i18n.t('render-form.download-widget.view-attachment')}
+                                  </button>
+                              `
+                            : ''
+                    }
                     <button
                         class="download-file-button button is-secondary"
                         @click=${(event) => {

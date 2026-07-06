@@ -475,9 +475,11 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     }}">
                     <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
                     <span class="button-text">
-                        ${this.searchWidgetIsOpen[state]
-                            ? i18n.t('manage-forms.close-search-filters')
-                            : i18n.t('manage-forms.open-search-filters')}
+                        ${
+                            this.searchWidgetIsOpen[state]
+                                ? i18n.t('manage-forms.close-search-filters')
+                                : i18n.t('manage-forms.open-search-filters')
+                        }
                     </span>
                 </button>
             </div>
@@ -546,9 +548,11 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 }}">
                 <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
                 <span class="button-text">
-                    ${this.searchWidgetIsOpen[state]
-                        ? i18n.t('manage-forms.close-search-filters')
-                        : i18n.t('manage-forms.open-search-filters')}
+                    ${
+                        this.searchWidgetIsOpen[state]
+                            ? i18n.t('manage-forms.close-search-filters')
+                            : i18n.t('manage-forms.open-search-filters')
+                    }
                 </span>
             </button>
         `;
@@ -565,14 +569,16 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     ${i18n.t('manage-forms.n-items-shown-label', {
                         n: visibleCount,
                     })}
-                    ${selectedCount > 0
-                        ? html`
-                              ,
-                              ${i18n.t('manage-forms.n-items-selected-label', {
-                                  n: selectedCount,
-                              })}
-                          `
-                        : ''}
+                    ${
+                        selectedCount > 0
+                            ? html`
+                                  ,
+                                  ${i18n.t('manage-forms.n-items-selected-label', {
+                                      n: selectedCount,
+                                  })}
+                              `
+                            : ''
+                    }
                 </span>
                 <button
                     class="reset-search"
@@ -629,17 +635,19 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 </div>
                 <div class="table-header submissions">
                     <h2 class="form-name">${this.activeFormName}</h2>
-                    ${this.createSubmissionUrl && !this.hideCreateSubmissionButton
-                        ? html`
-                              <a
-                                  class="button is-primary"
-                                  href="${this.createSubmissionUrl}"
-                                  target="_blank">
-                                  <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                                  ${i18n.t('manage-forms.create-submission-button')}
-                              </a>
-                          `
-                        : ''}
+                    ${
+                        this.createSubmissionUrl && !this.hideCreateSubmissionButton
+                            ? html`
+                                  <a
+                                      class="button is-primary"
+                                      href="${this.createSubmissionUrl}"
+                                      target="_blank">
+                                      <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                      ${i18n.t('manage-forms.create-submission-button')}
+                                  </a>
+                              `
+                            : ''
+                    }
                 </div>
             </div>
 
@@ -661,19 +669,23 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                     'table-action-header': true,
                                     [`table-action-header--${state}`]: true,
                                 })}">
-                                ${this.noSubmissionAvailable[state] === true
+                                ${
+                                    this.noSubmissionAvailable[state] === true
+                                        ? ''
+                                        : html`
+                                              ${this.renderActionsWidget(state)}
+                                              ${this.renderSearchWidget(state)}
+                                              ${this.renderExportWidget(state)}
+                                          `
+                                }
+                            </div>
+                            ${
+                                this.noSubmissionAvailable[state] === true
                                     ? ''
                                     : html`
-                                          ${this.renderActionsWidget(state)}
-                                          ${this.renderSearchWidget(state)}
-                                          ${this.renderExportWidget(state)}
-                                      `}
-                            </div>
-                            ${this.noSubmissionAvailable[state] === true
-                                ? ''
-                                : html`
-                                      ${this.renderStatusBar(state)}
-                                  `}
+                                          ${this.renderStatusBar(state)}
+                                      `
+                            }
 
                             <dbp-tabulator-table
                                 lang="${this.lang}"

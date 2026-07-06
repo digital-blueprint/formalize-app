@@ -1172,37 +1172,39 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 </div>
             </div>
 
-            ${this.loadingItems
-                ? html`
-                      <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
-                  `
-                : this.items.length === 0
-                  ? html`
-                        <p class="empty-state">${i18n.t('manage-fields.no-items')}</p>
-                    `
-                  : html`
-                        <div class="items-action-header">
-                            <dbp-select
-                                ?disabled=${this.deletingItems}
-                                @change=${(event) => this.handleItemAction(event)}
-                                label="${i18n.t('manage-fields.actions-button-text')}"
-                                align="left"
-                                allow-expand
-                                .options=${this.getItemActionOptions()}></dbp-select>
-                        </div>
-                        <dbp-tabulator-table
-                            lang="${this.lang}"
-                            class="tabulator-table"
-                            id="manage-fields-item-table"
-                            identifier="manage-fields-item-table"
-                            pagination-enabled
-                            pagination-size="5"
-                            select-rows-enabled
-                            @dbp-tabulator-table-selection-count-changed=${(event) =>
-                                this.handleItemSelectionCountChanged(event)}
-                            .options=${this.getItemTableOptions()}></dbp-tabulator-table>
-                        ${this.renderColumnSettingsModal()}
-                    `}
+            ${
+                this.loadingItems
+                    ? html`
+                          <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
+                      `
+                    : this.items.length === 0
+                      ? html`
+                            <p class="empty-state">${i18n.t('manage-fields.no-items')}</p>
+                        `
+                      : html`
+                            <div class="items-action-header">
+                                <dbp-select
+                                    ?disabled=${this.deletingItems}
+                                    @change=${(event) => this.handleItemAction(event)}
+                                    label="${i18n.t('manage-fields.actions-button-text')}"
+                                    align="left"
+                                    allow-expand
+                                    .options=${this.getItemActionOptions()}></dbp-select>
+                            </div>
+                            <dbp-tabulator-table
+                                lang="${this.lang}"
+                                class="tabulator-table"
+                                id="manage-fields-item-table"
+                                identifier="manage-fields-item-table"
+                                pagination-enabled
+                                pagination-size="5"
+                                select-rows-enabled
+                                @dbp-tabulator-table-selection-count-changed=${(event) =>
+                                    this.handleItemSelectionCountChanged(event)}
+                                .options=${this.getItemTableOptions()}></dbp-tabulator-table>
+                            ${this.renderColumnSettingsModal()}
+                        `
+            }
         `;
     }
 
@@ -1335,11 +1337,13 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 message-key="manage-fields.delete-confirmation-message"
                 message-li2-key="manage-fields.delete-confirmation-message-li2"></dbp-formalize-deletion-confirmation-modal>
             <section class="manage-fields">
-                ${this.mode === 'list' || this.mode === 'unknown-item'
-                    ? ''
-                    : html`
-                          <h2>${i18n.t('manage-fields.title')}</h2>
-                      `}
+                ${
+                    this.mode === 'list' || this.mode === 'unknown-item'
+                        ? ''
+                        : html`
+                              <h2>${i18n.t('manage-fields.title')}</h2>
+                          `
+                }
                 ${this.renderContent()}
             </section>
         `;
