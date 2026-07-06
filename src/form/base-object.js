@@ -576,133 +576,147 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 </div>
 
                 <div class="action-buttons">
-                    ${this.formActions.length > 0
-                        ? html`
-                              <dbp-select
-                                  id="action-dropdown"
-                                  label="${i18n.t(
-                                      'render-form.forms.base-object.actions-dropdown-label',
-                                  )}"
-                                  .options="${this.formActions}"></dbp-select>
-                          `
-                        : ''}
-                    ${this.isViewModeButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  id="toggle-edit-mode"
-                                  class="toggle-edit-mode"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  title="${i18n.t(
-                                      'render-form.forms.base-object.toggle-edit-submission-button-title',
-                                  )}"
-                                  @click="${() => {
-                                      if (this.readOnly) {
-                                          this.redirectToEditForm(true);
-                                          return;
-                                      }
-
-                                      const confirmed = confirm(
-                                          this._i18n.t('render-form.form-exit-warning-message'),
-                                      );
-                                      if (confirmed) {
-                                          const form = this.shadowRoot.querySelector('form');
-                                          const data = gatherFormDataFromElement(form);
-                                          if (Object.keys(data).length) {
-                                              this.formData = data;
+                    ${
+                        this.formActions.length > 0
+                            ? html`
+                                  <dbp-select
+                                      id="action-dropdown"
+                                      label="${i18n.t(
+                                          'render-form.forms.base-object.actions-dropdown-label',
+                                      )}"
+                                      .options="${this.formActions}"></dbp-select>
+                              `
+                            : ''
+                    }
+                    ${
+                        this.isViewModeButtonAllowed
+                            ? html`
+                                  <dbp-button
+                                      id="toggle-edit-mode"
+                                      class="toggle-edit-mode"
+                                      type="is-secondary"
+                                      no-spinner-on-click
+                                      title="${i18n.t(
+                                          'render-form.forms.base-object.toggle-edit-submission-button-title',
+                                      )}"
+                                      @click="${() => {
+                                          if (this.readOnly) {
+                                              this.redirectToEditForm(true);
+                                              return;
                                           }
 
-                                          this.disableLeavePageWarning();
-                                          this.redirectToReadonlyForm();
-                                          this.readOnly = !this.readOnly;
-                                          return;
-                                      } else {
-                                          // Do nothing if cancel was clicked
-                                          return;
+                                          const confirmed = confirm(
+                                              this._i18n.t('render-form.form-exit-warning-message'),
+                                          );
+                                          if (confirmed) {
+                                              const form = this.shadowRoot.querySelector('form');
+                                              const data = gatherFormDataFromElement(form);
+                                              if (Object.keys(data).length) {
+                                                  this.formData = data;
+                                              }
+
+                                              this.disableLeavePageWarning();
+                                              this.redirectToReadonlyForm();
+                                              this.readOnly = !this.readOnly;
+                                              return;
+                                          } else {
+                                              // Do nothing if cancel was clicked
+                                              return;
+                                          }
+                                      }}">
+                                      ${
+                                          this.readOnly
+                                              ? html`
+                                                    <dbp-icon name="pencil"></dbp-icon>
+                                                    <span class="button-label">
+                                                        ${i18n.t('render-form.forms.base-object.edit-mode')}
+                                                    </span>
+                                                `
+                                              : html`
+                                                    <dbp-icon name="close"></dbp-icon>
+                                                    <span class="button-label">
+                                                        ${i18n.t('render-form.forms.base-object.view-mode')}
+                                                    </span>
+                                                `
                                       }
-                                  }}">
-                                  ${this.readOnly
-                                      ? html`
-                                            <dbp-icon name="pencil"></dbp-icon>
-                                            <span class="button-label">
-                                                ${i18n.t('render-form.forms.base-object.edit-mode')}
-                                            </span>
-                                        `
-                                      : html`
-                                            <dbp-icon name="close"></dbp-icon>
-                                            <span class="button-label">
-                                                ${i18n.t('render-form.forms.base-object.view-mode')}
-                                            </span>
-                                        `}
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isDraftButtonAllowed
-                        ? html`
-                              <dbp-button
-                                  class="form-save-draft-button"
-                                  type="is-secondary"
-                                  no-spinner-on-click
-                                  @click=${this.sendSaveDraft}
-                                  title="${i18n.t(
-                                      'render-form.forms.base-object.save-draft-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.base-object.save-draft-button-text',
-                                  )}">
-                                  <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t(
+                                  </dbp-button>
+                              `
+                            : ''
+                    }
+                    ${
+                        this.isDraftButtonAllowed
+                            ? html`
+                                  <dbp-button
+                                      class="form-save-draft-button"
+                                      type="is-secondary"
+                                      no-spinner-on-click
+                                      @click=${this.sendSaveDraft}
+                                      title="${i18n.t(
                                           'render-form.forms.base-object.save-draft-button-text',
-                                      )}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isSaveButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-save-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${this.sendSaveSubmission}
-                                  title="${i18n.t(
-                                      'render-form.forms.base-object.save-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.base-object.save-button-text',
-                                  )}">
-                                  <dbp-icon name="checkmark-circle" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t('render-form.forms.base-object.save-button-text')}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
-                    ${this.isSubmitButtonEnabled
-                        ? html`
-                              <dbp-button
-                                  class="form-submit-button"
-                                  type="is-primary"
-                                  no-spinner-on-click
-                                  @click=${(event) => {
-                                      this.readOnly
-                                          ? this.toggleSubmissionState(event)
-                                          : this.validateAndSendSubmission(event);
-                                  }}
-                                  title="${i18n.t(
-                                      'render-form.forms.base-object.submit-button-text',
-                                  )}"
-                                  aria-label="${i18n.t(
-                                      'render-form.forms.base-object.submit-button-text',
-                                  )}">
-                                  <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
-                                  <span class="button-label">
-                                      ${i18n.t('render-form.forms.base-object.submit-button-text')}
-                                  </span>
-                              </dbp-button>
-                          `
-                        : ''}
+                                      )}"
+                                      aria-label="${i18n.t(
+                                          'render-form.forms.base-object.save-draft-button-text',
+                                      )}">
+                                      <dbp-icon name="save" aria-hidden="true"></dbp-icon>
+                                      <span class="button-label">
+                                          ${i18n.t(
+                                              'render-form.forms.base-object.save-draft-button-text',
+                                          )}
+                                      </span>
+                                  </dbp-button>
+                              `
+                            : ''
+                    }
+                    ${
+                        this.isSaveButtonEnabled
+                            ? html`
+                                  <dbp-button
+                                      class="form-save-button"
+                                      type="is-primary"
+                                      no-spinner-on-click
+                                      @click=${this.sendSaveSubmission}
+                                      title="${i18n.t(
+                                          'render-form.forms.base-object.save-button-text',
+                                      )}"
+                                      aria-label="${i18n.t(
+                                          'render-form.forms.base-object.save-button-text',
+                                      )}">
+                                      <dbp-icon
+                                          name="checkmark-circle"
+                                          aria-hidden="true"></dbp-icon>
+                                      <span class="button-label">
+                                          ${i18n.t('render-form.forms.base-object.save-button-text')}
+                                      </span>
+                                  </dbp-button>
+                              `
+                            : ''
+                    }
+                    ${
+                        this.isSubmitButtonEnabled
+                            ? html`
+                                  <dbp-button
+                                      class="form-submit-button"
+                                      type="is-primary"
+                                      no-spinner-on-click
+                                      @click=${(event) => {
+                                          this.readOnly
+                                              ? this.toggleSubmissionState(event)
+                                              : this.validateAndSendSubmission(event);
+                                      }}
+                                      title="${i18n.t(
+                                          'render-form.forms.base-object.submit-button-text',
+                                      )}"
+                                      aria-label="${i18n.t(
+                                          'render-form.forms.base-object.submit-button-text',
+                                      )}">
+                                      <dbp-icon name="send-diagonal" aria-hidden="true"></dbp-icon>
+                                      <span class="button-label">
+                                          ${i18n.t('render-form.forms.base-object.submit-button-text')}
+                                      </span>
+                                  </dbp-button>
+                              `
+                            : ''
+                    }
                 </div>
             </div>
         `;
@@ -827,16 +841,20 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         return html`
             <div class="tag-container">
-                ${stateTag
-                    ? html`
-                          <span class="tag tag--state">${tagTranslations[stateTag]}</span>
-                      `
-                    : ''}
-                ${modeTag
-                    ? html`
-                          <span class="tag tag--mode">${modeTag}</span>
-                      `
-                    : ''}
+                ${
+                    stateTag
+                        ? html`
+                              <span class="tag tag--state">${tagTranslations[stateTag]}</span>
+                          `
+                        : ''
+                }
+                ${
+                    modeTag
+                        ? html`
+                              <span class="tag tag--mode">${modeTag}</span>
+                          `
+                        : ''
+                }
             </div>
         `;
     }
@@ -1090,27 +1108,31 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         return html`
             <div class="submission-info">
-                ${deadLine
-                    ? html`
-                          <div class="submission-deadline">
-                              <span class="label">
-                                  ${i18n.t(
-                                      'render-form.forms.base-object.submission-deadline-label',
-                                  )}:
-                              </span>
-                              <span class="value">${deadLine}</span>
-                          </div>
-                      `
-                    : ''}
+                ${
+                    deadLine
+                        ? html`
+                              <div class="submission-deadline">
+                                  <span class="label">
+                                      ${i18n.t(
+                                          'render-form.forms.base-object.submission-deadline-label',
+                                      )}:
+                                  </span>
+                                  <span class="value">${deadLine}</span>
+                              </div>
+                          `
+                        : ''
+                }
                 <div class="submission-date">
                     <span class="label">
                         ${i18n.t('render-form.forms.base-object.submission-creation-date-label')}:
                     </span>
                     <span class="value">
-                        ${dateCreated ||
-                        html`
-                            &mdash;
-                        `}
+                        ${
+                            dateCreated ||
+                            html`
+                                &mdash;
+                            `
+                        }
                     </span>
                 </div>
                 <div class="last-modified">
@@ -1118,10 +1140,12 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                         ${i18n.t('render-form.forms.base-object.last-modified-date-label')}:
                     </span>
                     <span class="value">
-                        ${dateLastModified ||
-                        html`
-                            &mdash;
-                        `}
+                        ${
+                            dateLastModified ||
+                            html`
+                                &mdash;
+                            `
+                        }
                     </span>
                 </div>
                 <div class="last-modified-by">
@@ -1129,10 +1153,12 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                         ${i18n.t('render-form.forms.base-object.last-modified-by-name-label')}:
                     </span>
                     <span class="value">
-                        ${this.lastModifiedCreatorName ||
-                        html`
-                            &mdash;
-                        `}
+                        ${
+                            this.lastModifiedCreatorName ||
+                            html`
+                                &mdash;
+                            `
+                        }
                     </span>
                 </div>
             </div>
@@ -1546,24 +1572,26 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                     </span>
                 </span>
                 <div class="file-action-buttons">
-                    ${canViewPdf
-                        ? html`
-                              <button
-                                  class="view-file-button button is-secondary"
-                                  @click=${(e) => {
-                                      e.preventDefault();
-                                      const pdfModal = this._('#pdf-view-modal');
-                                      const pdfViewer = this._('dbp-pdf-viewer');
-                                      if (pdfModal && pdfViewer) {
-                                          pdfModal.open();
-                                          pdfViewer.showPDF(file);
-                                      }
-                                  }}>
-                                  <dbp-icon name="eye"></dbp-icon>
-                                  ${this._i18n.t('render-form.download-widget.view-attachment')}
-                              </button>
-                          `
-                        : ''}
+                    ${
+                        canViewPdf
+                            ? html`
+                                  <button
+                                      class="view-file-button button is-secondary"
+                                      @click=${(e) => {
+                                          e.preventDefault();
+                                          const pdfModal = this._('#pdf-view-modal');
+                                          const pdfViewer = this._('dbp-pdf-viewer');
+                                          if (pdfModal && pdfViewer) {
+                                              pdfModal.open();
+                                              pdfViewer.showPDF(file);
+                                          }
+                                      }}>
+                                      <dbp-icon name="eye"></dbp-icon>
+                                      ${this._i18n.t('render-form.download-widget.view-attachment')}
+                                  </button>
+                              `
+                            : ''
+                    }
                     <button
                         class="download-file-button button is-secondary"
                         @click=${(e) => {

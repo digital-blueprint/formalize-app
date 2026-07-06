@@ -449,29 +449,33 @@ class FormalizeFormElement extends BaseFormElement {
                     </p>
 
                     <div class="after-submission-button-container">
-                        ${this.userCanSubmitForm()
-                            ? html`
-                                  <a
-                                      href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
-                                      class="button button--new-submission">
-                                      <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                                      ${i18n.t('success.create-new-submission-button-label')}
-                                  </a>
-                              `
-                            : ''}
-                        ${this.userCanViewSubmissions()
-                            ? html`
-                                  <a
-                                      href="${getFormManageFormsUrl(
-                                          this.formIdentifier,
-                                          this.lang,
-                                      )}"
-                                      class="button button--back-to-submissions-list">
-                                      <dbp-icon name="list" aria-hidden="true"></dbp-icon>
-                                      ${i18n.t('success.back-to-submissions-list-button-label')}
-                                  </a>
-                              `
-                            : ''}
+                        ${
+                            this.userCanSubmitForm()
+                                ? html`
+                                      <a
+                                          href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
+                                          class="button button--new-submission">
+                                          <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('success.create-new-submission-button-label')}
+                                      </a>
+                                  `
+                                : ''
+                        }
+                        ${
+                            this.userCanViewSubmissions()
+                                ? html`
+                                      <a
+                                          href="${getFormManageFormsUrl(
+                                              this.formIdentifier,
+                                              this.lang,
+                                          )}"
+                                          class="button button--back-to-submissions-list">
+                                          <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('success.back-to-submissions-list-button-label')}
+                                      </a>
+                                  `
+                                : ''
+                        }
                     </div>
                 </div>
             `;

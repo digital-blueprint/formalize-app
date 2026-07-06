@@ -133,45 +133,51 @@ export class BatchTaggingModal extends ScopedElementsMixin(DBPLitElement) {
                                 <dbp-icon name="tags" aria-hidden="true"></dbp-icon>
                                 Available tags
                             </legend>
-                            ${this.availableTags && this.availableTags.length > 0
-                                ? html`
-                                      ${this.availableTags.map(
-                                          (tag) => html`
-                                              <div class="tag-checkbox">
-                                                  <input
-                                                      type="checkbox"
-                                                      id="batch-tagging-tag-${tag.identifier}"
-                                                      name="batch-tagging-tag-${tag.identifier}"
-                                                      value="${tag.identifier}"
-                                                      .checked="${this.selectedTags.includes(
-                                                          tag.identifier,
-                                                      )}"
-                                                      @change="${(e) => {
-                                                          if (e.target.checked) {
-                                                              this.selectedTags = [
-                                                                  ...this.selectedTags,
-                                                                  tag.identifier,
-                                                              ];
-                                                          } else {
-                                                              this.selectedTags =
-                                                                  this.selectedTags.filter(
-                                                                      (t) => t !== tag.identifier,
-                                                                  );
-                                                          }
-                                                      }}" />
-                                                  <label for="batch-tagging-tag-${tag.identifier}">
-                                                      ${tag.identifier}
-                                                  </label>
-                                              </div>
-                                          `,
-                                      )}
-                                  `
-                                : html`
-                                      <p>
-                                          <dbp-icon name="warning" aria-hidden="true"></dbp-icon>
-                                          ${i18n.t('manage-forms.no-available-tags-label')}
-                                      </p>
-                                  `}
+                            ${
+                                this.availableTags && this.availableTags.length > 0
+                                    ? html`
+                                          ${this.availableTags.map(
+                                              (tag) => html`
+                                                  <div class="tag-checkbox">
+                                                      <input
+                                                          type="checkbox"
+                                                          id="batch-tagging-tag-${tag.identifier}"
+                                                          name="batch-tagging-tag-${tag.identifier}"
+                                                          value="${tag.identifier}"
+                                                          .checked="${this.selectedTags.includes(
+                                                              tag.identifier,
+                                                          )}"
+                                                          @change="${(e) => {
+                                                              if (e.target.checked) {
+                                                                  this.selectedTags = [
+                                                                      ...this.selectedTags,
+                                                                      tag.identifier,
+                                                                  ];
+                                                              } else {
+                                                                  this.selectedTags =
+                                                                      this.selectedTags.filter(
+                                                                          (t) =>
+                                                                              t !== tag.identifier,
+                                                                      );
+                                                              }
+                                                          }}" />
+                                                      <label
+                                                          for="batch-tagging-tag-${tag.identifier}">
+                                                          ${tag.identifier}
+                                                      </label>
+                                                  </div>
+                                              `,
+                                          )}
+                                      `
+                                    : html`
+                                          <p>
+                                              <dbp-icon
+                                                  name="warning"
+                                                  aria-hidden="true"></dbp-icon>
+                                              ${i18n.t('manage-forms.no-available-tags-label')}
+                                          </p>
+                                      `
+                            }
                         </fieldset>
                     </div>
                 </div>
@@ -201,9 +207,11 @@ export class BatchTaggingModal extends ScopedElementsMixin(DBPLitElement) {
                             id="process-batch-tagging-button"
                             type="is-danger"
                             @click="${() => this.handleConfirm()}">
-                            ${this.justAddTags
-                                ? i18n.t('manage-forms.batch-tagging-button-text-add')
-                                : i18n.t('manage-forms.batch-tagging-button-text-replace')}
+                            ${
+                                this.justAddTags
+                                    ? i18n.t('manage-forms.batch-tagging-button-text-add')
+                                    : i18n.t('manage-forms.batch-tagging-button-text-replace')
+                            }
                         </dbp-button>
                     </div>
                 </menu>

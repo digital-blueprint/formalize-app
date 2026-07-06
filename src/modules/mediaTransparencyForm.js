@@ -1080,11 +1080,13 @@ class FormalizeFormElement extends BaseFormElement {
                 <div class="file-upload-title-container">
                     <h4 class="attachments-title">
                         ${i18n.t('render-form.forms.media-transparency-form.attachments-title')}
-                        ${this.fileUploadLimits?.minFileUploadCount?.[groupName] > 0
-                            ? html`
-                                  <span class="required-mark">*</span>
-                              `
-                            : ''}
+                        ${
+                            this.fileUploadLimits?.minFileUploadCount?.[groupName] > 0
+                                ? html`
+                                      <span class="required-mark">*</span>
+                                  `
+                                : ''
+                        }
                     </h4>
 
                     <span class="file-upload-limit-warning">
@@ -1137,19 +1139,25 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <button
                     class="button is-secondary upload-button upload-button--attachment"
-                    .disabled=${this.fileUploadCounts[groupName] >=
-                        this.fileUploadLimits?.allowedFileUploadCount?.[groupName] &&
-                    this.filesByGroup['Sujet-Speichername']?.filesToRemove?.size === 0}
+                    .disabled=${
+                        this.fileUploadCounts[groupName] >=
+                            this.fileUploadLimits?.allowedFileUploadCount?.[groupName] &&
+                        this.filesByGroup['Sujet-Speichername']?.filesToRemove?.size === 0
+                    }
                     @click="${(event) => {
                         this.currentUploadGroup = groupName;
                         this.openFilePicker(event);
                     }}">
                     <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
-                    ${!isNaN(this.fileUploadLimits?.allowedFileUploadCount?.[groupName])
-                        ? i18n.t('render-form.download-widget.upload-file-button-label', {
-                              count: this.fileUploadLimits?.allowedFileUploadCount?.[groupName],
-                          })
-                        : i18n.t('render-form.download-widget.upload-file-button-label-no-limit')}
+                    ${
+                        !isNaN(this.fileUploadLimits?.allowedFileUploadCount?.[groupName])
+                            ? i18n.t('render-form.download-widget.upload-file-button-label', {
+                                  count: this.fileUploadLimits?.allowedFileUploadCount?.[groupName],
+                              })
+                            : i18n.t(
+                                  'render-form.download-widget.upload-file-button-label-no-limit',
+                              )
+                    }
                 </button>
             </div>
         `;
@@ -1400,13 +1408,15 @@ class FormalizeFormElement extends BaseFormElement {
 
     render() {
         return html`
-            ${this.readOnly
-                ? html`
-                      ${this.renderFormViews()}
-                  `
-                : html`
-                      ${this.renderFormElements()}
-                  `}
+            ${
+                this.readOnly
+                    ? html`
+                          ${this.renderFormViews()}
+                      `
+                    : html`
+                          ${this.renderFormElements()}
+                      `
+            }
         `;
     }
 
@@ -1431,44 +1441,54 @@ class FormalizeFormElement extends BaseFormElement {
                 })}">
                 <div class="form-header">${this.getButtonRowHtml()}</div>
 
-                ${this.submissionIsSaved &&
-                (this.userCanSubmitForm() || this.userCanViewSubmissions())
-                    ? html`
-                          <div class="after-submission-button-container after-saving">
-                              ${this.userCanSubmitForm()
-                                  ? html`
-                                        <a
-                                            href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
-                                            class="button button--new-submission"
-                                            @click="${() => {
-                                                this.disableLeavePageWarning();
-                                            }}">
-                                            <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                                            ${i18n.t('success.create-new-submission-button-label')}
-                                        </a>
-                                    `
-                                  : ''}
-                              ${this.userCanViewSubmissions()
-                                  ? html`
-                                        <a
-                                            href="${getFormManageFormsUrl(
-                                                this.formIdentifier,
-                                                this.lang,
-                                            )}"
-                                            class="button button--back-to-submissions-list"
-                                            @click="${() => {
-                                                this.disableLeavePageWarning();
-                                            }}">
-                                            <dbp-icon name="list" aria-hidden="true"></dbp-icon>
-                                            ${i18n.t(
-                                                'success.back-to-submissions-list-button-label',
-                                            )}
-                                        </a>
-                                    `
-                                  : ''}
-                          </div>
-                      `
-                    : ''}
+                ${
+                    this.submissionIsSaved &&
+                    (this.userCanSubmitForm() || this.userCanViewSubmissions())
+                        ? html`
+                              <div class="after-submission-button-container after-saving">
+                                  ${
+                                      this.userCanSubmitForm()
+                                          ? html`
+                                                <a
+                                                    href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
+                                                    class="button button--new-submission"
+                                                    @click="${() => {
+                                                        this.disableLeavePageWarning();
+                                                    }}">
+                                                    <dbp-icon
+                                                        name="plus"
+                                                        aria-hidden="true"></dbp-icon>
+                                                    ${i18n.t('success.create-new-submission-button-label')}
+                                                </a>
+                                            `
+                                          : ''
+                                  }
+                                  ${
+                                      this.userCanViewSubmissions()
+                                          ? html`
+                                                <a
+                                                    href="${getFormManageFormsUrl(
+                                                        this.formIdentifier,
+                                                        this.lang,
+                                                    )}"
+                                                    class="button button--back-to-submissions-list"
+                                                    @click="${() => {
+                                                        this.disableLeavePageWarning();
+                                                    }}">
+                                                    <dbp-icon
+                                                        name="list"
+                                                        aria-hidden="true"></dbp-icon>
+                                                    ${i18n.t(
+                                                        'success.back-to-submissions-list-button-label',
+                                                    )}
+                                                </a>
+                                            `
+                                          : ''
+                                  }
+                              </div>
+                          `
+                        : ''
+                }
                 <h2 class="form-title">
                     ${i18n.t('render-form.forms.media-transparency-form.title')}
                 </h2>
@@ -1526,205 +1546,225 @@ class FormalizeFormElement extends BaseFormElement {
                     .value=${data.category || ''}
                     required></dbp-form-enum-element>
 
-                ${this.conditionalFields.category
-                    ? html`
-                          ${Object.keys(this.getSubcategoryItems()).length > 0
-                              ? html`
-                                    <dbp-form-enum-element
-                                        class="${classMap({
-                                            'fade-in':
-                                                Object.keys(this.getSubcategoryItems()).length > 0,
-                                        })}"
-                                        subscribe="lang"
-                                        data-condition="!Sonstiges"
-                                        name="advertisementSubcategory"
-                                        label="${i18n.t(
-                                            'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
-                                        )}"
-                                        display-mode="list"
-                                        .items=${this.getSubcategoryItems()}
-                                        .value=${data.advertisementSubcategory || ''}
-                                        @change=${(e) => {
-                                            this.setMediaNameItemsByValue(e.currentTarget.value); // populate mediaName list on subcategory change
+                ${
+                    this.conditionalFields.category
+                        ? html`
+                              ${
+                                  Object.keys(this.getSubcategoryItems()).length > 0
+                                      ? html`
+                                            <dbp-form-enum-element
+                                                class="${classMap({
+                                                    'fade-in':
+                                                        Object.keys(this.getSubcategoryItems())
+                                                            .length > 0,
+                                                })}"
+                                                subscribe="lang"
+                                                data-condition="!Sonstiges"
+                                                name="advertisementSubcategory"
+                                                label="${i18n.t(
+                                                    'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
+                                                )}"
+                                                display-mode="list"
+                                                .items=${this.getSubcategoryItems()}
+                                                .value=${data.advertisementSubcategory || ''}
+                                                @change=${(e) => {
+                                                    this.setMediaNameItemsByValue(
+                                                        e.currentTarget.value,
+                                                    ); // populate mediaName list on subcategory change
 
-                                            // Reset media name to empty or 'Sonstiges' depending on available options
-                                            const mapping =
-                                                MEDIA_NAME_OWNER_MAPPING[this.selectedCategory]?.[
-                                                    e.currentTarget.value
-                                                ] || {};
-                                            if (Object.keys(mapping).length === 0) {
-                                                // Only 'Sonstiges' is available
-                                                data.mediaName = OTHER_MEDIA_VALUE;
-                                                this.conditionalFields.mediaName = true;
-                                            } else {
-                                                // Reset to 'Please select'
-                                                data.mediaName = NOTHING_SELECTED;
-                                                this.conditionalFields.mediaName = false;
-                                            }
+                                                    // Reset media name to empty or 'Sonstiges' depending on available options
+                                                    const mapping =
+                                                        MEDIA_NAME_OWNER_MAPPING[
+                                                            this.selectedCategory
+                                                        ]?.[e.currentTarget.value] || {};
+                                                    if (Object.keys(mapping).length === 0) {
+                                                        // Only 'Sonstiges' is available
+                                                        data.mediaName = OTHER_MEDIA_VALUE;
+                                                        this.conditionalFields.mediaName = true;
+                                                    } else {
+                                                        // Reset to 'Please select'
+                                                        data.mediaName = NOTHING_SELECTED;
+                                                        this.conditionalFields.mediaName = false;
+                                                    }
 
-                                            // Clear related fields
-                                            data.mediumOwnersName = '';
-                                            data.otherMediumName = '';
-                                            data.otherMediumOwnersName = '';
+                                                    // Clear related fields
+                                                    data.mediumOwnersName = '';
+                                                    data.otherMediumName = '';
+                                                    data.otherMediumOwnersName = '';
 
-                                            this.requestUpdate();
-                                        }}
-                                        required></dbp-form-enum-element>
-                                `
-                              : ''}
-                      `
-                    : ''}
-                ${this.conditionalFields.advertisementSubcategory
-                    ? html`
-                          <dbp-form-enum-element
-                              subscribe="lang"
-                              name="mediaName"
-                              data-condition="Sonstiges"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-media-name-label',
-                              )}"
-                              display-mode="dropdown"
-                              .items=${this.getMediaNameItems()}
-                              .customValidator=${(value) => {
-                                  return value === NOTHING_SELECTED
-                                      ? [
-                                            i18n.t(
-                                                'render-form.forms.media-transparency-form.media-name-validation-error',
-                                            ),
-                                        ]
-                                      : [];
-                              }}
-                              @change=${(e) => {
-                                  const selectedValue = e.currentTarget.value;
-                                  data.mediaName = selectedValue;
+                                                    this.requestUpdate();
+                                                }}
+                                                required></dbp-form-enum-element>
+                                        `
+                                      : ''
+                              }
+                          `
+                        : ''
+                }
+                ${
+                    this.conditionalFields.advertisementSubcategory
+                        ? html`
+                              <dbp-form-enum-element
+                                  subscribe="lang"
+                                  name="mediaName"
+                                  data-condition="Sonstiges"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-media-name-label',
+                                  )}"
+                                  display-mode="dropdown"
+                                  .items=${this.getMediaNameItems()}
+                                  .customValidator=${(value) => {
+                                      return value === NOTHING_SELECTED
+                                          ? [
+                                                i18n.t(
+                                                    'render-form.forms.media-transparency-form.media-name-validation-error',
+                                                ),
+                                            ]
+                                          : [];
+                                  }}
+                                  @change=${(e) => {
+                                      const selectedValue = e.currentTarget.value;
+                                      data.mediaName = selectedValue;
 
-                                  // If 'Other' or placeholder is selected, show other medium fields
-                                  if (
-                                      selectedValue === OTHER_MEDIA_VALUE ||
-                                      selectedValue === NOTHING_SELECTED
-                                  ) {
-                                      this.conditionalFields.mediaName = true;
-                                      data.mediumOwnersName = '';
-                                  } else {
-                                      this.conditionalFields.mediaName = false;
-                                      // Auto-fill owner name from mapping
-                                      const owner = this.getOwnerForMediaName(selectedValue);
-                                      data.mediumOwnersName = owner ?? '';
-                                  }
-                                  this.requestUpdate();
-                              }}
-                              .value=${data.mediaName || NOTHING_SELECTED}
-                              required></dbp-form-enum-element>
+                                      // If 'Other' or placeholder is selected, show other medium fields
+                                      if (
+                                          selectedValue === OTHER_MEDIA_VALUE ||
+                                          selectedValue === NOTHING_SELECTED
+                                      ) {
+                                          this.conditionalFields.mediaName = true;
+                                          data.mediumOwnersName = '';
+                                      } else {
+                                          this.conditionalFields.mediaName = false;
+                                          // Auto-fill owner name from mapping
+                                          const owner = this.getOwnerForMediaName(selectedValue);
+                                          data.mediumOwnersName = owner ?? '';
+                                      }
+                                      this.requestUpdate();
+                                  }}
+                                  .value=${data.mediaName || NOTHING_SELECTED}
+                                  required></dbp-form-enum-element>
 
-                          ${!this.conditionalFields.mediaName
-                              ? html`
-                                    <dbp-form-string-element
-                                        subscribe="lang"
-                                        name="mediumOwnersName"
-                                        maxlength="1000"
-                                        label="${i18n.t(
-                                            'render-form.forms.media-transparency-form.field-media-owners-name-label',
-                                        )}"
-                                        disabled
-                                        required
-                                        .value=${data.mediumOwnersName ||
-                                        ''}></dbp-form-string-element>
-                                `
-                              : ''}
-                      `
-                    : ''}
-                ${this.conditionalFields.mediaName
-                    ? html`
-                          <dbp-form-string-element
-                              subscribe="lang"
-                              name="otherMediumName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-name-label',
-                              )}"
-                              required
-                              maxlength="1000"
-                              .value=${data.otherMediumName || ''}></dbp-form-string-element>
-
-                          <dbp-form-string-element
-                              subscribe="lang"
-                              name="otherMediumOwnersName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
-                              )}"
-                              required
-                              maxlength="1000"
-                              .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
-                      `
-                    : ''}
-                ${data.category === 'Out of Home' && data.advertisementSubcategory === 'Sonstiges'
-                    ? html`
-                          <div style="visibility:hidden; height:0; margin:0; padding:0; border:0;">
+                              ${
+                                  !this.conditionalFields.mediaName
+                                      ? html`
+                                            <dbp-form-string-element
+                                                subscribe="lang"
+                                                name="mediumOwnersName"
+                                                maxlength="1000"
+                                                label="${i18n.t(
+                                                    'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                                                )}"
+                                                disabled
+                                                required
+                                                .value=${
+                                                    data.mediumOwnersName || ''
+                                                }></dbp-form-string-element>
+                                        `
+                                      : ''
+                              }
+                          `
+                        : ''
+                }
+                ${
+                    this.conditionalFields.mediaName
+                        ? html`
                               <dbp-form-string-element
                                   subscribe="lang"
                                   name="otherMediumName"
                                   label="${i18n.t(
                                       'render-form.forms.media-transparency-form.field-other-medium-name-label',
                                   )}"
+                                  required
                                   maxlength="1000"
-                                  value=""></dbp-form-string-element>
-                          </div>
+                                  .value=${data.otherMediumName || ''}></dbp-form-string-element>
 
-                          <dbp-form-enum-element
-                              subscribe="lang"
-                              name="otherMediumOwnersName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
-                              )}"
-                              display-mode="dropdown"
-                              .items=${this.getMediaNameItems()}
-                              @change=${(e) => {
-                                  const selectedValue = e.currentTarget.value;
+                              <dbp-form-string-element
+                                  subscribe="lang"
+                                  name="otherMediumOwnersName"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                                  )}"
+                                  required
+                                  maxlength="1000"
+                                  .value=${data.otherMediumOwnersName || ''}></dbp-form-string-element>
+                          `
+                        : ''
+                }
+                ${
+                    data.category === 'Out of Home' && data.advertisementSubcategory === 'Sonstiges'
+                        ? html`
+                              <div
+                                  style="visibility:hidden; height:0; margin:0; padding:0; border:0;">
+                                  <dbp-form-string-element
+                                      subscribe="lang"
+                                      name="otherMediumName"
+                                      label="${i18n.t(
+                                          'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                                      )}"
+                                      maxlength="1000"
+                                      value=""></dbp-form-string-element>
+                              </div>
 
-                                  // If 'Other' or placeholder is selected, show other medium fields
-                                  if (
-                                      selectedValue === OTHER_MEDIA_VALUE ||
-                                      selectedValue === NOTHING_SELECTED
-                                  ) {
-                                      this.conditionalFields.outOfHomeOtherMediunOwner = true;
-                                      data.otherMediumOwnersName = '';
-                                      data.otherMediumOwnersNameCustom = '';
-                                  } else {
-                                      this.conditionalFields.outOfHomeOtherMediunOwner = false;
-                                      data.otherMediumOwnersNameCustom = '';
-                                      // Auto-fill owner name from mapping
-                                      const owner = this.getOwnerForMediaName(selectedValue);
-                                      data.otherMediumOwnersName = owner ?? '';
-                                  }
-                                  this.requestUpdate();
-                              }}
-                              .customValidator=${(value) => {
-                                  return value === NOTHING_SELECTED
-                                      ? [
-                                            i18n.t(
-                                                'render-form.forms.media-transparency-form.media-name-validation-error',
-                                            ),
-                                        ]
-                                      : [];
-                              }}
-                              .value=${data.otherMediumOwnersName || NOTHING_SELECTED}
-                              required></dbp-form-enum-element>
+                              <dbp-form-enum-element
+                                  subscribe="lang"
+                                  name="otherMediumOwnersName"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                                  )}"
+                                  display-mode="dropdown"
+                                  .items=${this.getMediaNameItems()}
+                                  @change=${(e) => {
+                                      const selectedValue = e.currentTarget.value;
 
-                          ${this.conditionalFields.outOfHomeOtherMediunOwner
-                              ? html`
-                                    <dbp-form-string-element
-                                        subscribe="lang"
-                                        name="otherMediumOwnersNameCustom"
-                                        label="${i18n.t(
-                                            'render-form.forms.media-transparency-form.field-media-owners-name-label',
-                                        )}"
-                                        required
-                                        maxlength="1000"
-                                        .value=${data.otherMediumOwnersNameCustom ||
-                                        ''}></dbp-form-string-element>
-                                `
-                              : ''}
-                      `
-                    : ''}
+                                      // If 'Other' or placeholder is selected, show other medium fields
+                                      if (
+                                          selectedValue === OTHER_MEDIA_VALUE ||
+                                          selectedValue === NOTHING_SELECTED
+                                      ) {
+                                          this.conditionalFields.outOfHomeOtherMediunOwner = true;
+                                          data.otherMediumOwnersName = '';
+                                          data.otherMediumOwnersNameCustom = '';
+                                      } else {
+                                          this.conditionalFields.outOfHomeOtherMediunOwner = false;
+                                          data.otherMediumOwnersNameCustom = '';
+                                          // Auto-fill owner name from mapping
+                                          const owner = this.getOwnerForMediaName(selectedValue);
+                                          data.otherMediumOwnersName = owner ?? '';
+                                      }
+                                      this.requestUpdate();
+                                  }}
+                                  .customValidator=${(value) => {
+                                      return value === NOTHING_SELECTED
+                                          ? [
+                                                i18n.t(
+                                                    'render-form.forms.media-transparency-form.media-name-validation-error',
+                                                ),
+                                            ]
+                                          : [];
+                                  }}
+                                  .value=${data.otherMediumOwnersName || NOTHING_SELECTED}
+                                  required></dbp-form-enum-element>
+
+                              ${
+                                  this.conditionalFields.outOfHomeOtherMediunOwner
+                                      ? html`
+                                            <dbp-form-string-element
+                                                subscribe="lang"
+                                                name="otherMediumOwnersNameCustom"
+                                                label="${i18n.t(
+                                                    'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                                                )}"
+                                                required
+                                                maxlength="1000"
+                                                .value=${
+                                                    data.otherMediumOwnersNameCustom || ''
+                                                }></dbp-form-string-element>
+                                        `
+                                      : ''
+                              }
+                          `
+                        : ''
+                }
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -1880,66 +1920,74 @@ class FormalizeFormElement extends BaseFormElement {
                     display-mode="list"
                     .value=${data.category || ''}></dbp-form-enum-view>
 
-                ${this.conditionalFields.advertisementSubcategory &&
-                Object.keys(this.getSubcategoryItems()).length > 0
-                    ? html`
-                          <dbp-form-enum-view
-                              class="${classMap({
-                                  'fade-in': Object.keys(this.getSubcategoryItems()).length > 0,
-                              })}"
-                              subscribe="lang"
-                              name="advertisementSubcategory"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
-                              )}"
-                              display-mode="list"
-                              .items=${this.getSubcategoryItems()}
-                              .value=${data.advertisementSubcategory || ''}></dbp-form-enum-view>
-                      `
-                    : ''}
-                ${data.mediaName
-                    ? html`
-                          <dbp-form-enum-view
-                              subscribe="lang"
-                              name="mediaName"
-                              data-condition="!Sonstiges"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-media-name-label',
-                              )}"
-                              display-mode="dropdown"
-                              .value=${data.mediaName || ''}></dbp-form-enum-view>
-                      `
-                    : ''}
-                ${data.mediumOwnersName
-                    ? html`
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="mediumOwnersName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-media-owners-name-label',
-                              )}"
-                              .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
-                      `
-                    : ''}
-                ${data.otherMediumName || data.otherMediumOwnersName
-                    ? html`
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="otherMediumName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-name-label',
-                              )}"
-                              .value=${data.otherMediumName || ''}></dbp-form-string-view>
+                ${
+                    this.conditionalFields.advertisementSubcategory &&
+                    Object.keys(this.getSubcategoryItems()).length > 0
+                        ? html`
+                              <dbp-form-enum-view
+                                  class="${classMap({
+                                      'fade-in': Object.keys(this.getSubcategoryItems()).length > 0,
+                                  })}"
+                                  subscribe="lang"
+                                  name="advertisementSubcategory"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
+                                  )}"
+                                  display-mode="list"
+                                  .items=${this.getSubcategoryItems()}
+                                  .value=${data.advertisementSubcategory || ''}></dbp-form-enum-view>
+                          `
+                        : ''
+                }
+                ${
+                    data.mediaName
+                        ? html`
+                              <dbp-form-enum-view
+                                  subscribe="lang"
+                                  name="mediaName"
+                                  data-condition="!Sonstiges"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-media-name-label',
+                                  )}"
+                                  display-mode="dropdown"
+                                  .value=${data.mediaName || ''}></dbp-form-enum-view>
+                          `
+                        : ''
+                }
+                ${
+                    data.mediumOwnersName
+                        ? html`
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="mediumOwnersName"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                                  )}"
+                                  .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
+                          `
+                        : ''
+                }
+                ${
+                    data.otherMediumName || data.otherMediumOwnersName
+                        ? html`
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="otherMediumName"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                                  )}"
+                                  .value=${data.otherMediumName || ''}></dbp-form-string-view>
 
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="otherMediumOwnersName"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
-                              )}"
-                              .value=${data.otherMediumOwnersName || ''}></dbp-form-string-view>
-                      `
-                    : ''}
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="otherMediumOwnersName"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                                  )}"
+                                  .value=${data.otherMediumOwnersName || ''}></dbp-form-string-view>
+                          `
+                        : ''
+                }
 
                 <dbp-form-string-view
                     subscribe="lang"
@@ -1949,44 +1997,50 @@ class FormalizeFormElement extends BaseFormElement {
                     )}"
                     .value=${data.amountInEuro || ''}></dbp-form-string-view>
 
-                ${data.campaignTitle
-                    ? html`
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="campaignTitle"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-campaign-title-label',
-                              )}"
-                              .value=${data.campaignTitle || ''}></dbp-form-string-view>
-                      `
-                    : ''}
+                ${
+                    data.campaignTitle
+                        ? html`
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="campaignTitle"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-campaign-title-label',
+                                  )}"
+                                  .value=${data.campaignTitle || ''}></dbp-form-string-view>
+                          `
+                        : ''
+                }
 
                 <!-- Notes -->
-                ${data.notes
-                    ? html`
-                          <dbp-form-string-view
-                              subscribe="lang"
-                              name="notes"
-                              rows="5"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-notes-label',
-                              )}"
-                              .value=${data.notes || ''}></dbp-form-string-view>
-                      `
-                    : ''}
+                ${
+                    data.notes
+                        ? html`
+                              <dbp-form-string-view
+                                  subscribe="lang"
+                                  name="notes"
+                                  rows="5"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-notes-label',
+                                  )}"
+                                  .value=${data.notes || ''}></dbp-form-string-view>
+                          `
+                        : ''
+                }
 
                 <!-- Reporting deadline -->
-                ${data.reportingDeadline
-                    ? html`
-                          <dbp-form-enum-view
-                              subscribe="lang"
-                              name="reportingDeadline"
-                              label="${i18n.t(
-                                  'render-form.forms.media-transparency-form.field-reporting-deadline-label',
-                              )}"
-                              .value=${data.reportingDeadline || ''}></dbp-form-enum-view>
-                      `
-                    : ''}
+                ${
+                    data.reportingDeadline
+                        ? html`
+                              <dbp-form-enum-view
+                                  subscribe="lang"
+                                  name="reportingDeadline"
+                                  label="${i18n.t(
+                                      'render-form.forms.media-transparency-form.field-reporting-deadline-label',
+                                  )}"
+                                  .value=${data.reportingDeadline || ''}></dbp-form-enum-view>
+                          `
+                        : ''
+                }
                 ${this.getFileGroupsFromSchema().map((groupName) =>
                     this.renderFileViewGroup(groupName),
                 )}
@@ -2073,29 +2127,33 @@ class FormalizeFormElement extends BaseFormElement {
                     </p>
 
                     <div class="after-submission-button-container">
-                        ${this.userCanSubmitForm()
-                            ? html`
-                                  <a
-                                      href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
-                                      class="button button--new-submission">
-                                      <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                                      ${i18n.t('success.create-new-submission-button-label')}
-                                  </a>
-                              `
-                            : ''}
-                        ${this.userCanViewSubmissions()
-                            ? html`
-                                  <a
-                                      href="${getFormManageFormsUrl(
-                                          this.formIdentifier,
-                                          this.lang,
-                                      )}"
-                                      class="button button--back-to-submissions-list">
-                                      <dbp-icon name="list" aria-hidden="true"></dbp-icon>
-                                      ${i18n.t('success.back-to-submissions-list-button-label')}
-                                  </a>
-                              `
-                            : ''}
+                        ${
+                            this.userCanSubmitForm()
+                                ? html`
+                                      <a
+                                          href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
+                                          class="button button--new-submission">
+                                          <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('success.create-new-submission-button-label')}
+                                      </a>
+                                  `
+                                : ''
+                        }
+                        ${
+                            this.userCanViewSubmissions()
+                                ? html`
+                                      <a
+                                          href="${getFormManageFormsUrl(
+                                              this.formIdentifier,
+                                              this.lang,
+                                          )}"
+                                          class="button button--back-to-submissions-list">
+                                          <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('success.back-to-submissions-list-button-label')}
+                                      </a>
+                                  `
+                                : ''
+                        }
                     </div>
                 </div>
             `;

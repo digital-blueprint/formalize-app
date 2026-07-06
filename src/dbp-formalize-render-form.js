@@ -455,15 +455,17 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <div class="notification is-warning">
                         <dbp-icon name="warning-high"></dbp-icon>
                         ${this._i18n.t('render-form.form-already-submitted-warning')}
-                        ${submissionUrl
-                            ? html`
-                                  <a href="${submissionUrl}">
-                                      ${this._i18n.t(
-                                          'render-form.check-previous-submissions-warning',
-                                      )}
-                                  </a>
-                              `
-                            : ''}
+                        ${
+                            submissionUrl
+                                ? html`
+                                      <a href="${submissionUrl}">
+                                          ${this._i18n.t(
+                                              'render-form.check-previous-submissions-warning',
+                                          )}
+                                      </a>
+                                  `
+                                : ''
+                        }
                     </div>
                 `;
             }

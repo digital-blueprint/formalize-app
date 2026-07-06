@@ -494,13 +494,15 @@ class FormalizeFormElement extends BaseFormElement {
 
     render() {
         return html`
-            ${this.readOnly
-                ? html`
-                      ${this.renderFormViews()}
-                  `
-                : html`
-                      ${this.renderFormElements()}
-                  `}
+            ${
+                this.readOnly
+                    ? html`
+                          ${this.renderFormViews()}
+                      `
+                    : html`
+                          ${this.renderFormElements()}
+                      `
+            }
         `;
     }
 
@@ -612,26 +614,32 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-string-element
                         subscribe="lang"
                         name="lecturers"
-                        rows=${Array.isArray(data.lecturers) && data.lecturers.length > 1
-                            ? String(data.lecturers.length)
-                            : '1'}
+                        rows=${
+                            Array.isArray(data.lecturers) && data.lecturers.length > 1
+                                ? String(data.lecturers.length)
+                                : '1'
+                        }
                         label=${i18n.t('render-form.forms.accessible-courses-form.lecturers')}
-                        value=${Array.isArray(data.lecturers)
-                            ? data.lecturers.filter(Boolean).join('\n')
-                            : data.lecturers || ''}
+                        value=${
+                            Array.isArray(data.lecturers)
+                                ? data.lecturers.filter(Boolean).join('\n')
+                                : data.lecturers || ''
+                        }
                         disabled></dbp-form-string-element>
 
-                    ${hasMultipleLecturers
-                        ? html`
-                              <dbp-form-string-element
-                                  subscribe="lang"
-                                  name="groupAssignment"
-                                  label=${i18n.t(
-                                      'render-form.forms.accessible-courses-form.group-assignment',
-                                  )}
-                                  .value=${data.groupAssignment || ''}></dbp-form-string-element>
-                          `
-                        : ''}
+                    ${
+                        hasMultipleLecturers
+                            ? html`
+                                  <dbp-form-string-element
+                                      subscribe="lang"
+                                      name="groupAssignment"
+                                      label=${i18n.t(
+                                          'render-form.forms.accessible-courses-form.group-assignment',
+                                      )}
+                                      .value=${data.groupAssignment || ''}></dbp-form-string-element>
+                              `
+                            : ''
+                    }
 
                     <dbp-form-string-element
                         subscribe="lang"
@@ -706,21 +714,23 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.studentEmail || ''}
                         disabled></dbp-form-string-element>
 
-                    ${this.isAdmin
-                        ? html`
-                              <dbp-form-string-element
-                                  subscribe="lang"
-                                  name="comment"
-                                  label=${i18n.t(
-                                      'render-form.forms.accessible-courses-form.comment',
-                                  )}
-                                  .value=${data.comment || ''}
-                                  description=${i18n.t(
-                                      'render-form.forms.accessible-courses-form.comment-placeholder',
-                                  )}
-                                  rows="5"></dbp-form-string-element>
-                          `
-                        : ''}
+                    ${
+                        this.isAdmin
+                            ? html`
+                                  <dbp-form-string-element
+                                      subscribe="lang"
+                                      name="comment"
+                                      label=${i18n.t(
+                                          'render-form.forms.accessible-courses-form.comment',
+                                      )}
+                                      .value=${data.comment || ''}
+                                      description=${i18n.t(
+                                          'render-form.forms.accessible-courses-form.comment-placeholder',
+                                      )}
+                                      rows="5"></dbp-form-string-element>
+                              `
+                            : ''
+                    }
                 </fieldset>
             </form>
 
@@ -764,21 +774,25 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         name="lecturers"
                         label=${i18n.t('render-form.forms.accessible-courses-form.lecturers')}
-                        value=${Array.isArray(data.lecturers)
-                            ? data.lecturers.filter(Boolean).join(', ')
-                            : data.lecturers || ''}></dbp-form-string-view>
+                        value=${
+                            Array.isArray(data.lecturers)
+                                ? data.lecturers.filter(Boolean).join(', ')
+                                : data.lecturers || ''
+                        }></dbp-form-string-view>
 
-                    ${hasMultipleLecturers
-                        ? html`
-                              <dbp-form-string-view
-                                  subscribe="lang"
-                                  name="groupAssignment"
-                                  label=${i18n.t(
-                                      'render-form.forms.accessible-courses-form.group-assignment',
-                                  )}
-                                  .value=${data.groupAssignment || ''}></dbp-form-string-view>
-                          `
-                        : ''}
+                    ${
+                        hasMultipleLecturers
+                            ? html`
+                                  <dbp-form-string-view
+                                      subscribe="lang"
+                                      name="groupAssignment"
+                                      label=${i18n.t(
+                                          'render-form.forms.accessible-courses-form.group-assignment',
+                                      )}
+                                      .value=${data.groupAssignment || ''}></dbp-form-string-view>
+                              `
+                            : ''
+                    }
                     <dbp-form-string-view
                         subscribe="lang"
                         name="adaptations"
@@ -825,21 +839,23 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.studentEmail || ''}
                         disabled></dbp-form-string-view>
 
-                    ${this.isAdmin
-                        ? html`
-                              <dbp-form-string-view
-                                  subscribe="lang"
-                                  name="comment"
-                                  label=${i18n.t(
-                                      'render-form.forms.accessible-courses-form.comment',
-                                  )}
-                                  .value=${data.comment || ''}
-                                  description=${i18n.t(
-                                      'render-form.forms.accessible-courses-form.comment-placeholder',
-                                  )}
-                                  rows="5"></dbp-form-string-view>
-                          `
-                        : ''}
+                    ${
+                        this.isAdmin
+                            ? html`
+                                  <dbp-form-string-view
+                                      subscribe="lang"
+                                      name="comment"
+                                      label=${i18n.t(
+                                          'render-form.forms.accessible-courses-form.comment',
+                                      )}
+                                      .value=${data.comment || ''}
+                                      description=${i18n.t(
+                                          'render-form.forms.accessible-courses-form.comment-placeholder',
+                                      )}
+                                      rows="5"></dbp-form-string-view>
+                              `
+                            : ''
+                    }
                 </fieldset>
             </form>
 
@@ -865,29 +881,33 @@ class FormalizeFormElement extends BaseFormElement {
                     </p>
 
                     <div class="after-submission-button-container">
-                        ${this.userCanSubmitForm()
-                            ? html`
-                                  <a
-                                      href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
-                                      class="button button--new-submission">
-                                      <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
-                                      ${i18n.t('success.create-new-submission-button-label')}
-                                  </a>
-                              `
-                            : ''}
-                        ${this.userCanViewSubmissions()
-                            ? html`
-                                  <a
-                                      href="${getFormManageFormsUrl(
-                                          this.formIdentifier,
-                                          this.lang,
-                                      )}"
-                                      class="button button--back-to-submissions-list">
-                                      <dbp-icon name="list" aria-hidden="true"></dbp-icon>
-                                      ${i18n.t('success.back-to-submissions-list-button-label')}
-                                  </a>
-                              `
-                            : ''}
+                        ${
+                            this.userCanSubmitForm()
+                                ? html`
+                                      <a
+                                          href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
+                                          class="button button--new-submission">
+                                          <dbp-icon name="plus" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('success.create-new-submission-button-label')}
+                                      </a>
+                                  `
+                                : ''
+                        }
+                        ${
+                            this.userCanViewSubmissions()
+                                ? html`
+                                      <a
+                                          href="${getFormManageFormsUrl(
+                                              this.formIdentifier,
+                                              this.lang,
+                                          )}"
+                                          class="button button--back-to-submissions-list">
+                                          <dbp-icon name="list" aria-hidden="true"></dbp-icon>
+                                          ${i18n.t('success.back-to-submissions-list-button-label')}
+                                      </a>
+                                  `
+                                : ''
+                        }
                     </div>
                 </div>
             `;

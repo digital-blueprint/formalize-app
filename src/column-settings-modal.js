@@ -150,13 +150,15 @@ export class ColumnSettingsModal extends ScopedElementsMixin(DBPLitElement) {
                 title="${i18n.t('manage-forms.header-settings')}"
                 sticky-footer
                 subscribe="lang">
-                ${this.state
-                    ? html`
-                          <div slot="header" class="modal-header-tag">
-                              <p><span class="tag tag--state">${this.state}</span></p>
-                          </div>
-                      `
-                    : ''}
+                ${
+                    this.state
+                        ? html`
+                              <div slot="header" class="modal-header-tag">
+                                  <p><span class="tag tag--state">${this.state}</span></p>
+                              </div>
+                          `
+                        : ''
+                }
                 <div
                     slot="content"
                     class="modal-content submission-modal-content"

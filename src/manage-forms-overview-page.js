@@ -146,13 +146,15 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     pagination-enabled
                     pagination-size="5"
                     .options=${this.optionsForms}></dbp-tabulator-table>
-                ${this.noFormsAvailable
-                    ? html`
-                          <p class="no-forms-message">
-                              ${i18n.t('manage-forms.no-forms-available')}
-                          </p>
-                      `
-                    : ''}
+                ${
+                    this.noFormsAvailable
+                        ? html`
+                              <p class="no-forms-message">
+                                  ${i18n.t('manage-forms.no-forms-available')}
+                              </p>
+                          `
+                        : ''
+                }
             </div>
         `;
     }

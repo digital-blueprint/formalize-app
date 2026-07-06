@@ -1155,13 +1155,15 @@ class FormalizeFormElement extends BaseFormElement {
 
     render() {
         return html`
-            ${this.readOnly
-                ? html`
-                      ${this.renderFormViews()}
-                  `
-                : html`
-                      ${this.renderFormElements()}
-                  `}
+            ${
+                this.readOnly
+                    ? html`
+                          ${this.renderFormViews()}
+                      `
+                    : html`
+                          ${this.renderFormElements()}
+                      `
+            }
         `;
     }
 
@@ -1324,8 +1326,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.application-reference-number-label',
                                       )}"
-                                      value=${data.applicationReferenceNumber ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.applicationReferenceNumber || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -1402,8 +1405,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.names-of-supervising-persons-label',
                                       )}"
-                                      value=${data.namesOfSupervisingPersons ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.namesOfSupervisingPersons || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -1440,8 +1444,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.date-of-transmission-label',
                                       )}"
-                                      value=${data.studyDescriptionDateOfTransmission ||
-                                      ''}></dbp-form-date-view>
+                                      value=${
+                                          data.studyDescriptionDateOfTransmission || ''
+                                      }></dbp-form-date-view>
 
                                   <div class="dbp-form-boolean-view" name="dataProtectionChecked">
                                       <fieldset>
@@ -1450,13 +1455,15 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.data-protection-checked-label',
                                               )}
                                           </label>
-                                          ${data.dataProtectionChecked === true
-                                              ? i18n.t(
-                                                    'render-form.forms.ethics-commission-form.yes',
-                                                )
-                                              : i18n.t(
-                                                    'render-form.forms.ethics-commission-form.no',
-                                                )}
+                                          ${
+                                              data.dataProtectionChecked === true
+                                                  ? i18n.t(
+                                                        'render-form.forms.ethics-commission-form.yes',
+                                                    )
+                                                  : i18n.t(
+                                                        'render-form.forms.ethics-commission-form.no',
+                                                    )
+                                          }
                                       </fieldset>
                                   </div>
 
@@ -1636,8 +1643,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsVoluntary ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsVoluntary || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1653,8 +1661,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.isSelfExperiment ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.isSelfExperiment || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1670,8 +1679,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsInformedConsent ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsInformedConsent || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1687,8 +1697,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsConsentSigned ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsConsentSigned || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1704,8 +1715,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsWithdrawPossible ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsWithdrawPossible || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1721,8 +1733,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsDependent ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsDependent || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1738,8 +1751,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsVulnerable ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsVulnerable || ''
+                                          }></dbp-form-enum-view>
                                   </div>
 
                                   <div class="question-group">
@@ -1764,8 +1778,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.invasiveTechniquesUsed ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.invasiveTechniquesUsed || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1781,8 +1796,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.influenceOnBrainActivity ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.influenceOnBrainActivity || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           data-condition="yes"
@@ -1799,21 +1815,24 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsTortured ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsTortured || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.testSubjectsTortured
-                                          ? html`
-                                                <dbp-form-string-view
-                                                    subscribe="lang"
-                                                    name="testSubjectsTorturedExamples"
-                                                    label="1.2.3.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
-                                                    )}"
-                                                    value=${data.testSubjectsTorturedExamples || ''}
-                                                    required></dbp-form-string-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.testSubjectsTortured
+                                              ? html`
+                                                    <dbp-form-string-view
+                                                        subscribe="lang"
+                                                        name="testSubjectsTorturedExamples"
+                                                        label="1.2.3.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
+                                                        )}"
+                                                        value=${data.testSubjectsTorturedExamples || ''}
+                                                        required></dbp-form-string-view>
+                                                `
+                                              : ''
+                                      }
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1829,8 +1848,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsHarmed ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsHarmed || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1846,8 +1866,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsRisksJustified ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsRisksJustified || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1864,26 +1885,30 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsRiskMinimized ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsRiskMinimized || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.testSubjectsRiskMinimized
-                                          ? html`
-                                                <dbp-form-string-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this.conditionalFields
-                                                                .testSubjectsRiskMinimized,
-                                                    })}"
-                                                    subscribe="lang"
-                                                    name="riskMinimizationSteps"
-                                                    label="1.2.6.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.risk-minimization-steps-label',
-                                                    )}"
-                                                    value=${data.riskMinimizationSteps ||
-                                                    ''}></dbp-form-string-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.testSubjectsRiskMinimized
+                                              ? html`
+                                                    <dbp-form-string-view
+                                                        class="${classMap({
+                                                            'fade-in':
+                                                                this.conditionalFields
+                                                                    .testSubjectsRiskMinimized,
+                                                        })}"
+                                                        subscribe="lang"
+                                                        name="riskMinimizationSteps"
+                                                        label="1.2.6.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.risk-minimization-steps-label',
+                                                        )}"
+                                                        value=${
+                                                            data.riskMinimizationSteps || ''
+                                                        }></dbp-form-string-view>
+                                                `
+                                              : ''
+                                      }
                                   </div>
 
                                   <div class="question-group">
@@ -1907,8 +1932,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsReasonableToParticipate ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.testSubjectsReasonableToParticipate || ''
+                                          }></dbp-form-enum-view>
                                   </div>
                               `
                             : ''
@@ -1950,8 +1976,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.legalDocumentsAvailable ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.legalDocumentsAvailable || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -1967,8 +1994,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.disturbanceOfPeaceOfDead ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.disturbanceOfPeaceOfDead || ''
+                                          }></dbp-form-enum-view>
                                   </div>
                               `
                             : ''
@@ -2027,29 +2055,33 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.humanStemCellsUsed ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.humanStemCellsUsed || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.humanStemCellsUsed
-                                          ? html`
-                                                <dbp-form-enum-view
-                                                    subscribe="lang"
-                                                    name="stemCellsFromEmbryos"
-                                                    label="1.5.2.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
-                                                    )}"
-                                                    .items=${{
-                                                        yes: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.yes',
-                                                        ),
-                                                        no: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.no',
-                                                        ),
-                                                    }}
-                                                    .value=${data.stemCellsFromEmbryos ||
-                                                    ''}></dbp-form-enum-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.humanStemCellsUsed
+                                              ? html`
+                                                    <dbp-form-enum-view
+                                                        subscribe="lang"
+                                                        name="stemCellsFromEmbryos"
+                                                        label="1.5.2.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
+                                                        )}"
+                                                        .items=${{
+                                                            yes: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.yes',
+                                                            ),
+                                                            no: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.no',
+                                                            ),
+                                                        }}
+                                                        .value=${
+                                                            data.stemCellsFromEmbryos || ''
+                                                        }></dbp-form-enum-view>
+                                                `
+                                              : ''
+                                      }
 
                                       <dbp-form-enum-view
                                           data-condition="yes"
@@ -2066,29 +2098,33 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.useOfHumanEmbryos ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.useOfHumanEmbryos || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.useOfHumanEmbryos
-                                          ? html`
-                                                <dbp-form-enum-view
-                                                    subscribe="lang"
-                                                    name="stemCellsFromEmbryosDestroyed"
-                                                    label="1.5.3.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
-                                                    )}"
-                                                    .items=${{
-                                                        yes: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.yes',
-                                                        ),
-                                                        no: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.no',
-                                                        ),
-                                                    }}
-                                                    .value=${data.stemCellsFromEmbryosDestroyed ||
-                                                    ''}></dbp-form-enum-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.useOfHumanEmbryos
+                                              ? html`
+                                                    <dbp-form-enum-view
+                                                        subscribe="lang"
+                                                        name="stemCellsFromEmbryosDestroyed"
+                                                        label="1.5.3.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
+                                                        )}"
+                                                        .items=${{
+                                                            yes: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.yes',
+                                                            ),
+                                                            no: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.no',
+                                                            ),
+                                                        }}
+                                                        .value=${
+                                                            data.stemCellsFromEmbryosDestroyed || ''
+                                                        }></dbp-form-enum-view>
+                                                `
+                                              : ''
+                                      }
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2104,8 +2140,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.commerciallyAvailableCells ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.commerciallyAvailableCells || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           data-condition="no"
@@ -2122,21 +2159,25 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.cellsObtainedInResearch ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.cellsObtainedInResearch || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.cellsObtainedInResearch
-                                          ? html`
-                                                <dbp-form-string-view
-                                                    subscribe="lang"
-                                                    name="tissueOrCellsSource"
-                                                    label="1.5.5.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
-                                                    )}"
-                                                    value=${data.tissueOrCellsSource ||
-                                                    ''}></dbp-form-string-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.cellsObtainedInResearch
+                                              ? html`
+                                                    <dbp-form-string-view
+                                                        subscribe="lang"
+                                                        name="tissueOrCellsSource"
+                                                        label="1.5.5.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
+                                                        )}"
+                                                        value=${
+                                                            data.tissueOrCellsSource || ''
+                                                        }></dbp-form-string-view>
+                                                `
+                                              : ''
+                                      }
                                   </div>
                               `
                             : ''
@@ -2182,8 +2223,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.isAnimalVertebrate ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.isAnimalVertebrate || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2199,8 +2241,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.nonHumanPrimates ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.nonHumanPrimates || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2216,8 +2259,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.geneticallyModifiedAnimals ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.geneticallyModifiedAnimals || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2233,8 +2277,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.endangeredSpecies ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.endangeredSpecies || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2250,8 +2295,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.alternativesToUseLaboratoryAnimals ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.alternativesToUseLaboratoryAnimals || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2267,8 +2313,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.laboratoryAnimalsHarmed ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.laboratoryAnimalsHarmed || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2300,8 +2347,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.relevantLegalDocumentAvailable ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.relevantLegalDocumentAvailable || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2317,8 +2365,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.authorizedForOrganRemoval ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.authorizedForOrganRemoval || ''
+                                          }></dbp-form-enum-view>
                                   </div>
                               `
                             : ''
@@ -2371,8 +2420,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           label="3.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
-                                          .value=${data.adequateSafetyMeasures ||
-                                          ''}></dbp-form-string-view>
+                                          .value=${
+                                              data.adequateSafetyMeasures || ''
+                                          }></dbp-form-string-view>
                                   `
                                 : ''
                         }
@@ -2408,8 +2458,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           label="3.4.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.appropriate-use-of-resources-label',
                                           )}"
-                                          value=${data.appropriateUseOfResources ||
-                                          ''}></dbp-form-string-view>
+                                          value=${
+                                              data.appropriateUseOfResources || ''
+                                          }></dbp-form-string-view>
                                   `
                                 : ''
                         }
@@ -2473,29 +2524,33 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.thirdCountriesLocalResources ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.thirdCountriesLocalResources || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.thirdCountriesLocalResources
-                                          ? html`
-                                                <dbp-form-enum-view
-                                                    subscribe="lang"
-                                                    name="questionResearchFounds"
-                                                    label="4.1.2.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.question-research-founds-label',
-                                                    )}"
-                                                    .items=${{
-                                                        yes: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.yes',
-                                                        ),
-                                                        no: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.no',
-                                                        ),
-                                                    }}
-                                                    .value=${data.questionResearchFounds ||
-                                                    ''}></dbp-form-enum-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.thirdCountriesLocalResources
+                                              ? html`
+                                                    <dbp-form-enum-view
+                                                        subscribe="lang"
+                                                        name="questionResearchFounds"
+                                                        label="4.1.2.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.question-research-founds-label',
+                                                        )}"
+                                                        .items=${{
+                                                            yes: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.yes',
+                                                            ),
+                                                            no: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.no',
+                                                            ),
+                                                        }}
+                                                        .value=${
+                                                            data.questionResearchFounds || ''
+                                                        }></dbp-form-enum-view>
+                                                `
+                                              : ''
+                                      }
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2511,8 +2566,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.importMaterialFromThirdCountries ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.importMaterialFromThirdCountries || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2528,8 +2584,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.lowIncomeCountries ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.lowIncomeCountries || ''
+                                          }></dbp-form-enum-view>
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
@@ -2546,26 +2603,30 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.exposeParticipantsToRisk ||
-                                          ''}></dbp-form-enum-view>
+                                          .value=${
+                                              data.exposeParticipantsToRisk || ''
+                                          }></dbp-form-enum-view>
 
-                                      ${this.conditionalFields.exposeParticipantsToRisk
-                                          ? html`
-                                                <dbp-form-string-view
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this.conditionalFields
-                                                                .exposeParticipantsToRisk,
-                                                    })}"
-                                                    subscribe="lang"
-                                                    name="riskCountries"
-                                                    label="4.1.5.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.risk-countries-label',
-                                                    )}"
-                                                    value=${data.riskCountries ||
-                                                    ''}></dbp-form-string-view>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.exposeParticipantsToRisk
+                                              ? html`
+                                                    <dbp-form-string-view
+                                                        class="${classMap({
+                                                            'fade-in':
+                                                                this.conditionalFields
+                                                                    .exposeParticipantsToRisk,
+                                                        })}"
+                                                        subscribe="lang"
+                                                        name="riskCountries"
+                                                        label="4.1.5.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.risk-countries-label',
+                                                        )}"
+                                                        value=${
+                                                            data.riskCountries || ''
+                                                        }></dbp-form-string-view>
+                                                `
+                                              : ''
+                                      }
                                   </div>
                               `
                             : ''
@@ -2602,8 +2663,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           label="5.1.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.replace-human-decision-making-examples-label',
                                           )}"
-                                          value=${data.replaceHumanDecisionMakingExamples ||
-                                          ''}></dbp-form-string-view>
+                                          value=${
+                                              data.replaceHumanDecisionMakingExamples || ''
+                                          }></dbp-form-string-view>
                                   `
                                 : ''
                         }
@@ -2669,8 +2731,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           label="5.6. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.ethical-issues-list-label',
                                           )}"
-                                          value=${data.ethicalIssuesList ||
-                                          ''}></dbp-form-string-view>
+                                          value=${
+                                              data.ethicalIssuesList || ''
+                                          }></dbp-form-string-view>
                                   `
                                 : ''
                         }
@@ -2701,8 +2764,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="6.1.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-of-interest-list-label',
                                       )}"
-                                      value=${data.conflictOfInterestList ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.conflictOfInterestList || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -2744,8 +2808,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="6.2.3. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.consequences-of-blocking-label',
                                       )}"
-                                      value=${data.consequencesOfBlocking ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.consequencesOfBlocking || ''
+                                      }></dbp-form-string-view>
 
                                   <dbp-form-string-view
                                       subscribe="lang"
@@ -2753,8 +2818,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="6.2.4. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.can-be-done-despite-restrictions-label',
                                       )}"
-                                      value=${data.canBeDoneDespiteRestrictions ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.canBeDoneDespiteRestrictions || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -2780,8 +2846,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="6.3.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.conflict-in-content-control-list-label',
                                       )}"
-                                      value=${data.conflictInContentControlList ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.conflictInContentControlList || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -2813,8 +2880,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           ),
                                           no: i18n.t('render-form.forms.ethics-commission-form.no'),
                                       }}
-                                      .value=${data.hasProvisionForAppropriateRecognition ||
-                                      ''}></dbp-form-enum-view>
+                                      .value=${
+                                          data.hasProvisionForAppropriateRecognition || ''
+                                      }></dbp-form-enum-view>
                               `
                             : ''
                     }
@@ -2886,8 +2954,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="7.4.1. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.diversity-aspects-examples-label',
                                       )}"
-                                      value=${data.diversityAspectsExamples ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.diversityAspectsExamples || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -2992,8 +3061,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       label="8.7. ${i18n.t(
                                           'render-form.forms.ethics-commission-form.has-negative-effects-list-label',
                                       )}"
-                                      value=${data.hasNegativeEffectsList ||
-                                      ''}></dbp-form-string-view>
+                                      value=${
+                                          data.hasNegativeEffectsList || ''
+                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -3413,8 +3483,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           ),
                                       }}
                                       multiple
-                                      .value=${data.qualificationWork ||
-                                      ''}></dbp-form-enum-element>
+                                      .value=${
+                                          data.qualificationWork || ''
+                                      }></dbp-form-enum-element>
 
                                   <dbp-form-string-element
                                       class="${classMap({
@@ -3479,8 +3550,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           description="${i18n.t(
                                               'render-form.forms.ethics-commission-form.filled-by-admins-warning',
                                           )}"
-                                          value=${data.studyDescriptionDateOfTransmission ||
-                                          ''}></dbp-form-date-element>
+                                          value=${
+                                              data.studyDescriptionDateOfTransmission || ''
+                                          }></dbp-form-date-element>
 
                                       <dbp-form-boolean-element
                                           subscribe="lang"
@@ -3488,8 +3560,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.data-protection-checked-label',
                                           )}"
-                                          ?state=${data.dataProtectionChecked ||
-                                          false}></dbp-form-boolean-element>
+                                          ?state=${
+                                              data.dataProtectionChecked || false
+                                          }></dbp-form-boolean-element>
 
                                       <dbp-form-date-element
                                           subscribe="lang"
@@ -3500,8 +3573,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           description="${i18n.t(
                                               'render-form.forms.ethics-commission-form.filled-by-admins-warning',
                                           )}"
-                                          value=${data.dataProtectionDate ||
-                                          ''}></dbp-form-date-element>
+                                          value=${
+                                              data.dataProtectionDate || ''
+                                          }></dbp-form-date-element>
                                   </div>
                               `
                             : ''
@@ -3732,8 +3806,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsVoluntary ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsVoluntary || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3751,8 +3826,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.isSelfExperiment ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.isSelfExperiment || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3770,8 +3846,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsInformedConsent ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsInformedConsent || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3789,8 +3866,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsConsentSigned ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsConsentSigned || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3808,8 +3886,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsWithdrawPossible ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsWithdrawPossible || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3827,8 +3906,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsDependent ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsDependent || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3846,8 +3926,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsVulnerable ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsVulnerable || ''
+                                          }></dbp-form-enum-element>
                                   </div>
 
                                   <div class="question-group">
@@ -3874,8 +3955,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.invasiveTechniquesUsed ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.invasiveTechniquesUsed || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3893,8 +3975,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.influenceOnBrainActivity ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.influenceOnBrainActivity || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3913,28 +3996,31 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsTortured ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsTortured || ''
+                                          }></dbp-form-enum-element>
 
-                                      ${this.conditionalFields.testSubjectsTortured
-                                          ? html`
-                                                <dbp-form-string-element
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this.conditionalFields
-                                                                .testSubjectsTortured,
-                                                    })}"
-                                                    subscribe="lang"
-                                                    name="testSubjectsTorturedExamples"
-                                                    maxlength="1000"
-                                                    rows="3"
-                                                    label="1.2.3.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
-                                                    )}"
-                                                    value=${data.testSubjectsTorturedExamples || ''}
-                                                    required></dbp-form-string-element>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.testSubjectsTortured
+                                              ? html`
+                                                    <dbp-form-string-element
+                                                        class="${classMap({
+                                                            'fade-in':
+                                                                this.conditionalFields
+                                                                    .testSubjectsTortured,
+                                                        })}"
+                                                        subscribe="lang"
+                                                        name="testSubjectsTorturedExamples"
+                                                        maxlength="1000"
+                                                        rows="3"
+                                                        label="1.2.3.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.test-subjects-tortured-example-label',
+                                                        )}"
+                                                        value=${data.testSubjectsTorturedExamples || ''}
+                                                        required></dbp-form-string-element>
+                                                `
+                                              : ''
+                                      }
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3952,8 +4038,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsHarmed ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsHarmed || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3971,8 +4058,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsRisksJustified ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsRisksJustified || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -3991,29 +4079,33 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsRiskMinimized ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsRiskMinimized || ''
+                                          }></dbp-form-enum-element>
 
-                                      ${this.conditionalFields.testSubjectsRiskMinimized
-                                          ? html`
-                                                <dbp-form-string-element
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this.conditionalFields
-                                                                .testSubjectsRiskMinimized,
-                                                    })}"
-                                                    subscribe="lang"
-                                                    name="riskMinimizationSteps"
-                                                    label="1.2.6.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.risk-minimization-steps-label',
-                                                    )}"
-                                                    maxlength="1000"
-                                                    rows="3"
-                                                    required
-                                                    value=${data.riskMinimizationSteps ||
-                                                    ''}></dbp-form-string-element>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.testSubjectsRiskMinimized
+                                              ? html`
+                                                    <dbp-form-string-element
+                                                        class="${classMap({
+                                                            'fade-in':
+                                                                this.conditionalFields
+                                                                    .testSubjectsRiskMinimized,
+                                                        })}"
+                                                        subscribe="lang"
+                                                        name="riskMinimizationSteps"
+                                                        label="1.2.6.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.risk-minimization-steps-label',
+                                                        )}"
+                                                        maxlength="1000"
+                                                        rows="3"
+                                                        required
+                                                        value=${
+                                                            data.riskMinimizationSteps || ''
+                                                        }></dbp-form-string-element>
+                                                `
+                                              : ''
+                                      }
                                   </div>
 
                                   <div class="question-group">
@@ -4039,8 +4131,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.testSubjectsReasonableToParticipate ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.testSubjectsReasonableToParticipate || ''
+                                          }></dbp-form-enum-element>
                                   </div>
                               `
                             : ''
@@ -4090,8 +4183,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.legalDocumentsAvailable ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.legalDocumentsAvailable || ''
+                                              }></dbp-form-enum-element>
 
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4109,8 +4203,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.disturbanceOfPeaceOfDead ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.disturbanceOfPeaceOfDead || ''
+                                              }></dbp-form-enum-element>
                                       </div>
                                   `
                                 : ''
@@ -4161,8 +4256,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.humanTissueUsed ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.humanTissueUsed || ''
+                                              }></dbp-form-enum-element>
 
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4181,36 +4277,40 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.humanStemCellsUsed ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.humanStemCellsUsed || ''
+                                              }></dbp-form-enum-element>
 
-                                          ${this.conditionalFields.humanStemCellsUsed
-                                              ? html`
-                                                    <dbp-form-enum-element
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .humanStemCellsUsed,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="stemCellsFromEmbryos"
-                                                        display-mode="list"
-                                                        required
-                                                        label="1.5.2.1. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
-                                                        )}"
-                                                        .items=${{
-                                                            yes: i18n.t(
-                                                                'render-form.forms.ethics-commission-form.yes',
-                                                            ),
-                                                            no: i18n.t(
-                                                                'render-form.forms.ethics-commission-form.no',
-                                                            ),
-                                                        }}
-                                                        .value=${data.stemCellsFromEmbryos ||
-                                                        ''}></dbp-form-enum-element>
-                                                `
-                                              : ''}
+                                          ${
+                                              this.conditionalFields.humanStemCellsUsed
+                                                  ? html`
+                                                        <dbp-form-enum-element
+                                                            class="${classMap({
+                                                                'fade-in':
+                                                                    this.conditionalFields
+                                                                        .humanStemCellsUsed,
+                                                            })}"
+                                                            subscribe="lang"
+                                                            name="stemCellsFromEmbryos"
+                                                            display-mode="list"
+                                                            required
+                                                            label="1.5.2.1. ${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.stem-cells-from-embryos-label',
+                                                            )}"
+                                                            .items=${{
+                                                                yes: i18n.t(
+                                                                    'render-form.forms.ethics-commission-form.yes',
+                                                                ),
+                                                                no: i18n.t(
+                                                                    'render-form.forms.ethics-commission-form.no',
+                                                                ),
+                                                            }}
+                                                            .value=${
+                                                                data.stemCellsFromEmbryos || ''
+                                                            }></dbp-form-enum-element>
+                                                    `
+                                                  : ''
+                                          }
 
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4229,36 +4329,41 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.useOfHumanEmbryos ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.useOfHumanEmbryos || ''
+                                              }></dbp-form-enum-element>
 
-                                          ${this.conditionalFields.useOfHumanEmbryos
-                                              ? html`
-                                                    <dbp-form-enum-element
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .useOfHumanEmbryos,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="stemCellsFromEmbryosDestroyed"
-                                                        display-mode="list"
-                                                        required
-                                                        label="1.5.3.1. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
-                                                        )}"
-                                                        .items=${{
-                                                            yes: i18n.t(
-                                                                'render-form.forms.ethics-commission-form.yes',
-                                                            ),
-                                                            no: i18n.t(
-                                                                'render-form.forms.ethics-commission-form.no',
-                                                            ),
-                                                        }}
-                                                        .value=${data.stemCellsFromEmbryosDestroyed ||
-                                                        ''}></dbp-form-enum-element>
-                                                `
-                                              : ''}
+                                          ${
+                                              this.conditionalFields.useOfHumanEmbryos
+                                                  ? html`
+                                                        <dbp-form-enum-element
+                                                            class="${classMap({
+                                                                'fade-in':
+                                                                    this.conditionalFields
+                                                                        .useOfHumanEmbryos,
+                                                            })}"
+                                                            subscribe="lang"
+                                                            name="stemCellsFromEmbryosDestroyed"
+                                                            display-mode="list"
+                                                            required
+                                                            label="1.5.3.1. ${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.stem-cells-from-embryos-destroyed-label',
+                                                            )}"
+                                                            .items=${{
+                                                                yes: i18n.t(
+                                                                    'render-form.forms.ethics-commission-form.yes',
+                                                                ),
+                                                                no: i18n.t(
+                                                                    'render-form.forms.ethics-commission-form.no',
+                                                                ),
+                                                            }}
+                                                            .value=${
+                                                                data.stemCellsFromEmbryosDestroyed ||
+                                                                ''
+                                                            }></dbp-form-enum-element>
+                                                    `
+                                                  : ''
+                                          }
 
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4276,8 +4381,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.commerciallyAvailableCells ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.commerciallyAvailableCells || ''
+                                              }></dbp-form-enum-element>
 
                                           <dbp-form-enum-element
                                               subscribe="lang"
@@ -4296,28 +4402,31 @@ class FormalizeFormElement extends BaseFormElement {
                                                       'render-form.forms.ethics-commission-form.no',
                                                   ),
                                               }}
-                                              .value=${data.cellsObtainedInResearch ||
-                                              ''}></dbp-form-enum-element>
+                                              .value=${
+                                                  data.cellsObtainedInResearch || ''
+                                              }></dbp-form-enum-element>
 
-                                          ${this.conditionalFields.cellsObtainedInResearch
-                                              ? html`
-                                                    <dbp-form-string-element
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .cellsObtainedInResearch,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="tissueOrCellsSource"
-                                                        maxlength="1000"
-                                                        rows="3"
-                                                        label="1.5.5.1. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
-                                                        )}"
-                                                        value=${data.tissueOrCellsSource || ''}
-                                                        required></dbp-form-string-element>
-                                                `
-                                              : ''}
+                                          ${
+                                              this.conditionalFields.cellsObtainedInResearch
+                                                  ? html`
+                                                        <dbp-form-string-element
+                                                            class="${classMap({
+                                                                'fade-in':
+                                                                    this.conditionalFields
+                                                                        .cellsObtainedInResearch,
+                                                            })}"
+                                                            subscribe="lang"
+                                                            name="tissueOrCellsSource"
+                                                            maxlength="1000"
+                                                            rows="3"
+                                                            label="1.5.5.1. ${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.tissue-or-cells-source-label',
+                                                            )}"
+                                                            value=${data.tissueOrCellsSource || ''}
+                                                            required></dbp-form-string-element>
+                                                    `
+                                                  : ''
+                                          }
                                       </div>
                                   `
                                 : ''
@@ -4371,8 +4480,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.isAnimalVertebrate ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.isAnimalVertebrate || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4390,8 +4500,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.nonHumanPrimates ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.nonHumanPrimates || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4409,8 +4520,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.geneticallyModifiedAnimals ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.geneticallyModifiedAnimals || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4428,8 +4540,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.endangeredSpecies ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.endangeredSpecies || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4447,8 +4560,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.alternativesToUseLaboratoryAnimals ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.alternativesToUseLaboratoryAnimals || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4466,8 +4580,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.laboratoryAnimalsHarmed ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.laboratoryAnimalsHarmed || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4485,8 +4600,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.isRiskJustified ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.isRiskJustified || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4504,8 +4620,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.relevantLegalDocumentAvailable ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.relevantLegalDocumentAvailable || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4523,8 +4640,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.authorizedForOrganRemoval ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.authorizedForOrganRemoval || ''
+                                          }></dbp-form-enum-element>
                                   </div>
                               `
                             : ''
@@ -4590,8 +4708,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           label="3.3.1. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.adequate-safety-measures-label',
                                           )}"
-                                          .value=${data.adequateSafetyMeasures ||
-                                          ''}></dbp-form-string-element>
+                                          .value=${
+                                              data.adequateSafetyMeasures || ''
+                                          }></dbp-form-string-element>
                                   `
                                 : ''
                         }
@@ -4692,8 +4811,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.ethicalIssues ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.ethicalIssues || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4712,36 +4832,40 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.thirdCountriesLocalResources ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.thirdCountriesLocalResources || ''
+                                          }></dbp-form-enum-element>
 
-                                      ${this.conditionalFields.thirdCountriesLocalResources
-                                          ? html`
-                                                <dbp-form-enum-element
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this.conditionalFields
-                                                                .thirdCountriesLocalResources,
-                                                    })}"
-                                                    subscribe="lang"
-                                                    name="questionResearchFounds"
-                                                    display-mode="list"
-                                                    required
-                                                    label="4.1.2.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.question-research-founds-label',
-                                                    )}"
-                                                    .items=${{
-                                                        yes: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.yes',
-                                                        ),
-                                                        no: i18n.t(
-                                                            'render-form.forms.ethics-commission-form.no',
-                                                        ),
-                                                    }}
-                                                    .value=${data.questionResearchFounds ||
-                                                    ''}></dbp-form-enum-element>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.thirdCountriesLocalResources
+                                              ? html`
+                                                    <dbp-form-enum-element
+                                                        class="${classMap({
+                                                            'fade-in':
+                                                                this.conditionalFields
+                                                                    .thirdCountriesLocalResources,
+                                                        })}"
+                                                        subscribe="lang"
+                                                        name="questionResearchFounds"
+                                                        display-mode="list"
+                                                        required
+                                                        label="4.1.2.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.question-research-founds-label',
+                                                        )}"
+                                                        .items=${{
+                                                            yes: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.yes',
+                                                            ),
+                                                            no: i18n.t(
+                                                                'render-form.forms.ethics-commission-form.no',
+                                                            ),
+                                                        }}
+                                                        .value=${
+                                                            data.questionResearchFounds || ''
+                                                        }></dbp-form-enum-element>
+                                                `
+                                              : ''
+                                      }
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4759,8 +4883,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.importMaterialFromThirdCountries ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.importMaterialFromThirdCountries || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4778,8 +4903,9 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.lowIncomeCountries ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.lowIncomeCountries || ''
+                                          }></dbp-form-enum-element>
 
                                       <dbp-form-enum-element
                                           subscribe="lang"
@@ -4798,28 +4924,31 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.no',
                                               ),
                                           }}
-                                          .value=${data.exposeParticipantsToRisk ||
-                                          ''}></dbp-form-enum-element>
+                                          .value=${
+                                              data.exposeParticipantsToRisk || ''
+                                          }></dbp-form-enum-element>
 
-                                      ${this.conditionalFields.exposeParticipantsToRisk
-                                          ? html`
-                                                <dbp-form-string-element
-                                                    class="${classMap({
-                                                        'fade-in':
-                                                            this.conditionalFields
-                                                                .exposeParticipantsToRisk,
-                                                    })}"
-                                                    subscribe="lang"
-                                                    name="riskCountries"
-                                                    maxlength="1000"
-                                                    rows="3"
-                                                    label="4.1.5.1. ${i18n.t(
-                                                        'render-form.forms.ethics-commission-form.risk-countries-label',
-                                                    )}"
-                                                    value=${data.riskCountries || ''}
-                                                    required></dbp-form-string-element>
-                                            `
-                                          : ''}
+                                      ${
+                                          this.conditionalFields.exposeParticipantsToRisk
+                                              ? html`
+                                                    <dbp-form-string-element
+                                                        class="${classMap({
+                                                            'fade-in':
+                                                                this.conditionalFields
+                                                                    .exposeParticipantsToRisk,
+                                                        })}"
+                                                        subscribe="lang"
+                                                        name="riskCountries"
+                                                        maxlength="1000"
+                                                        rows="3"
+                                                        label="4.1.5.1. ${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.risk-countries-label',
+                                                        )}"
+                                                        value=${data.riskCountries || ''}
+                                                        required></dbp-form-string-element>
+                                                `
+                                              : ''
+                                      }
                                   </div>
                               `
                             : ''
@@ -5152,8 +5281,9 @@ class FormalizeFormElement extends BaseFormElement {
                                           ),
                                           no: i18n.t('render-form.forms.ethics-commission-form.no'),
                                       }}
-                                      .value=${data.hasProvisionForAppropriateRecognition ||
-                                      ''}></dbp-form-enum-element>
+                                      .value=${
+                                          data.hasProvisionForAppropriateRecognition || ''
+                                      }></dbp-form-enum-element>
                               `
                             : ''
                     }
@@ -5359,8 +5489,9 @@ class FormalizeFormElement extends BaseFormElement {
                                       )}"
                                       rows="3"
                                       required
-                                      value=${data.hasNegativeEffectsList ||
-                                      ''}></dbp-form-string-element>
+                                      value=${
+                                          data.hasNegativeEffectsList || ''
+                                      }></dbp-form-string-element>
                               `
                             : ''
                     }
@@ -5461,10 +5592,12 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <button
                                           class="button is-secondary upload-button upload-button--voting"
-                                          .disabled=${this.fileUploadCounts['voting'] >=
-                                              this.fileUploadLimits?.allowedFileUploadCount
-                                                  ?.voting &&
-                                          this.filesByGroup['voting']?.filesToRemove?.size === 0}
+                                          .disabled=${
+                                              this.fileUploadCounts['voting'] >=
+                                                  this.fileUploadLimits?.allowedFileUploadCount
+                                                      ?.voting &&
+                                              this.filesByGroup['voting']?.filesToRemove?.size === 0
+                                          }
                                           @click="${(event) => {
                                               this.currentUploadGroup = 'voting';
                                               this.openFilePicker(event);
