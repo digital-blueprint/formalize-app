@@ -1,6 +1,5 @@
 {
     "create-form": {
-        "cancel": "Abbrechen",
         "create": "Erstellen",
         "dialog-title": "Neues Formular erstellen",
         "error-create-failed": "Formular konnte nicht erstellt werden. Antwortstatus: {{status}}",

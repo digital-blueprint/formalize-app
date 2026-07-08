@@ -342,40 +342,30 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 <div slot="header">
                     <!-- Action bar: Cancel (left) + Create/Save (right) -->
                     <div class="dialog-actions-bar">
-                        <button
-                            class="button is-secondary cancel-btn"
-                            type="button"
-                            @click="${() => this.close()}">
-                            <dbp-icon class="btn-icon" name="close" aria-hidden="true"></dbp-icon>
-                            ${t('create-form.cancel')}
-                        </button>
+                        <p class="required-fields-hint">
+                            <span class="required-marker">
+                                ${t('render-form.required-files-asterisk')}
+                            </span>
+                            ${t('render-form.required-files-text')}
+                        </p>
                         <button
                             class="button is-primary save-btn"
                             type="button"
                             ?disabled="${saveDisabled}"
                             @click="${this._onSave}">
-                            ${
-                                this._isSubmitting
-                                    ? html`
-                                          <dbp-mini-spinner></dbp-mini-spinner>
-                                      `
-                                    : html`
-                                          <dbp-icon
-                                              class="btn-icon"
-                                              name="save"
-                                              aria-hidden="true"></dbp-icon>
-                                      `
-                            }
+                            ${this._isSubmitting
+                                ? html`
+                                      <dbp-mini-spinner></dbp-mini-spinner>
+                                  `
+                                : html`
+                                      <dbp-icon
+                                          class="btn-icon"
+                                          name="save"
+                                          aria-hidden="true"></dbp-icon>
+                                  `}
                             ${isEdit ? t('edit-form.save') : t('create-form.create')}
                         </button>
                     </div>
-
-                    <p class="required-fields-hint">
-                        <span class="required-marker">
-                            ${t('render-form.required-files-asterisk')}
-                        </span>
-                        ${t('render-form.required-files-text')}
-                    </p>
 
                     <!-- In-dialog notifications (appear above the modal, anchored to it) -->
                     <dbp-notification
@@ -386,52 +376,46 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
 
                 <!-- Form content -->
                 <div slot="content" class="dialog-content">
-                    ${
-                        generalSectionTitle
-                            ? html`
-                                  <h4 class="form-section-heading">${generalSectionTitle}</h4>
-                              `
-                            : ''
-                    }
+                    ${generalSectionTitle
+                        ? html`
+                              <h4 class="form-section-heading">${generalSectionTitle}</h4>
+                          `
+                        : ''}
 
                     <!-- Form type selector: only shown when there are multiple create options -->
-                    ${
-                        showFormTypeSelector
-                            ? html`
-                                  <div class="form-field">
-                                      <label class="form-label" for="form-type-select">
-                                          ${t('create-form.field-form-type')}
-                                          <span class="required-marker">*</span>
-                                      </label>
-                                      <div class="select-wrapper">
-                                          <select
-                                              id="form-type-select"
-                                              class="form-select"
-                                              .value="${this._selectedModuleSlug}"
-                                              @change="${this._onFormTypeChange}">
-                                              <option
-                                                  value=""
-                                                  ?selected="${this._selectedModuleSlug === ''}">
-                                                  ${t('create-form.field-form-type-placeholder')}
-                                              </option>
-                                              ${this.creatableModules.map(
-                                                  (m) => html`
-                                                      <option
-                                                          value="${m.formSlug}"
-                                                          ?selected="${
-                                                              this._selectedModuleSlug ===
-                                                              m.formSlug
-                                                          }">
-                                                          ${m.formName || m.formSlug}
-                                                      </option>
-                                                  `,
-                                              )}
-                                          </select>
-                                      </div>
+                    ${showFormTypeSelector
+                        ? html`
+                              <div class="form-field">
+                                  <label class="form-label" for="form-type-select">
+                                      ${t('create-form.field-form-type')}
+                                      <span class="required-marker">*</span>
+                                  </label>
+                                  <div class="select-wrapper">
+                                      <select
+                                          id="form-type-select"
+                                          class="form-select"
+                                          .value="${this._selectedModuleSlug}"
+                                          @change="${this._onFormTypeChange}">
+                                          <option
+                                              value=""
+                                              ?selected="${this._selectedModuleSlug === ''}">
+                                              ${t('create-form.field-form-type-placeholder')}
+                                          </option>
+                                          ${this.creatableModules.map(
+                                              (m) => html`
+                                                  <option
+                                                      value="${m.formSlug}"
+                                                      ?selected="${this._selectedModuleSlug ===
+                                                      m.formSlug}">
+                                                      ${m.formName || m.formSlug}
+                                                  </option>
+                                              `,
+                                          )}
+                                      </select>
                                   </div>
-                              `
-                            : ''
-                    }
+                              </div>
+                          `
+                        : ''}
 
                     <!-- Container where the edit-form component is mounted imperatively -->
                     <div
@@ -471,11 +455,6 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 0.5rem;
-            }
-
-            .required-fields-hint {
-                margin: 0 0 0.75rem;
             }
 
             .cancel-btn,
