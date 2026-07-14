@@ -24,6 +24,7 @@ import {
     SUBMISSION_STATES,
     getFormRenderUrl,
     SUBMISSION_PERMISSIONS,
+    FORM_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
     addDetailsToUrl,
@@ -1478,8 +1479,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const grants =
                 this.formsGrantedActions.get(formId) ?? row.getData().grantedActions ?? [];
             return (
-                grants.includes(SUBMISSION_PERMISSIONS.DELETE) ||
-                grants.includes(SUBMISSION_PERMISSIONS.MANAGE)
+                grants.includes(FORM_PERMISSIONS.DELETE) || grants.includes(FORM_PERMISSIONS.MANAGE)
             );
         });
     }
@@ -1524,8 +1524,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             // Skip forms the user is not allowed to delete.
             if (
-                !grants.includes(SUBMISSION_PERMISSIONS.DELETE) &&
-                !grants.includes(SUBMISSION_PERMISSIONS.MANAGE)
+                !grants.includes(FORM_PERMISSIONS.DELETE) &&
+                !grants.includes(FORM_PERMISSIONS.MANAGE)
             ) {
                 index++;
                 continue;

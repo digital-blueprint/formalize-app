@@ -50,6 +50,15 @@ export const SUBMISSION_PERMISSIONS = Object.freeze({
     READ_ADD_REMOVE_TAGS: 'read_add_remove_tags',
 });
 
+// Granted actions returned by the API on a form resource. Used to determine
+// which actions the current user may perform on a given form.
+export const FORM_PERMISSIONS = Object.freeze({
+    READ: 'read',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    MANAGE: 'manage',
+});
+
 export const TAG_PERMISSIONS = Object.freeze({
     NONE: 0,
     READ: 1,
