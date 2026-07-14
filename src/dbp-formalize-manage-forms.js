@@ -1423,8 +1423,17 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const selectedRows = tableEvent.detail.selected;
         const deSelectedRows = tableEvent.detail.deselected;
 
-        const activeTable =
-            selectedRows.length > 0 ? selectedRows[0].getTable() : deSelectedRows[0].getTable();
+        // The event can fire with both arrays empty (e.g. when a table clears
+        // its selection while rebuilding). In that case there is no row to
+        // derive the originating table from, so just refresh the forms bulk
+        // action state (selection is now empty) and bail out.
+        const referenceRow = selectedRows[0] ?? deSelectedRows[0];
+        if (!referenceRow) {
+            this.setFormsActionButtonsState();
+            return;
+        }
+
+        const activeTable = referenceRow.getTable();
 
         const root = activeTable.element.getRootNode();
         if (root instanceof ShadowRoot) {
