@@ -48,6 +48,7 @@ import {
     getListOfAllForms,
     getAllFormSubmissions,
     apiDeleteSubmission,
+    apiDeleteForm,
     apiUpdateSubmissionTags,
     apiGetTags,
     humanReadableDate,
@@ -150,6 +151,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.rawSubmissions = [];
         this.submissionsGrantedActions = new Map();
+        // Maps a form identifier to its grantedActions array (used to gate bulk form deletion).
+        this.formsGrantedActions = new Map();
+        // Number of currently selected forms in the overview table.
+        this.selectedFormsCount = 0;
+        // Whether deleting the selected forms is allowed (all selected forms grant delete/manage).
+        this.isDeleteSelectedFormsEnabled = false;
         this.submissions = {
             draft: [],
             submitted: [],
@@ -333,6 +340,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
             isEditSubmissionEnabled: {type: Boolean, attribute: false},
+
+            selectedFormsCount: {type: Number, attribute: false},
+            isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
 
             selectedRowCount: {type: Object, attribute: false},
             allRowCount: {type: Object, attribute: false},
@@ -522,9 +532,32 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.options_forms = {
             langs: langs_forms,
             layout: 'fitColumns',
+            selectableRows: 'highlight',
+            rowHeader: {
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                titleFormatterParams: {
+                    rowRange: 'visible',
+                },
+                headerSort: false,
+                resizable: false,
+                frozen: true,
+                headerHozAlign: 'center',
+                hozAlign: 'center',
+                // With the "fitColumns" layout every column grows to fill the row.
+                // Pin the selection column to the checkbox width so it doesn't
+                // stretch across the table like it did before.
+                width: 40,
+                minWidth: 40,
+                widthGrow: 0,
+                widthShrink: 0,
+            },
             columns: [
                 {field: 'id', width: 64, sorter: 'number'},
                 {field: 'name', sorter: 'string'},
+                // Hidden helper columns carrying data needed for bulk deletion.
+                {field: 'formId', visible: false},
+                {field: 'grantedActions', visible: false},
                 {
                     field: 'actionButton',
                     formatter: 'html',
@@ -1396,11 +1429,107 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const root = activeTable.element.getRootNode();
         if (root instanceof ShadowRoot) {
             const tabulatorTableComponent = root.host;
+
+            // The forms overview table has its own selection handling for bulk deletion.
+            if (tabulatorTableComponent.identifier === 'forms-table') {
+                this.setFormsActionButtonsState();
+                return;
+            }
+
             const state = this.getTableState(tabulatorTableComponent.identifier);
             this.selectedRowCount = {...this.selectedRowCount, [state]: selectedRows.length};
 
             this.setIsActionAvailable(state);
         }
+    }
+
+    /**
+     * Recompute whether the currently selected forms can be deleted.
+     * Deletion is only allowed when every selected form grants the delete
+     * (or manage) permission via its grantedActions.
+     */
+    setFormsActionButtonsState() {
+        if (!this.formsTable?.tabulatorTable) {
+            this.selectedFormsCount = 0;
+            this.isDeleteSelectedFormsEnabled = false;
+            return;
+        }
+
+        const selectedRows = this.formsTable.tabulatorTable.getSelectedRows();
+        this.selectedFormsCount = selectedRows.length;
+
+        if (selectedRows.length === 0) {
+            this.isDeleteSelectedFormsEnabled = false;
+            return;
+        }
+
+        // Every selected form must grant delete or manage for the bulk action to be allowed.
+        this.isDeleteSelectedFormsEnabled = selectedRows.every((row) => {
+            const formId = row.getData().formId;
+            const grants =
+                this.formsGrantedActions.get(formId) ?? row.getData().grantedActions ?? [];
+            return (
+                grants.includes(SUBMISSION_PERMISSIONS.DELETE) ||
+                grants.includes(SUBMISSION_PERMISSIONS.MANAGE)
+            );
+        });
+    }
+
+    /**
+     * Delete the currently selected forms after confirmation.
+     * Only forms whose grantedActions allow deletion are removed.
+     */
+    async handleDeleteForms() {
+        if (!this.formsTable?.tabulatorTable) return;
+
+        const rows = this.formsTable.tabulatorTable.getSelectedRows();
+        const data = this.formsTable.tabulatorTable.getSelectedData();
+
+        if (data.length === 0) {
+            sendNotification({
+                summary: this._i18n.t('errors.warning-title'),
+                body: this._i18n.t('manage-forms.no-form-selected'),
+                type: 'warning',
+                timeout: 10,
+            });
+            return;
+        }
+
+        const deletionModal = this._('#deletion-modal');
+        const confirmed = deletionModal ? await deletionModal.confirm() : false;
+        if (!confirmed) return;
+
+        let responseStatus = [];
+        let index = 0;
+        for (const form of data) {
+            const formId = form.formId;
+            const grants = this.formsGrantedActions.get(formId) ?? form.grantedActions ?? [];
+
+            // Skip forms the user is not allowed to delete.
+            if (
+                !grants.includes(SUBMISSION_PERMISSIONS.DELETE) &&
+                !grants.includes(SUBMISSION_PERMISSIONS.MANAGE)
+            ) {
+                index++;
+                continue;
+            }
+
+            const response = await apiDeleteForm(this, formId);
+            responseStatus.push(response);
+
+            if (response === true) {
+                rows[index].delete();
+                this.formsGrantedActions.delete(formId);
+                // Remove the deleted form from the cached lists.
+                this.allForms = this.allForms.filter((entry) => entry.formId !== formId);
+                this.forms.delete(formId);
+            }
+            index++;
+        }
+
+        this.noFormsAvailable = this.allForms.length === 0;
+        this.setFormsActionButtonsState();
+        successFailureNotification(this, responseStatus);
     }
 
     // -----------------------------------------------------------------------
@@ -2072,8 +2201,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .optionsForms=${this.options_forms}
                     .noFormsAvailable=${this.noFormsAvailable}
                     .creatableModulesCount=${this.creatableModulesCount}
-                    @create-form-request=${() =>
-                        this.handleOpenCreateFormDialog()}></dbp-formalize-manage-forms-overview-page>
+                    .selectedFormsCount=${this.selectedFormsCount}
+                    .isDeleteSelectedFormsEnabled=${this.isDeleteSelectedFormsEnabled}
+                    @create-form-request=${() => this.handleOpenCreateFormDialog()}
+                    @delete-forms-request=${() =>
+                        this.handleDeleteForms()}></dbp-formalize-manage-forms-overview-page>
 
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"

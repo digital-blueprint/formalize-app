@@ -21,6 +21,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.noFormsAvailable = false;
         // Number of modules that implement createForm(); the button is only shown when > 0
         this.creatableModulesCount = 0;
+        // Number of currently selected forms in the overview table.
+        this.selectedFormsCount = 0;
+        // Whether the selected forms may be deleted (all of them grant delete/manage).
+        this.isDeleteSelectedFormsEnabled = false;
     }
 
     static get scopedElements() {
@@ -42,6 +46,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             optionsForms: {type: Object, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
             creatableModulesCount: {type: Number, attribute: false},
+            selectedFormsCount: {type: Number, attribute: false},
+            isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -90,6 +96,22 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     top: 0;
                 }
 
+                .delete-forms-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                }
+
+                .delete-forms-btn-icon {
+                    flex-shrink: 0;
+                    top: 0;
+                }
+
+                .delete-forms-btn[disabled] {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
                 .hidden {
                     display: none;
                 }
@@ -113,6 +135,18 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         );
     }
 
+    /**
+     * Dispatches an event to request deletion of the selected forms.
+     */
+    _onDeleteSelectedFormsClick() {
+        this.dispatchEvent(
+            new CustomEvent('delete-forms-request', {
+                bubbles: true,
+                composed: true,
+            }),
+        );
+    }
+
     render() {
         const i18n = this._i18n;
 
@@ -125,6 +159,20 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         })}">
                         <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                     </span>
+                    <button
+                        class="button delete-forms-btn ${classMap({
+                            hidden: this.selectedFormsCount === 0,
+                        })}"
+                        type="button"
+                        ?disabled="${!this.isDeleteSelectedFormsEnabled}"
+                        title="${i18n.t('manage-forms.delete-selected-forms-button')}"
+                        @click="${this._onDeleteSelectedFormsClick}">
+                        <dbp-icon
+                            class="delete-forms-btn-icon"
+                            name="trash"
+                            aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-forms.delete-selected-forms-button')}
+                    </button>
                     <button
                         class="button is-primary create-form-btn ${classMap({
                             hidden: this.creatableModulesCount === 0,

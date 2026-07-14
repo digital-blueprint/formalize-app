@@ -173,6 +173,11 @@ export async function getListOfAllForms(host) {
                 loadedModuleFormIds.add(entry.formId);
             }
 
+            // Reset the per-form permission map so it reflects the current API response.
+            if (host.formsGrantedActions instanceof Map) {
+                host.formsGrantedActions.clear();
+            }
+
             let id = 0;
             for (let x = 0; x < data['hydra:member'].length; x++) {
                 const entry = data['hydra:member'][x];
@@ -285,7 +290,19 @@ export async function getListOfAllForms(host) {
                     actionContainer.appendChild(editBtn);
                 }
 
-                let new_form = {id: id, name: formName, actionButton: actionContainer};
+                // Store the granted actions for this form so the overview can gate bulk deletion.
+                const grantedActions = entry['grantedActions'] ?? [];
+                if (host.formsGrantedActions instanceof Map) {
+                    host.formsGrantedActions.set(formId, grantedActions);
+                }
+
+                let new_form = {
+                    id: id,
+                    name: formName,
+                    formId: formId,
+                    grantedActions: grantedActions,
+                    actionButton: actionContainer,
+                };
                 forms.push(new_form);
             }
 
@@ -886,6 +903,43 @@ export async function apiUpdateForm(host, formIdentifier, formData) {
             timeout: 0,
         });
         return null;
+    }
+}
+
+/**
+ * Delete a single form via DELETE /formalize/forms/{identifier}.
+ *
+ * @param {object} host - The ManageForms element (needs host.auth, host.entryPointUrl, host._i18n).
+ * @param {string} formIdentifier - The identifier of the form to delete.
+ * @returns {Promise<boolean>} true on success, false on failure.
+ */
+export async function apiDeleteForm(host, formIdentifier) {
+    if (!formIdentifier) {
+        sendNotification({
+            summary: host._i18n.t('errors.error-title'),
+            body: host._i18n.t('errors.no-form-id-provided'),
+            type: 'danger',
+            timeout: 0,
+        });
+        return false;
+    }
+
+    try {
+        const response = await fetch(host.entryPointUrl + '/formalize/forms/' + formIdentifier, {
+            method: 'DELETE',
+            headers: {
+                Authorization: 'Bearer ' + host.auth.token,
+            },
+        });
+
+        if (!response.ok) {
+            console.warn(`Failed to delete form. Response status: ${response.status}`);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error(error.message);
+        return false;
     }
 }
 
