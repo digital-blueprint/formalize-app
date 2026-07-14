@@ -101,6 +101,8 @@
         "delete-confirmation-message-li1": "This action cannot be undone.",
         "delete-confirmation-message-li2": "Deleted submissions will be permanently lost for you and all contributors.",
         "delete-confirmation-title": "Confirm deletion",
+        "delete-forms-confirmation-message": "Are you sure you want to delete the selected form(s)?",
+        "delete-forms-confirmation-message-li2": "Deleted forms will be permanently lost for you and all contributors.",
         "delete-selected-forms-button": "Delete selected forms",
         "delete-selected-submissions-button-text": "Delete selected ({{n}})",
         "detailed-submission-dialog-id": "{{id}} of {{nItems}}",

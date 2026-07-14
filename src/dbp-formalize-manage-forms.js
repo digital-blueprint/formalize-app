@@ -1496,7 +1496,15 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         const deletionModal = this._('#deletion-modal');
-        const confirmed = deletionModal ? await deletionModal.confirm() : false;
+        // Pass form-specific confirmation wording for this invocation only.
+        // The override is scoped to this call and does not mutate the shared
+        // modal, so the submission deletion flow keeps its own text.
+        const confirmed = deletionModal
+            ? await deletionModal.confirm({
+                  messageKey: 'manage-forms.delete-forms-confirmation-message',
+                  messageLi2Key: 'manage-forms.delete-forms-confirmation-message-li2',
+              })
+            : false;
         if (!confirmed) return;
 
         let responseStatus = [];
@@ -2289,6 +2297,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             <dbp-formalize-deletion-confirmation-modal
                 id="deletion-modal"
+                lang-dir="${this.langDir}"
                 subscribe="lang"></dbp-formalize-deletion-confirmation-modal>
 
             <dbp-formalize-batch-tagging-modal

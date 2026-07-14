@@ -101,6 +101,8 @@
         "delete-confirmation-message-li1": "Diese Aktion kann nicht rückgängig gemacht werden.",
         "delete-confirmation-message-li2": "Gelöschte Einreichungen werden für Sie und alle Mitwirkenden unwiderruflich verloren sein.",
         "delete-confirmation-title": "Löschen bestätigen",
+        "delete-forms-confirmation-message": "Sind Sie sicher, dass Sie die ausgewählten Formulare löschen möchten?",
+        "delete-forms-confirmation-message-li2": "Gelöschte Formulare werden für Sie und alle Mitwirkenden unwiderruflich verloren sein.",
         "delete-selected-forms-button": "Ausgewählte Formulare löschen",
         "delete-selected-submissions-button-text": "Ausgewählte löschen ({{n}})",
         "detailed-submission-dialog-id": "{{id}} von {{nItems}}",
