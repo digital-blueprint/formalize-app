@@ -24,6 +24,8 @@
         "feature-not-implemented": "Funktion noch nicht implementiert",
         "form-submission-failed": "Formular konnte nicht gesendet werden. Antwortstatus: {{status}}\n{{details}}",
         "form-validation-warning-notification-body": "Das Formular ist ungültig oder enthält fehlende Angaben. Bitte korrigieren Sie dies vor dem Absenden.",
+        "forms-processing-failed_one": "{{count}} Formular konnte nicht verarbeitet werden",
+        "forms-processing-failed_other": "{{count}} Formulare konnten nicht verarbeitet werden",
         "invalid-submission-data": "Ungültige Absendedaten",
         "no-form-id-provided": "Keine Formular-ID angegeben",
         "no-submission-id-provided": "Keine Absendungs-ID angegeben",
@@ -507,6 +509,8 @@
         "form-saved-successfully": "Formularübermittlung erfolgreich gespeichert",
         "form-submission-deleted-successfully": "Formularübermittlung erfolgreich gelöscht",
         "form-submitted-successfully": "Das Formular wurde erfolgreich übermittelt",
+        "forms-processed_one": "{{count}} Formular wurde erfolgreich verarbeitet",
+        "forms-processed_other": "{{count}} Formulare wurden erfolgreich verarbeitet",
         "submissions-processed_one": "{{count}} Einreichung wurde erfolgreich verarbeitet",
         "submissions-processed_other": "{{count}} Einreichungen wurden erfolgreich verarbeitet",
         "success-title": "Erfolgreich"

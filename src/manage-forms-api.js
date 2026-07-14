@@ -958,13 +958,21 @@ export function dateToTimestamp(dateInput) {
  * Send success/failure notifications for a batch of operations.
  * @param {object} host
  * @param {boolean[]} responseStatus
+ * @param {object} [messageKeys] Optional overrides for the notification body
+ *   translation keys so callers can tailor the wording (e.g. forms vs.
+ *   submissions). Defaults to the submission wording.
+ * @param {string} [messageKeys.successKey]
+ * @param {string} [messageKeys.failureKey]
  */
-export function successFailureNotification(host, responseStatus) {
+export function successFailureNotification(host, responseStatus, messageKeys = {}) {
+    const successKey = messageKeys.successKey || 'success.submissions-processed';
+    const failureKey = messageKeys.failureKey || 'errors.submissions-processing-failed';
+
     const successCount = responseStatus.filter((status) => status === true).length;
     if (successCount > 0) {
         sendNotification({
             summary: host._i18n.t('success.success-title'),
-            body: host._i18n.t('success.submissions-processed', {count: successCount}),
+            body: host._i18n.t(successKey, {count: successCount}),
             type: 'success',
             timeout: 5,
         });
@@ -974,7 +982,7 @@ export function successFailureNotification(host, responseStatus) {
     if (errorCount > 0) {
         sendNotification({
             summary: host._i18n.t('errors.error-title'),
-            body: host._i18n.t('errors.submissions-processing-failed', {count: errorCount}),
+            body: host._i18n.t(failureKey, {count: errorCount}),
             type: 'danger',
             timeout: 0,
         });

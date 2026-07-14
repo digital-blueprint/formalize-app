@@ -24,6 +24,8 @@
         "feature-not-implemented": "Feature not yet implemented",
         "form-submission-failed": "Failed to submit form. Response status: {{status}}\n{{details}}",
         "form-validation-warning-notification-body": "The form is not valid, or missing content. Please fix before submitting",
+        "forms-processing-failed_one": "{{count}} form failed to be processed",
+        "forms-processing-failed_other": "{{count}} forms failed to be processed",
         "invalid-submission-data": "Invalid submission data",
         "no-form-id-provided": "No form ID is provided",
         "no-submission-id-provided": "No submission ID is provided",
@@ -507,6 +509,8 @@
         "form-saved-successfully": "Form submission saved successfully",
         "form-submission-deleted-successfully": "form submission deleted successfully",
         "form-submitted-successfully": "The form has been submitted successfully",
+        "forms-processed_one": "{{count}} form processed successfully",
+        "forms-processed_other": "{{count}} forms processed successfully",
         "submissions-processed_one": "{{count}} submission processed successfully",
         "submissions-processed_other": "{{count}} submissions processed successfully",
         "success-title": "Success"

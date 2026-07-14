@@ -71,6 +71,22 @@ import {
     updateSubmissionTable,
 } from './manage-forms-table-config.js';
 
+/**
+ * Statically reference translation keys that are only resolved dynamically
+ * (passed as strings to helpers such as successFailureNotification). Without
+ * this, the i18next extractor would treat them as unused and prune them.
+ * The `{count}` argument ensures the plural (`_one`/`_other`) variants are
+ * generated/kept.
+ *
+ * @param {(key: string, options?: object) => string} t
+ */
+const keepDynamicTranslations = (t) => {
+    t('success.forms-processed', {count: 0});
+    t('errors.forms-processing-failed', {count: 0});
+    t('success.submissions-processed', {count: 0});
+    t('errors.submissions-processing-failed', {count: 0});
+};
+
 // Accept JSON arrays and comma-separated HTML attribute values for frontendKey lists.
 function parseFormListAttribute(value) {
     console.log('parseFormListAttribute input:', value);
@@ -1546,7 +1562,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         this.noFormsAvailable = this.allForms.length === 0;
         this.setFormsActionButtonsState();
-        successFailureNotification(this, responseStatus);
+        // Keep the dynamically referenced notification keys in the i18next output.
+        keepDynamicTranslations((key) => this._i18n.t(key));
+        successFailureNotification(this, responseStatus, {
+            successKey: 'success.forms-processed',
+            failureKey: 'errors.forms-processing-failed',
+        });
     }
 
     // -----------------------------------------------------------------------
