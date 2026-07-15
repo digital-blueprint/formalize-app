@@ -157,6 +157,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: {},
         };
         this.options_forms = {};
+        // Bulk removal of forms in the overview is opt-in and disabled by default.
+        // This has to be initialized before updateFormsTableOptions() because
+        // that method decides whether the forms table gets row selection.
+        this.enableFormsBulkDelete = false;
         // Initialize the forms table options (including `langs`) up front so the
         // table can be built before the `lang`/`langDir` branch of updated() runs.
         // Otherwise buildTable() may access options.langs while it is still undefined.
@@ -278,8 +282,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.allowListFrontendKeys = [];
         this.denyListFrontendKeys = [];
         this.hideCreateSubmissionButton = false;
-        // Bulk removal of forms in the overview is opt-in and disabled by default.
-        this.enableFormsBulkDelete = false;
         this.noFormsAvailable = false;
         // Number of loaded modules that implement createForm(); drives button visibility
         this.creatableModulesCount = 0;
@@ -613,6 +615,26 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return null;
     }
 
+    rebuildFormsTable() {
+        this.refreshTableReferences();
+        if (!this.formsTable) return;
+
+        // The child component receives `options_forms` through Lit rendering.
+        // When this method is called during the same update cycle that changes
+        // `options_forms`, that render may not have propagated yet. Push the
+        // fresh options directly before rebuilding so Tabulator never builds
+        // from stale options without the row-selection header.
+        this.formsTable.options = this.options_forms;
+        this.formsTable.data = this.allForms;
+
+        if (this.formsTable.tabulatorTable) {
+            this.formsTable.tabulatorTable.destroy();
+        }
+        this.formsTable.tableReady = false;
+        this.formsTable.tableBuilding = false;
+        this.formsTable.buildTable();
+    }
+
     async firstUpdated() {
         this.refreshTableReferences();
 
@@ -652,13 +674,18 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             setSubmissionFormOptions(this, 'draft');
             setSubmissionFormOptions(this, 'submitted');
 
-            this.refreshTableReferences();
-            if (this.formsTable?.tabulatorTable) {
-                this.formsTable.tabulatorTable.destroy();
-                this.formsTable.tableReady = false;
-                this.formsTable.tableBuilding = false;
-                this.formsTable.buildTable();
-            }
+            this.rebuildFormsTable();
+        }
+
+        if (
+            changedProperties.has('enableFormsBulkDelete') &&
+            !changedProperties.has('lang') &&
+            !changedProperties.has('langDir')
+        ) {
+            this.updateFormsTableOptions();
+            this.setFormsActionButtonsState();
+
+            this.rebuildFormsTable();
         }
 
         if (changedProperties.has('allForms')) {
@@ -705,6 +732,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         // built yet.  If it is already showing, just update
                         // the data in-place so the user doesn't see a flash.
                         if (!this.formsTable.tableReady) {
+                            this.formsTable.options = this.options_forms;
+                            this.formsTable.data = this.allForms;
                             this.formsTable.buildTable();
                         } else {
                             this.formsTable.setData(this.allForms);
@@ -720,6 +749,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.noFormsAvailable = true;
                 this.refreshTableReferences();
                 if (this.formsTable) {
+                    this.formsTable.options = this.options_forms;
+                    this.formsTable.data = [];
                     this.formsTable.buildTable();
                 }
                 this.loadingFormsTable = false;
@@ -760,6 +791,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.refreshTableReferences();
                     if (this.formsTable) {
                         if (!this.formsTable.tableReady) {
+                            this.formsTable.options = this.options_forms;
+                            this.formsTable.data = this.allForms;
                             this.formsTable.buildTable();
                         }
                         this.loadingFormsTable = false;
@@ -2062,6 +2095,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.refreshTableReferences();
         if (this.formsTable) {
             if (!this.formsTable.tableReady) {
+                this.formsTable.options = this.options_forms;
+                this.formsTable.data = this.allForms;
                 this.formsTable.buildTable();
             } else {
                 this.formsTable.setData(this.allForms);
