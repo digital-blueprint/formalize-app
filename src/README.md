@@ -24,6 +24,8 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `deny-list-frontend-keys="job-offer"`
 - `hide-create-submission-button` (optional): hides the create submission button in the submissions view when set
     - example `hide-create-submission-button`
+- `enable-forms-bulk-delete` (optional, default: off): enables bulk removal of forms in the forms overview when set; deletion is still gated per form by the user's granted actions (`delete`/`manage`)
+    - example `enable-forms-bulk-delete`
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider

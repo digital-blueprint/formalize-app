@@ -278,6 +278,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.allowListFrontendKeys = [];
         this.denyListFrontendKeys = [];
         this.hideCreateSubmissionButton = false;
+        // Bulk removal of forms in the overview is opt-in and disabled by default.
+        this.enableFormsBulkDelete = false;
         this.noFormsAvailable = false;
         // Number of loaded modules that implement createForm(); drives button visibility
         this.creatableModulesCount = 0;
@@ -388,6 +390,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             hideCreateSubmissionButton: {
                 type: Boolean,
                 attribute: 'hide-create-submission-button',
+            },
+            enableFormsBulkDelete: {
+                type: Boolean,
+                attribute: 'enable-forms-bulk-delete',
             },
         };
     }
@@ -549,26 +555,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.options_forms = {
             langs: langs_forms,
             layout: 'fitColumns',
-            selectableRows: 'highlight',
-            rowHeader: {
-                formatter: 'rowSelection',
-                titleFormatter: 'rowSelection',
-                titleFormatterParams: {
-                    rowRange: 'visible',
-                },
-                headerSort: false,
-                resizable: false,
-                frozen: true,
-                headerHozAlign: 'center',
-                hozAlign: 'center',
-                // With the "fitColumns" layout every column grows to fill the row.
-                // Pin the selection column to the checkbox width so it doesn't
-                // stretch across the table like it did before.
-                width: 40,
-                minWidth: 40,
-                widthGrow: 0,
-                widthShrink: 0,
-            },
             columns: [
                 {field: 'id', width: 64, sorter: 'number'},
                 {field: 'name', sorter: 'string'},
@@ -589,6 +575,30 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 resizable: false,
             },
         };
+
+        // Row selection is only needed when bulk form removal is enabled.
+        if (this.enableFormsBulkDelete) {
+            this.options_forms.selectableRows = 'highlight';
+            this.options_forms.rowHeader = {
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                titleFormatterParams: {
+                    rowRange: 'visible',
+                },
+                headerSort: false,
+                resizable: false,
+                frozen: true,
+                headerHozAlign: 'center',
+                hozAlign: 'center',
+                // With the "fitColumns" layout every column grows to fill the row.
+                // Pin the selection column to the checkbox width so it doesn't
+                // stretch across the table like it did before.
+                width: 40,
+                minWidth: 40,
+                widthGrow: 0,
+                widthShrink: 0,
+            };
+        }
     }
 
     getTableState(tableId) {
@@ -1475,7 +1485,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * (or manage) permission via its grantedActions.
      */
     setFormsActionButtonsState() {
-        if (!this.formsTable?.tabulatorTable) {
+        if (!this.enableFormsBulkDelete || !this.formsTable?.tabulatorTable) {
             this.selectedFormsCount = 0;
             this.isDeleteSelectedFormsEnabled = false;
             return;
@@ -1505,7 +1515,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * Only forms whose grantedActions allow deletion are removed.
      */
     async handleDeleteForms() {
-        if (!this.formsTable?.tabulatorTable) return;
+        if (!this.enableFormsBulkDelete || !this.formsTable?.tabulatorTable) return;
 
         const rows = this.formsTable.tabulatorTable.getSelectedRows();
         const data = this.formsTable.tabulatorTable.getSelectedData();
@@ -2239,6 +2249,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .optionsForms=${this.options_forms}
                     .noFormsAvailable=${this.noFormsAvailable}
                     .creatableModulesCount=${this.creatableModulesCount}
+                    .enableFormsBulkDelete=${this.enableFormsBulkDelete}
                     .selectedFormsCount=${this.selectedFormsCount}
                     .isDeleteSelectedFormsEnabled=${this.isDeleteSelectedFormsEnabled}
                     @create-form-request=${() => this.handleOpenCreateFormDialog()}

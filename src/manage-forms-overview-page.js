@@ -21,6 +21,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.noFormsAvailable = false;
         // Number of modules that implement createForm(); the button is only shown when > 0
         this.creatableModulesCount = 0;
+        // Whether bulk removal of forms is enabled (opt-in via the host attribute).
+        this.enableFormsBulkDelete = false;
         // Number of currently selected forms in the overview table.
         this.selectedFormsCount = 0;
         // Whether the selected forms may be deleted (all of them grant delete/manage).
@@ -46,6 +48,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             optionsForms: {type: Object, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
             creatableModulesCount: {type: Number, attribute: false},
+            enableFormsBulkDelete: {type: Boolean, attribute: false},
             selectedFormsCount: {type: Number, attribute: false},
             isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
         };
@@ -161,7 +164,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     </span>
                     <button
                         class="button delete-forms-btn ${classMap({
-                            hidden: this.selectedFormsCount === 0,
+                            hidden: !this.enableFormsBulkDelete || this.selectedFormsCount === 0,
                         })}"
                         type="button"
                         ?disabled="${!this.isDeleteSelectedFormsEnabled}"
