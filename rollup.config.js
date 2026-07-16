@@ -5,7 +5,13 @@ import serve from 'rollup-plugin-serve';
 import license from 'rollup-plugin-license';
 import emitEJS from 'rollup-plugin-emit-ejs';
 import {getBabelOutputPlugin} from '@rollup/plugin-babel';
-import {getPackagePath, getBuildInfo, getDistPath, assetPlugin} from '@dbp-toolkit/dev-utils';
+import {
+    getPackagePath,
+    getBuildInfo,
+    getDistPath,
+    assetPlugin,
+    getResolveModules,
+} from '@dbp-toolkit/dev-utils';
 import {createRequire} from 'module';
 
 const require = createRequire(import.meta.url);
@@ -142,6 +148,9 @@ export default (async () => {
             sourcemap: true,
             minify: doMinify,
             cleanDir: true,
+        },
+        resolve: {
+            modules: getResolveModules(),
         },
         moduleTypes: {
             '.css': 'js', // work around rolldown handling the CSS import before the URL plugin can
