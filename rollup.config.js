@@ -143,10 +143,6 @@ export default (async () => {
             minify: doMinify,
             cleanDir: true,
         },
-        experimental: {
-            // https://github.com/rolldown/rolldown/issues/8361
-            chunkOptimization: false,
-        },
         moduleTypes: {
             '.css': 'js', // work around rolldown handling the CSS import before the URL plugin can
         },
