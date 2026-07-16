@@ -101,6 +101,14 @@ export default class extends BaseObject {
                     'render-form.forms.ethics-commission-form.one-publication-label',
                 ),
             },
+            dataProtectionChecked: {
+                'yes-at': t(
+                    'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
+                ),
+                not: t(
+                    'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
+                ),
+            },
         };
     }
 }
@@ -130,7 +138,7 @@ class FormalizeFormElement extends BaseFormElement {
             complyWithSustainabilityStrategy: false,
             deadBodies: false,
             diversityAspects: false,
-            exposeParticipantsToRisk: false,
+            lowIncomeCountries: false,
             harmfulSubstancesOnSubjects: false,
             hasConfidentialPart: false,
             hasConflictInContentControl: false,
@@ -140,7 +148,7 @@ class FormalizeFormElement extends BaseFormElement {
             humanStemCells: false,
             humanStemCellsUsed: false,
             isNewSubmission: false,
-            isResearchProject: true,
+            isResearchProject: false,
             nonEuCountries: false,
             potentiallyStigmatizePeople: false,
             replaceHumanDecisionMaking: false,
@@ -516,6 +524,7 @@ class FormalizeFormElement extends BaseFormElement {
         const i18n = this._i18n;
         // Access the data from the event detail
         const data = event.detail;
+
         // const validationResult = data.validationResult;
 
         // POST or PATCH
@@ -629,8 +638,6 @@ class FormalizeFormElement extends BaseFormElement {
                 this.filesByGroup[fileGroup] = backup;
             }
 
-            this.requestUpdate();
-
             console.error(error);
             sendNotification({
                 summary: i18n.t('errors.error-title'),
@@ -638,9 +645,6 @@ class FormalizeFormElement extends BaseFormElement {
                 type: 'danger',
                 timeout: 0,
             });
-        } finally {
-            // @TODO: We don't need this since we switch to read-only mode after saving draft
-            // this.setButtonStates();
         }
     }
 
@@ -1105,9 +1109,20 @@ class FormalizeFormElement extends BaseFormElement {
 
                 const slot = el.querySelector('[slot="label"]');
                 if (slot) {
-                    const slotLabel = slot.textContent;
                     const label = document.createElement('label');
-                    label.textContent = slotLabel;
+
+                    // Check if a dbp-translated component is inside the slot.
+                    // If so, extract only the content for the current language,
+                    // otherwise we would get all languages concatenated.
+                    const translated = slot.querySelector('dbp-translated');
+                    if (translated) {
+                        const translationSlot = translated.querySelector(`[slot="${this.lang}"]`);
+                        if (translationSlot) {
+                            label.innerHTML = translationSlot.innerHTML;
+                        }
+                    } else {
+                        label.textContent = slot.textContent;
+                    }
 
                     const fieldset = wrapper.querySelector('fieldset');
                     fieldset.prepend(label);
@@ -1232,6 +1247,13 @@ class FormalizeFormElement extends BaseFormElement {
                 </dbp-form-enum-view>
 
                 <article>
+
+                    <dbp-form-string-view
+                        subscribe="lang"
+                        name="registryNumber"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.registry-number-label')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.registry-number-description')}"
+                        value=${data.registryNumber || ''}></dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
@@ -1408,35 +1430,34 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${
                                           data.namesOfSupervisingPersons || ''
                                       }></dbp-form-string-view>
+
+                                  <dbp-form-enum-view
+                                      subscribe="lang"
+                                      name="isPublicationPlanned"
+                                      label="${i18n.t('render-form.forms.ethics-commission-form.is-publication-planned-label')}"
+                                      .items=${{
+                                          'no-publication': i18n.t(
+                                              'render-form.forms.ethics-commission-form.no-publication-label',
+                                          ),
+                                          'one-publication': i18n.t(
+                                              'render-form.forms.ethics-commission-form.one-publication-label',
+                                          ),
+                                      }}
+                                      .value=${data.isPublicationPlanned || ''}></dbp-form-enum-view>
                               `
                             : ''
                     }
 
-                    <dbp-form-enum-view
-                        subscribe="lang"
-                        name="isPublicationPlanned"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.is-publication-planned-label')}"
-                        .items=${{
-                            'no-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.no-publication-label',
-                            ),
-                            'one-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.one-publication-label',
-                            ),
-                        }}
-                        .value=${data.isPublicationPlanned || ''}>
-                    </dbp-form-enum-view>
-
                     ${
                         this.isAdmin
                             ? html`
-                                  <dbp-form-string-view
+                                  <dbp-form-date-view
                                       subscribe="lang"
                                       name="studyDescription"
                                       label="${i18n.t(
                                           'render-form.forms.ethics-commission-form.study-description-label',
                                       )}"
-                                      value=${data.studyDescription || ''}></dbp-form-string-view>
+                                      value=${data.studyDescription || ''}></dbp-form-date-view>
 
                                   <dbp-form-date-view
                                       subscribe="lang"
@@ -1448,32 +1469,49 @@ class FormalizeFormElement extends BaseFormElement {
                                           data.studyDescriptionDateOfTransmission || ''
                                       }></dbp-form-date-view>
 
-                                  <div class="dbp-form-boolean-view" name="dataProtectionChecked">
-                                      <fieldset>
-                                          <label>
-                                              ${i18n.t(
-                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label',
-                                              )}
-                                          </label>
-                                          ${
-                                              data.dataProtectionChecked === true
-                                                  ? i18n.t(
-                                                        'render-form.forms.ethics-commission-form.yes',
-                                                    )
-                                                  : i18n.t(
-                                                        'render-form.forms.ethics-commission-form.no',
-                                                    )
-                                          }
-                                      </fieldset>
-                                  </div>
-
-                                  <dbp-form-date-view
+                                  <dbp-form-enum-view
                                       subscribe="lang"
-                                      name="dataProtectionDate"
+                                      name="dataProtectionChecked"
                                       label="${i18n.t(
-                                          'render-form.forms.ethics-commission-form.data-protection-date-label',
+                                          'render-form.forms.ethics-commission-form.data-protection-checked-label',
                                       )}"
-                                      value=${data.dataProtectionDate || ''}></dbp-form-date-view>
+                                      .items=${{
+                                          'yes-at': i18n.t(
+                                              'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
+                                          ),
+                                          not: i18n.t(
+                                              'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
+                                          ),
+                                      }}
+                                      .value=${data.dataProtectionChecked || ''}></dbp-form-enum-view>
+
+                                  ${
+                                      data.dataProtectionChecked === 'yes-at'
+                                          ? html`
+                                                <dbp-form-date-view
+                                                    subscribe="lang"
+                                                    name="dataProtectionDate"
+                                                    label="${i18n.t(
+                                                        'render-form.forms.ethics-commission-form.data-protection-date-label',
+                                                    )}"
+                                                    value=${
+                                                        data.dataProtectionDate || ''
+                                                    }></dbp-form-date-view>
+                                            `
+                                          : data.dataProtectionChecked === 'not'
+                                            ? html`
+                                                  <dbp-form-string-view
+                                                      subscribe="lang"
+                                                      name="dataProtectionComment"
+                                                      label="${i18n.t(
+                                                          'render-form.forms.ethics-commission-form.data-protection-comment-label',
+                                                      )}"
+                                                      value=${
+                                                          data.dataProtectionComment || ''
+                                                      }></dbp-form-string-view>
+                                              `
+                                            : ''
+                                  }
                               `
                             : ''
                     }
@@ -2573,6 +2611,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-enum-view
                                           subscribe="lang"
                                           name="lowIncomeCountries"
+                                          data-condition="yes"
                                           label="4.1.4. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.low-income-countries-label',
                                           )}"
@@ -2590,7 +2629,6 @@ class FormalizeFormElement extends BaseFormElement {
 
                                       <dbp-form-enum-view
                                           subscribe="lang"
-                                          data-condition="yes"
                                           name="exposeParticipantsToRisk"
                                           label="4.1.5. ${i18n.t(
                                               'render-form.forms.ethics-commission-form.expose-participants-to-risk-label',
@@ -2608,17 +2646,17 @@ class FormalizeFormElement extends BaseFormElement {
                                           }></dbp-form-enum-view>
 
                                       ${
-                                          this.conditionalFields.exposeParticipantsToRisk
+                                          this.conditionalFields.lowIncomeCountries
                                               ? html`
                                                     <dbp-form-string-view
                                                         class="${classMap({
                                                             'fade-in':
                                                                 this.conditionalFields
-                                                                    .exposeParticipantsToRisk,
+                                                                    .lowIncomeCountries,
                                                         })}"
                                                         subscribe="lang"
                                                         name="riskCountries"
-                                                        label="4.1.5.1. ${i18n.t(
+                                                        label="4.1.6. ${i18n.t(
                                                             'render-form.forms.ethics-commission-form.risk-countries-label',
                                                         )}"
                                                         value=${
@@ -2642,12 +2680,21 @@ class FormalizeFormElement extends BaseFormElement {
                             subscribe="lang"
                             data-condition="yes"
                             name="replaceHumanDecisionMaking"
-                            label="5.1. ${i18n.t('render-form.forms.ethics-commission-form.replace-human-decision-making-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.replaceHumanDecisionMaking || ''}>
+                            <span slot="label">
+                                <dbp-translated subscribe="lang">
+                                    <div slot="de">
+                                        5.1. Können die im Forschungsvorhaben eingesetzten informationsverarbeitenden Systeme menschliche ethisch relevante Entscheidungen im Projekt beeinflussen, ersetzen oder umgehen?
+                                    </div>
+                                    <div slot="en">
+                                        5.1. Can the information processing systems used in the research project influence, replace, or circumvent human decisions of ethical relevance?
+                                    </div>
+                                </dbp-translated>
+                            </span>
                         </dbp-form-enum-view>
 
                         ${
@@ -2811,16 +2858,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${
                                           data.consequencesOfBlocking || ''
                                       }></dbp-form-string-view>
-
-                                  <dbp-form-string-view
-                                      subscribe="lang"
-                                      name="canBeDoneDespiteRestrictions"
-                                      label="6.2.4. ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.can-be-done-despite-restrictions-label',
-                                      )}"
-                                      value=${
-                                          data.canBeDoneDespiteRestrictions || ''
-                                      }></dbp-form-string-view>
                               `
                             : ''
                     }
@@ -2916,12 +2953,21 @@ class FormalizeFormElement extends BaseFormElement {
                     <dbp-form-enum-view
                         subscribe="lang"
                         name="fairCompensation"
-                        label="7.3. ${i18n.t('render-form.forms.ethics-commission-form.fair-compensation-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.fairCompensation || ''}>
+                        <span slot="label">
+                            <dbp-translated subscribe="lang">
+                                <div slot="de">
+                                    7.3. Gibt es eine angemessene und faire Entlohnung für unterschiedliche Tätigkeiten im Projekt (z.B.: auch für die Annotierung und Bearbeitung von Datensätzen)?
+                                </div>
+                                <div slot="en">
+                                    7.3. Is there appropriate and fair remuneration for different activities in the project (e.g. also for annotating and processing data records)?
+                                </div>
+                            </dbp-translated>
+                        </span>
                     </dbp-form-enum-view>
 
                     <dbp-form-enum-view
@@ -2969,12 +3015,21 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         name="humanDecisionInfluence"
                         data-condition="yes"
-                        label="8.1. ${i18n.t('render-form.forms.ethics-commission-form.human-decision-influence-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.humanDecisionInfluence || ''}>
+                        <span slot="label">
+                            <dbp-translated subscribe="lang">
+                                <div slot="de">
+                                    8.1. Können die im Forschungsvorhaben entwickelten informationsverarbeitenden Systeme menschliche, ethisch relevante Entscheidungen beeinflussen, ersetzen oder umgehen?
+                                </div>
+                                <div slot="en">
+                                    8.1. Can the information processing systems developed in the research project influence, replace, or circumvent human decisions that have ethical implications?
+                                </div>
+                            </dbp-translated>
+                        </span>
                     </dbp-form-enum-view>
 
                     <dbp-form-enum-view
@@ -3074,11 +3129,11 @@ class FormalizeFormElement extends BaseFormElement {
                     <div class="description">
                         <dbp-translated subscribe="lang">
                             <div slot="en">
-                                <p>If applicable: Please enclose questionnaires, survey forms or tasks addressed to participants with your application.</p>
+                                <p>If applicable: Please enclose all documents intended for study participants (informed consent forms, questionnaires, survey forms, or task instructions) with your application.</p>
                                 <p>If necessary, you can enclose further documents that you consider relevant for the assessment of your research project as a whole.</p>
                             </div>
                             <div slot="de">
-                                <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
+                                <p>Falls zutreffend: Bitte legen Sie alle an Proband*innen gerichtete Dokumente (Einverständniserklärung/Informed Consent, Fragebögen, Erhebungsbögen oder Aufgabenstellungen) Ihrem Antrag bei.</p>
                                 <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
                             </div>
                         </dbp-translated>
@@ -3092,20 +3147,9 @@ class FormalizeFormElement extends BaseFormElement {
                             ${this.renderAttachedFilesHtml('attachments')}
                         </div>
                     </div>
-
-                    <h3 class="section-title section-title--top-margin">${i18n.t('render-form.forms.ethics-commission-form.admin-voting-results-title')}</h3>
-
-                    <div class="file-upload-container">
-
-                        <h4 class="attachments-title">${i18n.t('render-form.download-widget.attachments-title')}</h4>
-
-                        <div class="uploaded-files">
-                            ${this.renderAttachedFilesHtml('voting')}
-                        </div>
-                    </div>
                 </article>
 
-                <article>
+                <article class="article-consent">
                     <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-consent-title')}</h3>
 
                     <div class="description">
@@ -3173,6 +3217,25 @@ class FormalizeFormElement extends BaseFormElement {
                         </dbp-translated>
                     </div>
                 </article>
+
+                <article class="article-votum-file-attachments">
+                    <h3 class="section-title section-title--top-margin">${i18n.t('render-form.forms.ethics-commission-form.admin-voting-results-title')}</h3>
+
+                    <div class="file-upload-container">
+
+                        <h4 class="attachments-title">${i18n.t('render-form.download-widget.attachments-title')}</h4>
+
+                        <div class="uploaded-files">
+                            ${this.renderAttachedFilesHtml('voting')}
+                        </div>
+                    </div>
+                </article>
+
+                <dbp-form-string-view
+                    subscribe="lang"
+                    name="comments"
+                    label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
+                    value=${data.comments || ''}></dbp-form-string-view>
             </form>
 
             <dbp-file-sink
@@ -3286,9 +3349,16 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <dbp-form-string-element
                         subscribe="lang"
+                        name="registryNumber"
+                        maxlength="1000"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.registry-number-label')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.registry-number-description')}"
+                        value=${data.registryNumber || ''}></dbp-form-string-element>
+
+                    <dbp-form-string-element
+                        subscribe="lang"
                         name="userTitle"
                         maxlength="1000"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.user-title')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.user-title')}"
                         required
                         value=${data.userTitle || ''}>
@@ -3298,7 +3368,6 @@ class FormalizeFormElement extends BaseFormElement {
                         subscribe="lang"
                         name="userTitleShort"
                         maxlength="1000"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.user-title-short')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.user-title-short')}"
                         required
                         value=${data.userTitleShort || ''}>
@@ -3310,11 +3379,10 @@ class FormalizeFormElement extends BaseFormElement {
                         maxlength="1000"
                         placeholder="${i18n.t('render-form.forms.ethics-commission-form.applicant-placeholder')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.applicant-label')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}"
                         required
                         value=${data.applicant || ''}>
                     </dbp-form-string-element>
-
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}</p>
 
                     <dbp-form-string-element
                         subscribe="lang"
@@ -3331,7 +3399,6 @@ class FormalizeFormElement extends BaseFormElement {
                         name="jobPosition"
                         maxlength="1000"
                         required
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.job-position-placeholder')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.job-position-label')}"
                         value=${data.jobPosition || ''}>
                     </dbp-form-string-element>
@@ -3342,18 +3409,17 @@ class FormalizeFormElement extends BaseFormElement {
                         maxlength="1000"
                         required
                         rows="3"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-placeholder')}"
                         label="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-label')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}"
                         value=${data.coApplicants || ''}>
                     </dbp-form-string-element>
-
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}</p>
 
                     <dbp-form-enum-element
                         subscribe="lang"
                         name="fieldsOfExpertise"
                         display-mode="list"
                         multiple
+                        required
                         label="${i18n.t('render-form.forms.ethics-commission-form.fields-of-expertise-label')}"
                         .items=${{
                             'advanced-material-sciences': i18n.t(
@@ -3500,46 +3566,41 @@ class FormalizeFormElement extends BaseFormElement {
                                       )}"
                                       value=${data.namesOfSupervisingPersons || ''}
                                       required></dbp-form-string-element>
+
+                                  <dbp-form-enum-element
+                                      subscribe="lang"
+                                      name="isPublicationPlanned"
+                                      display-mode="list"
+                                      required
+                                      label="${i18n.t('render-form.forms.ethics-commission-form.is-publication-planned-label')}"
+                                      .items=${{
+                                          'no-publication': i18n.t(
+                                              'render-form.forms.ethics-commission-form.no-publication-label',
+                                          ),
+                                          'one-publication': i18n.t(
+                                              'render-form.forms.ethics-commission-form.one-publication-label',
+                                          ),
+                                      }}
+                                      .value=${data.isPublicationPlanned || ''}></dbp-form-enum-element>
                               `
                             : ''
                     }
-
-                    <dbp-form-enum-element
-                        subscribe="lang"
-                        name="isPublicationPlanned"
-                        display-mode="list"
-                        required
-                        label="${i18n.t('render-form.forms.ethics-commission-form.is-publication-planned-label')}"
-                        .items=${{
-                            'no-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.no-publication-label',
-                            ),
-                            'one-publication': i18n.t(
-                                'render-form.forms.ethics-commission-form.one-publication-label',
-                            ),
-                        }}
-                        .value=${data.isPublicationPlanned || ''}>
-                    </dbp-form-enum-element>
 
                     ${
                         this.isAdmin
                             ? html`
                                   <div class="admin-fields">
-                                      <dbp-form-string-element
+                                      <dbp-form-date-element
                                           subscribe="lang"
                                           name="studyDescription"
-                                          maxlength="1000"
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.study-description-label',
                                           )}"
                                           description="${i18n.t(
                                               'render-form.forms.ethics-commission-form.filled-by-admins-warning',
                                           )}"
-                                          placeholder="${i18n.t(
-                                              'render-form.forms.ethics-commission-form.is-publication-planned-placeholder',
-                                          )}"
                                           value=${data.studyDescription || ''}
-                                          rows="5"></dbp-form-string-element>
+                                          rows="5"></dbp-form-date-element>
 
                                       <dbp-form-date-element
                                           subscribe="lang"
@@ -3554,28 +3615,62 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.studyDescriptionDateOfTransmission || ''
                                           }></dbp-form-date-element>
 
-                                      <dbp-form-boolean-element
+                                      <dbp-form-enum-element
                                           subscribe="lang"
                                           name="dataProtectionChecked"
+                                          display-mode="list"
+                                          data-condition="yes-at"
                                           label="${i18n.t(
                                               'render-form.forms.ethics-commission-form.data-protection-checked-label',
                                           )}"
-                                          ?state=${
-                                              data.dataProtectionChecked || false
-                                          }></dbp-form-boolean-element>
+                                          .items=${{
+                                              'yes-at': i18n.t(
+                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
+                                              ),
+                                              not: i18n.t(
+                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
+                                              ),
+                                          }}
+                                          .value=${
+                                              data.dataProtectionChecked || ''
+                                          }></dbp-form-enum-element>
 
-                                      <dbp-form-date-element
-                                          subscribe="lang"
-                                          name="dataProtectionDate"
-                                          label="${i18n.t(
-                                              'render-form.forms.ethics-commission-form.data-protection-date-label',
-                                          )}"
-                                          description="${i18n.t(
-                                              'render-form.forms.ethics-commission-form.filled-by-admins-warning',
-                                          )}"
-                                          value=${
-                                              data.dataProtectionDate || ''
-                                          }></dbp-form-date-element>
+                                      ${
+                                          this.formData?.dataProtectionChecked === 'yes-at'
+                                              ? html`
+                                                    <dbp-form-date-element
+                                                        subscribe="lang"
+                                                        name="dataProtectionDate"
+                                                        class="fade-in"
+                                                        label="${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.data-protection-date-label',
+                                                        )}"
+                                                        description="${i18n.t(
+                                                            'render-form.forms.ethics-commission-form.filled-by-admins-warning',
+                                                        )}"
+                                                        value=${
+                                                            data.dataProtectionDate || ''
+                                                        }></dbp-form-date-element>
+                                                `
+                                              : this.formData?.dataProtectionChecked === 'not'
+                                                ? html`
+                                                      <dbp-form-string-element
+                                                          subscribe="lang"
+                                                          name="dataProtectionComment"
+                                                          class="fade-in"
+                                                          label="${i18n.t(
+                                                              'render-form.forms.ethics-commission-form.data-protection-comment-label',
+                                                          )}"
+                                                          description="${i18n.t(
+                                                              'render-form.forms.ethics-commission-form.filled-by-admins-warning',
+                                                          )}"
+                                                          maxlength="1000"
+                                                          value=${
+                                                              data.dataProtectionComment || ''
+                                                          }></dbp-form-string-element>
+                                                  `
+                                                : ''
+                                      }
                                   </div>
                               `
                             : ''
@@ -3588,8 +3683,8 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.short-description-label',
                         )}"
-                        placeholder="${i18n.t(
-                            'render-form.forms.ethics-commission-form.short-description-placeholder',
+                        description="${i18n.t(
+                            'render-form.forms.ethics-commission-form.short-description-description',
                         )}"
                         value=${data.shortDescription || ''}
                         rows="5"
@@ -3602,8 +3697,8 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t(
                             'render-form.forms.ethics-commission-form.data-source-label',
                         )}"
-                        placeholder="${i18n.t(
-                            'render-form.forms.ethics-commission-form.data-source-placeholder',
+                        description="${i18n.t(
+                            'render-form.forms.ethics-commission-form.data-source-description',
                         )}"
                         value=${data.dataSource || ''}
                         rows="5"
@@ -3614,7 +3709,6 @@ class FormalizeFormElement extends BaseFormElement {
                         name="numberOfTestPersons"
                         maxlength="100"
                         label="${i18n.t('render-form.forms.ethics-commission-form.number-of-test-persons-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.number-of-test-persons-placeholder')}"
                         value=${data.numberOfTestPersons || ''}
                         required>
                     </dbp-form-string-element>
@@ -3624,36 +3718,31 @@ class FormalizeFormElement extends BaseFormElement {
                         name="acquisitionOfTestSubjects"
                         maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.acquisition-of-test-subjects-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.acquisition-of-test-subjects-placeholder')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.acquisition-of-test-subjects-description')}"
                         value=${data.acquisitionOfTestSubjects || ''}
                         rows="5"
                         required>
                     </dbp-form-string-element>
-
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}</p>
 
                     <dbp-form-string-element
                         subscribe="lang"
                         name="volunteersCompensation"
                         maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-placeholder')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-2')}
+                            ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}
+                            ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-3')}"
                         value=${data.volunteersCompensation || ''}
                         rows="5"
                         required>
                     </dbp-form-string-element>
-
-                    <p class="field-note">
-                        ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-2')}
-                        ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}
-                    </p>
 
                     <dbp-form-string-element
                         subscribe="lang"
                         name="volunteersCompensationEarlyEnd"
                         maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-early-end-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-early-end-placeholder')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-early-end-description')}"
                         value=${data.volunteersCompensationEarlyEnd || ''}
                         rows="5"
                         required>
@@ -3664,7 +3753,7 @@ class FormalizeFormElement extends BaseFormElement {
                         name="participationCriteria"
                         maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.participation-criteria-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.participation-criteria-placeholder')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.participation-criteria-description')}"
                         value=${data.participationCriteria || ''}
                         rows="5"
                         required>
@@ -3675,20 +3764,19 @@ class FormalizeFormElement extends BaseFormElement {
                         name="subjectsDependencies"
                         maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-placeholder')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-description')}
+                                ${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-description-2')}"
                         value=${data.subjectsDependencies || ''}
                         rows="5"
                         required>
                     </dbp-form-string-element>
-
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.subjects-dependencies-description')}</p>
 
                     <dbp-form-string-element
                         subscribe="lang"
                         name="founding"
                         maxlength="1000"
                         label="${i18n.t('render-form.forms.ethics-commission-form.founding-label')}"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.founding-placeholder')}"
+                        description="${i18n.t('render-form.forms.ethics-commission-form.founding-description')}"
                         value=${data.founding || ''}
                         rows="5"
                         required>
@@ -4890,6 +4978,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-enum-element
                                           subscribe="lang"
                                           name="lowIncomeCountries"
+                                          data-condition="yes"
                                           display-mode="list"
                                           required
                                           label="4.1.4. ${i18n.t(
@@ -4910,7 +4999,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       <dbp-form-enum-element
                                           subscribe="lang"
                                           name="exposeParticipantsToRisk"
-                                          data-condition="yes"
                                           display-mode="list"
                                           required
                                           label="4.1.5. ${i18n.t(
@@ -4929,19 +5017,19 @@ class FormalizeFormElement extends BaseFormElement {
                                           }></dbp-form-enum-element>
 
                                       ${
-                                          this.conditionalFields.exposeParticipantsToRisk
+                                          this.conditionalFields.lowIncomeCountries
                                               ? html`
                                                     <dbp-form-string-element
                                                         class="${classMap({
                                                             'fade-in':
                                                                 this.conditionalFields
-                                                                    .exposeParticipantsToRisk,
+                                                                    .lowIncomeCountries,
                                                         })}"
                                                         subscribe="lang"
                                                         name="riskCountries"
                                                         maxlength="1000"
                                                         rows="3"
-                                                        label="4.1.5.1. ${i18n.t(
+                                                        label="4.1.6. ${i18n.t(
                                                             'render-form.forms.ethics-commission-form.risk-countries-label',
                                                         )}"
                                                         value=${data.riskCountries || ''}
@@ -4973,12 +5061,21 @@ class FormalizeFormElement extends BaseFormElement {
                             name="replaceHumanDecisionMaking"
                             display-mode="list"
                             required
-                            label="5.1. ${i18n.t('render-form.forms.ethics-commission-form.replace-human-decision-making-label')}"
                             .items=${{
                                 yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                                 no: i18n.t('render-form.forms.ethics-commission-form.no'),
                             }}
                             .value=${data.replaceHumanDecisionMaking || ''}>
+                            <span slot="label">
+                                <dbp-translated subscribe="lang">
+                                    <div slot="de">
+                                        5.1. Können die im Forschungsvorhaben eingesetzten informationsverarbeitenden Systeme menschliche ethisch relevante Entscheidungen im Projekt beeinflussen, ersetzen oder umgehen?
+                                    </div>
+                                    <div slot="en">
+                                        5.1. Can the information processing systems used in the research project influence, replace, or circumvent human decisions of ethical relevance?
+                                    </div>
+                                </dbp-translated>
+                            </span>
                         </dbp-form-enum-element>
 
                     ${
@@ -5190,21 +5287,6 @@ class FormalizeFormElement extends BaseFormElement {
                                       value=${data.consequencesOfBlocking || ''}
                                       rows="3"
                                       required></dbp-form-string-element>
-
-                                  <dbp-form-string-element
-                                      class="${classMap({
-                                          'fade-in': this.conditionalFields.hasConfidentialPart,
-                                      })}"
-                                      subscribe="lang"
-                                      name="canBeDoneDespiteRestrictions"
-                                      maxlength="1000"
-                                      label="6.2.4. ${i18n.t(
-                                          'render-form.forms.ethics-commission-form.can-be-done-despite-restrictions-label',
-                                      )}"
-                                      placeholder=""
-                                      value=${data.canBeDoneDespiteRestrictions || ''}
-                                      rows="3"
-                                      required></dbp-form-string-element>
                               `
                             : ''
                     }
@@ -5323,12 +5405,21 @@ class FormalizeFormElement extends BaseFormElement {
                         name="fairCompensation"
                         display-mode="list"
                         required
-                        label="7.3. ${i18n.t('render-form.forms.ethics-commission-form.fair-compensation-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.fairCompensation || ''}>
+                        <span slot="label">
+                            <dbp-translated subscribe="lang">
+                                <div slot="de">
+                                    7.3. Gibt es eine angemessene und faire Entlohnung für unterschiedliche Tätigkeiten im Projekt (z.B.: auch für die Annotierung und Bearbeitung von Datensätzen)?
+                                </div>
+                                <div slot="en">
+                                    7.3. Is there appropriate and fair remuneration for different activities in the project (e.g. also for annotating and processing data records)?
+                                </div>
+                            </dbp-translated>
+                        </span>
                     </dbp-form-enum-element>
 
                     <dbp-form-enum-element
@@ -5385,12 +5476,21 @@ class FormalizeFormElement extends BaseFormElement {
                         data-condition="yes"
                         display-mode="list"
                         required
-                        label="8.1. ${i18n.t('render-form.forms.ethics-commission-form.human-decision-influence-label')}"
                         .items=${{
                             yes: i18n.t('render-form.forms.ethics-commission-form.yes'),
                             no: i18n.t('render-form.forms.ethics-commission-form.no'),
                         }}
                         .value=${data.humanDecisionInfluence || ''}>
+                        <span slot="label">
+                            <dbp-translated subscribe="lang">
+                                <div slot="de">
+                                    8.1. Können die im Forschungsvorhaben entwickelten informationsverarbeitenden Systeme menschliche, ethisch relevante Entscheidungen beeinflussen, ersetzen oder umgehen?
+                                </div>
+                                <div slot="en">
+                                    8.1. Can the information processing systems developed in the research project influence, replace, or circumvent human decisions that have ethical implications?
+                                </div>
+                            </dbp-translated>
+                        </span>
                     </dbp-form-enum-element>
 
                     <dbp-form-enum-element
@@ -5542,7 +5642,78 @@ class FormalizeFormElement extends BaseFormElement {
                             ${i18n.t('render-form.download-widget.upload-file-button-label', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}
                         </button>
                     </div>
+                </article>
 
+                <article>
+                    <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-consent-title')}</h3>
+
+                    <div class="description">
+                        <dbp-translated subscribe="lang">
+                            <div slot="de">
+                                <p>Wenn Menschen als Proband*innen mitwirken:</p>
+                                <p>Die Proband*innen sollen von der Studienleitung über folgende Punkte informiert werden (beispielsweise durch eine Proband*innen-Information und Einwilligungserklärung zur Teilnahme am Forschungsvorhaben):</p>
+                                <ol class="lettered-list">
+                                    <li><p>Genaue Angabe von Titel, Zweck und Dauer Ihres Forschungsvorhabens sowie Erklärung des Ablaufs für die Proband*innen in einfacher und klarer Sprache (bitte vermeiden Sie nach Möglichkeit Fremdwörter)</p></li>
+                                    <li><p>Angaben zur durchführenden Forschungseinrichtung und zu einer verantwortlichen Kontaktperson (Vor- und Nachname, E-Mail-Adresse und evtl. Telefonnummer) für weitere Fragen, Anregungen oder Beschwerden</p></li>
+                                    <li><p>Angabe möglicher Risiken für die Proband*innen (Unannehmlichkeiten, Gefahren, Belastungen) und etwaiger Folgen</p></li>
+                                    <li>
+                                        <p>Angaben über die Höhe der Aufwandsentschädigung (auch im Falle eines vorzeitigen Abbruchs) sowie eines sonstigen Nutzens für die Proband*innen</p>
+                                        <div class="info-box">
+                                            <p>Bitte kümmern Sie sich frühzeitig um ein entsprechendes Budget für Aufwandsentschädigungen für die Proband*innen Ihrer Studie (Budgetierung in Forschungsanträgen)!</p>
+                                            <p>Die Angemessenheit der Aufwandsentschädigung hängt zunächst davon ab, ob es für die Durchführung der Studie eine Finanzierung gibt oder nicht. </p>
+                                            <p>Wenn es eine Finanzierung gibt, empfehlen wir in Abhängigkeit der folgenden Kriterien eine Aufwandsentschädigung <b>in Höhe von EUR 10 bis 25 pro Stunde</b> in Form von Holding-GrazGutscheinen oder Supermarkt-Gutscheinen:</p>
+                                            <ol>
+                                                <li><p><b>Je nach Art der Studienteilnahme und Aufwand für die Proband*innen:</b> Füllen Proband*innen einen Fragebogen aus, führen sie ein Tagebuch, erfüllen sie Aufgaben und/oder kommt es zu psychophysiologischen Datenerhebungen?</p></li>
+                                                <li><p><b>Je nach Dauer der Studienteilnahme:</b> Einmalig, wiederholt, aufgewandte Zeit gesamt </p></li>
+                                                <li><p><b>Je nach Qualität und Quantität der Daten von Proband*innen:</b> sociodemographische Daten oder zusätzlich auch Gesundheitsdaten?</p></li>
+                                            </ol>
+                                            <p>Wenn es keine Finanzierung gibt, empfehlen wir, die Proband*innen für die Teilnahme an Ihrer Studie mit einer symbolischen Anerkennung, zB in Form von Schokolade, Verlosung von Goodies oder individuelle Rückmeldung zu ihren Datenauswertungen, zu bedenken.</p>
+                                            <p>Unabhängig von der Finanzierung bitten wir Sie, Aufwandsentschädigungen auch für jene Proband*innen aliquot vorzusehen, die ihre Studienteilnahme aus welchem Grund auch immer frühzeitig abbrechen.</p>
+                                            <p>Hinweis In erster Linie werden aufgrund der Regionalität Holding-GrazGutscheine oder Supermarkt-Gutscheine empfohlen. Gemäß TU Graz-Richtlinie zur Beschaffung, RL 96000 RLBS 172-01, dürfen Mitarbeitende der TU Graz keine Bargeld-Leistung als Aufwandsentschädigung für Ihre Studienteilnahme erhalten.</p>
+                                        </div>
+                                    </li>
+                                    <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
+                                    <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing)</a></p></li>
+                                    <li><p>Hinweis auf die Datenspeicherung (z.B.: welcher Server, wer hat Zugriff), die Aufbewahrungsdauer sowie auf die Frage des Personenbezugs</p></li>
+                                    <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
+                                </ol>
+                            </div>
+                            <div slot="en">
+                                <p>Should humans engage as participants:</p>
+                                <p>The participants should be informed by the study management about the following points (e.g.: by means of a participant information sheet and declaration of consent to participate in the research project):</p>
+                                <ol class="lettered-list">
+                                    <li><p>Precisely state the title, purpose and duration of your research project and explain the procedure to the participants in simple and clear language (please avoid technical terms if possible)</p></li>
+                                    <li><p>Details of the research institution conducting the study and a responsible contact person (first and last name, e-mail address and telephone number if applicable) for further questions, suggestions or complaints </p></li>
+                                    <li><p>Indication of possible risks for the participants (inconvenience, danger, stress) and possible consequences</p></li>
+                                    <li>
+                                        <p>Information on the amount of the compensation (including in the event of premature termination) and other benefits for the participants</p>
+                                        <div class="info-box">
+                                            <p>Please ensure that funding for the participant compensation is secured at an early stage of the planning (budgeting in research proposals)!</p>
+                                            <p>The appropriateness of the compensation depends first and foremost on whether or not funding is available for the study.</p>
+                                            <p>If funding is available, we recommend a <b>compensation of EUR 10 to 25 per hour</b> in the form of Holding-Graz vouchers or supermarket vouchers, depending on the following criteria:</p>
+                                            <ol>
+                                                <li><p><b>Depending on the type of study participation and effort required of the participants:</b> Do participants fill out a questionnaire, keep a diary, perform tasks, and/or undergo psychophysiological data collection?</p></li>
+                                                <li><p><b>Depending on the duration of study participation:</b> One-time, repeated, total time spent</p></li>
+                                                <li><p><b>Depending on the quality and quantity of the data provided by the participants:</b> sociodemographic data or additional health data?</p></li>
+                                            </ol>
+                                            <p>If no funding is available, we recommend rewarding the participants for participating in your study with a symbolic token of appreciation, e.g., a raffle for goodies or individual feedback on their data evaluations or information on the study results.</p>
+                                            <p>Regardless of funding, we ask that you also provide pro rata compensation for those participants who withdraw from the study early for any reason. In any case, we recommend sharing the study results with participants.</p>
+                                            <p>Due to regional considerations, Holding Graz vouchers or supermarket vouchers are recommended. In accordance with TU Graz procurement guidelines RL 96000 RLBS 172-01, TU Graz employees may not receive cash payments as expense allowances for participating in studies.</p>
+                                        </div>
+                                    </li>
+                                    <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
+                                    <li><p>Reference to the Ethics Committee’s decision</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Electronic Mailbox for Anonymous Tips (Whistleblowing)</a>.</p></li>
+                                    <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
+                                    <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
+                                </ol>
+                            </div>
+                        </dbp-translated>
+                    </div>
+                </article>
+
+                <article>
                     ${
                         this.isAdmin
                             ? html`
@@ -5617,74 +5788,13 @@ class FormalizeFormElement extends BaseFormElement {
                     }
                 </article>
 
-                <article>
-                    <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-consent-title')}</h3>
-
-                    <div class="description">
-                        <dbp-translated subscribe="lang">
-                            <div slot="de">
-                                <p>Wenn Menschen als Proband*innen mitwirken:</p>
-                                <p>Die Proband*innen sollen von der Studienleitung über folgende Punkte informiert werden (beispielsweise durch eine Proband*innen-Information und Einwilligungserklärung zur Teilnahme am Forschungsvorhaben):</p>
-                                <ol class="lettered-list">
-                                    <li><p>Genaue Angabe von Titel, Zweck und Dauer Ihres Forschungsvorhabens sowie Erklärung des Ablaufs für die Proband*innen in einfacher und klarer Sprache (bitte vermeiden Sie nach Möglichkeit Fremdwörter)</p></li>
-                                    <li><p>Angaben zur durchführenden Forschungseinrichtung und zu einer verantwortlichen Kontaktperson (Vor- und Nachname, E-Mail-Adresse und evtl. Telefonnummer) für weitere Fragen, Anregungen oder Beschwerden</p></li>
-                                    <li><p>Angabe möglicher Risiken für die Proband*innen (Unannehmlichkeiten, Gefahren, Belastungen) und etwaiger Folgen</p></li>
-                                    <li>
-                                        <p>Angaben über die Höhe der Aufwandsentschädigung (auch im Falle eines vorzeitigen Abbruchs) sowie eines sonstigen Nutzens für die Proband*innen</p>
-                                        <div class="info-box">
-                                            <p>Bitte kümmern Sie sich frühzeitig um ein entsprechendes Budget für Aufwandsentschädigungen für die Proband*innen Ihrer Studie (Budgetierung in Forschungsanträgen)!</p>
-                                            <p>Die Angemessenheit der Aufwandsentschädigung hängt zunächst davon ab, ob es für die Durchführung der Studie eine Finanzierung gibt oder nicht. </p>
-                                            <p>Wenn es eine Finanzierung gibt, empfehlen wir in Abhängigkeit der folgenden Kriterien eine Aufwandsentschädigung <b>in Höhe von EUR 10 bis 25 pro Stunde</b> in Form von Holding-GrazGutscheinen oder Supermarkt-Gutscheinen:</p>
-                                            <ol>
-                                                <li><p><b>Je nach Art der Studienteilnahme und Aufwand für die Proband*innen:</b> Füllen Proband*innen einen Fragebogen aus, führen sie ein Tagebuch, erfüllen sie Aufgaben und/oder kommt es zu psychophysiologischen Datenerhebungen?</p></li>
-                                                <li><p><b>Je nach Dauer der Studienteilnahme:</b> Einmalig, wiederholt, aufgewandte Zeit gesamt </p></li>
-                                                <li><p><b>Je nach Qualität und Quantität der Daten von Proband*innen:</b> sociodemographische Daten oder zusätzlich auch Gesundheitsdaten?</p></li>
-                                            </ol>
-                                            <p>Wenn es keine Finanzierung gibt, empfehlen wir, die Proband*innen für die Teilnahme an Ihrer Studie mit einer symbolischen Anerkennung, zB in Form von Schokolade, Verlosung von Goodies oder individuelle Rückmeldung zu ihren Datenauswertungen, zu bedenken.</p>
-                                            <p>Unabhängig von der Finanzierung bitten wir Sie, Aufwandsentschädigungen auch für jene Proband*innen aliquot vorzusehen, die ihre Studienteilnahme aus welchem Grund auch immer frühzeitig abbrechen.</p>
-                                            <p>Hinweis In erster Linie werden aufgrund der Regionalität Holding-GrazGutscheine oder Supermarkt-Gutscheine empfohlen. Gemäß TU Graz-Richtlinie zur Beschaffung, RL 96000 RLBS 172-01, dürfen Mitarbeitende der TU Graz keine Bargeld-Leistung als Aufwandsentschädigung für Ihre Studienteilnahme erhalten.</p>
-                                        </div>
-                                    </li>
-                                    <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
-                                    <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing)</a></p></li>
-                                    <li><p>Hinweis auf die Datenspeicherung (z.B.: welcher Server, wer hat Zugriff), die Aufbewahrungsdauer sowie auf die Frage des Personenbezugs</p></li>
-                                    <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
-                                </ol>
-                            </div>
-                            <div slot="en">
-                                <p>Should humans engage as participants:</p>
-                                <p>The participants should be informed by the study management about the following points (e.g.: by means of a participant information sheet and declaration of consent to participate in the research project):</p>
-                                <ol class="lettered-list">
-                                    <li><p>Precisely state the title, purpose and duration of your research project and explain the procedure to the participants in simple and clear language (please avoid technical terms if possible)</p></li>
-                                    <li><p>Details of the research institution conducting the study and a responsible contact person (first and last name, e-mail address and telephone number if applicable) for further questions, suggestions or complaints </p></li>
-                                    <li><p>Indication of possible risks for the participants (inconvenience, danger, stress) and possible consequences</p></li>
-                                    <li>
-                                        <p>Information on the amount of the compensation (including in the event of premature termination) and other benefits for the participants</p>
-                                        <div class="info-box">
-                                            <p>Please ensure that funding for the participant compensation is secured at an early stage of the planning (budgeting in research proposals)!</p>
-                                            <p>The appropriateness of the compensation depends first and foremost on whether or not funding is available for the study.</p>
-                                            <p>If funding is available, we recommend a <b>compensation of EUR 10 to 25 per hour</b> in the form of Holding-Graz vouchers or supermarket vouchers, depending on the following criteria:</p>
-                                            <ol>
-                                                <li><p><b>Depending on the type of study participation and effort required of the participants:</b> Do participants fill out a questionnaire, keep a diary, perform tasks, and/or undergo psychophysiological data collection?</p></li>
-                                                <li><p><b>Depending on the duration of study participation:</b> One-time, repeated, total time spent</p></li>
-                                                <li><p><b>Depending on the quality and quantity of the data provided by the participants:</b> sociodemographic data or additional health data?</p></li>
-                                            </ol>
-                                            <p>If no funding is available, we recommend rewarding the participants for participating in your study with a symbolic token of appreciation, e.g., a raffle for goodies or individual feedback on their data evaluations or information on the study results.</p>
-                                            <p>Regardless of funding, we ask that you also provide pro rata compensation for those participants who withdraw from the study early for any reason. In any case, we recommend sharing the study results with participants.</p>
-                                            <p>Due to regional considerations, Holding Graz vouchers or supermarket vouchers are recommended. In accordance with TU Graz procurement guidelines RL 96000 RLBS 172-01, TU Graz employees may not receive cash payments as expense allowances for participating in studies.</p>
-                                        </div>
-                                    </li>
-                                    <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
-                                    <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Electronic Mailbox for Anonymous Tips (Whistleblowing)</a>.</p></li>
-                                    <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
-                                    <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
-                                </ol>
-                            </div>
-                        </dbp-translated>
-                    </div>
-                </article>
+                <dbp-form-string-element
+                    subscribe="lang"
+                    name="comments"
+                    maxlength="5000"
+                    label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
+                    value=${data.comments || ''}
+                    rows="3"></dbp-form-string-element>
             </form>
 
             <dbp-file-source

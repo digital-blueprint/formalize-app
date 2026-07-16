@@ -1512,6 +1512,10 @@ export function getEthicsCommissionFormCSS() {
             text-underline-offset: 2px;
         }
 
+        .highlighted-label-text {
+            font-style: italic;
+        }
+
         @media only screen and (max-width: 1600px) {
             .scroller {
                 opacity: 0.7;
@@ -1683,7 +1687,10 @@ export function getEthicsCommissionFormPrintCSS() {
                 dbp-file-sink,
                 .submission-permissions,
                 .scroller-container,
-                .tag-management
+                .tag-management,
+                .article-votum-file-attachments,
+                .article-consent,
+                dbp-form-string-view[name='comments']
             ) {
             display: none !important;
             height: 0;
