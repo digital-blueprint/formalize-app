@@ -728,14 +728,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 } else {
                     this.refreshTableReferences();
                     if (this.formsTable) {
+                        this.formsTable.options = this.options_forms;
+                        this.formsTable.data = this.allForms;
                         // Only rebuild the forms table when it hasn't been
                         // built yet.  If it is already showing, just update
                         // the data in-place so the user doesn't see a flash.
-                        if (!this.formsTable.tableReady) {
-                            this.formsTable.options = this.options_forms;
-                            this.formsTable.data = this.allForms;
+                        // If a build is already running, leave it alone; it
+                        // will pick up the data assigned above when it finishes.
+                        if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
                             this.formsTable.buildTable();
-                        } else {
+                        } else if (this.formsTable.tableReady) {
                             this.formsTable.setData(this.allForms);
                         }
                         this.loadingFormsTable = false;
@@ -751,7 +753,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 if (this.formsTable) {
                     this.formsTable.options = this.options_forms;
                     this.formsTable.data = [];
-                    this.formsTable.buildTable();
+                    if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
+                        this.formsTable.buildTable();
+                    } else if (this.formsTable.tableReady) {
+                        this.formsTable.setData([]);
+                    }
                 }
                 this.loadingFormsTable = false;
                 this.showFormsTable = true;
@@ -790,9 +796,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     // Show the forms table
                     this.refreshTableReferences();
                     if (this.formsTable) {
-                        if (!this.formsTable.tableReady) {
-                            this.formsTable.options = this.options_forms;
-                            this.formsTable.data = this.allForms;
+                        this.formsTable.options = this.options_forms;
+                        this.formsTable.data = this.allForms;
+                        if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
                             this.formsTable.buildTable();
                         }
                         this.loadingFormsTable = false;
@@ -2094,11 +2100,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Direct links to a submissions page skip the initial overview table build.
         this.refreshTableReferences();
         if (this.formsTable) {
-            if (!this.formsTable.tableReady) {
-                this.formsTable.options = this.options_forms;
-                this.formsTable.data = this.allForms;
+            this.formsTable.options = this.options_forms;
+            this.formsTable.data = this.allForms;
+            if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
                 this.formsTable.buildTable();
-            } else {
+            } else if (this.formsTable.tableReady) {
                 this.formsTable.setData(this.allForms);
             }
         }
