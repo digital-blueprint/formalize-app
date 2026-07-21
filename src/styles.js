@@ -1946,6 +1946,10 @@ export function getMediaTransparencyFormCSS() {
             text-underline-offset: 1px;
         }
 
+        .file-upload-container {
+            margin-top: 2em;
+        }
+
         .file-upload-container dbp-translated a {
             text-decoration: underline;
             text-underline-offset: 3px;

@@ -457,6 +457,7 @@
                 "categories-radio": "Hörfunk",
                 "categories-television": "Fernsehen",
                 "field-advertisement-subcategory-label": "Art der Werbeleistung-Subkategorie",
+                "field-amount-in-euro-description": "Betrag: in Euro – Nettoentgelt vor Werbeabgabe und Ust. Der Betrag darf maximal 2 Nachkommastellen enthalten und kein Eurozeichen.",
                 "field-amount-in-euro-label": "Betrag in Euro",
                 "field-campaign-title-label": "Kampagnentitel",
                 "field-category-label": "Kategorie",

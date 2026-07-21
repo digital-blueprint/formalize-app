@@ -1773,6 +1773,7 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-amount-in-euro-label',
                     )}"
+                    description="${i18n.t('render-form.forms.media-transparency-form.field-amount-in-euro-description')}"
                     .customValidator=${(value) => {
                         const re = /^\d+(?:,\d{1,2})?$/;
                         return re.test(value)
@@ -1783,21 +1784,6 @@ class FormalizeFormElement extends BaseFormElement {
                     }}
                     .value=${data.amountInEuro || ''}
                     required></dbp-form-string-element>
-
-                <dbp-translated subscribe="lang">
-                    <div slot="de">
-                        <p class="field-note">
-                            Betrag: in Euro – Nettoentgelt vor Werbeabgabe und Ust. Der Betrag darf
-                            maximal 2 Nachkommastellen enthalten und kein Eurozeichen.
-                        </p>
-                    </div>
-                    <div slot="en">
-                        <p class="field-note">
-                            Amount: in euros – net remuneration before advertising tax and VAT. The
-                            amount may contain a maximum of two decimal places and no euro sign.
-                        </p>
-                    </div>
-                </dbp-translated>
 
                 <dbp-form-string-element
                     subscribe="lang"
@@ -1826,6 +1812,9 @@ class FormalizeFormElement extends BaseFormElement {
                     label="${i18n.t(
                         'render-form.forms.media-transparency-form.field-reporting-deadline-period-label',
                     )}"
+                    description="${i18n.t(
+                        'render-form.forms.media-transparency-form.field-reporting-deadline-period-description',
+                    )}"
                     .customValidator=${(value) => {
                         return value === 'Bitte wählen Sie den Anmeldezeitraum aus' ||
                             value === 'Please select deadline period'
@@ -1837,11 +1826,6 @@ class FormalizeFormElement extends BaseFormElement {
                             : [];
                     }}
                     .value=${data.reportingDeadline || ''}></dbp-form-enum-element>
-                <p class="field-note">
-                    ${i18n.t(
-                        'render-form.forms.media-transparency-form.field-reporting-deadline-period-description',
-                    )}
-                </p>
 
                 ${this.getFileGroupsFromSchema().map((groupName) =>
                     this.renderFileUploadGroup(groupName),

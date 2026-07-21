@@ -457,6 +457,7 @@
                 "categories-radio": "Radio",
                 "categories-television": "Television",
                 "field-advertisement-subcategory-label": "Advertisement subcategory",
+                "field-amount-in-euro-description": "Amount: in euros – net remuneration before advertising tax and VAT. The amount may contain a maximum of two decimal places and no euro sign.",
                 "field-amount-in-euro-label": "Amount in euro",
                 "field-campaign-title-label": "Campaign title",
                 "field-category-label": "Category",
