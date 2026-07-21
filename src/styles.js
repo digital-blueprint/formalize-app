@@ -1387,6 +1387,9 @@ export function getGeneralFormCSS() {
 
             container-type: inline-size;
             container-name: form;
+
+            --dbp-label-font-weight: 600;
+            --dbp-label-margin-bottom: 0.5em;
         }
     `;
 }
