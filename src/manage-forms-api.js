@@ -262,8 +262,8 @@ export async function getListOfAllForms(host) {
 
                 let btn = host.createScopedElement('dbp-formalize-get-details-button');
                 btn.setAttribute('subscribe', 'lang');
-                btn.title = i18n.t('manage-forms.open-forms');
-                btn.ariaLabel = i18n.t('manage-forms.open-forms');
+                btn.title = i18n.t('manage-forms.open-forms', {formName: formName});
+                btn.ariaLabel = i18n.t('manage-forms.open-forms', {formName: formName});
                 btn.addEventListener('click', async () => {
                     host.loadingSubmissionTables = true;
                     // Let the router handle the history entry via sendSetPropertyEvent.
@@ -281,8 +281,11 @@ export async function getListOfAllForms(host) {
                     let editBtn = host.createScopedElement('dbp-icon-button');
                     editBtn.setAttribute('subscribe', 'lang');
                     editBtn.setAttribute('icon-name', 'pencil');
-                    editBtn.title = i18n.t('manage-forms.edit-form-button');
-                    editBtn.setAttribute('aria-label', i18n.t('manage-forms.edit-form-button'));
+                    editBtn.title = i18n.t('manage-forms.edit-form-button', {formName: formName});
+                    editBtn.setAttribute(
+                        'aria-label',
+                        i18n.t('manage-forms.edit-form-button', {formName: formName}),
+                    );
                     editBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
                         host.handleOpenEditFormDialog(formId);
@@ -347,6 +350,7 @@ export async function getListOfAllForms(host) {
  * @returns {Promise<Response|undefined>}
  */
 export async function getAllFormSubmissions(host, formId) {
+    const i18n = host._i18n;
     let response;
     let data;
     host.rawSubmissions = [];
@@ -499,10 +503,15 @@ export async function getAllFormSubmissions(host, formId) {
                 /*
                     t('manage-forms.open-detailed-view-form')
                 */
-                submissionDetailsFormButton.ariaLabel = 'manage-forms.open-detailed-view-form';
+                submissionDetailsFormButton.ariaLabel = i18n.t(
+                    'manage-forms.open-detailed-view-form',
+                    {id: id},
+                );
                 submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
                 submissionDetailsFormButton.iconName = 'open-new-window';
-                submissionDetailsFormButton.title = 'manage-forms.open-detailed-view-form';
+                submissionDetailsFormButton.title = i18n.t('manage-forms.open-detailed-view-form', {
+                    id: id,
+                });
                 submissionDetailsFormButton.id = id.toString();
                 submissionDetailsFormButton.setAttribute('subscribe', 'lang');
                 submissionDetailsFormButton.addEventListener('click', (event) => {
@@ -518,8 +527,12 @@ export async function getAllFormSubmissions(host, formId) {
             /*
                 t('manage-forms.open-detailed-view-modal')
             */
-            submissionDetailsButton.ariaLabel = 'manage-forms.open-detailed-view-modal';
-            submissionDetailsButton.title = 'manage-forms.open-detailed-view-modal';
+            submissionDetailsButton.ariaLabel = i18n.t('manage-forms.open-detailed-view-modal', {
+                id: id,
+            });
+            submissionDetailsButton.title = i18n.t('manage-forms.open-detailed-view-modal', {
+                id: id,
+            });
             submissionDetailsButton.id = id.toString();
             submissionDetailsButton.setAttribute('subscribe', 'lang');
             submissionDetailsButton.addEventListener('click', (event) => {
