@@ -134,8 +134,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.boundCloseActionsDropdownHandler = this.closeActionsDropdown.bind(this);
         this.boundTableSelectionChanges = this.handleTableSelectionChanges.bind(this);
         this.boundTablePaginationPageLoaded = this.handleTablePaginationPageLoaded.bind(this);
-        this.boundFileSinkDownloadStartedHandler = this.handleFileSinkDownloadStarted.bind(this);
-        this.boundSwMessageHandler = this.handleSwMessage.bind(this);
         this.selectedRowCount = {
             draft: 0,
             submitted: 0,
@@ -1445,25 +1443,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedRowCount = {...this.selectedRowCount, [state]: selectedRows.length};
     }
 
-    handleFileSinkDownloadStarted(event) {
-        this._downloadStreamingStarted = false;
-        const modal = this.renderRoot?.querySelector('#loading-indicator-modal');
-        if (modal) {
-            modal.open();
-        }
-    }
-
-    handleSwMessage(event) {
-        if (event.data?.type === 'DOWNLOAD_STARTED') {
-            const modal = this.renderRoot?.querySelector('#loading-indicator-modal');
-            if (modal) {
-                // Mark streaming as started so the close handler does not cancel the download
-                this._downloadStreamingStarted = true;
-                modal.close();
-            }
-        }
-    }
-
     /**
      * Handle the loading indicator modal being closed.
      * If the download has already started streaming, closing the modal is just
@@ -2397,18 +2376,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 @dbp-create-form-created=${(event) => this.handleCreateFormCreated(event)}
                 @dbp-edit-form-saved=${(event) =>
                     this.handleEditFormSaved(event)}></dbp-formalize-edit-form-dialog>
-
-            <dbp-modal
-                id="loading-indicator-modal"
-                class="modal modal--loading-indicator"
-                modal-id="loading-indicator-modal"
-                title="${i18n.t('manage-forms.preparing-download')}"
-                subscribe="lang"
-                @dbp-modal-closed=${() => this.handleLoadingIndicatorModalClosed()}>
-                <div slot="content">
-                    <dbp-mini-spinner style="font-size: 4em"></dbp-mini-spinner>
-                </div>
-            </dbp-modal>
         `;
     }
 }
