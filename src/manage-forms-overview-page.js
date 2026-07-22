@@ -91,7 +91,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     display: inline-flex;
                     align-items: center;
                     gap: 0.4rem;
-                    margin-left: auto;
                 }
 
                 .create-form-btn-icon {
