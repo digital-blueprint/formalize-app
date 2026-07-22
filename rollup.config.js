@@ -11,6 +11,7 @@ import {
     getDistPath,
     assetPlugin,
     getResolveModules,
+    getPort,
 } from '@dbp-toolkit/dev-utils';
 import {createRequire} from 'module';
 
@@ -364,7 +365,7 @@ export default (async () => {
                 ? serve({
                       contentBase: '.',
                       host: '127.0.0.1',
-                      port: 8001,
+                      port: await getPort('127.0.0.1', [8001, 8004]),
                       historyApiFallback: config.basePath + appName + '.html',
                       headers: {
                           'Content-Security-Policy': config.CSP,
