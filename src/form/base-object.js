@@ -575,7 +575,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                     ${this.readOnly ? '' : this.renderFormValidityIndicator()}
                 </div>
 
-                <div class="action-buttons">
+                <div class="action-buttons" id="action-buttons" tabindex="-1">
                     ${
                         this.formActions.length > 0
                             ? html`

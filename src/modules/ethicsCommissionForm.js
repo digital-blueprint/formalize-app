@@ -1201,6 +1201,24 @@ class FormalizeFormElement extends BaseFormElement {
         );
     }
 
+    skipToFormActions(event) {
+        event.preventDefault();
+
+        const form = this._('#ethics-commission-form');
+        const target = this._('#action-buttons');
+        if (!form || !target) return;
+
+        // Scroll to the header's normal-flow position rather than its sticky, transformed child.
+        form.scrollIntoView({block: 'start'});
+        target.focus({preventScroll: true});
+    }
+
+    handleSkipLinkKeydown(event) {
+        if (event.key === ' ') {
+            this.skipToFormActions(event);
+        }
+    }
+
     /**
      * Renders the form in read-only mode.
      * @returns {import('lit').TemplateResult} The HTML for the button row.
@@ -5796,6 +5814,15 @@ class FormalizeFormElement extends BaseFormElement {
                     value=${data.comments || ''}
                     rows="3"></dbp-form-string-element>
             </form>
+
+            <!-- Skip link to navigation -->
+            <a
+                href="#action-buttons"
+                class="skip-link"
+                @click=${this.skipToFormActions}
+                @keydown=${this.handleSkipLinkKeydown}>
+                ${i18n.t('render-form.forms.ethics-commission-form.skip-to-form-actions')}
+            </a>
 
             <dbp-file-source
                 id="file-source"

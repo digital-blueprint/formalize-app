@@ -401,14 +401,14 @@ export function getManageFormsCSS() {
         .table-action-header {
             display: grid;
             grid-template-areas: 'actions search search search button export';
-            grid-template-columns: 115px 1fr 1fr 1fr 160px 133px;
+            grid-template-columns: 115px 1fr 1fr 1fr max-content 133px;
             gap: 0 1em;
             position: relative;
         }
 
         .table-action-header.open {
             grid-template-areas: 'actions search filter-col filter-op button export';
-            grid-template-columns: 115px auto auto auto 160px 133px;
+            grid-template-columns: 115px auto auto auto max-content 133px;
             gap: 0 1em;
             position: relative;
         }
@@ -469,8 +469,10 @@ export function getManageFormsCSS() {
         }
 
         .search-toggle-filters-button {
-            width: 160px;
+            min-width: 160px;
+            width: 100%;
             text-align: left;
+            white-space: nowrap;
         }
 
         .search-toggle-filters-button .button-text {
@@ -591,7 +593,7 @@ export function getManageFormsCSS() {
                     'actions . . . export'
                     'search search search search button'
                     'filter-col filter-col . filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 118px 160px;
+                grid-template-columns: 115px 1fr 1fr 118px max-content;
                 gap: 1em 0;
             }
 
@@ -600,7 +602,7 @@ export function getManageFormsCSS() {
                     'actions . . . export'
                     'search search search search button'
                     'filter-col filter-col filter-op filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 118px 160px;
+                grid-template-columns: 115px 1fr 1fr 118px max-content;
                 gap: 1em 0;
             }
 
@@ -689,7 +691,7 @@ export function getManageFormsCSS() {
                     'actions actions . export export'
                     'search search search search button'
                     'filter-col filter-col . filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 68px 42px;
+                grid-template-columns: 115px 1fr 1fr 90px 42px;
                 gap: 1em 0;
             }
 
@@ -698,11 +700,12 @@ export function getManageFormsCSS() {
                     'actions actions . export export'
                     'search search search search button'
                     'filter-col filter-col filter-op filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 68px 42px;
+                grid-template-columns: 115px 1fr 1fr 90px 42px;
                 gap: 1em 0;
             }
 
             .search-toggle-filters-button {
+                min-width: 42px;
                 width: 42px;
                 text-align: center;
             }
@@ -718,7 +721,7 @@ export function getManageFormsCSS() {
             }
 
             .actions-container {
-                width: 100px;
+                width: max-content;
             }
         }
 
@@ -751,10 +754,6 @@ export function getManageFormsCSS() {
         }
 
         .modal-footer-btn {
-            padding-right: 20px;
-            padding-left: 20px;
-            padding-bottom: 20px;
-            padding-top: 10px;
         }
 
         .modal--confirmation {
@@ -1390,6 +1389,23 @@ export function getGeneralFormCSS() {
 
             --dbp-label-font-weight: 600;
             --dbp-label-margin-bottom: 0.5em;
+        }
+
+        .skip-link {
+            position: absolute !important;
+            clip: rect(1px, 1px, 1px, 1px);
+            overflow: hidden;
+            height: 1px;
+            width: 1px;
+            word-wrap: normal;
+        }
+
+        .skip-link:focus-visible {
+            position: static !important;
+            clip: auto;
+            overflow: visible;
+            height: auto;
+            width: auto;
         }
     `;
 }
