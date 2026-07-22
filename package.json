@@ -70,9 +70,9 @@
         "xss": "^1.0.11"
     },
     "scripts": {
-        "build": "rolldown -c rollup.config.js",
-        "build-wl": "rolldown -c rollup.config.js",
-        "build-custom": "rolldown -c rollup.config.js --environment APP_ENV:localCustom",
+        "build": "rolldown -c rolldown.config.js",
+        "build-wl": "rolldown -c rolldown.config.js",
+        "build-custom": "rolldown -c rolldown.config.js --environment APP_ENV:localCustom",
         "i18next:fix": "i18next-cli extract",
         "i18next": "i18next-cli extract --ci --dry-run",
         "fix": "npm run eslint:fix && npm run prettier:fix && npm run i18next:fix",
@@ -81,13 +81,13 @@
         "eslint": "eslint \"**/*.{js,ts}\"",
         "prettier:fix": "prettier \"**/*.{js,json,ts,md,yaml,yml}\" --write",
         "prettier": "prettier \"**/*.{js,json,ts,md,yaml,yml}\" --check",
-        "watch": "rolldown -c rollup.config.js --watch",
-        "watch-wl": "rolldown -c rollup.config.js --watch",
-        "watch-custom": "rolldown -c rollup.config.js --watch --environment APP_ENV:localCustom",
-        "watch-full": "rolldown -c rollup.config.js --watch --environment FORCE_FULL",
-        "watch-bs": "rolldown -c rollup.config.js --watch --environment APP_ENV:bs",
-        "test": "rolldown -c rollup.config.js --environment APP_ENV:test && web-test-runner",
-        "test-full": "rolldown -c rollup.config.js --environment FORCE_FULL,APP_ENV:test && web-test-runner",
+        "watch": "rolldown -c rolldown.config.js --watch",
+        "watch-wl": "rolldown -c rolldown.config.js --watch",
+        "watch-custom": "rolldown -c rolldown.config.js --watch --environment APP_ENV:localCustom",
+        "watch-full": "rolldown -c rolldown.config.js --watch --environment FORCE_FULL",
+        "watch-bs": "rolldown -c rolldown.config.js --watch --environment APP_ENV:bs",
+        "test": "rolldown -c rolldown.config.js --environment APP_ENV:test && web-test-runner",
+        "test-full": "rolldown -c rolldown.config.js --environment FORCE_FULL,APP_ENV:test && web-test-runner",
         "publish": "sed -i 's/\"private\": true/\"private\": false/' package.json && can-npm-publish --verbose 2>&1 && npm publish --access public 2>&1; sed -i 's/\"private\": false/\"private\": true/' package.json"
     }
 }
