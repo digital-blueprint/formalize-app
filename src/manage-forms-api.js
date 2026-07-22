@@ -773,9 +773,11 @@ export async function apiGetTags(host, identifier) {
  * @param {string} formData.frontendKey - Frontend key for filtering (e.g. 'job-offer').
  * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
  * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
+ * @param {object} [options] - Notification options.
+ * @param {string} [options.errorNotificationTargetId] - Notification component for errors.
  * @returns {Promise<object|null>} The created form object from the API, or null on failure.
  */
-export async function apiCreateForm(host, formData) {
+export async function apiCreateForm(host, formData, options = {}) {
     const i18n = host._i18n;
 
     const body = {
@@ -812,6 +814,7 @@ export async function apiCreateForm(host, formData) {
                 body: i18n.t('create-form.error-create-failed', {status: response.status}),
                 type: 'danger',
                 timeout: 0,
+                targetNotificationId: options.errorNotificationTargetId,
             });
             return null;
         }
@@ -831,6 +834,7 @@ export async function apiCreateForm(host, formData) {
             body: error.message,
             type: 'danger',
             timeout: 0,
+            targetNotificationId: options.errorNotificationTargetId,
         });
         return null;
     }
@@ -846,9 +850,11 @@ export async function apiCreateForm(host, formData) {
  * @param {Array<{languageTag: string, name: string}>} formData.localizedNames - Localized names.
  * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
  * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
+ * @param {object} [options] - Notification options.
+ * @param {string} [options.errorNotificationTargetId] - Notification component for errors.
  * @returns {Promise<object|null>} The updated form object from the API, or null on failure.
  */
-export async function apiUpdateForm(host, formIdentifier, formData) {
+export async function apiUpdateForm(host, formIdentifier, formData, options = {}) {
     const i18n = host._i18n;
 
     const body = {
@@ -882,6 +888,7 @@ export async function apiUpdateForm(host, formIdentifier, formData) {
                 body: i18n.t('edit-form.error-update-failed', {status: response.status}),
                 type: 'danger',
                 timeout: 0,
+                targetNotificationId: options.errorNotificationTargetId,
             });
             return null;
         }
@@ -901,6 +908,7 @@ export async function apiUpdateForm(host, formIdentifier, formData) {
             body: error.message,
             type: 'danger',
             timeout: 0,
+            targetNotificationId: options.errorNotificationTargetId,
         });
         return null;
     }
