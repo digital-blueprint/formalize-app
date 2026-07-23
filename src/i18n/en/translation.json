@@ -288,6 +288,7 @@
                 "co-applicants-description": "Please provide the first and last names of the researchers involved in the study, including their respective affiliation and role in the project.",
                 "co-applicants-label": "Co-applicants in the study",
                 "comments-label": "Comments",
+                "comments-placeholder": "You can use this field to communicate with the office after submitting your application (visible only in the online form, not in the print version).",
                 "commercially-available-cells-label": "Are the cells or human tissue used in the research project commercially available?",
                 "conflict-in-content-control-list-label": "If so, which ones?",
                 "conflict-of-interest-list-label": "If so, which ones?",

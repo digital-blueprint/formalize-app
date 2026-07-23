@@ -1290,7 +1290,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
-
+                
                 <dbp-form-enum-view
                     subscribe="lang"
                     name="type"
@@ -3228,12 +3228,12 @@ class FormalizeFormElement extends BaseFormElement {
                                             </ol>
                                             <p>Wenn es keine Finanzierung gibt, empfehlen wir, die Proband*innen für die Teilnahme an Ihrer Studie mit einer symbolischen Anerkennung, zB in Form von Schokolade, Verlosung von Goodies oder individuelle Rückmeldung zu ihren Datenauswertungen, zu bedenken.</p>
                                             <p>Unabhängig von der Finanzierung bitten wir Sie, Aufwandsentschädigungen auch für jene Proband*innen aliquot vorzusehen, die ihre Studienteilnahme aus welchem Grund auch immer frühzeitig abbrechen.</p>
-                                            <p>Hinweis In erster Linie werden aufgrund der Regionalität Holding-GrazGutscheine oder Supermarkt-Gutscheine empfohlen. Gemäß TU Graz-Richtlinie zur Beschaffung, RL 96000 RLBS 172-01, dürfen Mitarbeitende der TU Graz keine Bargeld-Leistung als Aufwandsentschädigung für Ihre Studienteilnahme erhalten.</p>
+                                            <p>In erster Linie werden aufgrund der Regionalität Holding-GrazGutscheine oder Supermarkt-Gutscheine empfohlen. Gemäß TU Graz-Richtlinie zur Beschaffung, RL 96000 RLBS 172-01, dürfen Mitarbeitende der TU Graz keine Bargeld-Leistung als Aufwandsentschädigung für Ihre Studienteilnahme erhalten.</p>
                                         </div>
                                     </li>
                                     <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
                                     <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing)</a></p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Hinweis auf die Richtlinie für Hinweisgeber*innen und den elektronischen Briefkasten für anonyme Hinweise an der TU Graz</a></p></li>
                                     <li><p>Hinweis auf die Datenspeicherung (z.B.: welcher Server, wer hat Zugriff), die Aufbewahrungsdauer sowie auf die Frage des Personenbezugs</p></li>
                                     <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
                                 </ol>
@@ -3263,7 +3263,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Electronic Mailbox for Anonymous Tips (Whistleblowing)</a>.</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips</a>.</p></li>
                                     <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
@@ -5734,12 +5734,12 @@ class FormalizeFormElement extends BaseFormElement {
                                             </ol>
                                             <p>Wenn es keine Finanzierung gibt, empfehlen wir, die Proband*innen für die Teilnahme an Ihrer Studie mit einer symbolischen Anerkennung, zB in Form von Schokolade, Verlosung von Goodies oder individuelle Rückmeldung zu ihren Datenauswertungen, zu bedenken.</p>
                                             <p>Unabhängig von der Finanzierung bitten wir Sie, Aufwandsentschädigungen auch für jene Proband*innen aliquot vorzusehen, die ihre Studienteilnahme aus welchem Grund auch immer frühzeitig abbrechen.</p>
-                                            <p>Hinweis In erster Linie werden aufgrund der Regionalität Holding-GrazGutscheine oder Supermarkt-Gutscheine empfohlen. Gemäß TU Graz-Richtlinie zur Beschaffung, RL 96000 RLBS 172-01, dürfen Mitarbeitende der TU Graz keine Bargeld-Leistung als Aufwandsentschädigung für Ihre Studienteilnahme erhalten.</p>
+                                            <p>In erster Linie werden aufgrund der Regionalität Holding-GrazGutscheine oder Supermarkt-Gutscheine empfohlen. Gemäß TU Graz-Richtlinie zur Beschaffung, RL 96000 RLBS 172-01, dürfen Mitarbeitende der TU Graz keine Bargeld-Leistung als Aufwandsentschädigung für Ihre Studienteilnahme erhalten.</p>
                                         </div>
                                     </li>
                                     <li><p>Hinweis auf die Freiwilligkeit der Teilnahme inklusive des Rechts, die Einwilligung jederzeit ohne Angabe von Gründen widerrufen und die Teilnahme vorzeitig abbrechen zu können, ohne dass den Proband*innen dadurch ein Nachteil entsteht</p></li>
                                     <li><p>Hinweis auf die erfolgte Behandlung durch die Ethikkommission</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Elektronischer Briefkasten für anonyme Hinweise (Whistleblowing)</a></p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Hinweis auf die Richtlinie für Hinweisgeber*innen und den elektronischen Briefkasten für anonyme Hinweise an der TU Graz</a></p></li>
                                     <li><p>Hinweis auf die Datenspeicherung (z.B.: welcher Server, wer hat Zugriff), die Aufbewahrungsdauer sowie auf die Frage des Personenbezugs</p></li>
                                     <li><p>Einwilligungserklärung der Proband*innen (bzw. von deren gesetzlichen Vertreter*innen) zur Teilnahme an der Studie</p></li>
                                 </ol>
@@ -5769,7 +5769,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Electronic Mailbox for Anonymous Tips (Whistleblowing)</a>.</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips</a>.</p></li>
                                     <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
@@ -5859,6 +5859,7 @@ class FormalizeFormElement extends BaseFormElement {
                     maxlength="5000"
                     label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
                     value=${data.comments || ''}
+                    placeholder="${i18n.t('render-form.forms.ethics-commission-form.comments-placeholder')}" 
                     rows="3"></dbp-form-string-element>
             </form>
 
