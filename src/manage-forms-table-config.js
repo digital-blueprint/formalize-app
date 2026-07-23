@@ -266,9 +266,6 @@ function getSchemaFields(
     } else {
         Object.keys(formSchemaFields.properties).forEach((field) => {
             const schemaField = formSchemaFields.properties[field];
-            if (schemaField.tableViewVisibleDefault !== undefined) {
-                host.isResetButtonDisabled = {...host.isResetButtonDisabled, [state]: false};
-            }
 
             const definition = {
                 field: field,
@@ -398,6 +395,7 @@ export function setDefaultSubmissionTableOrder(host, state) {
         ...host.submissionsColumns,
         [state]: cloneColumnDefinitions(host.submissionsColumnsInitial[state]),
     };
+    host.isResetButtonDisabled = {...host.isResetButtonDisabled, [state]: false};
 }
 
 // ---------------------------------------------------------------------------
@@ -438,6 +436,7 @@ function cloneColumnDefinition(definition) {
  * @param {string} state
  */
 export function resetSettings(host, state) {
+    // @TODO: We should delete the localStorage entry if there is no schema-derived column settings, so that the next time the user opens the table, it will use the schema defaults.
     host.submissionsColumns = {
         ...host.submissionsColumns,
         [state]: cloneColumnDefinitions(host.submissionsColumnsInitial[state]),
