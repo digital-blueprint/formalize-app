@@ -97,6 +97,7 @@ export function setSubmissionFormOptions(host, state) {
         return [
             {
                 title: 'ID',
+                field: 'rowIndex',
                 formatter: function (cell) {
                     const row = cell.getRow();
                     const table = row.getTable();
