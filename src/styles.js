@@ -1450,6 +1450,7 @@ export function getEthicsCommissionFormCSS() {
             margin: 1.2em 0 0.6em;
         }
 
+        [slot='description'] a,
         [slot='label'] a {
             text-decoration: underline;
             text-underline-offset: 2px;

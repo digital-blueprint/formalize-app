@@ -129,6 +129,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.handleSelect2Close = this.handleSelect2Close.bind(this);
         this.handleChangeEvents = this.handleChangeEvents.bind(this);
         this.handleValidationOnFocusOut = this.handleValidationOnFocusOut.bind(this);
+        this.handleAnchorClick = this.handleAnchorClick.bind(this);
         this._deletionConfirmationResolve = null;
 
         // Conditional fields
@@ -399,6 +400,9 @@ class FormalizeFormElement extends BaseFormElement {
             this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
                 capture: true,
             });
+
+            // Handle anchor link clicks within shadow DOM
+            this.shadowRoot.addEventListener('click', this.handleAnchorClick);
         });
     }
 
@@ -436,6 +440,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.shadowRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
             capture: true,
         });
+        this.shadowRoot.removeEventListener('click', this.handleAnchorClick);
     }
 
     /**
@@ -458,6 +463,39 @@ class FormalizeFormElement extends BaseFormElement {
         ) {
             openSelect2.closeSelect2();
         }
+    }
+
+    /**
+     * Handle clicks on anchor links to scroll to target elements within shadow DOM.
+     * Native anchor scrolling doesn't work across shadow DOM boundaries.
+     * Also handles elements inside dbp-translated slots (multiple elements with same ID).
+     * @param {MouseEvent} event
+     */
+    handleAnchorClick(event) {
+        const anchor = event.target.closest('a[href^="#"]');
+        if (!anchor) return;
+
+        const href = anchor.getAttribute('href');
+        if (!href || href === '#') return;
+
+        const targetId = href.slice(1);
+        // Use querySelectorAll to find all elements with this ID (e.g., in dbp-translated slots)
+        const targets = this.shadowRoot.querySelectorAll(`#${targetId}`);
+        if (targets.length === 0) return;
+
+        // Find the visible target (not hidden by dbp-translated's display: none)
+        const visibleTarget = Array.from(targets).find((el) => {
+            const style = window.getComputedStyle(el);
+            return (
+                style.display !== 'none' &&
+                style.visibility !== 'hidden' &&
+                el.offsetParent !== null
+            );
+        });
+
+        const target = visibleTarget || targets[0];
+        event.preventDefault();
+        target.scrollIntoView({behavior: 'smooth', block: 'center'});
     }
 
     handleFieldsOfExpertiseItems(event) {
@@ -1570,8 +1608,6 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-label')}"
                         value=${data.volunteersCompensation || ''}>
                     </dbp-form-string-view>
-
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}</p>
 
                     <dbp-form-string-view
                         subscribe="lang"
@@ -3747,12 +3783,23 @@ class FormalizeFormElement extends BaseFormElement {
                         name="volunteersCompensation"
                         maxlength="1500"
                         label="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-label')}"
-                        description="${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-2')}
-                            ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description')}
-                            ${i18n.t('render-form.forms.ethics-commission-form.volunteers-compensation-description-3')}"
                         value=${data.volunteersCompensation || ''}
                         rows="5"
                         required>
+                        <div slot="description">
+                            <dbp-translated subscribe="lang">
+                                <div slot="de">
+                                    Mitarbeiter*innen der TU Graz können laut Beschaffungsrichtlinie keine Entschädigung für die Mitwirkung an Studien als Proband*innen erhalten.
+                                    Grundsätzlich wird empfohlen, Proband*innen für ihre Studienteilnahme zu entschädigen (siehe grüne Box unter IV. in den Antragsunterlagen).
+                                    Angabe über die Art und Höhe der <a href="#info-box">Aufwandsentschädigung</a> für Proband*innen für deren Teilnahme an der Studie.
+                                </div>
+                                <div slot="en">
+                                    According to the procurement guidelines, employees of TU Graz cannot receive compensation for participating in studies as participants.
+                                    It is recommended that participants get compensated for their participation in the study (see also the green box under IV. in the application materials).
+                                    Information on the type and amount of <a href="#info-box">compensation</a> for participants for their participation in the study.
+                                </div>
+                            </dbp-translated>
+                        </div>
                     </dbp-form-string-element>
 
                     <dbp-form-string-element
@@ -5665,7 +5712,7 @@ class FormalizeFormElement extends BaseFormElement {
                 <article>
                     <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-consent-title')}</h3>
 
-                    <div class="description">
+                    <div class="description" id="section-consent-description">
                         <dbp-translated subscribe="lang">
                             <div slot="de">
                                 <p>Wenn Menschen als Proband*innen mitwirken:</p>
@@ -5676,7 +5723,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Angabe möglicher Risiken für die Proband*innen (Unannehmlichkeiten, Gefahren, Belastungen) und etwaiger Folgen</p></li>
                                     <li>
                                         <p>Angaben über die Höhe der Aufwandsentschädigung (auch im Falle eines vorzeitigen Abbruchs) sowie eines sonstigen Nutzens für die Proband*innen</p>
-                                        <div class="info-box">
+                                        <div class="info-box" id="info-box">
                                             <p>Bitte kümmern Sie sich frühzeitig um ein entsprechendes Budget für Aufwandsentschädigungen für die Proband*innen Ihrer Studie (Budgetierung in Forschungsanträgen)!</p>
                                             <p>Die Angemessenheit der Aufwandsentschädigung hängt zunächst davon ab, ob es für die Durchführung der Studie eine Finanzierung gibt oder nicht. </p>
                                             <p>Wenn es eine Finanzierung gibt, empfehlen wir in Abhängigkeit der folgenden Kriterien eine Aufwandsentschädigung <b>in Höhe von EUR 10 bis 25 pro Stunde</b> in Form von Holding-GrazGutscheinen oder Supermarkt-Gutscheinen:</p>
@@ -5706,7 +5753,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     <li><p>Indication of possible risks for the participants (inconvenience, danger, stress) and possible consequences</p></li>
                                     <li>
                                         <p>Information on the amount of the compensation (including in the event of premature termination) and other benefits for the participants</p>
-                                        <div class="info-box">
+                                        <div class="info-box" id="info-box">
                                             <p>Please ensure that funding for the participant compensation is secured at an early stage of the planning (budgeting in research proposals)!</p>
                                             <p>The appropriateness of the compensation depends first and foremost on whether or not funding is available for the study.</p>
                                             <p>If funding is available, we recommend a <b>compensation of EUR 10 to 25 per hour</b> in the form of Holding-Graz vouchers or supermarket vouchers, depending on the following criteria:</p>
