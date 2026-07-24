@@ -1290,7 +1290,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
-                
+
                 <dbp-form-enum-view
                     subscribe="lang"
                     name="type"
@@ -3377,7 +3377,11 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
-                <p class="form-description">${i18n.t('render-form.forms.ethics-commission-form.description-part1')} &nbsp <a href=\"mailto:ethikkommission@tugraz.at\">ethikkommission@tugraz.at</a> ${i18n.t('render-form.forms.ethics-commission-form.description-part2')} </p>
+                <p class="form-description">
+                    ${i18n.t('render-form.forms.ethics-commission-form.description-part1')}
+                    <a href="mailto:ethikkommission@tugraz.at" target="_blank">ethikkommission@tugraz.at</a>
+                    ${i18n.t('render-form.forms.ethics-commission-form.description-part2')}
+                </p>
                 <p>
                     <span class="red-marked-asterisk">
                         ${i18n.t('render-form.required-files-asterisk')}
@@ -5859,7 +5863,7 @@ class FormalizeFormElement extends BaseFormElement {
                     maxlength="5000"
                     label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
                     value=${data.comments || ''}
-                    placeholder="${i18n.t('render-form.forms.ethics-commission-form.comments-placeholder')}" 
+                    placeholder="${i18n.t('render-form.forms.ethics-commission-form.comments-placeholder')}"
                     rows="3"></dbp-form-string-element>
             </form>
 

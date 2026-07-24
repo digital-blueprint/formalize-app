@@ -1429,6 +1429,11 @@ export function getEthicsCommissionFormCSS() {
             line-height: 1.2;
         }
 
+        .form-description {
+            padding: 1em;
+            border: 1px solid var(--dbp-content);
+        }
+
         .section-title {
             font-size: 2.4em;
             font-weight: bold;
@@ -1450,6 +1455,7 @@ export function getEthicsCommissionFormCSS() {
             margin: 1.2em 0 0.6em;
         }
 
+        .form-description a,
         [slot='description'] a,
         [slot='label'] a {
             text-decoration: underline;
