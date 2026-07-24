@@ -3377,7 +3377,7 @@ class FormalizeFormElement extends BaseFormElement {
                 </div>
 
                 <h2 class="form-title">${i18n.t('render-form.forms.ethics-commission-form.title')}</h2>
-
+                <p class="form-description">${i18n.t('render-form.forms.ethics-commission-form.description-part1')} &nbsp <a href=\"mailto:ethikkommission@tugraz.at\">ethikkommission@tugraz.at</a> ${i18n.t('render-form.forms.ethics-commission-form.description-part2')} </p>
                 <p>
                     <span class="red-marked-asterisk">
                         ${i18n.t('render-form.required-files-asterisk')}
