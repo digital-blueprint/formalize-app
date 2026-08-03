@@ -23,9 +23,13 @@ import {
     DbpDateElement,
     DbpBooleanElement,
     DbpEnumElement,
+    DbpPersonSelectElement,
+    DbpResourceSelectElement,
     DbpStringView,
     DbpDateView,
     DbpEnumView,
+    DbpPersonSelectView,
+    DbpResourceSelectView,
 } from '@dbp-toolkit/form-elements';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 import html2pdf from 'html2pdf.js';
@@ -50,6 +54,14 @@ export default class extends BaseObject {
 
     getFormIdentifier() {
         return '32297d33-1352-4cf2-ba06-1577911c3537';
+    }
+
+    getSubmissionReferenceFields() {
+        return {
+            applicant: 'person',
+            coApplicants: 'person',
+            contactDetails: 'organization',
+        };
     }
 
     getEnumTranslations(lang) {
@@ -185,9 +197,13 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-boolean-element': DbpBooleanElement,
             'dbp-form-enum-element': DbpEnumElement,
+            'dbp-form-person-select-element': DbpPersonSelectElement,
+            'dbp-form-resource-select-element': DbpResourceSelectElement,
             'dbp-form-string-view': DbpStringView,
             'dbp-form-date-view': DbpDateView,
             'dbp-form-enum-view': DbpEnumView,
+            'dbp-form-person-select-view': DbpPersonSelectView,
+            'dbp-form-resource-select-view': DbpResourceSelectView,
             'dbp-file-source': FileSource,
             'dbp-file-sink': FileSink,
             'dbp-pdf-viewer': PdfViewer,
@@ -1325,37 +1341,97 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.userTitleShort || ''}>
                     </dbp-form-string-view>
 
+                    ${
+                        Array.isArray(data.applicant)
+                            ? html`
+                                  <dbp-form-person-select-view
+                                      subscribe="lang,auth,entry-point-url"
+                                      name="applicant"
+                                      multiple
+                                      label="${i18n.t(
+                                          'render-form.forms.ethics-commission-form.applicant-label',
+                                      )}"
+                                      .value=${data.applicant}></dbp-form-person-select-view>
+                              `
+                            : html`
+                                  <dbp-form-string-view
+                                      subscribe="lang"
+                                      name="applicant"
+                                      label="${i18n.t(
+                                          'render-form.forms.ethics-commission-form.applicant-label',
+                                      )}"
+                                      value=${data.applicant || ''}></dbp-form-string-view>
+                              `
+                    }
+
+                    <p class="field-note">
+                        ${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}
+                    </p>
+
+                    <dbp-form-resource-select-view
+                        subscribe="lang,auth,entry-point-url"
+                        name="contactDetails"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.contact-details-label',
+                        )}"
+                        .value=${data.contactDetails || ''}>
+                    </dbp-form-resource-select-view>
+
+                    ${
+                        Array.isArray(data.coApplicants)
+                            ? html`
+                                  <dbp-form-person-select-view
+                                      subscribe="lang,auth,entry-point-url"
+                                      name="coApplicants"
+                                      multiple
+                                      label="${i18n.t(
+                                          'render-form.forms.ethics-commission-form.co-applicants-label',
+                                      )}"
+                                      .value=${data.coApplicants}></dbp-form-person-select-view>
+                              `
+                            : html`
+                                  <dbp-form-string-view
+                                      subscribe="lang"
+                                      name="coApplicants"
+                                      label="${i18n.t(
+                                          'render-form.forms.ethics-commission-form.co-applicants-label',
+                                      )}"
+                                      value=${data.coApplicants || ''}></dbp-form-string-view>
+                              `
+                    }
+
+                    <p class="field-note">
+                        ${i18n.t(
+                            'render-form.forms.ethics-commission-form.co-applicants-description',
+                        )}
+                    </p>
+
                     <dbp-form-string-view
                         subscribe="lang"
-                        name="applicant"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.applicant-label')}"
-                        value=${data.applicant || ''}>
+                        name="externalApplicant"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.external-applicant-label',
+                        )}"
+                        value=${data.externalApplicant || ''}>
                     </dbp-form-string-view>
 
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}</p>
-
                     <dbp-form-string-view
                         subscribe="lang"
-                        name="contactDetails"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.contact-details-label')}"
-                        value=${data.contactDetails || ''}>
+                        name="externalCoApplicants"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.external-co-applicants-label',
+                        )}"
+                        value=${data.externalCoApplicants || ''}>
                     </dbp-form-string-view>
 
                     <dbp-form-string-view
                         subscribe="lang"
                         name="jobPosition"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.job-position-label')}"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.job-position-label',
+                        )}"
                         value=${data.jobPosition || ''}>
                     </dbp-form-string-view>
-
-                    <dbp-form-string-view
-                        subscribe="lang"
-                        name="coApplicants"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-label')}"
-                        value=${data.coApplicants || ''}>
-                    </dbp-form-string-view>
-
-                    <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}</p>
 
                     <dbp-form-enum-view
                         subscribe="lang"
@@ -3431,25 +3507,71 @@ class FormalizeFormElement extends BaseFormElement {
                         value=${data.userTitleShort || ''}>
                     </dbp-form-string-element>
 
+                    <dbp-form-person-select-element
+                        subscribe="lang,auth,entry-point-url"
+                        name="applicant"
+                        multiple
+                        required
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.applicant-label',
+                        )}"
+                        description="${i18n.t(
+                            'render-form.forms.ethics-commission-form.applicant-description',
+                        )}"
+                        .value=${Array.isArray(data.applicant) ? data.applicant : []}>
+                    </dbp-form-person-select-element>
+
+                    <dbp-form-resource-select-element
+                        subscribe="lang,auth,entry-point-url"
+                        name="contactDetails"
+                        resource-path="/base/organizations"
+                        no-default
+                        required
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.contact-details-label',
+                        )}"
+                        .value=${data.contactDetails || ''}>
+                    </dbp-form-resource-select-element>
+
+                    <dbp-form-person-select-element
+                        subscribe="lang,auth,entry-point-url"
+                        name="coApplicants"
+                        multiple
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.co-applicants-label',
+                        )}"
+                        description="${i18n.t(
+                            'render-form.forms.ethics-commission-form.co-applicants-description',
+                        )}"
+                        .value=${Array.isArray(data.coApplicants) ? data.coApplicants : []}>
+                    </dbp-form-person-select-element>
+
                     <dbp-form-string-element
                         subscribe="lang"
-                        name="applicant"
+                        name="externalApplicant"
                         maxlength="1000"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.applicant-placeholder')}"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.applicant-label')}"
-                        description="${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}"
-                        required
-                        value=${data.applicant || ''}>
+                        rows="3"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.external-applicant-label',
+                        )}"
+                        placeholder="${i18n.t(
+                            'render-form.forms.ethics-commission-form.external-applicant-placeholder',
+                        )}"
+                        value=${data.externalApplicant || ''}>
                     </dbp-form-string-element>
 
                     <dbp-form-string-element
                         subscribe="lang"
-                        name="contactDetails"
+                        name="externalCoApplicants"
                         maxlength="1000"
-                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.contact-details-placeholder')}"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.contact-details-label')}"
-                        required
-                        value=${data.contactDetails || ''}>
+                        rows="3"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.external-co-applicants-label',
+                        )}"
+                        placeholder="${i18n.t(
+                            'render-form.forms.ethics-commission-form.external-co-applicants-placeholder',
+                        )}"
+                        value=${data.externalCoApplicants || ''}>
                     </dbp-form-string-element>
 
                     <dbp-form-string-element
@@ -3457,19 +3579,10 @@ class FormalizeFormElement extends BaseFormElement {
                         name="jobPosition"
                         maxlength="1000"
                         required
-                        label="${i18n.t('render-form.forms.ethics-commission-form.job-position-label')}"
+                        label="${i18n.t(
+                            'render-form.forms.ethics-commission-form.job-position-label',
+                        )}"
                         value=${data.jobPosition || ''}>
-                    </dbp-form-string-element>
-
-                    <dbp-form-string-element
-                        subscribe="lang"
-                        name="coApplicants"
-                        maxlength="1000"
-                        required
-                        rows="3"
-                        label="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-label')}"
-                        description="${i18n.t('render-form.forms.ethics-commission-form.co-applicants-description')}"
-                        value=${data.coApplicants || ''}>
                     </dbp-form-string-element>
 
                     <dbp-form-enum-element
