@@ -46,6 +46,128 @@ function throwSomethingWentWrongNotification(host) {
     });
 }
 
+/**
+ * Resolves a stored person identifier to a human-readable name.
+ *
+ * @param {object} host
+ * @param {*} value
+ * @returns {Promise<*>}
+ */
+async function resolvePersonReference(host, value) {
+    if (typeof value !== 'string' || value === '') {
+        return value;
+    }
+
+    const identifier = value.replace(/^\/base\/people\//, '');
+
+    if (host.userNameCache.has(identifier)) {
+        return host.userNameCache.get(identifier);
+    }
+
+    try {
+        const response = await host.apiGetUserDetails(identifier);
+
+        if (!response?.ok) {
+            throw new Error(
+                `Failed to resolve person ${identifier}: ${response?.status ?? 'unknown status'}`,
+            );
+        }
+
+        const person = await response.json();
+        const fullName = [person.givenName, person.familyName].filter(Boolean).join(' ') || value;
+
+        host.userNameCache.set(identifier, fullName);
+
+        return fullName;
+    } catch (error) {
+        console.error(`Failed to resolve person reference "${value}"`, error);
+        return value;
+    }
+}
+
+/**
+ * Resolves a stored organization identifier to its human-readable name.
+ *
+ * @param {object} host
+ * @param {*} value
+ * @returns {Promise<*>}
+ */
+async function resolveOrganizationReference(host, value) {
+    if (typeof value !== 'string' || value === '') {
+        return value;
+    }
+
+    const identifier = value.replace(/^\/base\/organizations\//, '');
+
+    if (!(host.organizationNameCache instanceof Map)) {
+        host.organizationNameCache = new Map();
+    }
+
+    if (host.organizationNameCache.has(identifier)) {
+        return host.organizationNameCache.get(identifier);
+    }
+
+    try {
+        const entryPointUrl = host.entryPointUrl.replace(/\/$/, '');
+        const response = await fetch(
+            `${entryPointUrl}/base/organizations/${encodeURIComponent(identifier)}`,
+            {
+                method: 'GET',
+                headers: {
+                    Accept: 'application/ld+json',
+                    'Accept-Language': host.lang,
+                    Authorization: `Bearer ${host.auth.token}`,
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to resolve organization ${identifier}: ${response.status}`);
+        }
+
+        const organization = await response.json();
+        const organizationName = organization.name || value;
+
+        host.organizationNameCache.set(identifier, organizationName);
+
+        return organizationName;
+    } catch (error) {
+        console.error(`Failed to resolve organization reference "${value}"`, error);
+        return value;
+    }
+}
+
+/**
+ * Resolves a single value or an array of API reference values.
+ *
+ * @param {object} host
+ * @param {'person'|'organization'} referenceType
+ * @param {*} value
+ * @returns {Promise<*>}
+ */
+async function resolveSubmissionReferenceValue(host, referenceType, value) {
+    const values = Array.isArray(value) ? value : [value];
+
+    let resolver;
+
+    switch (referenceType) {
+        case 'person':
+            resolver = resolvePersonReference;
+            break;
+
+        case 'organization':
+            resolver = resolveOrganizationReference;
+            break;
+
+        default:
+            return value;
+    }
+
+    const resolvedValues = await Promise.all(values.map((item) => resolver(host, item)));
+
+    return Array.isArray(value) ? resolvedValues : resolvedValues[0];
+}
+
 // ---------------------------------------------------------------------------
 // Module loading
 // ---------------------------------------------------------------------------
@@ -415,6 +537,7 @@ export async function getAllFormSubmissions(host, formId) {
             ? activeForm.moduleInstance.getEnumTranslations(host.lang)
             : {};
         const commonTranslations = enumTranslations._common || {};
+        const referenceFields = activeForm?.moduleInstance?.getSubmissionReferenceFields?.() || {};
 
         for (let [x, submission] of submissions[state].entries()) {
             let dateCreated = humanReadableDate(submission['dateCreated']);
@@ -440,7 +563,26 @@ export async function getAllFormSubmissions(host, formId) {
             for (const fieldName of Object.keys(fileFieldData)) {
                 fileFieldData[fieldName] = fileFieldData[fieldName].join(', ');
             }
+            // Resolve form-specific API references before array values are flattened.
+            for (const [fieldName, referenceType] of Object.entries(referenceFields)) {
+                const value = dataFeedElement[fieldName];
 
+                const isEmpty =
+                    value === undefined ||
+                    value === null ||
+                    value === '' ||
+                    (Array.isArray(value) && value.length === 0);
+
+                if (isEmpty) {
+                    continue;
+                }
+
+                dataFeedElement[fieldName] = await resolveSubmissionReferenceValue(
+                    host,
+                    referenceType,
+                    value,
+                );
+            }
             // Flatten array values, resolve user identifiers
             for (const [key, value] of Object.entries(dataFeedElement)) {
                 if (Array.isArray(value)) {

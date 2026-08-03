@@ -78,6 +78,18 @@ export class BaseObject {
     getEnumTranslations(_lang) {
         return {};
     }
+    /**
+     * Returns form fields whose stored values reference API resources
+     *
+     * Supported types:
+     * - person
+     * - organization
+     *
+     * @returns {Record<string, 'person' | 'organization'>}
+     */
+    getSubmissionReferenceFields() {
+        return {};
+    }
 }
 
 export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
