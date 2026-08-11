@@ -685,7 +685,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 ${metadata.map(
                     (entry) => html`
                         <div>
-                            <span class="label">${entry.label}:</span>
+                            <span class="label metadata-label">${entry.label}:</span>
                             <span class="value">${entry.value || emptyValue}</span>
                         </div>
                     `,
@@ -1472,7 +1472,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .edit-metadata {
                 display: grid;
                 gap: 0.25rem;
-                margin-top: 0.75rem;
+                margin: 0.5rem 0;
             }
 
             .edit-metadata > div {
@@ -1483,6 +1483,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .edit-metadata .label {
                 font-weight: bold;
+            }
+            .metadata-label {
+                margin: 0;
             }
 
             .edit-actions {
