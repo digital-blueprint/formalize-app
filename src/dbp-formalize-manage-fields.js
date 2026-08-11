@@ -17,6 +17,8 @@ import {formatDate, SUBMISSION_STATES_BINARY} from './utils.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
 import {CustomTabulatorTable, GetDetailsButton, ColumnSettingsButton} from './table-components.js';
 import {ColumnSettingsModal} from './column-settings-modal.js';
+import {Modal} from '@dbp-toolkit/common/src/modal.js';
+import {Notification} from '@dbp-toolkit/notification';
 import {
     gatherFormDataFromElement,
     validateRequiredFields,
@@ -79,6 +81,7 @@ function getSentenceCaseItemName(name, lang) {
 
 const itemFormsCache = new Map();
 const itemFormsInflight = new Map();
+const editModalNotificationId = 'manage-fields-edit-modal-notification';
 
 class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
@@ -109,8 +112,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this._routeApplyPromise = Promise.resolve();
         this._submissionsLoadPromise = null;
         this._submissionsLoadFormIdentifier = '';
-        this._editHeaderObserved = false;
-        this._editHeaderObserver = null;
         this._itemColumnSettingsButton = null;
         this._userNameCache = new Map();
         this._failedUserNameLookups = new Set();
@@ -128,6 +129,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-formalize-column-settings-modal': ColumnSettingsModal,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
+            'dbp-modal': Modal,
+            'dbp-notification': Notification,
         };
     }
 
@@ -155,48 +158,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async initialize() {
         await this.loadItemForms();
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback?.();
-        this.disconnectEditHeaderObserver();
-    }
-
-    disconnectEditHeaderObserver() {
-        if (this._editHeaderObserver) {
-            this._editHeaderObserver.disconnect();
-            this._editHeaderObserver = null;
-        }
-        this._editHeaderObserved = false;
-    }
-
-    stickyEditHeaderObserver() {
-        if (this._editHeaderObserved || this.mode !== 'edit') {
-            return;
-        }
-
-        const editHeader = this.renderRoot?.querySelector('.edit-header');
-        const sentinel = this.renderRoot?.querySelector('.edit-header-sentinel');
-        if (!editHeader || !sentinel) {
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    editHeader.classList.toggle('is-pinned', !entry.isIntersecting);
-                });
-            },
-            {
-                rootMargin: '0px',
-                scrollMargin: '0px',
-                threshold: 0,
-            },
-        );
-
-        observer.observe(sentinel);
-        this._editHeaderObserver = observer;
-        this._editHeaderObserved = true;
     }
 
     async loadItemForms() {
@@ -509,6 +470,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 body: this._i18n.t('errors.form-validation-warning-notification-body'),
                 type: 'warning',
                 timeout: 5,
+                targetNotificationId: editModalNotificationId,
             });
             return;
         }
@@ -537,7 +499,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
 
             if (!response.ok) {
-                this.handleErrorResponse(response);
+                this.handleErrorResponse(response, editModalNotificationId);
                 return;
             }
 
@@ -1240,17 +1202,31 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             : 'manage-fields.create-item-title';
 
         return html`
-            <div class="edit-header-sentinel" aria-hidden="true"></div>
-            <div class="edit-header">
-                <div>
-                    <h2>${i18n.t(titleKey, {name: titleName, itemName})}</h2>
+            <dbp-modal
+                id="manage-fields-edit-modal"
+                modal-id="manage-fields-edit-modal"
+                subscribe="lang"
+                sticky-footer
+                @dbp-modal-closed=${() => {
+                    if (this.mode === 'edit') this.cancelEdit();
+                }}
+                style="--dbp-modal-min-width: min(95vw, 900px); --dbp-modal-max-width: min(95vw, 900px); --dbp-modal-max-height: 90vh; --dbp-modal-content-overflow-y: auto;">
+                <div slot="title">
+                    <h2 class="edit-title">${i18n.t(titleKey, {name: titleName, itemName})}</h2>
+                </div>
+                <div slot="header">
+                    <dbp-notification
+                        id=${editModalNotificationId}
+                        lang=${this.lang}></dbp-notification>
                     ${this.renderEditMetadata()}
                 </div>
-                <div class="edit-actions">
+                <div slot="content">${this.mode === 'edit' ? this.getFormHtml() : ''}</div>
+                <div slot="footer" class="edit-actions">
                     <dbp-button
                         type="is-secondary"
                         no-spinner-on-click
-                        @click=${() => this.cancelEdit()}>
+                        @click=${() =>
+                            this.renderRoot?.querySelector('#manage-fields-edit-modal')?.close()}>
                         <dbp-icon name="close" aria-hidden="true"></dbp-icon>
                         ${i18n.t('manage-fields.cancel')}
                     </dbp-button>
@@ -1263,8 +1239,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         ${i18n.t('manage-fields.save-item')}
                     </dbp-button>
                 </div>
-            </div>
-            ${this.getFormHtml()}
+            </dbp-modal>
         `;
     }
 
@@ -1291,7 +1266,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             `;
         }
 
-        return this.mode === 'edit' ? this.renderEdit() : this.renderList();
+        return this.renderList();
     }
 
     render() {
@@ -1344,7 +1319,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                               <h2>${i18n.t('manage-fields.title')}</h2>
                           `
                 }
-                ${this.renderContent()}
+                ${this.renderContent()} ${this.activeForm ? this.renderEdit() : ''}
             </section>
         `;
     }
@@ -1413,10 +1388,16 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.loadLastModifiedByName();
         }
 
-        if (changedProperties.has('mode')) {
-            this.disconnectEditHeaderObserver();
+        if (changedProperties.has('mode') && this.activeForm) {
+            const modal = this.renderRoot?.querySelector('#manage-fields-edit-modal');
+            if (this.mode === 'edit') {
+                modal?.updateComplete.then(() => {
+                    if (this.mode === 'edit' && modal.isConnected) modal.open();
+                });
+            } else if (modal?.isOpen()) {
+                modal.close();
+            }
         }
-        this.stickyEditHeaderObserver();
     }
 
     static get styles() {
@@ -1437,13 +1418,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .manage-fields h2 {
                 font-weight: bold;
-            }
-
-            .edit-header {
-                align-items: flex-end;
-                display: flex;
-                gap: 0.75rem;
-                justify-content: space-between;
             }
 
             .active-form-header {
@@ -1485,27 +1459,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 text-decoration: none;
             }
 
-            .edit-header {
-                background: var(--dbp-background);
-                border: 1px solid var(--dbp-content);
-                min-width: 250px;
-                padding: 1em;
-                position: sticky;
-                top: 0;
-                z-index: 9;
-            }
-
-            .edit-header.is-pinned {
-                border-top: none;
-                box-shadow: 0px 4px 8px 2px rgba(0, 0, 0, 0.2);
-            }
-
-            .edit-header-sentinel {
-                block-size: 1px;
-            }
-
             .active-form-header h2,
-            .edit-header h2 {
+            .edit-title {
                 margin: 0;
             }
 
@@ -1551,11 +1506,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             @media (max-width: 640px) {
-                .edit-header {
-                    align-items: stretch;
-                    flex-direction: column;
-                }
-
                 .edit-actions {
                     flex-direction: column;
                 }

@@ -77,7 +77,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
             });
     }
 
-    handleErrorResponse(response) {
+    handleErrorResponse(response, targetNotificationId = null) {
         switch (response.status) {
             case 401:
                 sendNotification({
@@ -85,6 +85,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     body: this._i18n.t('errors.unauthorized-body'),
                     type: 'danger',
                     timeout: 0,
+                    targetNotificationId,
                 });
                 break;
             case 403:
@@ -93,6 +94,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     body: this._i18n.t('errors.unauthorized-body'),
                     type: 'danger',
                     timeout: 0,
+                    targetNotificationId,
                 });
                 break;
             case 404:
@@ -101,6 +103,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     body: this._i18n.t('errors.notfound-body'),
                     type: 'danger',
                     timeout: 0,
+                    targetNotificationId,
                 });
                 break;
             case 422: // unprocessable entity
@@ -109,6 +112,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     body: this._i18n.t('errors.unprocessable_entity-body'),
                     type: 'danger',
                     timeout: 0,
+                    targetNotificationId,
                 });
                 break;
             default:
@@ -117,6 +121,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
                     body: this._i18n.t('errors.other-body'),
                     type: 'danger',
                     timeout: 0,
+                    targetNotificationId,
                 });
         }
         //throw new Error(response);
