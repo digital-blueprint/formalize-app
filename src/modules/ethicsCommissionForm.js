@@ -1350,6 +1350,7 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t('render-form.forms.ethics-commission-form.contact-details-label')}"
                         .auth=${this.auth ?? {}}
                         .entryPointUrl=${this.entryPointUrl}
+                        resource-path="/base/organizations"
                         .value=${data.contactDetails || ''}>
                     </dbp-form-resource-select-view>
 
