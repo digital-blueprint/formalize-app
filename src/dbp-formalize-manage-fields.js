@@ -15,8 +15,7 @@ import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {formatDate, SUBMISSION_STATES_BINARY} from './utils.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
-import {CustomTabulatorTable, GetDetailsButton, ColumnSettingsButton} from './table-components.js';
-import {ColumnSettingsModal} from './column-settings-modal.js';
+import {CustomTabulatorTable, GetDetailsButton} from './table-components.js';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {Notification} from '@dbp-toolkit/notification';
 import {
@@ -101,10 +100,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedItemCount = 0;
         this.lastModifiedByName = '';
         this.errorMessage = '';
-        this.itemColumns = [];
-        this.itemColumnsInitial = [];
-        this.iconNameVisible = 'source_icons_eye-empty';
-        this.iconNameHidden = 'source_icons_eye-off';
         this.itemFrontendKeys = '';
         this._hasLoadedForms = false;
         this._isLoadingForms = false;
@@ -112,7 +107,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this._routeApplyPromise = Promise.resolve();
         this._submissionsLoadPromise = null;
         this._submissionsLoadFormIdentifier = '';
-        this._itemColumnSettingsButton = null;
         this._userNameCache = new Map();
         this._failedUserNameLookups = new Set();
     }
@@ -125,8 +119,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-select': DBPSelect,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-formalize-get-details-button': GetDetailsButton,
-            'dbp-formalize-column-settings-button': ColumnSettingsButton,
-            'dbp-formalize-column-settings-modal': ColumnSettingsModal,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
             'dbp-modal': Modal,
@@ -151,7 +143,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             selectedItemCount: {type: Number, attribute: false},
             lastModifiedByName: {type: String, attribute: false},
             errorMessage: {type: String, attribute: false},
-            itemColumns: {type: Array, attribute: false},
             itemFrontendKeys: {type: String, attribute: 'item-frontend-keys'},
         };
     }
@@ -827,17 +818,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         ];
     }
 
-    ensureItemColumns() {
-        // Initialize the configurable columns once so that the user's
-        // visibility/order changes are preserved across re-renders.
-        if (this.itemColumnsInitial.length === 0) {
-            this.itemColumnsInitial = this.getInitialItemColumns();
-        }
-        if (this.itemColumns.length === 0) {
-            this.itemColumns = this.getInitialItemColumns();
-        }
-    }
-
     getActionsColumnDefinition() {
         return {
             field: 'actions',
@@ -846,33 +826,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             headerHozAlign: 'right',
             minWidth: 120,
             formatter: (cell) => this.createItemActions(cell.getRow().getData().item),
-            // Render the table configuration button in the column header.
-            // The column must NOT be frozen: frozen columns are rendered twice
-            // by Tabulator (regular header + frozen overlay layer), which would
-            // invoke this title formatter twice and create two settings buttons.
-            titleFormatter: () => {
-                return this.getItemColumnSettingsButton();
-            },
         };
-    }
-
-    getItemColumnSettingsButton() {
-        if (!this._itemColumnSettingsButton) {
-            this._itemColumnSettingsButton = this.createScopedElement(
-                'dbp-formalize-column-settings-button',
-            );
-            this._itemColumnSettingsButton.setAttribute('subscribe', 'lang');
-            this._itemColumnSettingsButton.addEventListener('click', () => {
-                this.openColumnOptionsModal();
-            });
-        }
-
-        return this._itemColumnSettingsButton;
     }
 
     getItemTableOptions() {
         const i18n = this._i18n;
-        this.ensureItemColumns();
 
         const langsItems = {
             en: {
@@ -913,7 +871,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 hozAlign: 'center',
             },
             columns: [
-                ...this.itemColumns.map(({title, ...column}) => column),
+                ...this.getInitialItemColumns().map(({title, ...column}) => column),
                 this.getActionsColumnDefinition(),
             ],
         };
@@ -963,88 +921,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedItemCount = event.detail?.count ?? 0;
     }
 
-    getColumnOptionsModal() {
-        return this.renderRoot?.querySelector('dbp-formalize-column-settings-modal') ?? null;
-    }
-
-    openColumnOptionsModal() {
-        this.getColumnOptionsModal()?.open();
-    }
-
-    closeColumnOptionsModal() {
-        this.getColumnOptionsModal()?.close();
-    }
-
-    cloneItemColumns(columns) {
-        return columns.map((column) => ({...column}));
-    }
-
-    handleColumnSettingsAction(event) {
-        const {action, payload} = event.detail ?? {};
-        const column = payload?.column;
-
-        switch (action) {
-            case 'toggle-column-visibility':
-                this.toggleItemColumnVisibility(column);
-                break;
-            case 'move-column-up':
-                this.moveItemColumn(column, 'up');
-                break;
-            case 'move-column-down':
-                this.moveItemColumn(column, 'down');
-                break;
-            case 'reset-columns':
-                this.itemColumns = this.getInitialItemColumns();
-                break;
-            case 'hide-all-columns':
-                this.toggleAllItemColumns(false);
-                break;
-            case 'show-all-columns':
-                this.toggleAllItemColumns(true);
-                break;
-            case 'save-columns':
-                this.applyItemColumns();
-                break;
-        }
-    }
-
-    toggleItemColumnVisibility(column) {
-        if (!column) {
-            return;
-        }
-        this.itemColumns = this.itemColumns.map((col) =>
-            col.field === column.field ? {...col, visible: !col.visible} : col,
-        );
-    }
-
-    toggleAllItemColumns(visible) {
-        this.itemColumns = this.itemColumns.map((col) => (col.frozen ? col : {...col, visible}));
-    }
-
-    moveItemColumn(column, direction) {
-        if (!column) {
-            return;
-        }
-        const columns = [...this.itemColumns];
-        const index = columns.findIndex((col) => col.field === column.field);
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (index < 0 || targetIndex < 0 || targetIndex >= columns.length) {
-            return;
-        }
-        [columns[index], columns[targetIndex]] = [columns[targetIndex], columns[index]];
-        this.itemColumns = columns;
-    }
-
-    applyItemColumns() {
-        const table = this.renderRoot?.querySelector('#manage-fields-item-table');
-        if (table?.tabulatorTable) {
-            table.tabulatorTable.setColumns([
-                ...this.itemColumns.map(({title, ...column}) => column),
-                this.getActionsColumnDefinition(),
-            ]);
-        }
-    }
-
     async syncTabulatorTable(selector, options) {
         const table = this.renderRoot?.querySelector(selector);
         if (!table) {
@@ -1087,6 +963,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 .formProperties=${this.activeForm}
                 .formData=${formData}></${unsafeStatic(tagName)}>
         `;
+    }
+
+    getColumnConfigurationStorageKey(scope) {
+        const userId = this.auth?.['user-id'];
+        return this.isLoggedIn() && userId ? `formalize-manage-fields-${scope}-${userId}` : '';
     }
 
     renderFormOverview() {
@@ -1161,31 +1042,17 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 pagination-enabled
                                 pagination-size="5"
                                 select-rows-enabled
+                                column-configuration-enabled
+                                column-configuration-in-header
+                                .columnConfigurationExcludedFields=${['actions']}
+                                .columnConfigurationStorageKey=${this.getColumnConfigurationStorageKey(
+                                    `items-${this.activeForm?.identifier || 'form'}`,
+                                )}
                                 @dbp-tabulator-table-selection-count-changed=${(event) =>
                                     this.handleItemSelectionCountChanged(event)}
                                 .options=${this.getItemTableOptions()}></dbp-tabulator-table>
-                            ${this.renderColumnSettingsModal()}
                         `
             }
-        `;
-    }
-
-    renderColumnSettingsModal() {
-        this.ensureItemColumns();
-        const columns = this.itemColumns.filter((column) => column && column.frozen !== true);
-
-        if (columns.length === 0) {
-            return html``;
-        }
-
-        return html`
-            <dbp-formalize-column-settings-modal
-                lang="${this.lang}"
-                .columns=${columns}
-                .iconNameVisible=${this.iconNameVisible}
-                .iconNameHidden=${this.iconNameHidden}
-                @column-settings-action=${(event) =>
-                    this.handleColumnSettingsAction(event)}></dbp-formalize-column-settings-modal>
         `;
     }
 
@@ -1345,25 +1212,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
-    refreshItemColumnTitles() {
-        // Keep the user's column order and visibility but update the titles
-        // to the current language whenever the language changes.
-        const defaults = this.getInitialItemColumns();
-        const titleByField = new Map(defaults.map((column) => [column.field, column.title]));
-        this.itemColumnsInitial = defaults;
-        this.itemColumns = this.itemColumns.map((column) =>
-            titleByField.has(column.field)
-                ? {...column, title: titleByField.get(column.field)}
-                : column,
-        );
-    }
-
     updated(changedProperties) {
         super.updated?.(changedProperties);
-
-        if (changedProperties.has('lang') && this.itemColumns.length > 0) {
-            this.refreshItemColumnTitles();
-        }
 
         const needFormTableSync =
             changedProperties.has('itemFormEntries') ||
@@ -1373,8 +1223,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const needItemTableSync =
             changedProperties.has('items') ||
             changedProperties.has('lang') ||
-            changedProperties.has('mode') ||
-            changedProperties.has('itemColumns');
+            changedProperties.has('mode');
 
         if (needFormTableSync) {
             this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());

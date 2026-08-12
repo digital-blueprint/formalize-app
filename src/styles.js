@@ -799,95 +799,6 @@ export function getManageFormsCSS() {
             font-size: 1.5em;
         }
 
-        .headers {
-            max-width: 100%;
-            margin: 0;
-            list-style-type: none;
-            padding: 0;
-            display: grid;
-            width: 100%;
-        }
-
-        .header-field {
-            align-items: center;
-            height: 50px;
-            border: 1px solid var(--dbp-muted);
-            display: flex;
-            margin-bottom: 5px;
-            color: var(--dbp-content);
-        }
-
-        .header-button.hidden {
-            display: none !important;
-        }
-
-        .header-title {
-            font-weight: 400;
-            flex-grow: 2;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            padding-left: 5px;
-            text-align: left;
-        }
-
-        .header-order {
-            justify-content: center;
-            display: flex;
-            align-items: center;
-            height: 50px;
-            width: 50px;
-            min-width: 50px;
-            flex-grow: 0;
-            background-color: var(--dbp-muted-surface);
-            color: var(--dbp-on-muted-surface);
-            font-weight: bold;
-        }
-
-        .move-up .header-field {
-            animation: added 0.4s ease;
-        }
-
-        .header-move {
-            display: flex;
-        }
-
-        .header-fields:first-child .arrow-up,
-        .header-fields:last-child .arrow-down {
-            opacity: 0.4;
-            cursor: default;
-            pointer-events: none;
-        }
-
-        .first-arrow-up,
-        .last-arrow-down {
-            opacity: 0.4;
-            cursor: default;
-            pointer-events: none;
-        }
-
-        @keyframes added {
-            0% {
-                background-color: var(--dbp-background);
-                color: var(--dbp-content);
-            }
-            50% {
-                background-color: var(--dbp-success-surface);
-                color: var(--dbp-on-success-surface);
-            }
-            100% {
-                background-color: var(--dbp-background);
-                color: var(--dbp-content);
-            }
-        }
-
-        .button-wrapper {
-            display: flex;
-            height: 100%;
-            justify-content: end;
-            align-items: center;
-            padding-right: 2px;
-        }
-
         .open-menu {
             height: 45px;
             box-sizing: border-box;
@@ -908,19 +819,6 @@ export function getManageFormsCSS() {
             display: flex;
             flex-direction: column;
             gap: 10px;
-        }
-
-        .modal-footer-btn .top-button-row {
-            display: grid;
-            padding-top: 10px;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
-
-        .modal-footer-btn .bottom-button-row {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
         }
 
         .button-container {
@@ -1084,13 +982,7 @@ export function getManageFormsCSS() {
                 min-width: unset;
             }
 
-            .headers {
-                display: initial;
-                width: 100%;
-            }
-
             #filter-modal-box,
-            .submission-modal-content,
             .detailed-submission-modal-content {
                 height: 100%;
             }
@@ -1120,16 +1012,6 @@ export function getManageFormsCSS() {
 
             .modal-footer-btn > :first-child {
                 grid-template-columns: repeat(2, 1fr);
-            }
-            .item-1 {
-                order: 3;
-                grid-column: 1 / -1;
-            }
-            .item-2 {
-                order: 2;
-            }
-            .item-3 {
-                order: 1;
             }
         }
     `;

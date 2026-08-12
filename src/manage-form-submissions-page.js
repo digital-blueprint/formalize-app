@@ -6,7 +6,6 @@ import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
 import {CustomTabulatorTable} from './table-components.js';
-import {ColumnSettingsModal} from './column-settings-modal.js';
 import {SUBMISSION_STATES} from './utils.js';
 import {MANAGE_FORMS_COMPONENT_STYLES} from './manage-forms-component-styles.js';
 
@@ -20,6 +19,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.showSubmissionTables = false;
         this.loadingSubmissionTables = false;
         this.activeFormName = '';
+        this.columnConfigurationStorageKeys = {draft: '', submitted: ''};
         this.createSubmissionUrl = '';
         this.hideCreateSubmissionButton = false;
         this.enabledStates = {draft: false, submitted: false};
@@ -32,10 +32,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.isDeleteSelectedSubmissionEnabled = {draft: false, submitted: false};
         this.optionsSubmissions = {draft: {}, submitted: {}};
         this.submissions = {draft: [], submitted: []};
-        this.submissionsColumns = {draft: [], submitted: []};
-        this.iconNameVisible = 'source_icons_eye-empty';
-        this.iconNameHidden = 'source_icons_eye-off';
-        this.isResetButtonDisabled = {draft: true, submitted: true};
         this.selectedRowCount = {draft: 0, submitted: 0};
         this.allRowCount = {draft: 0, submitted: 0};
         this.visibleRowCount = {draft: 0, submitted: 0};
@@ -49,7 +45,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             'dbp-mini-spinner': MiniSpinner,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-select': DBPSelect,
-            'dbp-formalize-column-settings-modal': ColumnSettingsModal,
         };
     }
 
@@ -62,6 +57,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             showSubmissionTables: {type: Boolean, attribute: false},
             loadingSubmissionTables: {type: Boolean, attribute: false},
             activeFormName: {type: String, attribute: false},
+            columnConfigurationStorageKeys: {type: Object, attribute: false},
             createSubmissionUrl: {type: String, attribute: false},
             hideCreateSubmissionButton: {type: Boolean, attribute: false},
             enabledStates: {type: Object, attribute: false},
@@ -74,10 +70,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             isDeleteSelectedSubmissionEnabled: {type: Object, attribute: false},
             optionsSubmissions: {type: Object, attribute: false},
             submissions: {type: Object, attribute: false},
-            submissionsColumns: {type: Object, attribute: false},
-            iconNameVisible: {type: String, attribute: false},
-            iconNameHidden: {type: String, attribute: false},
-            isResetButtonDisabled: {type: Object, attribute: false},
             selectedRowCount: {type: Object, attribute: false},
             allRowCount: {type: Object, attribute: false},
             visibleRowCount: {type: Object, attribute: false},
@@ -130,22 +122,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
 
     getActionsContainers() {
         return this.renderRoot?.querySelectorAll('.actions-container') ?? [];
-    }
-
-    getColumnOptionsModal(state) {
-        return (
-            this.renderRoot?.querySelector(
-                `dbp-formalize-column-settings-modal[data-state="${state}"]`,
-            ) ?? null
-        );
-    }
-
-    openColumnOptionsModal(state) {
-        this.getColumnOptionsModal(state)?.open();
-    }
-
-    closeColumnOptionsModal(state) {
-        this.getColumnOptionsModal(state)?.close();
     }
 
     closeAllSearchWidgets() {
@@ -291,34 +267,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         }
 
         return exportActions;
-    }
-
-    renderColumnSettingsModal(state) {
-        const columns = this.submissionsColumns[state].filter((column) => {
-            return column && column.frozen !== true;
-        });
-
-        if (columns.length === 0) {
-            return;
-        }
-
-        return html`
-            <dbp-formalize-column-settings-modal
-                data-state="${state}"
-                lang="${this.lang}"
-                state="${state}"
-                .columns="${columns}"
-                .iconNameVisible="${this.iconNameVisible}"
-                .iconNameHidden="${this.iconNameHidden}"
-                .resetButtonDisabled="${this.isResetButtonDisabled[state]}"
-                @column-settings-action="${(event) => {
-                    this.handleAction(
-                        event.detail.action,
-                        event.detail.state,
-                        event.detail.payload,
-                    );
-                }}"></dbp-formalize-column-settings-modal>
-        `;
     }
 
     renderExportWidget(state) {
@@ -697,13 +645,18 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                 pagination-size="5"
                                 sticky-header
                                 select-rows-enabled
+                                column-configuration-enabled
+                                column-configuration-in-header
+                                .columnConfigurationExcludedFields=${['rowIndex', 'htmlButtons']}
+                                .columnConfigurationStorageKey=${
+                                    this.columnConfigurationStorageKeys[state]
+                                }
                                 @dbp-tabulator-table-selection-count-changed=${(event) =>
                                     this.handleSelectionCountChanged(
                                         state,
                                         event,
                                     )}></dbp-tabulator-table>
                         </div>
-                        ${this.renderColumnSettingsModal(state)}
                     `,
                 )}
             </div>

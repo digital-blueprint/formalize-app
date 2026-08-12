@@ -572,6 +572,7 @@ export async function getAllFormSubmissions(host, formId) {
                     columnDefinition.formatter = 'html';
                 }
                 if (columnDefinition.field === 'htmlButtons') {
+                    columnDefinition.title = '';
                     columnDefinition.formatter = 'html';
                     columnDefinition.hozAlign = 'right';
                     columnDefinition.vertAlign = 'middle';
@@ -580,16 +581,6 @@ export async function getAllFormSubmissions(host, formId) {
                     columnDefinition.frozen = true;
                     columnDefinition.headerHozAlign = 'right';
                     columnDefinition.download = false;
-                    columnDefinition.titleFormatter = () => {
-                        let columnSettingsButton = host.createScopedElement(
-                            'dbp-formalize-column-settings-button',
-                        );
-                        columnSettingsButton.setAttribute('subscribe', 'lang');
-                        columnSettingsButton.addEventListener('click', () => {
-                            host.getSubmissionsPage()?.openColumnOptionsModal(state);
-                        });
-                        return columnSettingsButton;
-                    };
                 } else {
                     columnDefinition.sorter = 'string';
                 }

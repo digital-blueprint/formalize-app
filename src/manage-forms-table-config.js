@@ -3,8 +3,7 @@
  * Table configuration helpers for the Manage Forms activity.
  *
  * Contains everything related to tabulator table column setup,
- * visibility, ordering, localStorage persistence, and submission
- * form options.
+ * visibility, ordering, and submission form options.
  */
 
 import {dateToTimestamp} from './manage-forms-api.js';
@@ -67,6 +66,7 @@ export function setSubmissionFormOptions(host, state) {
                 columnDefinition.title = host.lang === 'de' ? 'Erstellt am' : 'Date created';
             }
             if (columnDefinition.field === 'htmlButtons') {
+                columnDefinition.title = '';
                 columnDefinition.formatter = 'html';
                 columnDefinition.hozAlign = 'right';
                 columnDefinition.vertAlign = 'middle';
@@ -75,16 +75,6 @@ export function setSubmissionFormOptions(host, state) {
                 columnDefinition.frozen = true;
                 columnDefinition.headerHozAlign = 'right';
                 columnDefinition.download = false;
-                columnDefinition.titleFormatter = () => {
-                    let columnSettingsButton = host.createScopedElement(
-                        'dbp-formalize-column-settings-button',
-                    );
-                    columnSettingsButton.setAttribute('subscribe', 'lang');
-                    columnSettingsButton.addEventListener('click', () => {
-                        host.getSubmissionsPage()?.openColumnOptionsModal(state);
-                    });
-                    return columnSettingsButton;
-                };
             } else {
                 columnDefinition.sorter = 'string';
             }
@@ -326,8 +316,6 @@ export function setDefaultSubmissionTableOrder(host, state) {
 
     const formSchemaFields = getFormSchema(activeForm);
 
-    host.isResetButtonDisabled = {...host.isResetButtonDisabled, [state]: true};
-
     // Set download folder name pattern from schema
     host.downloadFolderNamePattern =
         formSchemaFields?.submissionExport?.downloadFolderPattern || '';
@@ -391,11 +379,6 @@ export function setDefaultSubmissionTableOrder(host, state) {
     }
 
     host.submissionsColumnsInitial[state] = cloneColumnDefinitions(schemaColumnDefinitions);
-    host.submissionsColumns = {
-        ...host.submissionsColumns,
-        [state]: cloneColumnDefinitions(host.submissionsColumnsInitial[state]),
-    };
-    host.isResetButtonDisabled = {...host.isResetButtonDisabled, [state]: false};
 }
 
 // ---------------------------------------------------------------------------
@@ -424,200 +407,4 @@ function cloneColumnDefinition(definition) {
         clone.columns = cloneColumnDefinitions(definition.columns);
     }
     return clone;
-}
-
-// ---------------------------------------------------------------------------
-// Column visibility / ordering
-// ---------------------------------------------------------------------------
-
-/**
- * Reset column settings to the initial schema-derived defaults.
- * @param {object} host
- * @param {string} state
- */
-export function resetSettings(host, state) {
-    // @TODO: We should delete the localStorage entry if there is no schema-derived column settings, so that the next time the user opens the table, it will use the schema defaults.
-    host.submissionsColumns = {
-        ...host.submissionsColumns,
-        [state]: cloneColumnDefinitions(host.submissionsColumnsInitial[state]),
-    };
-}
-
-/**
- * Set all non-frozen columns visible or hidden.
- * @param {object} host
- * @param {string} state
- * @param {'hide'|'show'} action
- */
-export function toggleAllColumns(host, state, action) {
-    const updated = host.submissionsColumns[state].map((column) => {
-        if (column.frozen) return column;
-        return {...column, visible: action !== 'hide'};
-    });
-    host.submissionsColumns = {...host.submissionsColumns, [state]: updated};
-}
-
-/**
- * Toggle the visible flag for a specific column.
- * @param {object} host
- * @param {object} column
- * @param {string} state
- */
-export function toggleVisibility(host, column, state) {
-    const fieldName = column.field;
-    const updated = host.submissionsColumns[state].map((col) => {
-        if (col.field === fieldName) {
-            return {...col, visible: !col.visible};
-        }
-        return col;
-    });
-    host.submissionsColumns = {...host.submissionsColumns, [state]: updated};
-}
-
-/**
- * Swap two adjacent column entries to reorder table columns.
- * @param {object} host
- * @param {object} column
- * @param {string} state
- * @param {'up'|'down'} direction
- */
-export function moveHeader(host, column, state, direction) {
-    const fieldName = column.field;
-    const cols = [...host.submissionsColumns[state]];
-    const index = cols.findIndex((col) => col.field === fieldName);
-    const delta = direction === 'up' ? -1 : 1;
-
-    const temp = cols[index];
-    cols[index] = cols[index + delta];
-    cols[index + delta] = temp;
-
-    host.submissionsColumns = {...host.submissionsColumns, [state]: cols};
-}
-
-/**
- * Apply the current `submissionsColumns[state]` to the tabulator table.
- * @param {object} host
- * @param {string} state
- */
-export function updateSubmissionTable(host, state) {
-    const table = host.submissionTables[state];
-    table.setColumns(host.submissionsColumns[state]);
-}
-
-// ---------------------------------------------------------------------------
-// localStorage persistence
-// ---------------------------------------------------------------------------
-
-/**
- * Restore submission table settings from localStorage.
- * @param {object} host
- * @param {string} state
- * @returns {boolean} true if settings were successfully restored.
- */
-export function restoreSubmissionTableSettings(host, state) {
-    if (!host.storeSession || !host.isLoggedIn()) return false;
-
-    let optionsString = localStorage.getItem(
-        `dbp-formalize-tableoptions-${host.activeFormName}-${state}-${host.auth['user-id']}`,
-    );
-
-    try {
-        let options = JSON.parse(optionsString);
-        if (!options) return false;
-
-        const table = host.submissionTables[state];
-        let columns = table.getColumns();
-        if (columns.length === 0) return false;
-
-        const columnDefinitions = columns.map((column) => column.getDefinition());
-
-        // Add back frozen columns
-        const rowIndexDef = columnDefinitions.find((def) => def.field === 'rowIndex');
-        const htmlButtonsDef = columnDefinitions.find((def) => def.field === 'htmlButtons');
-
-        // Get all columns with formatter or sorter functions
-        const formatterDefinitions = columnDefinitions.filter((columnDefinition) => {
-            if (
-                columnDefinition.formatter &&
-                (typeof columnDefinition.formatter === 'function' ||
-                    typeof columnDefinition.titleFormatter === 'function')
-            ) {
-                return true;
-            }
-            if (columnDefinition.sorter && typeof columnDefinition.sorter === 'function') {
-                return true;
-            }
-        });
-
-        // Add back formatter, sorter functions, and current translated title
-        options.forEach((storedColumnDefinition) => {
-            const columnWithFormatter = formatterDefinitions.find(
-                (columnDefinition) => columnDefinition.field === storedColumnDefinition.field,
-            );
-
-            if (columnWithFormatter?.formatter) {
-                storedColumnDefinition.formatter = columnWithFormatter.formatter;
-            }
-            if (columnWithFormatter?.titleFormatter) {
-                storedColumnDefinition.titleFormatter = columnWithFormatter.titleFormatter;
-            }
-            if (columnWithFormatter?.sorter) {
-                storedColumnDefinition.sorter = columnWithFormatter.sorter;
-            }
-
-            // Always use the current (translated) title from submissionsColumnsInitial
-            const initialDef = host.submissionsColumnsInitial[state]?.find(
-                (def) => def.field === storedColumnDefinition.field,
-            );
-            if (initialDef?.title) {
-                storedColumnDefinition.title = initialDef.title;
-            }
-        });
-
-        host.submissionsColumns = {
-            ...host.submissionsColumns,
-            [state]: [rowIndexDef, ...options, htmlButtonsDef].filter(Boolean),
-        };
-        table.setColumns(host.submissionsColumns[state]);
-
-        console.log(`this.submissionsColumns[${state}]`, host.submissionsColumns[state]);
-    } catch (e) {
-        console.error('Failed parsing stored table options', e);
-        host.sendErrorAnalyticsEvent('[restoreSubmissionTableSettings]', 'WrongResponse', e);
-        return false;
-    }
-    return true;
-}
-
-/**
- * Store submission table settings to localStorage.
- * @param {object} host
- * @param {string} state
- */
-export function storeSubmissionTableSettings(host, state) {
-    if (!host.storeSession || !host.isLoggedIn()) return;
-
-    const publicId = host.auth['user-id'];
-    const serializableColumns = host.submissionsColumns[state]
-        .filter((column) => column.frozen !== true)
-        .map(({title, ...rest}) => rest);
-
-    localStorage.setItem(
-        `dbp-formalize-tableoptions-${host.activeFormName}-${state}-${publicId}`,
-        JSON.stringify(serializableColumns),
-    );
-}
-
-/**
- * Delete submission table settings from localStorage.
- * @param {object} host
- * @param {string} state
- */
-export function deleteSubmissionTableSettings(host, state) {
-    if (!host.storeSession || !host.isLoggedIn()) return;
-
-    const publicId = host.auth['user-id'];
-    localStorage.removeItem(
-        `dbp-formalize-tableoptions-${host.activeFormName}-${state}-${publicId}`,
-    );
 }

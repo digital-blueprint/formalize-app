@@ -12,12 +12,7 @@ import {
 } from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import {classMap} from 'lit/directives/class-map.js';
-import {
-    ColumnSettingsButton,
-    CustomTabulatorTable,
-    GetDetailsButton,
-    GetSubmissionLink,
-} from './table-components.js';
+import {CustomTabulatorTable, GetDetailsButton, GetSubmissionLink} from './table-components.js';
 import {FileSink} from '@dbp-toolkit/file-handling';
 import * as commonStyles from '@dbp-toolkit/common/styles';
 import {
@@ -62,13 +57,6 @@ import {
     disableCheckboxSelection,
     enablePagination,
     disablePagination,
-    restoreSubmissionTableSettings,
-    storeSubmissionTableSettings,
-    resetSettings,
-    toggleAllColumns,
-    toggleVisibility,
-    moveHeader,
-    updateSubmissionTable,
 } from './manage-forms-table-config.js';
 
 /**
@@ -183,10 +171,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.showSubmissionTables = false;
         this.showFormsTable = false;
         this.submissionSlug = '';
-        this.submissionsColumns = {
-            draft: [],
-            submitted: [],
-        };
         this.submissionsColumnsInitial = {
             draft: [],
             submitted: [],
@@ -268,13 +252,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: false,
             submitted: false,
         };
-        this.iconNameVisible = 'source_icons_eye-empty';
-        this.iconNameHidden = 'source_icons_eye-off';
         this.createSubmissionUrl = '';
-        this.isResetButtonDisabled = {
-            draft: true,
-            submitted: true,
-        };
         this.useSubFoldersForExports = true;
         this.downloadFolderNamePattern = '';
         this.allowListFrontendKeys = [];
@@ -312,7 +290,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-modal': Modal,
             'dbp-file-sink': FileSink,
-            'dbp-formalize-column-settings-button': ColumnSettingsButton,
             'dbp-formalize-get-details-button': GetDetailsButton,
             'dbp-formalize-get-submission-link': GetSubmissionLink,
             'dbp-formalize-manage-forms-overview-page': ManageFormsOverviewPage,
@@ -338,7 +315,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             showSubmissionTables: {type: Boolean, attribute: false},
             loadingFormsTable: {type: Boolean, attribute: false},
             loadingSubmissionTables: {type: Boolean, attribute: false},
-            submissionsColumns: {type: Object, attribute: false},
             isPrevEnabled: {type: Boolean, attribute: false},
             isNextEnabled: {type: Boolean, attribute: false},
             currentBeautyId: {type: Number, attribute: false},
@@ -494,17 +470,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                             // Set visibility and name localization of columns based on form schema
                             setDefaultSubmissionTableOrder(this, state);
 
-                            // Get settings from localStorage.
-                            const columnsLoadedFromLocalStorage = restoreSubmissionTableSettings(
-                                this,
-                                state,
+                            this.submissionTables[state].setColumns(
+                                this.submissionsColumnsInitial[state],
                             );
-                            if (!columnsLoadedFromLocalStorage) {
-                                // If no saved settings found, use schema settings
-                                this.submissionTables[state].setColumns(
-                                    this.submissionsColumnsInitial[state],
-                                );
-                            }
                             this.setIsActionAvailable(state);
                             this.setVisibleRowCount(state);
 
@@ -611,6 +579,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
         return null;
+    }
+
+    getColumnConfigurationStorageKey(scope) {
+        const userId = this.auth?.['user-id'];
+        if (!this.storeSession || !this.isLoggedIn() || !userId) return '';
+        return `formalize-${scope}-${userId}`;
     }
 
     rebuildFormsTable() {
@@ -1044,8 +1018,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const contentItems = [];
 
-        if (this.submissionsColumns[state].length !== 0) {
-            for (let current_column of this.submissionsColumns[state]) {
+        const columnDefinitions =
+            this.submissionTables[state]?.getColumnDefinitions?.() ||
+            this.submissionsColumnsInitial[state];
+        if (columnDefinitions.length !== 0) {
+            for (let current_column of columnDefinitions) {
                 if (
                     current_column &&
                     current_column.field &&
@@ -2114,7 +2091,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     handleSubmissionsPageAction(event) {
         const {action, state, payload} = event.detail;
         const effectivePayload = payload ?? {};
-        const effectiveColumn = effectivePayload.column;
         const effectiveEvent = effectivePayload.event;
 
         switch (action) {
@@ -2138,28 +2114,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 break;
             case 'export':
                 this.exportSubmissionTable(effectiveEvent, state);
-                break;
-            case 'toggle-column-visibility':
-                toggleVisibility(this, effectiveColumn, state);
-                break;
-            case 'move-column-up':
-                moveHeader(this, effectiveColumn, state, 'up');
-                break;
-            case 'move-column-down':
-                moveHeader(this, effectiveColumn, state, 'down');
-                break;
-            case 'reset-columns':
-                resetSettings(this, state);
-                break;
-            case 'hide-all-columns':
-                toggleAllColumns(this, state, 'hide');
-                break;
-            case 'show-all-columns':
-                toggleAllColumns(this, state, 'show');
-                break;
-            case 'save-columns':
-                updateSubmissionTable(this, state);
-                storeSubmissionTableSettings(this, state);
                 break;
         }
     }
@@ -2284,6 +2238,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .showSubmissionTables=${this.showSubmissionTables}
                     .loadingSubmissionTables=${this.loadingSubmissionTables}
                     .activeFormName=${this.activeFormName}
+                    .columnConfigurationStorageKeys=${Object.fromEntries(
+                        Object.values(SUBMISSION_STATES).map((state) => [
+                            state,
+                            this.getColumnConfigurationStorageKey(
+                                `submissions-${this.activeFormId}-${state}`,
+                            ),
+                        ]),
+                    )}
                     .createSubmissionUrl=${this.createSubmissionUrl}
                     .hideCreateSubmissionButton=${this.hideCreateSubmissionButton}
                     .enabledStates=${this.enabledStates}
@@ -2298,10 +2260,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .isDeleteSelectedSubmissionEnabled=${this.isDeleteSelectedSubmissionEnabled}
                     .optionsSubmissions=${this.options_submissions}
                     .submissions=${this.submissions}
-                    .submissionsColumns=${this.submissionsColumns}
-                    .iconNameVisible=${this.iconNameVisible}
-                    .iconNameHidden=${this.iconNameHidden}
-                    .isResetButtonDisabled=${this.isResetButtonDisabled}
                     .selectedRowCount=${this.selectedRowCount}
                     .allRowCount=${this.allRowCount}
                     .visibleRowCount=${this.visibleRowCount}
