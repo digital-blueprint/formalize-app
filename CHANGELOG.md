@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Prepare for update to formalize API v0.5.36 where `create_submissions` permission is moved from submission collection
+  permissions to form permissions
+- Remove unused methods
 - Manage Forms activity: added bulk deletion of selected forms in the forms overview table, gated per form by its `grantedActions` (delete/manage); added `apiDeleteForm` (DELETE `/formalize/forms/{identifier}`); the feature is opt-in via the new `enable-forms-bulk-delete` attribute and disabled by default
 - CourseSelect: only offer courses from the previous, current, and next semester
 - Format base course teaching term as returned by the Public REST API to match the legacy API format (e.g. "Winter Term 2023/24")

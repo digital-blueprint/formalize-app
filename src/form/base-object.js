@@ -27,6 +27,7 @@ import {
     TAG_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
+    FORM_PERMISSIONS,
 } from '../utils.js';
 
 export class BaseObject {
@@ -130,6 +131,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
 
         // Grants
         this.formGrantedSubmissionCollectionActions = [];
+        this.formGrantedFormActions = [];
         this.submissionGrantedActions = [];
         this.isUserAllowedToEditSubmission = false;
         this.isUserAllowedToEditPermission = false;
@@ -1208,6 +1210,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                 this.allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
                 this.formGrantedSubmissionCollectionActions =
                     this.formProperties.grantedSubmissionCollectionActions;
+                this.formGrantedFormActions = this.formProperties.grantedFormActions;
                 this.allowedTags = arrayToObject(this.formProperties.availableTags);
                 this.fileUploadLimits = this.getFileUploadLimits(
                     this.formProperties?.dataFeedSchema,
@@ -1311,21 +1314,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed =
                 isDraftStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedSubmissionCollectionActions?.includes(
-                    SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
-                ) ||
-                    this.formGrantedSubmissionCollectionActions?.includes(
-                        SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
-                    ));
+                this.isUserPermittedToCreateSubmissions();
 
             this.isSubmitButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                (this.formGrantedSubmissionCollectionActions?.includes(
-                    SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
-                ) ||
-                    this.formGrantedSubmissionCollectionActions.includes(
-                        SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
-                    ));
+                this.isUserPermittedToCreateSubmissions();
         }
 
         // DRAFT
@@ -1758,49 +1751,16 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         }
     }
 
-    /**
-     * Checks if the user can submit the form.
-     * Verifies the user hasn't exceeded the max submissions limit and has
-     * the required collection-level permissions (create_submissions or manage).
-     * @returns {boolean}
-     */
-    userCanSubmitForm() {
-        const numSubmissions = this.formProperties?.numSubmissionsByCurrentUser ?? 0;
-        const maxSubmissions = this.formProperties?.maxNumSubmissionsPerCreator;
-
-        if (maxSubmissions != null && numSubmissions >= maxSubmissions) {
-            return false;
-        }
-
+    isUserPermittedToCreateSubmissions() {
         return (
+            this.formGrantedSubmissionCollectionActions?.includes(
+                SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
+            ) ||
             this.formGrantedSubmissionCollectionActions?.includes(
                 SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
-            ) ||
-            this.formGrantedSubmissionCollectionActions?.includes(
-                SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
-            ) ||
-            false
-        );
-    }
-
-    /**
-     * Checks if the user can view their submissions.
-     * Returns true if the user has collection-level manage permissions,
-     * or if the form allows reading/managing submissions after submission.
-     * @returns {boolean}
-     */
-    userCanViewSubmissions() {
-        return (
-            this.formGrantedSubmissionCollectionActions?.includes(
-                SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
-            ) ||
-            this.formProperties?.allowedActionsWhenSubmitted?.includes(
-                SUBMISSION_PERMISSIONS.READ,
-            ) ||
-            this.formProperties?.allowedActionsWhenSubmitted?.includes(
-                SUBMISSION_PERMISSIONS.MANAGE,
-            ) ||
-            false
+            ) || // first two criteria are deprecated and can be removed from formalize API v0.5.36
+            this.formGrantedFormActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+            this.formGrantedFormActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS)
         );
     }
 

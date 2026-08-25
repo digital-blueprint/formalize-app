@@ -34,7 +34,7 @@ export const SUBMISSION_STATES_BINARY = Object.freeze({
 });
 
 export const SUBMISSION_COLLECTION_PERMISSIONS = Object.freeze({
-    CREATE_SUBMISSIONS: 'create_submissions',
+    CREATE_SUBMISSIONS: 'create_submissions', // deprecated from formalize API v0.5.36, use FORM_PERMISSIONS.CREATE_SUBMISSIONS instead
     MANAGE: 'manage',
     UPDATE: 'update',
 });
@@ -53,6 +53,7 @@ export const SUBMISSION_PERMISSIONS = Object.freeze({
 // Granted actions returned by the API on a form resource. Used to determine
 // which actions the current user may perform on a given form.
 export const FORM_PERMISSIONS = Object.freeze({
+    CREATE_SUBMISSIONS: 'create_submissions',
     READ: 'read',
     UPDATE: 'update',
     DELETE: 'delete',
