@@ -1313,12 +1313,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
         // No state
         if (this.submissionBinaryState === SUBMISSION_STATES_BINARY.NONE) {
             this.isDraftButtonAllowed =
-                isDraftStateEnabled(this.allowedSubmissionStates) &&
-                this.isUserPermittedToCreateSubmissions();
+                isDraftStateEnabled(this.allowedSubmissionStates) && this.canUserSubmitSubmission();
 
             this.isSubmitButtonEnabled =
                 isSubmittedStateEnabled(this.allowedSubmissionStates) &&
-                this.isUserPermittedToCreateSubmissions();
+                this.canUserSubmitSubmission();
         }
 
         // DRAFT
@@ -1750,17 +1749,40 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             }
         }
     }
+    canUserSubmitSubmission() {
+        const numSubmissions = this.formProperties?.numSubmissionsByCurrentUser ?? 0;
+        const maxSubmissions = this.formProperties?.maxNumSubmissionsPerCreator ?? 10;
 
-    isUserPermittedToCreateSubmissions() {
+        return (
+            numSubmissions < maxSubmissions &&
+            (this.formGrantedSubmissionCollectionActions?.includes(
+                SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
+            ) ||
+                this.formGrantedSubmissionCollectionActions?.includes(
+                    SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
+                ) || // first two criteria are deprecated and can be removed from formalize API v0.5.36
+                this.formGrantedFormActions?.includes(FORM_PERMISSIONS.MANAGE) ||
+                this.formGrantedFormActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS))
+        );
+    }
+
+    /**
+     * Checks if the user can view their submissions.
+     * Returns true if the user has collection-level manage permissions,
+     * or if the form allows reading/managing submissions after submission.
+     * @returns {boolean}
+     */
+    userCanViewSubmissions() {
         return (
             this.formGrantedSubmissionCollectionActions?.includes(
                 SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
             ) ||
-            this.formGrantedSubmissionCollectionActions?.includes(
-                SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
-            ) || // first two criteria are deprecated and can be removed from formalize API v0.5.36
-            this.formGrantedFormActions?.includes(FORM_PERMISSIONS.MANAGE) ||
-            this.formGrantedFormActions?.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS)
+            this.formProperties?.allowedActionsWhenSubmitted?.includes(
+                SUBMISSION_PERMISSIONS.READ,
+            ) ||
+            this.formProperties?.allowedActionsWhenSubmitted?.includes(
+                SUBMISSION_PERMISSIONS.MANAGE,
+            )
         );
     }
 

@@ -450,7 +450,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <div class="after-submission-button-container">
                         ${
-                            this.userCanSubmitForm()
+                            this.canUserSubmitSubmission()
                                 ? html`
                                       <a
                                           href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"

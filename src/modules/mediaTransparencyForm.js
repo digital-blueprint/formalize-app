@@ -1443,11 +1443,11 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${
                     this.submissionIsSaved &&
-                    (this.userCanSubmitForm() || this.userCanViewSubmissions())
+                    (this.canUserSubmitSubmission() || this.userCanViewSubmissions())
                         ? html`
                               <div class="after-submission-button-container after-saving">
                                   ${
-                                      this.userCanSubmitForm()
+                                      this.canUserSubmitSubmission()
                                           ? html`
                                                 <a
                                                     href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
@@ -2112,7 +2112,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                     <div class="after-submission-button-container">
                         ${
-                            this.userCanSubmitForm()
+                            this.canUserSubmitSubmission()
                                 ? html`
                                       <a
                                           href="${getFormRenderUrl(this.formUrlSlug, this.lang)}"
