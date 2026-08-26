@@ -29,7 +29,7 @@
         "jsdoc/require-yields-type": "warn",
         "typescript/unbound-method": "off",
         "typescript/no-floating-promises": "off",
-        "typescript/restrict-template-expressions": "off",
+        "typescript/restrict-template-expressions": "error",
         "typescript/await-thenable": "off",
         "typescript/no-base-to-string": "error",
         "typescript/ban-ts-comment": "error",
