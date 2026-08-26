@@ -663,7 +663,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (changedProperties.has('allForms')) {
             // Wait for the initial override load started in connectedCallback
             // so that column labels are correct on the very first table build.
-            if (this._overridesReady) {
+            if (this._overridesReady !== null) {
                 await this._overridesReady;
             }
 

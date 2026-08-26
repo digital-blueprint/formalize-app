@@ -282,7 +282,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const formIdentifier = this.activeForm.identifier;
         if (
-            this._submissionsLoadPromise &&
+            this._submissionsLoadPromise !== null &&
             this._submissionsLoadFormIdentifier === formIdentifier
         ) {
             await this._submissionsLoadPromise;
