@@ -31,7 +31,7 @@
         "typescript/no-floating-promises": "off",
         "typescript/restrict-template-expressions": "off",
         "typescript/await-thenable": "off",
-        "typescript/no-base-to-string": "off",
+        "typescript/no-base-to-string": "error",
         "typescript/ban-ts-comment": "error",
         "typescript/no-empty-object-type": "error",
         "typescript/no-explicit-any": "error",

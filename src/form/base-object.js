@@ -1,5 +1,5 @@
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element.js';
-import {ScopedElementsMixin, sendNotification, Button, Icon, DBPSelect} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, sendNotification, Button, Icon, DBPSelect, AuthMixin} from '@dbp-toolkit/common';
 import {ButtonTooltip} from '@dbp-toolkit/tooltip';
 import {css, html} from 'lit';
 import {createInstance} from '../i18n.js';
@@ -81,14 +81,13 @@ export class BaseObject {
     }
 }
 
-export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
+export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement)) {
     constructor() {
         super();
         this._i18n = createInstance();
         this.lang = this._i18n.language;
         this.formData = {};
         this.entryPointUrl = '';
-        this.auth = {};
         this.formIdentifier = '';
         this.formUrlSlug = '';
         this.formProperties = {};
