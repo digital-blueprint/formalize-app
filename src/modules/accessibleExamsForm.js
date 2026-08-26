@@ -507,7 +507,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 : ''
                         }
                         ${
-                            this.userCanViewSubmissions()
+                            this.areSubmissionReadableAfterSubmission()
                                 ? html`
                                       <a
                                           href="${getFormManageFormsUrl(

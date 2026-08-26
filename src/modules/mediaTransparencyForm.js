@@ -1443,7 +1443,7 @@ class FormalizeFormElement extends BaseFormElement {
 
                 ${
                     this.submissionIsSaved &&
-                    (this.canUserSubmitSubmission() || this.userCanViewSubmissions())
+                    (this.canUserSubmitSubmission() || this.areSubmissionReadableAfterSubmission())
                         ? html`
                               <div class="after-submission-button-container after-saving">
                                   ${
@@ -1464,7 +1464,7 @@ class FormalizeFormElement extends BaseFormElement {
                                           : ''
                                   }
                                   ${
-                                      this.userCanViewSubmissions()
+                                      this.areSubmissionReadableAfterSubmission()
                                           ? html`
                                                 <a
                                                     href="${getFormManageFormsUrl(
@@ -2124,7 +2124,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 : ''
                         }
                         ${
-                            this.userCanViewSubmissions()
+                            this.areSubmissionReadableAfterSubmission()
                                 ? html`
                                       <a
                                           href="${getFormManageFormsUrl(

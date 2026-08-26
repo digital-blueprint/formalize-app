@@ -1749,6 +1749,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
             }
         }
     }
+
+    /**
+     * Checks if the user have the permission to submit a form.
+     * @returns {boolean}
+     */
     canUserSubmitSubmission() {
         const numSubmissions = this.formProperties?.numSubmissionsByCurrentUser ?? 0;
         const maxSubmissions = this.formProperties?.maxNumSubmissionsPerCreator ?? 10;
@@ -1772,7 +1777,7 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
      * or if the form allows reading/managing submissions after submission.
      * @returns {boolean}
      */
-    userCanViewSubmissions() {
+    areSubmissionReadableAfterSubmission() {
         return (
             this.formGrantedSubmissionCollectionActions?.includes(
                 SUBMISSION_COLLECTION_PERMISSIONS.MANAGE,
