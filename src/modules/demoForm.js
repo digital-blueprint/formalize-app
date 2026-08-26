@@ -39,7 +39,7 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // Add the event listener if you don't want to override the sendSubmission method
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 // Access the data from the event detail

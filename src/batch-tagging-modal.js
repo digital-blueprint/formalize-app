@@ -50,7 +50,7 @@ export class BatchTaggingModal extends ScopedElementsMixin(DBPLitElement) {
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             if (propName === 'lang') {
-                this._i18n.changeLanguage(this.lang);
+                void this._i18n.changeLanguage(this.lang);
             }
         });
         super.update(changedProperties);

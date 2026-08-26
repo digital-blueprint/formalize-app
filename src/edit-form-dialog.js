@@ -81,18 +81,18 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         super.connectedCallback();
 
         if (this.langDir) {
-            setOverridesByGlobalCache(this._i18n, this);
+            void setOverridesByGlobalCache(this._i18n, this);
         }
     }
 
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             if (propName === 'lang') {
-                this._i18n.changeLanguage(this.lang);
+                void this._i18n.changeLanguage(this.lang);
             }
 
             if ((propName === 'lang' || propName === 'langDir') && this.langDir) {
-                setOverridesByGlobalCache(this._i18n, this);
+                void setOverridesByGlobalCache(this._i18n, this);
             }
         });
         super.update(changedProperties);

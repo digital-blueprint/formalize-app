@@ -54,7 +54,7 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // Event listener for delete submission
             this.addEventListener(
                 'DbpFormalizeFormDeleteSubmission',
@@ -522,7 +522,7 @@ class FormalizeFormElement extends BaseFormElement {
             } else if (!this._userDataFetched && !this._fetchingUserData) {
                 // No student data from submission, fetch from logged-in user
                 this._fetchingUserData = true;
-                this.fetchUserData().finally(() => {
+                void this.fetchUserData().finally(() => {
                     this._fetchingUserData = false;
                     this._userDataFetched = true;
                 });
@@ -978,7 +978,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.isUserAllowedToDownloadPdf = false;
 
             // @ts-ignore
-            this.updateComplete.then(async () => {
+            void this.updateComplete.then(async () => {
                 await this.processConditionalFields();
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);

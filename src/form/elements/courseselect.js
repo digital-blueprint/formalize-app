@@ -16,7 +16,7 @@ export class CourseSelect extends ResourceSelect {
 
     update(changedProperties) {
         if (changedProperties.has('lang')) {
-            this._courseI18n.changeLanguage(this.lang);
+            void this._courseI18n.changeLanguage(this.lang);
             this.placeholder = this._getCoursePlaceholder();
         }
 
@@ -252,7 +252,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
             this.value &&
             this.auth?.token
         ) {
-            this._presetCourse(this.value);
+            void this._presetCourse(this.value);
         }
     }
 

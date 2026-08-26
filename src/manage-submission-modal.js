@@ -57,7 +57,7 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             if (propName === 'lang') {
-                this._i18n.changeLanguage(this.lang);
+                void this._i18n.changeLanguage(this.lang);
             }
         });
 
@@ -302,7 +302,7 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                                       class="view-file-button button is-secondary"
                                       @click=${(event) => {
                                           event.preventDefault();
-                                          this.previewPdfFile(file);
+                                          void this.previewPdfFile(file);
                                       }}>
                                       <dbp-icon name="eye"></dbp-icon>
                                       ${this._i18n.t('render-form.download-widget.view-attachment')}
@@ -314,7 +314,7 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                         class="download-file-button button is-secondary"
                         @click=${(event) => {
                             event.preventDefault();
-                            this.downloadFile(file);
+                            void this.downloadFile(file);
                         }}>
                         <dbp-icon name="download"></dbp-icon>
                         ${this._i18n.t('render-form.download-widget.download-attachment')}

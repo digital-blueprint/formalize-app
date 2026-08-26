@@ -908,12 +908,12 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (option.value === 'delete-selected') {
-            this.deleteSelectedItems();
+            void this.deleteSelectedItems();
             return;
         }
 
         if (option.value === 'delete-all') {
-            this.deleteAllItems();
+            void this.deleteAllItems();
         }
     }
 
@@ -1203,7 +1203,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this._lastFrontendKeys !== this.itemFrontendKeys;
 
         if (((gainedToken && !this._hasLoadedForms) || itemFrontendKeysChanged) && newToken) {
-            this.loadItemForms();
+            void this.loadItemForms();
             return;
         }
 
@@ -1226,15 +1226,15 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             changedProperties.has('mode');
 
         if (needFormTableSync) {
-            this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());
+            void this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());
         }
 
         if (needItemTableSync) {
-            this.syncTabulatorTable('#manage-fields-item-table', this.getItemTableOptions());
+            void this.syncTabulatorTable('#manage-fields-item-table', this.getItemTableOptions());
         }
 
         if (changedProperties.has('selectedItem') || changedProperties.has('auth')) {
-            this.loadLastModifiedByName();
+            void this.loadLastModifiedByName();
         }
 
         if (changedProperties.has('mode') && this.activeForm) {

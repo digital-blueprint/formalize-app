@@ -439,7 +439,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Store the promise so other code paths can await it
         this._overridesReady = initTableOptions();
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // see: http://tabulator.info/docs/5.1
             document.addEventListener('keyup', this.boundKeyEventHandler);
             document.addEventListener('click', this.boundCloseActionsDropdownHandler);
@@ -2101,16 +2101,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.handleEditSubmissions(effectiveEvent, state);
                 break;
             case 'batch-tagging':
-                this.handleOpenBatchTaggingModal(state);
+                void this.handleOpenBatchTaggingModal(state);
                 break;
             case 'edit-permission':
                 this.handleEditSubmissionsPermission(state);
                 break;
             case 'delete-all':
-                this.handleDeleteSubmissions(state);
+                void this.handleDeleteSubmissions(state);
                 break;
             case 'delete-selected':
-                this.handleDeleteSubmissions(state, true);
+                void this.handleDeleteSubmissions(state, true);
                 break;
             case 'export':
                 this.exportSubmissionTable(effectiveEvent, state);

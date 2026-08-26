@@ -29,7 +29,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
         super.connectedCallback();
 
         if (this.langDir) {
-            setOverridesByGlobalCache(this._i18n, this);
+            void setOverridesByGlobalCache(this._i18n, this);
         }
     }
 
@@ -45,7 +45,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
     update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             if ((propName === 'langDir' || propName === 'lang') && this.langDir) {
-                setOverridesByGlobalCache(this._i18n, this);
+                void setOverridesByGlobalCache(this._i18n, this);
             }
         });
 

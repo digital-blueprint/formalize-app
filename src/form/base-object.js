@@ -1,5 +1,12 @@
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element.js';
-import {ScopedElementsMixin, sendNotification, Button, Icon, DBPSelect, AuthMixin} from '@dbp-toolkit/common';
+import {
+    ScopedElementsMixin,
+    sendNotification,
+    Button,
+    Icon,
+    DBPSelect,
+    AuthMixin,
+} from '@dbp-toolkit/common';
 import {ButtonTooltip} from '@dbp-toolkit/tooltip';
 import {css, html} from 'lit';
 import {createInstance} from '../i18n.js';
@@ -180,7 +187,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         this.mediaQuery.addEventListener('change', this.handleResize);
 
         // @ts-ignore
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // Event listener for form element changes
             this.addEventListener('change', this.handleChangeEvents);
             // Event listener for toggle submission state
@@ -703,7 +710,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                                           if (this.readOnly) {
                                               this.toggleSubmissionState(event);
                                           } else {
-                                              this.validateAndSendSubmission(event);
+                                              void this.validateAndSendSubmission(event);
                                           }
                                       }}
                                       title="${i18n.t(
@@ -1034,7 +1041,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
             }
 
             if (option.value === 'save' && value === 'save') {
-                this.sendSaveSubmission();
+                void this.sendSaveSubmission();
                 return;
             }
         }
@@ -1172,7 +1179,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':
-                    this._i18n.changeLanguage(this.lang);
+                    void this._i18n.changeLanguage(this.lang);
                     break;
             }
         });

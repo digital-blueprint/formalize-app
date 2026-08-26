@@ -284,7 +284,7 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', this.handleFormSubmission);
             // Event listener for saving draft
@@ -327,7 +327,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.setButtonStates();
 
             // @ts-ignore
-            this.updateComplete.then(async () => {
+            void this.updateComplete.then(async () => {
                 await this.processConditionalFields();
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1336,7 +1336,7 @@ class FormalizeFormElement extends BaseFormElement {
             // After the parent and child have both finished rendering,
             // explicitly clear the `checked` property on every radio button so the
             // group shows no preselected value.
-            this.updateComplete.then(async () => {
+            void this.updateComplete.then(async () => {
                 await this.uncheckRadioButtons();
             });
         } else {

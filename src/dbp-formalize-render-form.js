@@ -65,9 +65,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         window.addEventListener('dbpFormDataUpdated', this._onFormDataUpdated);
         window.addEventListener('DbpFormalizeFormReset', this._onFormReset);
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             console.log('-- updateComplete --');
-            this.loadModules();
+            void this.loadModules();
         });
     }
 
@@ -111,7 +111,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this._dispatchActivityEnabled(formUrlSlug !== '');
 
             // We need to check permissions, because the user has navigated to a different form
-            this.handlePermissionsForCurrentForm();
+            void this.handlePermissionsForCurrentForm();
         }
     }
 
@@ -171,7 +171,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             data = await response.json();
         } catch (e) {
-            this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
+            void this.sendErrorAnalyticsEvent('checkPermissionsToForm', 'WrongResponse', e);
             console.error(e);
             return false;
         }
@@ -609,7 +609,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (changedProperties.has('auth')) {
             if (!this.authTokenExists && this.auth.token !== '') {
                 this.authTokenExists = true;
-                this.handlePermissionsForCurrentForm();
+                void this.handlePermissionsForCurrentForm();
 
                 await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
                 await this.getSubmissionData();

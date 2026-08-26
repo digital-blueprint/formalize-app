@@ -58,7 +58,7 @@ export default class extends BaseObject {
 
     getEnumTranslations(lang) {
         const i18n = createInstance();
-        i18n.changeLanguage(lang);
+        void i18n.changeLanguage(lang);
         const t = (key) => i18n.t(key);
 
         return {
@@ -217,7 +217,7 @@ class FormalizeFormElement extends BaseFormElement {
             this.setButtonStates();
 
             // @ts-ignore
-            this.updateComplete.then(async () => {
+            void this.updateComplete.then(async () => {
                 await this.processConditionalFields();
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
@@ -383,7 +383,7 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // Listen to the event from file source
             this.addEventListener('dbp-file-source-file-selected', this.handleFilesToSubmit);
 
@@ -551,7 +551,7 @@ class FormalizeFormElement extends BaseFormElement {
             const value = event.detail.value;
 
             if (option.value === 'download' && value === 'download') {
-                this.downloadAllFiles();
+                void this.downloadAllFiles();
                 return;
             }
 

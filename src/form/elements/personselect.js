@@ -16,7 +16,7 @@ export class PersonSelect extends ResourceSelect {
 
     update(changedProperties) {
         if (changedProperties.has('lang')) {
-            this._personI18n.changeLanguage(this.lang);
+            void this._personI18n.changeLanguage(this.lang);
             this.placeholder = this._getPersonPlaceholder();
         }
 

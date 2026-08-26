@@ -77,7 +77,7 @@ class FormalizeFormElement extends BaseFormElement {
     connectedCallback() {
         super.connectedCallback();
 
-        this.updateComplete.then(() => {
+        void this.updateComplete.then(() => {
             // Event listener for form submission
             this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
                 const i18n = this._i18n;
@@ -272,7 +272,7 @@ class FormalizeFormElement extends BaseFormElement {
         console.log('-- Render FormalizeFormElement --');
 
         if (!this.formData.givenName && !this.formData.familyName) {
-            this.fetchUserData();
+            void this.fetchUserData();
         }
 
         console.log('this.formData', this.formData);

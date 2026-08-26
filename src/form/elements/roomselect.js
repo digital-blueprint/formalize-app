@@ -16,7 +16,7 @@ export class RoomSelect extends ResourceSelect {
 
     update(changedProperties) {
         if (changedProperties.has('lang')) {
-            this._roomI18n.changeLanguage(this.lang);
+            void this._roomI18n.changeLanguage(this.lang);
             this.placeholder = this._getRoomPlaceholder();
         }
 
