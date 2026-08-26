@@ -67,14 +67,9 @@ export default class DBPFormalizeLitElement extends LangMixin(
      * @returns {object} response (error or result)
      */
     async httpGetAsync(url, options) {
-        return await fetch(url, options)
-            .then((result) => {
-                if (!result.ok) throw result;
-                return result;
-            })
-            .catch((error) => {
-                return error;
-            });
+        return await fetch(url, options).catch((error) => {
+            return error;
+        });
     }
 
     handleErrorResponse(response, targetNotificationId = null) {

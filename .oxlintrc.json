@@ -50,7 +50,7 @@
         "typescript/no-unnecessary-type-constraint": "error",
         "typescript/no-unsafe-enum-comparison": "error",
         "typescript/no-unsafe-function-type": "error",
-        "typescript/only-throw-error": "off",
+        "typescript/only-throw-error": "error",
         "typescript/prefer-promise-reject-errors": "error",
         "typescript/require-await": "error",
         "typescript/restrict-plus-operands": "error",
