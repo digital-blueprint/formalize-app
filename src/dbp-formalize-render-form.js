@@ -4,7 +4,6 @@ import {ScopedElementsMixin, sendNotification} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import {Icon} from '@dbp-toolkit/common';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
-import {BaseObject} from './form/base-object.js';
 import {
     SUBMISSION_STATES_BINARY,
     pascalToKebab,

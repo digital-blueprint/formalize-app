@@ -68,7 +68,7 @@ const CATEGORY_TRANSLATION_KEYS = {
  * above are used via dynamic lookup (not direct t() calls), they would be
  * pruned by `i18next:fix`. This function prevents that. Do not remove.
  */
-// eslint-disable-next-line no-unused-vars
+// oxlint-disable-next-line no-unused-vars
 const _i18nExtractKeys = (t) => {
     // subcategory keys — keep in sync with SUBCATEGORY_TRANSLATION_KEYS
     t('render-form.forms.media-transparency-form.sub-categories-audio');

@@ -701,9 +701,11 @@ export class BaseFormElement extends ScopedElementsMixin(DBPLitElement) {
                                       type="is-primary"
                                       no-spinner-on-click
                                       @click=${(event) => {
-                                          this.readOnly
-                                              ? this.toggleSubmissionState(event)
-                                              : this.validateAndSendSubmission(event);
+                                          if (this.readOnly) {
+                                              this.toggleSubmissionState(event);
+                                          } else {
+                                              this.validateAndSendSubmission(event);
+                                          }
                                       }}
                                       title="${i18n.t(
                                           'render-form.forms.base-object.submit-button-text',
