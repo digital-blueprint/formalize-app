@@ -46,6 +46,6 @@
         "typescript/prefer-promise-reject-errors": "off",
         "typescript/require-await": "off",
         "typescript/restrict-plus-operands": "error",
-        "typescript/no-useless-default-assignment": "off",
+        "typescript/no-useless-default-assignment": "off"
     }
 }
