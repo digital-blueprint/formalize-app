@@ -377,7 +377,7 @@ export async function getAllFormSubmissions(host, formId) {
     } catch (e) {
         host.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
         throwSomethingWentWrongNotification(host);
-        return Promise.reject(e);
+        throw e;
     }
 
     host.rawSubmissions = data['hydra:member'];

@@ -43,7 +43,7 @@
         "typescript/no-unsafe-enum-comparison": "error",
         "typescript/no-unsafe-function-type": "error",
         "typescript/only-throw-error": "off",
-        "typescript/prefer-promise-reject-errors": "off",
+        "typescript/prefer-promise-reject-errors": "error",
         "typescript/require-await": "error",
         "typescript/restrict-plus-operands": "error",
         "typescript/no-useless-default-assignment": "off"
