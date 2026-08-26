@@ -259,7 +259,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const response = await this.httpGetAsync(
                 this.entryPointUrl +
                     `/formalize/submissions?formIdentifier=${formIdentifier}&perPage=100000&creatorIdEquals=` +
-                    this.auth['user-id'],
+                    String(this.auth['user-id']),
                 options,
             );
 

@@ -45,6 +45,6 @@
         "typescript/only-throw-error": "off",
         "typescript/prefer-promise-reject-errors": "off",
         "typescript/require-await": "off",
-        "typescript/restrict-plus-operands": "off",
+        "typescript/restrict-plus-operands": "error",
     }
 }
