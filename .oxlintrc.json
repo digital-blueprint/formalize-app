@@ -30,7 +30,7 @@
         "typescript/unbound-method": "off",
         "typescript/no-floating-promises": "off",
         "typescript/restrict-template-expressions": "error",
-        "typescript/await-thenable": "off",
+        "typescript/await-thenable": "error",
         "typescript/no-base-to-string": "error",
         "typescript/ban-ts-comment": "error",
         "typescript/no-empty-object-type": "error",

@@ -95,7 +95,7 @@ export function formatDate(value) {
  * Send a fetch to given url with given options
  * @param url
  * @param options
- * @returns {object} response (error or result)
+ * @returns {Promise<object>} response (error or result)
  */
 export async function httpGetAsync(url, options) {
     return await fetch(url, options).catch((error) => {

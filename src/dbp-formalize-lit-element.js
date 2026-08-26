@@ -64,7 +64,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
      * Send a fetch to given url with given options
      * @param url
      * @param options
-     * @returns {object} response (error or result)
+     * @returns {Promise<object>} response (error or result)
      */
     async httpGetAsync(url, options) {
         return await fetch(url, options).catch((error) => {
