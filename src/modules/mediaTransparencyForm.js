@@ -366,7 +366,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
     }
 
-    async updated(changedProperties) {
+    updated(changedProperties) {
         super.updated(changedProperties);
 
         if (changedProperties.has('data')) {
@@ -960,7 +960,7 @@ class FormalizeFormElement extends BaseFormElement {
      * Download all attachments and pdf version of the form as a zip file.
      * @param {object} event
      */
-    async downloadAllFiles(event) {
+    downloadAllFiles(event) {
         const allFiles = this.getFileGroupsFromSchema().flatMap((groupName) => {
             const group = this.getOrCreateFileGroup(groupName);
             return Array.from(group.submittedFiles.values());

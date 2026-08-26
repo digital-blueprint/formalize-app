@@ -254,7 +254,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         }
     }
 
-    async toggleSubmissionState(event) {
+    toggleSubmissionState(event) {
         const data = {
             submissionId: this.submissionId,
         };
@@ -348,7 +348,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      * Sends a draft submission event with the given form data.
      * @param {object} event
      */
-    async sendSaveDraft(event) {
+    sendSaveDraft(event) {
         this.draftButtonEnabled = false;
         const formElement = this.shadowRoot.querySelector('form');
 
@@ -1168,7 +1168,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         `;
     }
 
-    async update(changedProperties) {
+    update(changedProperties) {
         changedProperties.forEach((oldValue, propName) => {
             switch (propName) {
                 case 'lang':

@@ -243,7 +243,7 @@ class FormalizeFormElement extends BaseFormElement {
         // }
     }
 
-    async updated(changedProperties) {
+    updated(changedProperties) {
         super.updated(changedProperties);
 
         if (

@@ -56,7 +56,7 @@ function throwSomethingWentWrongNotification(host) {
  * @param {object} host - The ManageForms element.
  * @returns {Promise<void>}
  */
-export async function loadModules(host) {
+export function loadModules(host) {
     // If a load is already in flight, return the same promise so concurrent
     // callers await the same completion instead of returning early and then
     // proceeding while modules are still resolving.
@@ -264,7 +264,7 @@ export async function getListOfAllForms(host) {
                 btn.setAttribute('subscribe', 'lang');
                 btn.title = i18n.t('manage-forms.open-forms', {formName: formName});
                 btn.ariaLabel = i18n.t('manage-forms.open-forms', {formName: formName});
-                btn.addEventListener('click', async () => {
+                btn.addEventListener('click', () => {
                     host.loadingSubmissionTables = true;
                     // Let the router handle the history entry via sendSetPropertyEvent.
                     // A manual pushState here would create a duplicate history entry,

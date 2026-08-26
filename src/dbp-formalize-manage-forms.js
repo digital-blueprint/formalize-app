@@ -439,7 +439,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Store the promise so other code paths can await it
         this._overridesReady = initTableOptions();
 
-        this.updateComplete.then(async () => {
+        this.updateComplete.then(() => {
             // see: http://tabulator.info/docs/5.1
             document.addEventListener('keyup', this.boundKeyEventHandler);
             document.addEventListener('click', this.boundCloseActionsDropdownHandler);
@@ -1107,7 +1107,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * @param {number} positionToShow
      * @param {"next"|"previous"} direction
      */
-    async showEntryOfPos(state, positionToShow, direction) {
+    showEntryOfPos(state, positionToShow, direction) {
         if (positionToShow > this.totalNumberOfItems[state] || positionToShow < 1) return;
 
         const table = this.submissionTables[state];
@@ -1141,7 +1141,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      *
      * @param e
      */
-    async exportSubmissionTable(e, state) {
+    exportSubmissionTable(e, state) {
         const exportInput = /** @type {HTMLSelectElement} */ (e.target);
 
         if (!exportInput) return;
