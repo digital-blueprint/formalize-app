@@ -14,6 +14,7 @@ import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 import {DbpRoomSelectElement} from '../form/elements/roomselect.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import {getFormManageFormsUrl, getFormRenderUrl} from '../utils.js';
+import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
 export default class extends BaseObject {
     getUrlSlug() {
@@ -38,13 +39,39 @@ class FormalizeFormElement extends BaseFormElement {
         this.beginTimeRef = createRef();
         this.examinerTextRef = createRef();
         this.examinerTextDisabled = false;
+        this.hasAttemptedValidation = false;
+        this.handleValidationOnFocusOut = this.handleValidationOnFocusOut.bind(this);
     }
 
     static get properties() {
         return {
             ...super.properties,
             examinerTextDisabled: {type: Boolean},
+            hasAttemptedValidation: {type: Boolean, attribute: false},
         };
+    }
+
+    /**
+     * Records that a submission was attempted (pass or fail), enabling live
+     * validation on subsequent focusout/change events. Accessible exams forms
+     * have no DRAFT state, so we avoid showing errors before the first submit.
+     * @param {Event} event
+     */
+    async validateAndSendSubmission(event) {
+        this.hasAttemptedValidation = true;
+        return super.validateAndSendSubmission(event);
+    }
+
+    /**
+     * Re-run validation on focus out of form elements once the user has
+     * attempted a submission. Keeps co-dependent fields (examiner/examinerText)
+     * in sync and clears stale warnings.
+     * @param {Event} event
+     */
+    async handleValidationOnFocusOut(event) {
+        if (!this.hasAttemptedValidation) return;
+        const formElement = this.shadowRoot.querySelector('form');
+        this.isFormValid = await validateRequiredFields(formElement);
     }
 
     connectedCallback() {
@@ -136,6 +163,18 @@ class FormalizeFormElement extends BaseFormElement {
                     this.isPostingSubmission = false;
                 }
             });
+
+            // Handle field validation on focus out
+            this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
+                capture: true,
+            });
+        });
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.shadowRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
+            capture: true,
         });
     }
 
@@ -326,11 +365,17 @@ class FormalizeFormElement extends BaseFormElement {
                         name="examiner"
                         label=${i18n.t('render-form.forms.accessible-exams-form.examiner')}
                         value=${data.examiner || ''}
-                        @change="${(e) => {
+                        @change="${async (e) => {
                             const hasValue = !!e.detail.value;
                             this.examinerTextDisabled = hasValue;
                             if (hasValue) {
                                 this.examinerTextRef.value.value = '';
+                            }
+                            // Selecting from the picker may not emit a focusout,
+                            // so revalidate here to clear stale warnings.
+                            if (this.hasAttemptedValidation) {
+                                const formElement = this.shadowRoot.querySelector('form');
+                                this.isFormValid = await validateRequiredFields(formElement);
                             }
                         }}"
                         .customValidator=${(value, evaluationData) => {
