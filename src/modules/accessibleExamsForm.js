@@ -356,7 +356,8 @@ class FormalizeFormElement extends BaseFormElement {
                         name="endTime"
                         label=${i18n.t('render-form.forms.accessible-exams-form.end-time')}
                         .customValidator=${(value) => {
-                            return this.beginTimeRef.value.value > value
+                            const beginTime = this.beginTimeRef.value?.value;
+                            return beginTime !== undefined && beginTime > value
                                 ? [
                                       i18n.t(
                                           'render-form.forms.accessible-exams-form.time-validation-error',
@@ -376,7 +377,7 @@ class FormalizeFormElement extends BaseFormElement {
                         @change="${async (e) => {
                             const hasValue = !!e.detail.value;
                             this.examinerTextDisabled = hasValue;
-                            if (hasValue) {
+                            if (hasValue && this.examinerTextRef.value) {
                                 this.examinerTextRef.value.value = '';
                             }
                             // Selecting from the picker may not emit a focusout,

@@ -1186,7 +1186,7 @@ class FormalizeFormElement extends BaseFormElement {
      * Check if a category has subcategories.
      * Categories with subcategories have named subcategory keys.
      * Categories without subcategories use the sentinel key `_items`.
-     * @param {string} category
+     * @param {string | null} category
      * @returns {boolean}
      */
     categoryHasSubcategories(category) {

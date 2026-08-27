@@ -249,6 +249,9 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         event.preventDefault();
 
         const formElement = this.renderRoot.querySelector('form');
+        if (!formElement) {
+            return;
+        }
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
@@ -267,16 +270,17 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
     scrollToFirstInvalidField(formElement, setFocus = false) {
         const elementWebComponents = getElementWebComponents(formElement);
         for (const element of elementWebComponents) {
-            const invalidElement = element.shadowRoot.querySelector('.validation-errors');
+            const invalidElement = element.shadowRoot?.querySelector('.validation-errors');
             if (invalidElement) {
-                const invalidFieldLabel = invalidElement.closest('fieldset').querySelector('label');
-                invalidFieldLabel.style.scrollMarginTop = '100px';
-                invalidFieldLabel.scrollIntoView({behavior: 'smooth', block: 'start'});
+                const fieldset = invalidElement.closest('fieldset');
+                const invalidFieldLabel = fieldset?.querySelector('label');
+                if (invalidFieldLabel) {
+                    invalidFieldLabel.style.scrollMarginTop = '100px';
+                    invalidFieldLabel.scrollIntoView({behavior: 'smooth', block: 'start'});
+                }
                 if (setFocus) {
                     /** @type {HTMLInputElement | HTMLTextAreaElement | null} */
-                    const invalidFieldInput = invalidElement
-                        .closest('fieldset')
-                        .querySelector('input, textarea');
+                    const invalidFieldInput = fieldset?.querySelector('input, textarea') ?? null;
                     invalidFieldInput?.focus();
                 }
                 break;
@@ -424,6 +428,9 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         }
 
         const formElement = this.renderRoot.querySelector('form');
+        if (!formElement) {
+            return;
+        }
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
@@ -981,6 +988,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      */
     evaluateCondition(value, condition) {
         // Try to parse condition as JSON array
+        /** @type {string[] | null} */
         let conditionArray = null;
         if (condition.startsWith('[') && condition.endsWith(']')) {
             try {
@@ -1744,7 +1752,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
 
     /**
      * Build the submission URL. If submissionId is provided, it will be included to the URL.
-     * @param {string} submissionId
+     * @param {string | null} [submissionId]
      * @returns {string} The submission URL.
      */
     _buildSubmissionUrl(submissionId = null) {

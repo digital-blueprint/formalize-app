@@ -1166,7 +1166,7 @@ class FormalizeFormElement extends BaseFormElement {
                     }
 
                     const fieldset = wrapper.querySelector('fieldset');
-                    fieldset.prepend(label);
+                    fieldset?.prepend(label);
                 }
 
                 // Store original element and its clone for later restoration
