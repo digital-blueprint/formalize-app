@@ -193,6 +193,13 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         return this.auth.token;
     }
 
+    getUserId() {
+        if (!this.auth?.['user-id']) {
+            throw new Error('User ID is not available');
+        }
+        return this.auth['user-id'];
+    }
+
     connectedCallback() {
         super.connectedCallback();
 
@@ -1480,12 +1487,10 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      */
     deleteAttachment(fileIdentifier, fileGroup) {
         const groupData = this.getOrCreateFileGroup(fileGroup);
+        const submittedFile = groupData.submittedFiles.get(fileIdentifier);
 
-        if (groupData.submittedFiles.has(fileIdentifier)) {
-            groupData.filesToRemove.set(
-                fileIdentifier,
-                groupData.submittedFiles.get(fileIdentifier),
-            );
+        if (submittedFile !== undefined) {
+            groupData.filesToRemove.set(fileIdentifier, submittedFile);
             groupData.submittedFiles.delete(fileIdentifier);
         } else if (groupData.filesToSubmit.has(fileIdentifier)) {
             groupData.filesToSubmit.delete(fileIdentifier);

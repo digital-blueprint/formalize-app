@@ -573,9 +573,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         // Include unique identifier for person who first submitted the form (creator)
-        data.formData.identifier = isExistingDraft
-            ? this.lastModifiedCreatorId
-            : this.auth['user-id'];
+        data.formData.identifier = isExistingDraft ? this.lastModifiedCreatorId : this.getUserId();
 
         const formData = new FormData();
 
@@ -808,9 +806,7 @@ class FormalizeFormElement extends BaseFormElement {
         }
 
         // Include unique identifier for person who last modified the form
-        data.formData.identifier = isExistingDraft
-            ? this.lastModifiedCreatorId
-            : this.auth['user-id'];
+        data.formData.identifier = isExistingDraft ? this.lastModifiedCreatorId : this.getUserId();
 
         const formData = new FormData();
 

@@ -67,6 +67,13 @@ export default class DBPFormalizeLitElement extends LangMixin(
         return this.auth.token;
     }
 
+    getUserId() {
+        if (!this.auth?.['user-id']) {
+            throw new Error('User ID is not available');
+        }
+        return this.auth['user-id'];
+    }
+
     /**
      * @param {Response} response
      * @param {string} [targetNotificationId]

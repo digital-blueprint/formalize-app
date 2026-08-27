@@ -196,7 +196,7 @@ class FormalizeFormElement extends BaseFormElement {
             const response = await fetch(
                 this.entryPointUrl +
                     '/base/people/' +
-                    this.auth['user-id'] +
+                    this.getUserId() +
                     '?includeLocal=email,matriculationNumber',
                 {
                     headers: {

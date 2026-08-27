@@ -422,6 +422,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.setRoute(`/${entry.form.identifier}`);
     }
 
+    /**
+     * @param {{form: {identifier: string}} | null} [entry]
+     */
     createItem(entry = null) {
         const form = entry?.form || this.activeForm;
         if (!form) {

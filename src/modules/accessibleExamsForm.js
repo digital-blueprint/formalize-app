@@ -218,7 +218,7 @@ class FormalizeFormElement extends BaseFormElement {
     async fetchUserData() {
         console.log('Fetching user data ...');
         try {
-            let response = await this.fetchUser(this.auth['user-id']);
+            let response = await this.fetchUser(this.getUserId());
             if (!response.ok) {
                 throw new Error(
                     `Request failed with status ${response.status}: ${response.statusText}`,
