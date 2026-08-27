@@ -101,6 +101,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         this._i18n = createInstance();
         this.lang = this._i18n.language;
         this.formData = {};
+        this.data = {};
         this.entryPointUrl = '';
         this.formIdentifier = '';
         this.formUrlSlug = '';
