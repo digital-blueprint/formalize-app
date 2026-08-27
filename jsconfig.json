@@ -4,7 +4,7 @@
         "checkJs": true,
         "noEmit": true,
         "skipLibCheck": true,
-        "strict": false,
+        "strict": true,
         "noImplicitAny": false,
         "strictFunctionTypes": false,
         "useUnknownInCatchVariables": false,

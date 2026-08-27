@@ -223,7 +223,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
                 if (this.readOnly === false && urlParams.get('validate') === 'true') {
-                    const formElement = this.renderRoot.querySelector('form');
+                    const formElement = this.formElement;
                     this.isFormValid = await validateRequiredFields(formElement);
                     if (!this.isFormValid) {
                         this.scrollToFirstInvalidField(formElement, true);
@@ -426,7 +426,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (needsValidation !== 'true') return;
 
         // Only if validation is needed
-        const formElement = this.renderRoot.querySelector('form');
+        const formElement = this.formElement;
         this.isFormValid = await validateRequiredFields(formElement);
     }
 

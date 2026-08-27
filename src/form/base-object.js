@@ -193,6 +193,17 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         return this.auth.token;
     }
 
+    /**
+     * @returns {HTMLFormElement}
+     */
+    get formElement() {
+        const formElement = this.renderRoot.querySelector('form');
+        if (!formElement) {
+            throw new Error(`${this.localName}: expected a rendered form element`);
+        }
+        return formElement;
+    }
+
     getUserId() {
         if (!this.auth?.['user-id']) {
             throw new Error('User ID is not available');
@@ -248,10 +259,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
     async validateAndSendSubmission(event) {
         event.preventDefault();
 
-        const formElement = this.renderRoot.querySelector('form');
-        if (!formElement) {
-            return;
-        }
+        const formElement = this.formElement;
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
@@ -364,7 +372,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      */
     sendSubmission(event) {
         this.saveButtonEnabled = false;
-        const formElement = this.renderRoot.querySelector('form');
+        const formElement = this.formElement;
         const data = {
             formData: gatherFormDataFromElement(formElement),
             submissionId: this.submissionId,
@@ -384,7 +392,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      */
     sendSaveDraft(event) {
         this.draftButtonEnabled = false;
-        const formElement = this.renderRoot.querySelector('form');
+        const formElement = this.formElement;
 
         const data = {
             formData: gatherFormDataFromElement(formElement),
@@ -427,10 +435,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
             return;
         }
 
-        const formElement = this.renderRoot.querySelector('form');
-        if (!formElement) {
-            return;
-        }
+        const formElement = this.formElement;
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
@@ -648,7 +653,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                                               this._i18n.t('render-form.form-exit-warning-message'),
                                           );
                                           if (confirmed) {
-                                              const form = this.renderRoot.querySelector('form');
+                                              const form = this.formElement;
                                               const data = gatherFormDataFromElement(form);
                                               if (Object.keys(data).length) {
                                                   this.formData = data;
@@ -1051,7 +1056,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                     this._i18n.t('render-form.forms.base-object.form-exit-warning-message'),
                 );
                 if (confirmed) {
-                    const form = this.renderRoot.querySelector('form');
+                    const form = this.formElement;
                     const data = gatherFormDataFromElement(form);
                     if (Object.keys(data).length) {
                         this.formData = data;

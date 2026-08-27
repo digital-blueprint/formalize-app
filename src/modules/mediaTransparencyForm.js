@@ -339,7 +339,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
                 if (this.readOnly === false && urlParams.get('validate') === 'true') {
-                    const formElement = this.renderRoot.querySelector('form');
+                    const formElement = this.formElement;
                     this.isFormValid = await validateRequiredFields(formElement);
 
                     // Validate minimum file upload counts
@@ -948,14 +948,11 @@ class FormalizeFormElement extends BaseFormElement {
         // Only run if in edit mode (not readonly)
         if (!this.readOnly) {
             await this.updateComplete;
-            const formElement = this.renderRoot.querySelector('form');
-            if (formElement) {
-                const requiredFieldsValidated = await validateRequiredFields(formElement, true);
-                const fileValidation = this.validateMinimumFileUploads();
+            const requiredFieldsValidated = await validateRequiredFields(this.formElement, true);
+            const fileValidation = this.validateMinimumFileUploads();
 
-                // Update widget based on both required fields and file uploads
-                this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
-            }
+            // Update widget based on both required fields and file uploads
+            this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
         }
     }
 
@@ -2171,13 +2168,10 @@ class FormalizeFormElement extends BaseFormElement {
 
         // Update validation widget if in edit mode
         if (!this.readOnly) {
-            const formElement = this.renderRoot.querySelector('form');
-            if (formElement) {
-                const requiredFieldsValidated = await validateRequiredFields(formElement, true);
-                const fileValidation = this.validateMinimumFileUploads();
+            const requiredFieldsValidated = await validateRequiredFields(this.formElement, true);
+            const fileValidation = this.validateMinimumFileUploads();
 
-                this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
-            }
+            this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
         }
     }
 
@@ -2190,8 +2184,7 @@ class FormalizeFormElement extends BaseFormElement {
         super.handleFilesToSubmit(event);
 
         // Update validation widget status
-        const formElement = this.renderRoot.querySelector('form');
-        const requiredFieldsValidated = await validateRequiredFields(formElement, true);
+        const requiredFieldsValidated = await validateRequiredFields(this.formElement, true);
         const fileValidation = this.validateMinimumFileUploads();
 
         this.isFormValid = requiredFieldsValidated && fileValidation.isValid;
