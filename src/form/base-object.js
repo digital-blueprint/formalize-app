@@ -252,10 +252,11 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                 invalidFieldLabel.style.scrollMarginTop = '100px';
                 invalidFieldLabel.scrollIntoView({behavior: 'smooth', block: 'start'});
                 if (setFocus) {
+                    /** @type {HTMLInputElement | HTMLTextAreaElement | null} */
                     const invalidFieldInput = invalidElement
                         .closest('fieldset')
                         .querySelector('input, textarea');
-                    invalidFieldInput.focus();
+                    invalidFieldInput?.focus();
                 }
                 break;
             }

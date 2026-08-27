@@ -479,6 +479,8 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {MouseEvent} event
      */
     handleAnchorClick(event) {
+        if (!(event.target instanceof Element)) return;
+
         const anchor = event.target.closest('a[href^="#"]');
         if (!anchor) return;
 
@@ -487,6 +489,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         const targetId = href.slice(1);
         // Use querySelectorAll to find all elements with this ID (e.g., in dbp-translated slots)
+        /** @type {NodeListOf<HTMLElement>} */
         const targets = this.shadowRoot.querySelectorAll(`#${targetId}`);
         if (targets.length === 0) return;
 
@@ -1122,6 +1125,8 @@ class FormalizeFormElement extends BaseFormElement {
         // Store original elements and their clones
         const shadowElements = [];
         element.querySelectorAll('*').forEach((el) => {
+            if (!(el instanceof HTMLElement)) return;
+
             if (el.tagName === 'DBP-TRANSLATED' && el.shadowRoot) {
                 const shadowContent = el.shadowRoot.innerHTML;
                 const wrapper = document.createElement('div');

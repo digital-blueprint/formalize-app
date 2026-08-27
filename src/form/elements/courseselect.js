@@ -213,6 +213,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         const courseCode = this._extractCourseCode(courseName);
         if (!courseCode) return;
 
+        /** @type {CourseSelect | null} */
         const picker = this.shadowRoot?.querySelector('#' + this.name + '-picker');
         if (!picker) return;
 

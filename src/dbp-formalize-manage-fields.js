@@ -531,9 +531,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             return;
         }
 
-        const confirmed = await this.renderRoot
-            .querySelector('dbp-formalize-deletion-confirmation-modal')
-            ?.confirm();
+        /** @type {DeletionConfirmationModal | null} */
+        const confirmationModal = this.renderRoot.querySelector(
+            'dbp-formalize-deletion-confirmation-modal',
+        );
+        const confirmed = await confirmationModal?.confirm();
         if (!confirmed) {
             return;
         }
@@ -579,10 +581,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async deleteSelectedItems() {
-        const selectedData =
-            this.renderRoot
-                ?.querySelector('#manage-fields-item-table')
-                ?.tabulatorTable?.getSelectedData() || [];
+        /** @type {CustomTabulatorTable | null} */
+        const table = this.renderRoot?.querySelector('#manage-fields-item-table');
+        const selectedData = table?.tabulatorTable?.getSelectedData() || [];
         await this.deleteItems(selectedData.map((row) => row.item).filter(Boolean));
     }
 

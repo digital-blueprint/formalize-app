@@ -1315,7 +1315,9 @@ class FormalizeFormElement extends BaseFormElement {
      * @param {CustomEvent} e - change event from subcategory radio button group, used to get the selected subcategory value
      */
     setSubcategoryItems(e) {
-        const selectedValue = e.currentTarget.value;
+        const selectedValue = /** @type {DbpEnumElement} */ (e.currentTarget).value;
+        if (typeof selectedValue !== 'string') return;
+
         this.setSubcategoryItemsByCategoryValue(selectedValue);
 
         // Get the data object from the form

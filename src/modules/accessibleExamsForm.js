@@ -16,6 +16,9 @@ import {createRef, ref} from 'lit/directives/ref.js';
 import {getFormManageFormsUrl, getFormRenderUrl} from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
+/** @typedef {import('lit/directives/ref.js').Ref<DbpTimeElement>} TimeElementRef */
+/** @typedef {import('lit/directives/ref.js').Ref<DbpStringElement>} StringElementRef */
+
 export default class extends BaseObject {
     getUrlSlug() {
         return 'accessible-exams';
@@ -36,7 +39,9 @@ export default class extends BaseObject {
 class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
+        /** @type {TimeElementRef} */
         this.beginTimeRef = createRef();
+        /** @type {StringElementRef} */
         this.examinerTextRef = createRef();
         this.examinerTextDisabled = false;
         this.hasAttemptedValidation = false;
