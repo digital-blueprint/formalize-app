@@ -203,16 +203,6 @@ class FormalizeFormElement extends BaseFormElement {
         );
     }
 
-    async getLecturer(id) {
-        let response = await this.fetchUser(id);
-        if (!response.ok) {
-            throw new Error(
-                `Request failed with status ${response.status}: ${response.statusText}`,
-                {cause: response},
-            );
-        }
-        this.formData.examiner = response.firstname;
-    }
     async fetchUserData() {
         console.log('Fetching user data ...');
         try {
