@@ -22,7 +22,7 @@ export default class extends BaseObject {
     }
 
     /**
-     * @returns {string}
+     * @returns {typeof BaseFormElement}
      */
     getFormComponent() {
         return FormalizeFormElement;

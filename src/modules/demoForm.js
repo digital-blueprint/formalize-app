@@ -19,7 +19,7 @@ export default class extends BaseObject {
     }
 
     /**
-     * @returns {string}
+     * @returns {typeof BaseFormElement}
      */
     getFormComponent() {
         return FormalizeFormElement;
@@ -159,6 +159,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     static get scopedElements() {
         return {
+            ...super.scopedElements,
             'dbp-form-string-element': DbpStringElement,
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-datetime-element': DbpDateTimeElement,

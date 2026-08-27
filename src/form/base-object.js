@@ -37,6 +37,8 @@ import {
     FORM_PERMISSIONS,
 } from '../utils.js';
 
+/** @typedef {import('lit').CSSResultGroup} CSSResultGroup */
+
 export class BaseObject {
     getUrlSlug() {
         return 'url-slug';
@@ -469,6 +471,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         };
     }
 
+    /** @returns {CSSResultGroup} */
     static get styles() {
         // language=css
         return css`
