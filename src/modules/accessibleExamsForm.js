@@ -84,90 +84,96 @@ class FormalizeFormElement extends BaseFormElement {
 
         void this.updateComplete.then(() => {
             // Event listener for form submission
-            this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
-                const i18n = this._i18n;
-                // Get the form data from the event detail
-                const formData = event.detail.formData;
-                // Include unique identifier for the person who is submitting
-                formData.identifier = this.formData.identifier;
-                // Create UUID for each submission
-                this.createUUID();
-                formData.uuid = this.formData.uuid;
-                // Create a human-readable exam id for each submission
-                this.createExamID();
-                formData.examid = this.formData.examid;
+            this.addEventListener(
+                'DbpFormalizeFormSubmission',
+                async (/** @type {CustomEvent} */ event) => {
+                    const i18n = this._i18n;
+                    // Get the form data from the event detail
+                    const formData = event.detail.formData;
+                    // Include unique identifier for the person who is submitting
+                    formData.identifier = this.formData.identifier;
+                    // Create UUID for each submission
+                    this.createUUID();
+                    formData.uuid = this.formData.uuid;
+                    // Create a human-readable exam id for each submission
+                    this.createExamID();
+                    formData.examid = this.formData.examid;
 
-                if (formData.examinerText) {
-                    // Set examinerText as examiner
-                    formData.examiner = formData.examinerText;
-                    formData.email_examiner = '';
-                } else {
-                    // Extract name and email from examiner data
-                    let examinerData = this.getExaminerMail(formData.examiner);
-                    formData.examiner = examinerData[0] ?? '';
-                    formData.email_examiner = examinerData[1] ?? '';
-                }
-
-                // We always need to delete the examinerText field, because it's not in the schema
-                delete formData.examinerText;
-
-                // Extract name and email from additional examiner data
-                let additionalExaminerData = this.getExaminerMail(formData.additionalExaminer);
-                formData.additionalExaminer = additionalExaminerData[0];
-                formData.email_additionalExaminer = additionalExaminerData[1];
-
-                // Handle the event
-                console.log('Form submission data:', formData);
-
-                try {
-                    this.isPostingSubmission = true;
-
-                    if (this.wasSubmissionSuccessful) {
-                        return;
-                    }
-
-                    let body = {
-                        form: '/formalize/forms/' + '0193cfbd-9b68-703a-81f9-c10d0e2375b7',
-                        dataFeedElement: JSON.stringify(formData),
-                    };
-
-                    const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/ld+json',
-                            Authorization: 'Bearer ' + this.auth.token,
-                        },
-                        body: JSON.stringify(body),
-                    });
-
-                    if (!response.ok) {
-                        this.saveButtonEnabled = true;
-                        await this.displayErrors(response);
+                    if (formData.examinerText) {
+                        // Set examinerText as examiner
+                        formData.examiner = formData.examinerText;
+                        formData.email_examiner = '';
                     } else {
-                        this.wasSubmissionSuccessful = true;
-
-                        sendNotification({
-                            summary: i18n.t('success.success-title'),
-                            body: i18n.t('success.form-saved-successfully'),
-                            type: 'success',
-                            timeout: 5,
-                        });
-
-                        // Hide form after successful submission
-                        this._('.form-title').style.display = 'none';
-                        this._('.description').style.display = 'none';
-                        this._('#accessible-exams-form').style.display = 'none';
+                        // Extract name and email from examiner data
+                        let examinerData = this.getExaminerMail(formData.examiner);
+                        formData.examiner = examinerData[0] ?? '';
+                        formData.email_examiner = examinerData[1] ?? '';
                     }
 
-                    this.submitted = this.wasSubmissionSuccessful;
-                    console.log(this.wasSubmissionSuccessful, response);
-                    return response;
-                } catch (error) {
-                    console.error(error.message);
-                } finally {
-                    this.isPostingSubmission = false;
-                }
-            });
+                    // We always need to delete the examinerText field, because it's not in the schema
+                    delete formData.examinerText;
+
+                    // Extract name and email from additional examiner data
+                    let additionalExaminerData = this.getExaminerMail(formData.additionalExaminer);
+                    formData.additionalExaminer = additionalExaminerData[0];
+                    formData.email_additionalExaminer = additionalExaminerData[1];
+
+                    // Handle the event
+                    console.log('Form submission data:', formData);
+
+                    try {
+                        this.isPostingSubmission = true;
+
+                        if (this.wasSubmissionSuccessful) {
+                            return;
+                        }
+
+                        let body = {
+                            form: '/formalize/forms/' + '0193cfbd-9b68-703a-81f9-c10d0e2375b7',
+                            dataFeedElement: JSON.stringify(formData),
+                        };
+
+                        const response = await fetch(
+                            this.entryPointUrl + '/formalize/submissions',
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/ld+json',
+                                    Authorization: 'Bearer ' + this.auth.token,
+                                },
+                                body: JSON.stringify(body),
+                            },
+                        );
+
+                        if (!response.ok) {
+                            this.saveButtonEnabled = true;
+                            await this.displayErrors(response);
+                        } else {
+                            this.wasSubmissionSuccessful = true;
+
+                            sendNotification({
+                                summary: i18n.t('success.success-title'),
+                                body: i18n.t('success.form-saved-successfully'),
+                                type: 'success',
+                                timeout: 5,
+                            });
+
+                            // Hide form after successful submission
+                            this._('.form-title').style.display = 'none';
+                            this._('.description').style.display = 'none';
+                            this._('#accessible-exams-form').style.display = 'none';
+                        }
+
+                        this.submitted = this.wasSubmissionSuccessful;
+                        console.log(this.wasSubmissionSuccessful, response);
+                        return response;
+                    } catch (error) {
+                        console.error(error.message);
+                    } finally {
+                        this.isPostingSubmission = false;
+                    }
+                },
+            );
 
             // Handle field validation on focus out
             this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {

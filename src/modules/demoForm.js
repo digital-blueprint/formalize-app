@@ -41,63 +41,69 @@ class FormalizeFormElement extends BaseFormElement {
 
         void this.updateComplete.then(() => {
             // Add the event listener if you don't want to override the sendSubmission method
-            this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
-                // Access the data from the event detail
-                const data = event.detail;
+            this.addEventListener(
+                'DbpFormalizeFormSubmission',
+                async (/** @type {CustomEvent} */ event) => {
+                    // Access the data from the event detail
+                    const data = event.detail;
 
-                // Handle the event
-                console.log('Form submission data:', data);
+                    // Handle the event
+                    console.log('Form submission data:', data);
 
-                // Add your event handling logic here
-                const postFormData = new FormData();
-                postFormData.append('form', '/formalize/forms/' + this.formIdentifier);
-                postFormData.append('dataFeedElement', JSON.stringify(data.formData));
-                postFormData.append('submissionState', String(SUBMISSION_STATES_BINARY.SUBMITTED));
+                    // Add your event handling logic here
+                    const postFormData = new FormData();
+                    postFormData.append('form', '/formalize/forms/' + this.formIdentifier);
+                    postFormData.append('dataFeedElement', JSON.stringify(data.formData));
+                    postFormData.append(
+                        'submissionState',
+                        String(SUBMISSION_STATES_BINARY.SUBMITTED),
+                    );
 
-                try {
-                    const options = {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${this.auth.token}`,
-                        },
-                        body: postFormData,
-                    };
-                    const url = `${this.entryPointUrl}/formalize/submissions`;
-                    const response = await fetch(url, options);
-                    let responseBody = await response.json();
-                    if (!response.ok) {
+                    try {
+                        const options = {
+                            method: 'POST',
+                            headers: {
+                                Authorization: `Bearer ${this.auth.token}`,
+                            },
+                            body: postFormData,
+                        };
+                        const url = `${this.entryPointUrl}/formalize/submissions`;
+                        const response = await fetch(url, options);
+                        let responseBody = await response.json();
+                        if (!response.ok) {
+                            sendNotification({
+                                summary: 'Error',
+                                body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
+                                type: 'danger',
+                                timeout: 0,
+                            });
+                        } else {
+                            this.wasSubmissionSuccessful = true;
+                        }
+                    } catch (error) {
+                        console.error(error.message);
                         sendNotification({
                             summary: 'Error',
-                            body: `Failed to submit form. Response status: ${response.status}<br>${responseBody.description}`,
+                            body: error.message,
                             type: 'danger',
                             timeout: 0,
                         });
-                    } else {
-                        this.wasSubmissionSuccessful = true;
+                    } finally {
+                        if (this.wasSubmissionSuccessful) {
+                            sendNotification({
+                                summary: 'Success',
+                                body: 'Form submitted successfully',
+                                type: 'success',
+                                timeout: 5,
+                            });
+                        }
                     }
-                } catch (error) {
-                    console.error(error.message);
-                    sendNotification({
-                        summary: 'Error',
-                        body: error.message,
-                        type: 'danger',
-                        timeout: 0,
-                    });
-                } finally {
-                    if (this.wasSubmissionSuccessful) {
-                        sendNotification({
-                            summary: 'Success',
-                            body: 'Form submitted successfully',
-                            type: 'success',
-                            timeout: 5,
-                        });
-                    }
-                }
 
-                // In the demo form, we are enabling the save button again and update the form data
-                this.saveButtonEnabled = true;
-                this.formData = data;
-            });
+                    // In the demo form, we are enabling the save button again and update the form data
+                    this.saveButtonEnabled = true;
+                    this.formData = data;
+                },
+            );
         });
     }
 

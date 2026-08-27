@@ -278,7 +278,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
 
     /**
      * Handle submitting draft from read-only view.
-     * @param {object} event - The event object containing the form data.
+     * @param {CustomEvent} event - The event object containing the form data.
      */
     async handleToggleSubmissionState(event) {
         const data = event.detail;

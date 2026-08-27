@@ -68,81 +68,87 @@ class FormalizeFormElement extends BaseFormElement {
 
             this.addEventListener('DbpFormalizeFormSaveSubmission', this.handleFormSaveSubmission);
 
-            this.addEventListener('DbpFormalizeFormSubmission', async (event) => {
-                const formData = event.detail.formData;
-                const i18n = this._i18n;
+            this.addEventListener(
+                'DbpFormalizeFormSubmission',
+                async (/** @type {CustomEvent} */ event) => {
+                    const formData = event.detail.formData;
+                    const i18n = this._i18n;
 
-                // use Lecturer-Array from formData
-                formData.lecturers = this.formData.lecturers || [];
+                    // use Lecturer-Array from formData
+                    formData.lecturers = this.formData.lecturers || [];
 
-                try {
-                    this.isPostingSubmission = true;
-                    if (this.wasSubmissionSuccessful) return;
+                    try {
+                        this.isPostingSubmission = true;
+                        if (this.wasSubmissionSuccessful) return;
 
-                    // submit relevant data
-                    const payload = {
-                        courseName: formData.courseName,
-                        lecturers: formData.lecturers,
-                        groupAssignment: formData.groupAssignment ?? '',
-                        adaptations: formData.adaptations,
-                        matriculationNumber: formData.matriculationNumber ?? '',
-                        studentGivenName: formData.studentGivenName ?? '',
-                        studentFamilyName: formData.studentFamilyName ?? '',
-                        studentEmail: formData.studentEmail ?? '',
-                        comment: formData.comment ?? '',
-                    };
+                        // submit relevant data
+                        const payload = {
+                            courseName: formData.courseName,
+                            lecturers: formData.lecturers,
+                            groupAssignment: formData.groupAssignment ?? '',
+                            adaptations: formData.adaptations,
+                            matriculationNumber: formData.matriculationNumber ?? '',
+                            studentGivenName: formData.studentGivenName ?? '',
+                            studentFamilyName: formData.studentFamilyName ?? '',
+                            studentEmail: formData.studentEmail ?? '',
+                            comment: formData.comment ?? '',
+                        };
 
-                    const body = {
-                        form: '/formalize/forms/' + '019ada3e-b7ff-7b35-b1dd-7b578d810955',
-                        dataFeedElement: JSON.stringify(payload),
-                    };
+                        const body = {
+                            form: '/formalize/forms/' + '019ada3e-b7ff-7b35-b1dd-7b578d810955',
+                            dataFeedElement: JSON.stringify(payload),
+                        };
 
-                    const response = await fetch(this.entryPointUrl + '/formalize/submissions', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/ld+json',
-                            Authorization: 'Bearer ' + this.auth.token,
-                        },
-                        body: JSON.stringify(body),
-                    });
-
-                    if (!response.ok) {
-                        this.saveButtonEnabled = true;
-
-                        await this.displayErrors(response);
-                    } else {
-                        this.wasSubmissionSuccessful = true;
-                        this._('.form-title').style.display = 'none';
-                        this._('.description').style.display = 'none';
-                        this._('#accessible-courses-form').style.display = 'none';
-
-                        this.disableLeavePageWarning();
-
-                        sendNotification({
-                            summary: i18n.t('success.success-title'),
-                            body: i18n.t('success.form-saved-successfully'),
-                            type: 'success',
-                            timeout: 5,
-                        });
-
-                        // Notify parent component to refresh submission data
-                        window.dispatchEvent(
-                            new CustomEvent('dbpFormDataUpdated', {
-                                detail: {needUpdate: true},
-                                bubbles: true,
-                                composed: true,
-                            }),
+                        const response = await fetch(
+                            this.entryPointUrl + '/formalize/submissions',
+                            {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/ld+json',
+                                    Authorization: 'Bearer ' + this.auth.token,
+                                },
+                                body: JSON.stringify(body),
+                            },
                         );
-                    }
 
-                    this.submitted = this.wasSubmissionSuccessful;
-                    return response;
-                } catch (error) {
-                    console.error(error.message);
-                } finally {
-                    this.isPostingSubmission = false;
-                }
-            });
+                        if (!response.ok) {
+                            this.saveButtonEnabled = true;
+
+                            await this.displayErrors(response);
+                        } else {
+                            this.wasSubmissionSuccessful = true;
+                            this._('.form-title').style.display = 'none';
+                            this._('.description').style.display = 'none';
+                            this._('#accessible-courses-form').style.display = 'none';
+
+                            this.disableLeavePageWarning();
+
+                            sendNotification({
+                                summary: i18n.t('success.success-title'),
+                                body: i18n.t('success.form-saved-successfully'),
+                                type: 'success',
+                                timeout: 5,
+                            });
+
+                            // Notify parent component to refresh submission data
+                            window.dispatchEvent(
+                                new CustomEvent('dbpFormDataUpdated', {
+                                    detail: {needUpdate: true},
+                                    bubbles: true,
+                                    composed: true,
+                                }),
+                            );
+                        }
+
+                        this.submitted = this.wasSubmissionSuccessful;
+                        return response;
+                    } catch (error) {
+                        console.error(error.message);
+                    } finally {
+                        this.isPostingSubmission = false;
+                    }
+                },
+            );
         });
     }
 
@@ -333,7 +339,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle deleting submission.
-     * @param {object} event - The event object containing the submission id to delete.
+     * @param {CustomEvent} event - The event object containing the submission id to delete.
      */
     async handleFormDeleteSubmission(event) {
         const i18n = this._i18n;
@@ -407,7 +413,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle save (PATCH) submission.
-     * @param {object} event - The event object containing the form data.
+     * @param {CustomEvent} event - The event object containing the form data.
      */
     async handleFormSaveSubmission(event) {
         const i18n = this._i18n;

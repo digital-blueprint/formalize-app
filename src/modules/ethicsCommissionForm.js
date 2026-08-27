@@ -371,7 +371,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Opens the file picker dialog.
-     * @param {object} event - Click event
+     * @param {Event} event - Click event
      */
     openFilePicker(event) {
         event.preventDefault();
@@ -566,7 +566,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle saving draft submission.
-     * @param {object} event - The event object containing the form data.
+     * @param {CustomEvent} event - The event object containing the form data.
      */
     async handleSaveDraft(event) {
         const i18n = this._i18n;
@@ -698,7 +698,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle saving submission.
-     * @param {object} event - The event object containing the form data.
+     * @param {CustomEvent} event - The event object containing the form data.
      */
     async handleFormSubmission(event) {
         const i18n = this._i18n;
@@ -811,7 +811,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle deleting submission.
-     * @param {object} event - The event object containing the submission id to delete.
+     * @param {CustomEvent} event - The event object containing the submission id to delete.
      */
     async handleFormDeleteSubmission(event) {
         const i18n = this._i18n;
@@ -884,7 +884,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Handle save (PATCH) submission.
-     * @param {object} event - The event object containing the form data.
+     * @param {CustomEvent} event - The event object containing the form data.
      */
     async handleFormSaveSubmission(event) {
         const i18n = this._i18n;
