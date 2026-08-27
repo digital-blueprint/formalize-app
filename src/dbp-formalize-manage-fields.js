@@ -243,7 +243,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const response = await fetch(formsUrl.href, {
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         });
 
@@ -312,7 +312,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             {
                 headers: {
                     'Content-Type': 'application/ld+json',
-                    Authorization: 'Bearer ' + this.auth.token,
+                    Authorization: 'Bearer ' + this.getToken(),
                 },
             },
         );
@@ -483,7 +483,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 {
                     method: this.selectedItem ? 'PATCH' : 'POST',
                     headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
+                        Authorization: 'Bearer ' + this.getToken(),
                     },
                     body: formData,
                 },
@@ -549,7 +549,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     {
                         method: 'DELETE',
                         headers: {
-                            Authorization: 'Bearer ' + this.auth.token,
+                            Authorization: 'Bearer ' + this.getToken(),
                         },
                     },
                 );

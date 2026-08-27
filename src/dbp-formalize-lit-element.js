@@ -60,6 +60,13 @@ export default class DBPFormalizeLitElement extends LangMixin(
         return this.isAuthPending();
     }
 
+    getToken() {
+        if (!this.auth?.token) {
+            throw new Error('Authentication token is not available');
+        }
+        return this.auth.token;
+    }
+
     /**
      * @param {Response} response
      * @param {string} [targetNotificationId]
@@ -159,7 +166,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         };
         return await fetch(this.entryPointUrl + `/base/people/${userIdentifier}`, options);

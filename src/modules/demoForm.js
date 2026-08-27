@@ -34,6 +34,7 @@ class FormalizeFormElement extends BaseFormElement {
     constructor() {
         super();
         this.enumItems = {item1: 'Item 1', item2: 'Item 2'};
+        this.wasSubmissionSuccessful = false;
     }
 
     connectedCallback() {
@@ -63,7 +64,7 @@ class FormalizeFormElement extends BaseFormElement {
                         const options = {
                             method: 'POST',
                             headers: {
-                                Authorization: `Bearer ${this.auth.token}`,
+                                Authorization: `Bearer ${this.getToken()}`,
                             },
                             body: postFormData,
                         };

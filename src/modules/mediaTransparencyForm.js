@@ -1002,7 +1002,7 @@ class FormalizeFormElement extends BaseFormElement {
                 {
                     method: 'DELETE',
                     headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
+                        Authorization: 'Bearer ' + this.getToken(),
                     },
                 },
             );

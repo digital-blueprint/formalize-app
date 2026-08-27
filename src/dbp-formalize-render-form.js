@@ -145,7 +145,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async checkPermissionsToForm(identifier) {
         // If the user is not logged in yet, we can't check permissions
-        if (this.auth.token === '') {
+        if (this.getToken() === '') {
             return false;
         }
 
@@ -157,7 +157,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         };
 
@@ -241,7 +241,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async getUserAllSubmissionsData(formIdentifier) {
-        if (!formIdentifier || this.auth.token === '') {
+        const auth = this.auth;
+        if (!formIdentifier || !auth?.token) {
             return;
         }
 
@@ -249,7 +250,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + auth.token,
             },
         };
 
@@ -258,7 +259,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const response = await fetch(
                 this.entryPointUrl +
                     `/formalize/submissions?formIdentifier=${formIdentifier}&perPage=100000&creatorIdEquals=` +
-                    String(this.auth['user-id']),
+                    String(auth['user-id']),
                 options,
             );
 
@@ -291,7 +292,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         };
 
@@ -606,7 +607,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     async update(changedProperties) {
         if (changedProperties.has('auth')) {
-            if (!this.authTokenExists && this.auth.token !== '') {
+            if (!this.authTokenExists && this.auth && this.auth.token !== '') {
                 this.authTokenExists = true;
                 void this.handlePermissionsForCurrentForm();
 

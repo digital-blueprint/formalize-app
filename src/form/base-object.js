@@ -186,6 +186,13 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         };
     }
 
+    getToken() {
+        if (!this.auth?.token) {
+            throw new Error('Authentication token is not available');
+        }
+        return this.auth.token;
+    }
+
     connectedCallback() {
         super.connectedCallback();
 
@@ -1418,7 +1425,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                 const options = {
                     method: 'GET',
                     headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
+                        Authorization: 'Bearer ' + this.getToken(),
                     },
                 };
                 const response = await fetch(apiFile.downloadUrl, options);
@@ -1708,7 +1715,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         };
         return await fetch(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
@@ -1724,7 +1731,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         return {
             method: method,
             headers: {
-                Authorization: `Bearer ${this.auth.token}`,
+                Authorization: `Bearer ${this.getToken()}`,
             },
             body: formData,
         };

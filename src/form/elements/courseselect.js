@@ -104,6 +104,13 @@ export class CourseSelect extends ResourceSelect {
 }
 
 export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) {
+    getToken() {
+        if (!this.auth?.token) {
+            throw new Error('Authentication token is not available');
+        }
+        return this.auth.token;
+    }
+
     constructor() {
         super();
         this.entryPointUrl = null;
@@ -131,7 +138,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
             headers: {
                 'Content-Type': 'application/ld+json',
                 'Accept-Language': 'de',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         });
 
@@ -226,7 +233,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
         const resp = await fetch(`${this.entryPointUrl}/base/courses?${params.toString()}`, {
             headers: {
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         });
         if (!resp.ok) return;

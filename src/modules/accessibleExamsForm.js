@@ -45,6 +45,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.examinerTextRef = createRef();
         this.examinerTextDisabled = false;
         this.hasAttemptedValidation = false;
+        this.wasSubmissionSuccessful = false;
         this.handleValidationOnFocusOut = this.handleValidationOnFocusOut.bind(this);
     }
 
@@ -139,7 +140,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/ld+json',
-                                    Authorization: 'Bearer ' + this.auth.token,
+                                    Authorization: 'Bearer ' + this.getToken(),
                                 },
                                 body: JSON.stringify(body),
                             },
@@ -208,7 +209,7 @@ class FormalizeFormElement extends BaseFormElement {
             {
                 headers: {
                     'Content-Type': 'application/ld+json',
-                    Authorization: 'Bearer ' + this.auth.token,
+                    Authorization: 'Bearer ' + this.getToken(),
                 },
             },
         );

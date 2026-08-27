@@ -36,6 +36,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.isUserAllowedToDownloadPdf = false;
         this._fetchingUserData = false;
         this._userDataFetched = false;
+        this.wasSubmissionSuccessful = false;
 
         // ensuring we have an object to extend
         this.formData = this.formData || {};
@@ -105,7 +106,7 @@ class FormalizeFormElement extends BaseFormElement {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/ld+json',
-                                    Authorization: 'Bearer ' + this.auth.token,
+                                    Authorization: 'Bearer ' + this.getToken(),
                                 },
                                 body: JSON.stringify(body),
                             },
@@ -200,7 +201,7 @@ class FormalizeFormElement extends BaseFormElement {
                 {
                     headers: {
                         'Content-Type': 'application/ld+json',
-                        Authorization: 'Bearer ' + this.auth.token,
+                        Authorization: 'Bearer ' + this.getToken(),
                     },
                 },
             );
@@ -298,7 +299,7 @@ class FormalizeFormElement extends BaseFormElement {
                         {
                             headers: {
                                 'Content-Type': 'application/ld+json',
-                                Authorization: 'Bearer ' + this.auth.token,
+                                Authorization: 'Bearer ' + this.getToken(),
                             },
                         },
                     );
@@ -365,7 +366,7 @@ class FormalizeFormElement extends BaseFormElement {
                 {
                     method: 'DELETE',
                     headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
+                        Authorization: 'Bearer ' + this.getToken(),
                     },
                 },
             );

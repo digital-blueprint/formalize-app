@@ -839,7 +839,7 @@ class FormalizeFormElement extends BaseFormElement {
                 {
                     method: 'DELETE',
                     headers: {
-                        Authorization: 'Bearer ' + this.auth.token,
+                        Authorization: 'Bearer ' + this.getToken(),
                     },
                 },
             );
@@ -1235,7 +1235,7 @@ class FormalizeFormElement extends BaseFormElement {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/ld+json',
-                Authorization: 'Bearer ' + this.auth.token,
+                Authorization: 'Bearer ' + this.getToken(),
             },
         };
         return await fetch(
