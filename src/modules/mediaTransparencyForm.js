@@ -958,9 +958,8 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Download all attachments and pdf version of the form as a zip file.
-     * @param {object} event
      */
-    downloadAllFiles(event) {
+    downloadAllFiles() {
         const allFiles = this.getFileGroupsFromSchema().flatMap((groupName) => {
             const group = this.getOrCreateFileGroup(groupName);
             return Array.from(group.submittedFiles.values());

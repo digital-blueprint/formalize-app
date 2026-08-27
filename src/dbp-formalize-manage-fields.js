@@ -1093,7 +1093,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         type="is-secondary"
                         no-spinner-on-click
                         @click=${() =>
-                            this.renderRoot?.querySelector('#manage-fields-edit-modal')?.close()}>
+                            /** @type {Modal | null} */ (
+                                this.renderRoot?.querySelector('#manage-fields-edit-modal')
+                            )?.close()}>
                         <dbp-icon name="close" aria-hidden="true"></dbp-icon>
                         ${i18n.t('manage-fields.cancel')}
                     </dbp-button>
@@ -1238,9 +1240,10 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (changedProperties.has('mode') && this.activeForm) {
+            /** @type {Modal | null} */
             const modal = this.renderRoot?.querySelector('#manage-fields-edit-modal');
             if (this.mode === 'edit') {
-                modal?.updateComplete.then(() => {
+                void modal?.updateComplete.then(() => {
                     if (this.mode === 'edit' && modal.isConnected) modal.open();
                 });
             } else if (modal?.isOpen()) {

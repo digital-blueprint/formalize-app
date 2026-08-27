@@ -249,6 +249,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
         if (
             (changedProperties.has('value') || changedProperties.has('auth')) &&
+            typeof this.value === 'string' &&
             this.value &&
             this.auth?.token
         ) {

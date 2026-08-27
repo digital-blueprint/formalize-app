@@ -13,6 +13,8 @@ import {
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 
+/** @typedef {import('./form/base-object.js').BaseObject} BaseObject */
+
 /**
  * @augments {DBPFormalizeLitElement}
  */

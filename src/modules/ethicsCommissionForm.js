@@ -1002,9 +1002,9 @@ class FormalizeFormElement extends BaseFormElement {
         // window.scrollTo(0, 0);
 
         const opt = {
-            margin: [70, 51], // Don't change vertical margin or lines can break when printing.
+            margin: /** @type {[number, number]} */ ([70, 51]), // Don't change vertical margin or lines can break when printing.
             filename: 'Ethical_Review_Application.pdf',
-            image: {type: 'jpeg', quality: 0.98},
+            image: {type: /** @type {'jpeg'} */ ('jpeg'), quality: 0.98},
             html2canvas: {
                 scale: 2,
                 dpi: 192,
@@ -1013,7 +1013,7 @@ class FormalizeFormElement extends BaseFormElement {
             jsPDF: {
                 unit: 'pt',
                 format: 'a4',
-                orientation: 'portrait',
+                orientation: /** @type {'portrait'} */ ('portrait'),
             },
             pagebreak: {
                 // mode: ['css'],
@@ -1198,9 +1198,8 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Download all attachments and pdf version of the form as a zip file.
-     * @param {object} event
      */
-    async downloadAllFiles(event) {
+    async downloadAllFiles() {
         // Get PDF as File object
         const pdfFile = await this.generatePDF(false);
 
