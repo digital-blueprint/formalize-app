@@ -420,10 +420,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const tagPart = pascalToKebab(formUrlSlug);
         const tagName = 'dbp-formalize-form-' + tagPart;
         const form = this.formComponents[formUrlSlug];
-
-        if (!this.registry.get(tagName)) {
-            this.registry.define(tagName, form);
-        }
+        this.defineScopedElement(tagName, form);
 
         const formIdentifier = this.formIdentifiers[this.formUrlSlug];
         const allowedSubmissionStates = this.formProperties.allowedSubmissionStates;

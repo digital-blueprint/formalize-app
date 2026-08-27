@@ -949,9 +949,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         const tagName = 'dbp-formalize-item-' + this.activeModule.getUrlSlug();
-        if (!this.registry.get(tagName)) {
-            this.registry.define(tagName, this.activeModule.getFormComponent());
-        }
+        this.defineScopedElement(tagName, this.activeModule.getFormComponent());
 
         const formData = this.selectedItem ? parseSubmissionData(this.selectedItem) : {};
 
