@@ -33,6 +33,8 @@ import {
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 import html2pdf from 'html2pdf.js';
 
+/** @typedef {import('jspdf').jsPDF} jsPDF */
+
 export default class extends BaseObject {
     getUrlSlug() {
         return 'ethics-proposal';
@@ -1055,7 +1057,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Add header and footer to the PDF.
-     * @param {object} pdf
+     * @param {jsPDF} pdf
      * @param {number} pageNumber
      */
     addHeader(pdf, pageNumber) {
@@ -1073,14 +1075,7 @@ class FormalizeFormElement extends BaseFormElement {
         pdf.setDrawColor(255, 0, 0);
         pdf.setFillColor(255, 0, 0);
         pdf.setLineWidth(1); // Set the line width
-        pdf.rect(
-            pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 8,
-            MARGIN_BLOCK - 8,
-            8,
-            8,
-            'F',
-            {align: 'right'},
-        );
+        pdf.rect(pdf.internal.pageSize.getWidth() - MARGIN_INLINE - 8, MARGIN_BLOCK - 8, 8, 8, 'F');
 
         pdf.setDrawColor(0, 0, 0);
         pdf.line(
