@@ -13,7 +13,6 @@ import {
     getDeletionConfirmation,
     handleDeletionConfirm,
     handleDeletionCancel,
-    httpGetAsync,
     SUBMISSION_STATES,
     SUBMISSION_STATES_BINARY,
 } from '../utils.js';
@@ -1229,7 +1228,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Gets the list of Resource Action Grants
-     * @returns {Promise<object>} response
+     * @returns {Promise<Response>} response
      */
     async apiGetResourceActionGrants() {
         const options = {
@@ -1239,7 +1238,7 @@ class FormalizeFormElement extends BaseFormElement {
                 Authorization: 'Bearer ' + this.auth.token,
             },
         };
-        return await httpGetAsync(
+        return await fetch(
             this.entryPointUrl +
                 `/authorization/resource-action-grants?resourceClass=DbpRelayFormalizeSubmission&resourceIdentifier=${this.submissionId}&page=1&perPage=9999`,
             options,

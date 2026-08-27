@@ -92,18 +92,6 @@ export function formatDate(value) {
 }
 
 /**
- * Send a fetch to given url with given options
- * @param url
- * @param options
- * @returns {Promise<object>} response (error or result)
- */
-export async function httpGetAsync(url, options) {
-    return await fetch(url, options).catch((error) => {
-        return error;
-    });
-}
-
-/**
  * Return an object with the same property names as the values
  * @param {Array} array
  * @returns {object}

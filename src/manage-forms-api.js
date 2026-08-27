@@ -366,7 +366,7 @@ export async function getAllFormSubmissions(host, formId) {
     };
 
     try {
-        response = await host.httpGetAsync(
+        response = await fetch(
             host.entryPointUrl +
                 '/formalize/submissions?formIdentifier=' +
                 formId +
@@ -734,10 +734,7 @@ export async function apiGetTags(host, identifier) {
     };
 
     try {
-        response = await host.httpGetAsync(
-            host.entryPointUrl + '/formalize/forms/' + identifier,
-            options,
-        );
+        response = await fetch(host.entryPointUrl + '/formalize/forms/' + identifier, options);
 
         if (!response.ok) {
             host.availableTags = [];

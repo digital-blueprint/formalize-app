@@ -26,7 +26,6 @@ import {
 import {
     formatDate,
     arrayToObject,
-    httpGetAsync,
     SUBMISSION_STATES,
     SUBMISSION_STATES_BINARY,
     SUBMISSION_COLLECTION_PERMISSIONS,
@@ -1694,7 +1693,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
     /**
      * Gets user details from API
      * @param {string} userIdentifier
-     * @returns {Promise<object>} response
+     * @returns {Promise<Response>} response
      */
     async apiGetUserDetails(userIdentifier) {
         const options = {
@@ -1704,7 +1703,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                 Authorization: 'Bearer ' + this.auth.token,
             },
         };
-        return await httpGetAsync(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
+        return await fetch(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
     }
 
     /**

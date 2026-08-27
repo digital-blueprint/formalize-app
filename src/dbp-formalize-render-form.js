@@ -162,10 +162,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
 
         try {
-            response = await this.httpGetAsync(
-                this.entryPointUrl + '/formalize/forms/' + identifier,
-                options,
-            );
+            response = await fetch(this.entryPointUrl + '/formalize/forms/' + identifier, options);
 
             if (!response.ok) {
                 return false;
@@ -258,7 +255,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         try {
             // @TODO: API does not return DRAFT state submissions!
-            const response = await this.httpGetAsync(
+            const response = await fetch(
                 this.entryPointUrl +
                     `/formalize/submissions?formIdentifier=${formIdentifier}&perPage=100000&creatorIdEquals=` +
                     String(this.auth['user-id']),
@@ -299,7 +296,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
 
         try {
-            const response = await this.httpGetAsync(
+            const response = await fetch(
                 this.entryPointUrl + '/formalize/submissions/' + this.submissionId,
                 options,
             );

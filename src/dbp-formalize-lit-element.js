@@ -60,18 +60,6 @@ export default class DBPFormalizeLitElement extends LangMixin(
         return this.isAuthPending();
     }
 
-    /**
-     * Send a fetch to given url with given options
-     * @param url
-     * @param options
-     * @returns {Promise<object>} response (error or result)
-     */
-    async httpGetAsync(url, options) {
-        return await fetch(url, options).catch((error) => {
-            return error;
-        });
-    }
-
     handleErrorResponse(response, targetNotificationId = null) {
         switch (response.status) {
             case 401:
@@ -160,7 +148,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
     /**
      * Gets user details from API
      * @param {string} userIdentifier
-     * @returns {Promise<object>} response
+     * @returns {Promise<Response>} response
      */
     async apiGetUserDetails(userIdentifier) {
         const options = {
@@ -170,9 +158,6 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 Authorization: 'Bearer ' + this.auth.token,
             },
         };
-        return await this.httpGetAsync(
-            this.entryPointUrl + `/base/people/${userIdentifier}`,
-            options,
-        );
+        return await fetch(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
     }
 }
