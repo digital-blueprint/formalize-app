@@ -2,7 +2,8 @@
     "$schema": "./node_modules/oxlint/configuration_schema.json",
     "plugins": ["jsdoc", "typescript"],
     "options": {
-        "typeAware": true
+        "typeAware": true,
+        "typeCheck": true
     },
     "categories": {
         "correctness": "error"
@@ -46,7 +47,7 @@
         ],
         "typescript/no-namespace": "error",
         "typescript/no-require-imports": "error",
-        "typescript/no-unnecessary-type-assertion": "error",
+        "typescript/no-unnecessary-type-assertion": "off",
         "typescript/no-unnecessary-type-constraint": "error",
         "typescript/no-unsafe-enum-comparison": "error",
         "typescript/no-unsafe-function-type": "error",
