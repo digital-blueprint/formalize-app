@@ -206,7 +206,10 @@ class FormalizeFormElement extends BaseFormElement {
     async getLecturer(id) {
         let response = await this.fetchUser(id);
         if (!response.ok) {
-            throw new Error(response);
+            throw new Error(
+                `Request failed with status ${response.status}: ${response.statusText}`,
+                {cause: response},
+            );
         }
         this.formData.examiner = response.firstname;
     }
@@ -215,7 +218,10 @@ class FormalizeFormElement extends BaseFormElement {
         try {
             let response = await this.fetchUser(this.auth['user-id']);
             if (!response.ok) {
-                throw new Error(response);
+                throw new Error(
+                    `Request failed with status ${response.status}: ${response.statusText}`,
+                    {cause: response},
+                );
             }
             this.formData = await response.json();
             this.formData.identifier = `${this.formData['identifier']}`;
