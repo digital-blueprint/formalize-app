@@ -28,6 +28,13 @@ import {
 } from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
+/**
+ * @typedef {object} MediaFormData
+ * @property {string} [mediaName] - Selected media name.
+ * @property {string} [otherMediumOwnersName] - Selected or custom medium owner name.
+ * @property {string} [otherMediumOwnersNameCustom] - Custom medium owner name.
+ */
+
 const OTHER_MEDIA_VALUE = 'Sonstiges';
 const NOTHING_SELECTED = 'nothing-selected';
 
@@ -515,7 +522,7 @@ class FormalizeFormElement extends BaseFormElement {
      * - Merges the custom owner name field for the Out of Home / Sonstiges case.
      * - Converts the NOTHING_SELECTED placeholder back to an empty string so it
      *   is not persisted as a real value.
-     * @param {object} formData - The form data object to clean up.
+     * @param {MediaFormData} formData - The form data object to clean up.
      */
     _cleanFormDataBeforeSubmit(formData) {
         // Merge custom owner name for Out of Home / Sonstiges case
