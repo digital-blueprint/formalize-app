@@ -75,7 +75,7 @@ class FormalizeFormElement extends BaseFormElement {
      */
     async handleValidationOnFocusOut(event) {
         if (!this.hasAttemptedValidation) return;
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
         this.isFormValid = await validateRequiredFields(formElement);
     }
 
@@ -176,7 +176,7 @@ class FormalizeFormElement extends BaseFormElement {
             );
 
             // Handle field validation on focus out
-            this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
+            this.renderRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
                 capture: true,
             });
         });
@@ -184,7 +184,7 @@ class FormalizeFormElement extends BaseFormElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.shadowRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
+        this.renderRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
             capture: true,
         });
     }
@@ -381,7 +381,7 @@ class FormalizeFormElement extends BaseFormElement {
                             // Selecting from the picker may not emit a focusout,
                             // so revalidate here to clear stale warnings.
                             if (this.hasAttemptedValidation) {
-                                const formElement = this.shadowRoot.querySelector('form');
+                                const formElement = this.renderRoot.querySelector('form');
                                 this.isFormValid = await validateRequiredFields(formElement);
                             }
                         }}"

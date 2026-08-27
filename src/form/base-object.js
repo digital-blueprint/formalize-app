@@ -234,7 +234,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
     async validateAndSendSubmission(event) {
         event.preventDefault();
 
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
@@ -346,7 +346,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      */
     sendSubmission(event) {
         this.saveButtonEnabled = false;
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
         const data = {
             formData: gatherFormDataFromElement(formElement),
             submissionId: this.submissionId,
@@ -366,7 +366,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      */
     sendSaveDraft(event) {
         this.draftButtonEnabled = false;
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
 
         const data = {
             formData: gatherFormDataFromElement(formElement),
@@ -409,7 +409,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
             return;
         }
 
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
 
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
@@ -627,7 +627,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                                               this._i18n.t('render-form.form-exit-warning-message'),
                                           );
                                           if (confirmed) {
-                                              const form = this.shadowRoot.querySelector('form');
+                                              const form = this.renderRoot.querySelector('form');
                                               const data = gatherFormDataFromElement(form);
                                               if (Object.keys(data).length) {
                                                   this.formData = data;
@@ -1029,7 +1029,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                     this._i18n.t('render-form.forms.base-object.form-exit-warning-message'),
                 );
                 if (confirmed) {
-                    const form = this.shadowRoot.querySelector('form');
+                    const form = this.renderRoot.querySelector('form');
                     const data = gatherFormDataFromElement(form);
                     if (Object.keys(data).length) {
                         this.formData = data;

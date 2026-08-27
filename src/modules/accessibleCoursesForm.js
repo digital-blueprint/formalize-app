@@ -62,7 +62,7 @@ class FormalizeFormElement extends BaseFormElement {
             );
 
             // Handle field validation on focus out
-            this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
+            this.renderRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
                 capture: true,
             });
 
@@ -159,7 +159,7 @@ class FormalizeFormElement extends BaseFormElement {
             'DbpFormalizeFormDeleteSubmission',
             this.handleFormDeleteSubmission,
         );
-        this.shadowRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
+        this.renderRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
             capture: true,
         });
     }
@@ -175,7 +175,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (needsValidation !== 'true') return;
 
         // Only if validation is needed
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
         this.isFormValid = await validateRequiredFields(formElement);
     }
 
@@ -994,7 +994,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
                 if (this.readOnly === false && urlParams.get('validate') === 'true') {
-                    const formElement = this.shadowRoot.querySelector('form');
+                    const formElement = this.renderRoot.querySelector('form');
                     this.isFormValid = await validateRequiredFields(formElement);
                     if (!this.isFormValid) {
                         this.scrollToFirstInvalidField(formElement, true);

@@ -60,7 +60,11 @@ export default class DBPFormalizeLitElement extends LangMixin(
         return this.isAuthPending();
     }
 
-    handleErrorResponse(response, targetNotificationId = null) {
+    /**
+     * @param {Response} response
+     * @param {string} [targetNotificationId]
+     */
+    handleErrorResponse(response, targetNotificationId = undefined) {
         switch (response.status) {
             case 401:
                 sendNotification({

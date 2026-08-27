@@ -214,7 +214,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         if (!courseCode) return;
 
         /** @type {CourseSelect | null} */
-        const picker = this.shadowRoot?.querySelector('#' + this.name + '-picker');
+        const picker = this.renderRoot.querySelector('#' + this.name + '-picker');
         if (!picker) return;
 
         // Look up the course by code to get its @id (code !== identifier)

@@ -223,7 +223,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // If query parameter 'validate' is set to true, validate required fields
                 const urlParams = new URLSearchParams(window.location.search);
                 if (this.readOnly === false && urlParams.get('validate') === 'true') {
-                    const formElement = this.shadowRoot.querySelector('form');
+                    const formElement = this.renderRoot.querySelector('form');
                     this.isFormValid = await validateRequiredFields(formElement);
                     if (!this.isFormValid) {
                         this.scrollToFirstInvalidField(formElement, true);
@@ -406,12 +406,12 @@ class FormalizeFormElement extends BaseFormElement {
             window.addEventListener('click', this.handleSelect2Close);
 
             // Handle field validation on focus out
-            this.shadowRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
+            this.renderRoot.addEventListener('focusout', this.handleValidationOnFocusOut, {
                 capture: true,
             });
 
             // Handle anchor link clicks within shadow DOM
-            this.shadowRoot.addEventListener('click', this.handleAnchorClick);
+            this.renderRoot.addEventListener('click', this.handleAnchorClick);
         });
     }
 
@@ -426,7 +426,7 @@ class FormalizeFormElement extends BaseFormElement {
         if (needsValidation !== 'true') return;
 
         // Only if validation is needed
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
         this.isFormValid = await validateRequiredFields(formElement);
     }
 
@@ -446,10 +446,10 @@ class FormalizeFormElement extends BaseFormElement {
 
         window.removeEventListener('click', this.handleSelect2Close);
 
-        this.shadowRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
+        this.renderRoot.removeEventListener('focusout', this.handleValidationOnFocusOut, {
             capture: true,
         });
-        this.shadowRoot.removeEventListener('click', this.handleAnchorClick);
+        this.renderRoot.removeEventListener('click', this.handleAnchorClick);
     }
 
     /**
@@ -492,7 +492,7 @@ class FormalizeFormElement extends BaseFormElement {
         const targetId = href.slice(1);
         // Use querySelectorAll to find all elements with this ID (e.g., in dbp-translated slots)
         /** @type {NodeListOf<HTMLElement>} */
-        const targets = this.shadowRoot.querySelectorAll(`#${targetId}`);
+        const targets = this.renderRoot.querySelectorAll(`#${targetId}`);
         if (targets.length === 0) return;
 
         // Find the visible target (not hidden by dbp-translated's display: none)

@@ -181,7 +181,7 @@ class FormalizeFormElement extends BaseFormElement {
     /*
     sendSubmission(event) {
         this.saveButtonEnabled = false;
-        const formElement = this.shadowRoot.querySelector('form');
+        const formElement = this.renderRoot.querySelector('form');
         this.formData = gatherFormDataFromElement(formElement);
         console.log('sendSubmission data', this.formData);
     }
