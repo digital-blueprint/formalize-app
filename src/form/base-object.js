@@ -37,6 +37,12 @@ import {
 } from '../utils.js';
 
 /** @typedef {import('lit').CSSResultGroup} CSSResultGroup */
+/**
+ * @typedef {object} FileGroup
+ * @property {Map<string, File>} submittedFiles - Files already stored by the API.
+ * @property {Map<string, File>} filesToSubmit - Files queued for upload.
+ * @property {Map<string, File>} filesToRemove - Stored files queued for removal.
+ */
 
 export class BaseObject {
     getUrlSlug() {
@@ -122,6 +128,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         // File management - dynamic structure based on schema
         // Each file group (e.g., 'attachments', 'voting') will have:
         // { submittedFiles: Map(), filesToSubmit: Map(), filesToRemove: Map() }
+        /** @type {Record<string, FileGroup>} */
         this.filesByGroup = {};
         this.currentUploadGroup = null; // Tracks which group is being uploaded to
         this.fileUploadError = false;
@@ -1290,7 +1297,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
      * Get or create a file group structure.
      * Handles dynamic creation for catch-all schemas.
      * @param {string} fileGroup - The file group name
-     * @returns {object} The file group structure
+     * @returns {FileGroup} The file group structure
      */
     getOrCreateFileGroup(fileGroup) {
         if (!this.filesByGroup[fileGroup]) {
@@ -1553,7 +1560,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
 
     /**
      * Renders a single file block with action buttons.
-     * @param {object} file - The file object
+     * @param {File} file - The file object
      * @param {string} identifier - Unique identifier for the file
      * @param {string} fileGroup - The group of files
      * @param {boolean} viewPdf - Whether to show the PDF viewer button
