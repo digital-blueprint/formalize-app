@@ -228,10 +228,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             draft: false,
             submitted: false,
         };
-        this.isEditSubmissionPermissionEnabled = {
-            draft: false,
-            submitted: false,
-        };
         this.enabledStates = {
             draft: false,
             submitted: false,
@@ -1583,7 +1579,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.setActionButtonsStates(state);
         if (
             this.isEditSubmissionEnabled[state] === false &&
-            this.isEditSubmissionPermissionEnabled[state] === false &&
             this.isDeleteAllSubmissionEnabled[state] === false &&
             this.isDeleteSelectedSubmissionEnabled[state] === false &&
             this.isBatchTaggingEnabled[state] === false
@@ -1678,23 +1673,52 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // };
         // Disable batch tagging for now until we implement tag-based permissions
         this.isBatchTaggingEnabled[state] = false;
-
-        this.isEditSubmissionPermissionEnabled = {
-            ...this.isEditSubmissionPermissionEnabled,
-            [state]:
-                selectedCount === 1 && selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE),
-        };
     }
 
-    handleEditSubmissionsPermission(state) {
-        const permissionDialog = this._('#grant-permission-dialog');
-        const data = this.submissionTables[state].tabulatorTable.getSelectedData();
-        const submissionId = data[0].submissionId;
+    handleEditFormPermission(formId) {
+        const permissionDialog = this._('#form-grant-permission-dialog');
 
-        if (submissionId) {
-            permissionDialog.resourceIdentifier = submissionId;
+        if (formId && permissionDialog) {
+            permissionDialog.resourceIdentifier = formId;
             permissionDialog.open();
         }
+    }
+
+    /**
+     * Deletes one form after confirmation.
+     * @param {string} formId - Identifier of the form to delete.
+     */
+    async handleDeleteForm(formId) {
+        const grants = this.formsGrantedActions.get(formId) ?? [];
+        if (
+            !grants.includes(FORM_PERMISSIONS.DELETE) &&
+            !grants.includes(FORM_PERMISSIONS.MANAGE)
+        ) {
+            return;
+        }
+
+        const deletionModal = this._('#deletion-modal');
+        const confirmed = deletionModal
+            ? await deletionModal.confirm({
+                  messageKey: 'manage-forms.delete-forms-confirmation-message',
+                  messageLi2Key: 'manage-forms.delete-forms-confirmation-message-li2',
+              })
+            : false;
+        if (!confirmed) return;
+
+        const response = await apiDeleteForm(this, formId);
+        if (response === true) {
+            this.formsGrantedActions.delete(formId);
+            this.forms.delete(formId);
+            this.allForms = this.allForms.filter((entry) => entry.formId !== formId);
+            this.options_forms = {...this.options_forms, data: this.allForms};
+            this.noFormsAvailable = this.allForms.length === 0;
+        }
+
+        successFailureNotification(this, [response], {
+            successKey: 'success.forms-processed',
+            failureKey: 'errors.forms-processing-failed',
+        });
     }
 
     async handleOpenBatchTaggingModal(state) {
@@ -2103,9 +2127,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             case 'batch-tagging':
                 void this.handleOpenBatchTaggingModal(state);
                 break;
-            case 'edit-permission':
-                this.handleEditSubmissionsPermission(state);
-                break;
             case 'delete-all':
                 void this.handleDeleteSubmissions(state);
                 break;
@@ -2255,7 +2276,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .isActionAvailable=${this.isActionAvailable}
                     .isEditSubmissionEnabled=${this.isEditSubmissionEnabled}
                     .isBatchTaggingEnabled=${this.isBatchTaggingEnabled}
-                    .isEditSubmissionPermissionEnabled=${this.isEditSubmissionPermissionEnabled}
                     .isDeleteAllSubmissionEnabled=${this.isDeleteAllSubmissionEnabled}
                     .isDeleteSelectedSubmissionEnabled=${this.isDeleteSelectedSubmissionEnabled}
                     .optionsSubmissions=${this.options_submissions}
@@ -2296,13 +2316,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             )}
 
             <dbp-grant-permission-dialog
-                id="grant-permission-dialog"
+                id="form-grant-permission-dialog"
                 lang="${this.lang}"
                 modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
                 subscribe="auth"
                 entry-point-url="${this.entryPointUrl}"
-                resource-identifier="${this.submissionId}"
-                resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+                resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
 
             <dbp-file-sink
                 streamed

@@ -8,7 +8,12 @@
  */
 
 import {sendNotification} from '@dbp-toolkit/common';
-import {getFormRenderUrl, SUBMISSION_STATES_BINARY, addDetailsToUrl} from './utils.js';
+import {
+    getFormRenderUrl,
+    SUBMISSION_STATES_BINARY,
+    FORM_PERMISSIONS,
+    addDetailsToUrl,
+} from './utils.js';
 import metadata from './dbp-formalize-manage-forms.metadata.json';
 import xss from 'xss';
 
@@ -254,7 +259,14 @@ export async function getListOfAllForms(host) {
                     localizedNames,
                 });
 
-                // Build the action button container (view submissions + optional edit button)
+                const grantedActions = entry['grantedActions'] ?? [];
+                const canEdit =
+                    grantedActions.includes(FORM_PERMISSIONS.UPDATE) ||
+                    grantedActions.includes(FORM_PERMISSIONS.MANAGE);
+                const canManage = grantedActions.includes(FORM_PERMISSIONS.MANAGE);
+                const canDelete = grantedActions.includes(FORM_PERMISSIONS.DELETE) || canManage;
+
+                // Build the form-level action buttons.
                 const formEntry = host.forms.get(formId);
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =
@@ -275,6 +287,7 @@ export async function getListOfAllForms(host) {
 
                 // Show an edit button only for forms whose module implements getEditFormComponent()
                 if (
+                    canEdit &&
                     formEntry.moduleInstance &&
                     typeof formEntry.moduleInstance.getEditFormComponent === 'function'
                 ) {
@@ -293,8 +306,41 @@ export async function getListOfAllForms(host) {
                     actionContainer.appendChild(editBtn);
                 }
 
+                if (canManage) {
+                    const permissionBtn = host.createScopedElement('dbp-icon-button');
+                    permissionBtn.setAttribute('subscribe', 'lang');
+                    permissionBtn.setAttribute('icon-name', 'edit-permission');
+                    permissionBtn.title = i18n.t('manage-forms.edit-form-permission-button', {
+                        formName,
+                    });
+                    permissionBtn.setAttribute(
+                        'aria-label',
+                        i18n.t('manage-forms.edit-form-permission-button', {formName}),
+                    );
+                    permissionBtn.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        host.handleEditFormPermission(formId);
+                    });
+                    actionContainer.appendChild(permissionBtn);
+                }
+
+                if (canDelete) {
+                    const deleteBtn = host.createScopedElement('dbp-icon-button');
+                    deleteBtn.setAttribute('subscribe', 'lang');
+                    deleteBtn.setAttribute('icon-name', 'trash');
+                    deleteBtn.title = i18n.t('manage-forms.delete-form-button', {formName});
+                    deleteBtn.setAttribute(
+                        'aria-label',
+                        i18n.t('manage-forms.delete-form-button', {formName}),
+                    );
+                    deleteBtn.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        void host.handleDeleteForm(formId);
+                    });
+                    actionContainer.appendChild(deleteBtn);
+                }
+
                 // Store the granted actions for this form so the overview can gate bulk deletion.
-                const grantedActions = entry['grantedActions'] ?? [];
                 if (host.formsGrantedActions instanceof Map) {
                     host.formsGrantedActions.set(formId, grantedActions);
                 }
