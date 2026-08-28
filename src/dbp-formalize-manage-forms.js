@@ -666,25 +666,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // Build tables
             if (this.allForms && this.allForms.length > 0) {
                 this.noFormsAvailable = false;
-                // We will use the first URL segment after the activity as identifier for the form's submissions
+                // We use the first URL segment as the form identifier and the optional second segment as its view.
                 const formId = this.getRoutingData().pathSegments[0] || '';
 
                 if (formId) {
                     // Check if the form-id is one of the forms identifiers.
                     const form = this.forms.get(formId);
                     if (form) {
-                        // Skip switching if we are already showing this form's
-                        // submissions and the table is still intact.  This
-                        // prevents a full table destroy/rebuild cycle when
-                        // allForms is reassigned with identical data (e.g.
-                        // after a background token refresh).
-                        const alreadyShowing =
-                            this.activeFormId === formId &&
-                            this.showSubmissionTables &&
-                            !this.loadingSubmissionTables;
-                        if (!alreadyShowing) {
-                            this.switchToSubmissionTable(form);
-                        }
+                        this.showRoutedForm(form);
                     } else {
                         sendNotification({
                             summary: this._i18n.t('errors.notfound-title'),
@@ -694,24 +683,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         });
                     }
                 } else {
-                    this.refreshTableReferences();
-                    if (this.formsTable) {
-                        this.formsTable.options = this.options_forms;
-                        this.formsTable.data = this.allForms;
-                        // Only rebuild the forms table when it hasn't been
-                        // built yet.  If it is already showing, just update
-                        // the data in-place so the user doesn't see a flash.
-                        // If a build is already running, leave it alone; it
-                        // will pick up the data assigned above when it finishes.
-                        if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
-                            this.formsTable.buildTable();
-                        } else if (this.formsTable.tableReady) {
-                            this.formsTable.setData(this.allForms);
-                        }
-                        this.loadingFormsTable = false;
-                        this.showFormsTable = true;
-                        this.showSubmissionTables = false;
-                    }
+                    this.showFormsOverview();
                 }
             } else if (this.allForms) {
                 // allForms is defined but empty — all forms were filtered out by the allow/deny list.
@@ -753,26 +725,16 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     await getListOfAllForms(this);
                 }
 
-                // Show submission table
+                // Show the routed form view.
                 const formId = this.getRoutingData().pathSegments[0] || '';
                 if (formId) {
                     const form = this.forms.get(formId);
                     if (form) {
-                        this.switchToSubmissionTable(form);
+                        this.showRoutedForm(form);
                     }
                 } else {
-                    // Show the forms table
-                    this.refreshTableReferences();
-                    if (this.formsTable) {
-                        this.formsTable.options = this.options_forms;
-                        this.formsTable.data = this.allForms;
-                        if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
-                            this.formsTable.buildTable();
-                        }
-                        this.loadingFormsTable = false;
-                        this.showFormsTable = true;
-                        this.showSubmissionTables = false;
-                    }
+                    this.closeEditFormDialog();
+                    this.showFormsOverview();
                 }
             }
         }
@@ -1895,8 +1857,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     /**
      * Opens the edit form dialog in edit mode for the given form.
      * @param {string} formId - Identifier of the form to edit.
+     * @param {boolean} updateRoutingUrl - Whether to publish the edit URL.
      */
-    handleOpenEditFormDialog(formId) {
+    handleOpenEditFormDialog(formId, updateRoutingUrl = true) {
         const dialog = this._('#edit-form-dialog');
         if (!dialog) return;
 
@@ -1912,7 +1875,23 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             additionalData: formEntry.additionalData || null,
             localizedNames: formEntry.localizedNames || [],
         };
+        if (updateRoutingUrl) {
+            this.sendSetPropertyEvent('routing-url', `/${formId}/edit`, true);
+        }
         dialog.open();
+    }
+
+    handleEditFormDialogClosed(event) {
+        if (event.detail?.id !== 'edit-form-dialog') return;
+
+        const dialog = this._('#edit-form-dialog');
+        if (dialog) {
+            dialog.existingForm = null;
+        }
+        const {pathSegments} = this.getRoutingData();
+        if (pathSegments[0] && pathSegments[1] === 'edit') {
+            this.sendSetPropertyEvent('routing-url', '/', true);
+        }
     }
 
     /**
@@ -2064,6 +2043,53 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     // Navigation / routing helpers
     // -----------------------------------------------------------------------
 
+    showFormsOverview() {
+        this.refreshTableReferences();
+        if (this.formsTable) {
+            this.formsTable.options = this.options_forms;
+            this.formsTable.data = this.allForms;
+            if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
+                this.formsTable.buildTable();
+            } else if (this.formsTable.tableReady) {
+                this.formsTable.setData(this.allForms);
+            }
+        }
+        this.loadingFormsTable = false;
+        this.showFormsTable = true;
+        this.showSubmissionTables = false;
+    }
+
+    closeEditFormDialog() {
+        const dialog = this._('#edit-form-dialog');
+        if (dialog?.existingForm) {
+            dialog.close();
+            dialog.existingForm = null;
+        }
+    }
+
+    showRoutedForm(form) {
+        const {pathSegments} = this.getRoutingData();
+        if (pathSegments[1] === 'edit') {
+            this.showFormsOverview();
+            const dialog = this._('#edit-form-dialog');
+            if (dialog?.existingForm?.formId !== form.formId) {
+                this.handleOpenEditFormDialog(form.formId, false);
+            }
+            return;
+        }
+
+        this.closeEditFormDialog();
+
+        // Avoid rebuilding an intact submissions table after a background refresh.
+        const alreadyShowing =
+            this.activeFormId === form.formId &&
+            this.showSubmissionTables &&
+            !this.loadingSubmissionTables;
+        if (!alreadyShowing) {
+            this.switchToSubmissionTable(form);
+        }
+    }
+
     closeAllSearchWidgets() {
         this.searchWidgetIsOpen = {draft: false, submitted: false};
     }
@@ -2077,17 +2103,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.showFormsTable = true;
         this.activeFormId = null;
 
-        // Direct links to a submissions page skip the initial overview table build.
-        this.refreshTableReferences();
-        if (this.formsTable) {
-            this.formsTable.options = this.options_forms;
-            this.formsTable.data = this.allForms;
-            if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
-                this.formsTable.buildTable();
-            } else if (this.formsTable.tableReady) {
-                this.formsTable.setData(this.allForms);
-            }
-        }
+        // Direct links to a form view skip the initial overview table build.
+        this.showFormsOverview();
 
         this.sendSetPropertyEvent('routing-url', '/', true);
     }
@@ -2350,6 +2367,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 lang-dir="${this.langDir}"
                 .auth="${this.auth}"
                 entry-point-url="${this.entryPointUrl}"
+                @dbp-modal-closed=${(event) => this.handleEditFormDialogClosed(event)}
                 @dbp-create-form-created=${(event) => this.handleCreateFormCreated(event)}
                 @dbp-edit-form-saved=${(event) =>
                     this.handleEditFormSaved(event)}></dbp-formalize-edit-form-dialog>
