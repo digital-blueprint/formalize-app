@@ -3828,11 +3828,13 @@ class FormalizeFormElement extends BaseFormElement {
                                     Mitarbeiter*innen der TU Graz können laut Beschaffungsrichtlinie keine Entschädigung für die Mitwirkung an Studien als Proband*innen erhalten.
                                     Grundsätzlich wird empfohlen, Proband*innen für ihre Studienteilnahme zu entschädigen (siehe grüne Box unter IV. in den Antragsunterlagen).
                                     Angabe über die Art und Höhe der <a href="#info-box">Aufwandsentschädigung</a> für Proband*innen für deren Teilnahme an der Studie.
+                                    Siehe Hinweis im grünen Feld am Formularende.
                                 </div>
                                 <div slot="en">
                                     According to the procurement guidelines, employees of TU Graz cannot receive compensation for participating in studies as participants.
                                     It is recommended that participants get compensated for their participation in the study (see also the green box under IV. in the application materials).
                                     Information on the type and amount of <a href="#info-box">compensation</a> for participants for their participation in the study.
+                                    For more information, see the green box at the bottom of the form.
                                 </div>
                             </dbp-translated>
                         </div>
