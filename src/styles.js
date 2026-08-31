@@ -291,7 +291,7 @@ export function getManageFormsCSS() {
             display: grid;
             grid-template-columns: min-content auto;
             grid-template-rows: auto;
-            max-height: calc(100vh - 149px);
+            max-height: calc(100vh - 300px);
             overflow-y: auto;
             width: 100%;
         }
