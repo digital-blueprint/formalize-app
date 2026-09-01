@@ -3217,6 +3217,12 @@ class FormalizeFormElement extends BaseFormElement {
                             ${this.renderAttachedFilesHtml('attachments')}
                         </div>
                     </div>
+
+                    <dbp-form-string-view
+                        subscribe="lang"
+                        name="comments"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
+                        value=${data.comments || ''}></dbp-form-string-view>
                 </article>
 
                 <article class="article-consent">
@@ -3300,12 +3306,6 @@ class FormalizeFormElement extends BaseFormElement {
                         </div>
                     </div>
                 </article>
-
-                <dbp-form-string-view
-                    subscribe="lang"
-                    name="comments"
-                    label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
-                    value=${data.comments || ''}></dbp-form-string-view>
             </form>
 
             <dbp-file-sink
@@ -5700,6 +5700,20 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <article>
                     <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-documents-title')}</h3>
+
+                    <div class="description">
+                        <dbp-translated subscribe="lang">
+                            <div slot="en">
+                                <p>If applicable: Please enclose questionnaires, survey forms or tasks addressed to participants with your application.</p>
+                                <p>If necessary, you can enclose further documents that you consider relevant for the assessment of your research project as a whole.</p>
+                            </div>
+                            <div slot="de">
+                                <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
+                                <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
+                            </div>
+                        </dbp-translated>
+                    </div>
+
                     <div class="file-upload-container">
                         <div class="file-upload-title-container">
                             <h4 class="attachments-title">
@@ -5730,18 +5744,14 @@ class FormalizeFormElement extends BaseFormElement {
                             ${i18n.t('render-form.download-widget.upload-file-button-label', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}
                         </button>
                     </div>
-                    <div class="description">
-                        <dbp-translated subscribe="lang">
-                            <div slot="en">
-                                <p>If applicable: Please enclose questionnaires, survey forms or tasks addressed to participants with your application.</p>
-                                <p>If necessary, you can enclose further documents that you consider relevant for the assessment of your research project as a whole.</p>
-                            </div>
-                            <div slot="de">
-                                <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
-                                <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
-                            </div>
-                        </dbp-translated>
-                    </div>
+                    <dbp-form-string-element
+                        subscribe="lang"
+                        name="comments"
+                        maxlength="5000"
+                        label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
+                        value=${data.comments || ''}
+                        placeholder="${i18n.t('render-form.forms.ethics-commission-form.comments-placeholder')}"
+                        rows="3"></dbp-form-string-element>
                 </article>
 
                 <article>
@@ -5887,15 +5897,6 @@ class FormalizeFormElement extends BaseFormElement {
                             : ''
                     }
                 </article>
-
-                <dbp-form-string-element
-                    subscribe="lang"
-                    name="comments"
-                    maxlength="5000"
-                    label="${i18n.t('render-form.forms.ethics-commission-form.comments-label')}"
-                    value=${data.comments || ''}
-                    placeholder="${i18n.t('render-form.forms.ethics-commission-form.comments-placeholder')}"
-                    rows="3"></dbp-form-string-element>
             </form>
 
             <!-- Skip link to navigation -->
