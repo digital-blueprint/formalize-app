@@ -2,6 +2,15 @@ import {assert} from 'chai';
 
 import '../src/dbp-formalize-manage-forms';
 import '../src/dbp-formalize.js';
+import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
+import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
+import {getListOfAllForms} from '../src/manage-forms-api.js';
+
+customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
+customElements.define(
+    'test-manage-form-submissions-page',
+    class extends ManageFormSubmissionsPage {},
+);
 
 suite('dbp-formalize-manage-forms basics', () => {
     let node;
@@ -58,5 +67,261 @@ suite('dbp-formalize-manage-forms basics', () => {
         node.showRoutedForm(form);
 
         assert.deepEqual(calls, ['overview', 'edit:job-offer']);
+    });
+
+    test('should enable form actions for one selected manageable form', () => {
+        const form = {
+            formId: 'job-offer',
+            grantedActions: ['manage'],
+        };
+        const actionHost = {
+            enableFormsBulkDelete: true,
+            forms: new Map([
+                [
+                    'job-offer',
+                    {
+                        formId: 'job-offer',
+                        moduleInstance: {
+                            getEditFormComponent: () => document.createElement('div'),
+                        },
+                    },
+                ],
+            ]),
+            formsGrantedActions: new Map(),
+            selectedFormsCount: 0,
+            isDeleteSelectedFormsEnabled: false,
+            isEditSelectedFormPermissionEnabled: false,
+            formsTable: {
+                tabulatorTable: {
+                    getSelectedRows: () => [{getData: () => form}],
+                    getSelectedData: () => [form],
+                },
+            },
+        };
+        node.setFormsActionButtonsState.call(actionHost);
+
+        assert.equal(actionHost.selectedFormsCount, 1);
+        assert.isTrue(actionHost.isDeleteSelectedFormsEnabled);
+        assert.isTrue(actionHost.isEditSelectedFormPermissionEnabled);
+    });
+
+    test('should disable form actions without the required grants', () => {
+        const form = {formId: 'job-offer', grantedActions: ['read']};
+        const actionHost = {
+            enableFormsBulkDelete: true,
+            formsGrantedActions: new Map(),
+            selectedFormsCount: 0,
+            isDeleteSelectedFormsEnabled: true,
+            isEditSelectedFormPermissionEnabled: true,
+            formsTable: {
+                tabulatorTable: {
+                    getSelectedRows: () => [{getData: () => form}],
+                },
+            },
+        };
+
+        node.setFormsActionButtonsState.call(actionHost);
+
+        assert.isFalse(actionHost.isDeleteSelectedFormsEnabled);
+        assert.isFalse(actionHost.isEditSelectedFormPermissionEnabled);
+    });
+
+    test('should require manage on every form for multi-form permission editing', () => {
+        const forms = [
+            {formId: 'job-offer-1', grantedActions: ['manage']},
+            {formId: 'job-offer-2', grantedActions: ['delete']},
+        ];
+        const actionHost = {
+            enableFormsBulkDelete: true,
+            formsGrantedActions: new Map(),
+            selectedFormsCount: 0,
+            isDeleteSelectedFormsEnabled: false,
+            isEditSelectedFormPermissionEnabled: true,
+            formsTable: {
+                tabulatorTable: {
+                    getSelectedRows: () => forms.map((form) => ({getData: () => form})),
+                },
+            },
+        };
+
+        node.setFormsActionButtonsState.call(actionHost);
+
+        assert.isTrue(actionHost.isDeleteSelectedFormsEnabled);
+        assert.isFalse(actionHost.isEditSelectedFormPermissionEnabled);
+    });
+
+    test('should enable permission editing for multiple manageable forms', () => {
+        const forms = [
+            {formId: 'job-offer-1', grantedActions: ['manage']},
+            {formId: 'job-offer-2', grantedActions: ['manage']},
+        ];
+        const actionHost = {
+            enableFormsBulkDelete: true,
+            formsGrantedActions: new Map(),
+            selectedFormsCount: 0,
+            isDeleteSelectedFormsEnabled: false,
+            isEditSelectedFormPermissionEnabled: false,
+            formsTable: {
+                tabulatorTable: {
+                    getSelectedRows: () => forms.map((form) => ({getData: () => form})),
+                },
+            },
+        };
+
+        node.setFormsActionButtonsState.call(actionHost);
+
+        assert.isTrue(actionHost.isEditSelectedFormPermissionEnabled);
+    });
+
+    test('should disable deletion when form bulk deletion is not enabled', () => {
+        const form = {formId: 'job-offer', grantedActions: ['manage']};
+        const actionHost = {
+            enableFormsBulkDelete: false,
+            formsGrantedActions: new Map(),
+            selectedFormsCount: 0,
+            isDeleteSelectedFormsEnabled: true,
+            isEditSelectedFormPermissionEnabled: false,
+            formsTable: {
+                tabulatorTable: {
+                    getSelectedRows: () => [{getData: () => form}],
+                },
+            },
+        };
+
+        node.setFormsActionButtonsState.call(actionHost);
+
+        assert.isFalse(actionHost.isDeleteSelectedFormsEnabled);
+        assert.isTrue(actionHost.isEditSelectedFormPermissionEnabled);
+    });
+
+    test('should open the permission dialog for a form resource', () => {
+        const calls = [];
+        const dialog = {
+            resourceIdentifier: '',
+            open: () => calls.push('open'),
+        };
+        const actionHost = {
+            _: (selector) =>
+                selector === '#form-grant-permission-dialog'
+                    ? dialog
+                    : document.createElement('div'),
+        };
+
+        node.handleEditFormPermission.call(actionHost, ['job-offer-1', 'job-offer-2']);
+
+        assert.equal(dialog.resourceIdentifier, '');
+        assert.deepEqual(dialog.resourceIdentifiers, ['job-offer-1', 'job-offer-2']);
+        assert.deepEqual(calls, ['open']);
+        assert.equal(
+            node.shadowRoot.querySelector('#form-grant-permission-dialog').resourceClassIdentifier,
+            'DbpRelayFormalizeForm',
+        );
+    });
+});
+
+suite('manage forms action menus', () => {
+    test('should only show inline edit for forms with update or manage grants', async () => {
+        const originalFetch = window.fetch;
+        const moduleInstance = {
+            getFormFrontendKey: () => 'job-offer',
+            getUrlSlug: () => 'job-offer',
+            getEditFormComponent: () => document.createElement('div'),
+        };
+        const makeHost = (grantedActions) => ({
+            _i18n: {t: (key) => key},
+            entryPointUrl: 'https://example.com',
+            auth: {token: 'token'},
+            allForms: [],
+            allowListFrontendKeys: [],
+            denyListFrontendKeys: [],
+            loadedModules: new Map([['job-offer', {formId: 'job-offer', moduleInstance}]]),
+            forms: new Map(),
+            formsGrantedActions: new Map(),
+            options_forms: {},
+            lang: 'en',
+            createScopedElement: () => document.createElement('button'),
+            sendSetPropertyEvent: () => {},
+            apiGrantedActions: grantedActions,
+        });
+        window.fetch = () =>
+            Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        'hydra:member': [
+                            {
+                                identifier: 'job-offer',
+                                frontendKey: 'job-offer',
+                                name: 'Job offer',
+                                localizedNames: [],
+                                grantedActions: currentHost.apiGrantedActions,
+                            },
+                        ],
+                    }),
+            });
+        let currentHost;
+
+        try {
+            currentHost = makeHost(['read']);
+            await getListOfAllForms(currentHost);
+            assert.equal(currentHost.allForms[0].actionButton.children.length, 1);
+
+            currentHost = makeHost(['update']);
+            await getListOfAllForms(currentHost);
+            assert.equal(currentHost.allForms[0].actionButton.children.length, 2);
+        } finally {
+            window.fetch = originalFetch;
+        }
+    });
+
+    test('should provide delete and permission actions for forms', async () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        page.enableFormsBulkDelete = true;
+        page.selectedFormsCount = 1;
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const select = page.shadowRoot.querySelector('dbp-select');
+        const actions = select.options.map(({value}) => value);
+        assert.deepEqual(actions, ['delete', 'edit-permission']);
+        assert.isTrue(select.disabled);
+
+        page.isEditSelectedFormPermissionEnabled = true;
+        await page.updateComplete;
+        assert.isFalse(select.disabled);
+
+        page.remove();
+    });
+
+    test('should omit delete when form bulk deletion is not enabled', async () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        page.selectedFormsCount = 1;
+        page.isEditSelectedFormPermissionEnabled = true;
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const select = page.shadowRoot.querySelector('dbp-select');
+        assert.deepEqual(
+            select.options.map(({value}) => value),
+            ['edit-permission'],
+        );
+        assert.isFalse(select.disabled);
+
+        page.remove();
+    });
+
+    test('should not provide a permission action for submissions', async () => {
+        const page = document.createElement('test-manage-form-submissions-page');
+        page.noSubmissionAvailable = {draft: false, submitted: true};
+        page.isActionAvailable = {draft: false, submitted: false};
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const actions = page.shadowRoot
+            .querySelector('#action-dropdown--draft')
+            .options.map(({value}) => value);
+        assert.notInclude(actions, 'edit-permission');
+
+        page.remove();
     });
 });

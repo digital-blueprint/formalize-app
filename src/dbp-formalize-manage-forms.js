@@ -144,8 +144,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         };
         this.options_forms = {};
         // Bulk removal of forms in the overview is opt-in and disabled by default.
-        // This has to be initialized before updateFormsTableOptions() because
-        // that method decides whether the forms table gets row selection.
         this.enableFormsBulkDelete = false;
         // Initialize the forms table options (including `langs`) up front so the
         // table can be built before the `lang`/`langDir` branch of updated() runs.
@@ -164,6 +162,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedFormsCount = 0;
         // Whether deleting the selected forms is allowed (all selected forms grant delete/manage).
         this.isDeleteSelectedFormsEnabled = false;
+        this.isEditSelectedFormPermissionEnabled = false;
         this.submissions = {
             draft: [],
             submitted: [],
@@ -225,10 +224,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
         };
         this.isBatchTaggingEnabled = {
-            draft: false,
-            submitted: false,
-        };
-        this.isEditSubmissionPermissionEnabled = {
             draft: false,
             submitted: false,
         };
@@ -338,6 +333,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             selectedFormsCount: {type: Number, attribute: false},
             isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
+            isEditSelectedFormPermissionEnabled: {type: Boolean, attribute: false},
 
             selectedRowCount: {type: Object, attribute: false},
             allRowCount: {type: Object, attribute: false},
@@ -544,29 +540,26 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
         };
 
-        // Row selection is only needed when bulk form removal is enabled.
-        if (this.enableFormsBulkDelete) {
-            this.options_forms.selectableRows = 'highlight';
-            this.options_forms.rowHeader = {
-                formatter: 'rowSelection',
-                titleFormatter: 'rowSelection',
-                titleFormatterParams: {
-                    rowRange: 'visible',
-                },
-                headerSort: false,
-                resizable: false,
-                frozen: true,
-                headerHozAlign: 'center',
-                hozAlign: 'center',
-                // With the "fitColumns" layout every column grows to fill the row.
-                // Pin the selection column to the checkbox width so it doesn't
-                // stretch across the table like it did before.
-                width: 40,
-                minWidth: 40,
-                widthGrow: 0,
-                widthShrink: 0,
-            };
-        }
+        this.options_forms.selectableRows = 'highlight';
+        this.options_forms.rowHeader = {
+            formatter: 'rowSelection',
+            titleFormatter: 'rowSelection',
+            titleFormatterParams: {
+                rowRange: 'visible',
+            },
+            headerSort: false,
+            resizable: false,
+            frozen: true,
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            // With the "fitColumns" layout every column grows to fill the row.
+            // Pin the selection column to the checkbox width so it doesn't
+            // stretch across the table like it did before.
+            width: 40,
+            minWidth: 40,
+            widthGrow: 0,
+            widthShrink: 0,
+        };
     }
 
     getTableState(tableId) {
@@ -1442,9 +1435,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
      * (or manage) permission via its grantedActions.
      */
     setFormsActionButtonsState() {
-        if (!this.enableFormsBulkDelete || !this.formsTable?.tabulatorTable) {
+        if (!this.formsTable?.tabulatorTable) {
             this.selectedFormsCount = 0;
             this.isDeleteSelectedFormsEnabled = false;
+            this.isEditSelectedFormPermissionEnabled = false;
             return;
         }
 
@@ -1453,18 +1447,56 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (selectedRows.length === 0) {
             this.isDeleteSelectedFormsEnabled = false;
+            this.isEditSelectedFormPermissionEnabled = false;
             return;
         }
 
         // Every selected form must grant delete or manage for the bulk action to be allowed.
-        this.isDeleteSelectedFormsEnabled = selectedRows.every((row) => {
-            const formId = row.getData().formId;
-            const grants =
-                this.formsGrantedActions.get(formId) ?? row.getData().grantedActions ?? [];
-            return (
-                grants.includes(FORM_PERMISSIONS.DELETE) || grants.includes(FORM_PERMISSIONS.MANAGE)
-            );
+        this.isDeleteSelectedFormsEnabled =
+            this.enableFormsBulkDelete &&
+            selectedRows.every((row) => {
+                const formId = row.getData().formId;
+                const grants =
+                    this.formsGrantedActions.get(formId) ?? row.getData().grantedActions ?? [];
+                return (
+                    grants.includes(FORM_PERMISSIONS.DELETE) ||
+                    grants.includes(FORM_PERMISSIONS.MANAGE)
+                );
+            });
+
+        this.isEditSelectedFormPermissionEnabled = selectedRows.every((row) => {
+            const form = row.getData();
+            const grants = this.formsGrantedActions.get(form.formId) ?? form.grantedActions ?? [];
+            return grants.includes(FORM_PERMISSIONS.MANAGE);
         });
+    }
+
+    handleFormsPageAction(event) {
+        const action = event.detail?.action;
+        const selectedFormIds =
+            this.formsTable?.tabulatorTable
+                ?.getSelectedData()
+                ?.map((form) => form.formId)
+                .filter(Boolean) ?? [];
+
+        if (action === 'delete' && this.isDeleteSelectedFormsEnabled) {
+            void this.handleDeleteForms();
+        } else if (
+            action === 'edit-permission' &&
+            this.isEditSelectedFormPermissionEnabled &&
+            selectedFormIds.length > 0
+        ) {
+            this.handleEditFormPermission(selectedFormIds);
+        }
+    }
+
+    handleEditFormPermission(formIds) {
+        const permissionDialog = this._('#form-grant-permission-dialog');
+        if (!permissionDialog || !Array.isArray(formIds) || formIds.length === 0) return;
+
+        permissionDialog.resourceIdentifier = formIds.length === 1 ? formIds[0] : '';
+        permissionDialog.resourceIdentifiers = formIds;
+        permissionDialog.open();
     }
 
     /**
@@ -1545,7 +1577,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.setActionButtonsStates(state);
         if (
             this.isEditSubmissionEnabled[state] === false &&
-            this.isEditSubmissionPermissionEnabled[state] === false &&
             this.isDeleteAllSubmissionEnabled[state] === false &&
             this.isDeleteSelectedSubmissionEnabled[state] === false &&
             this.isBatchTaggingEnabled[state] === false
@@ -1640,23 +1671,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // };
         // Disable batch tagging for now until we implement tag-based permissions
         this.isBatchTaggingEnabled[state] = false;
-
-        this.isEditSubmissionPermissionEnabled = {
-            ...this.isEditSubmissionPermissionEnabled,
-            [state]:
-                selectedCount === 1 && selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE),
-        };
-    }
-
-    handleEditSubmissionsPermission(state) {
-        const permissionDialog = this._('#grant-permission-dialog');
-        const data = this.submissionTables[state].tabulatorTable.getSelectedData();
-        const submissionId = data[0].submissionId;
-
-        if (submissionId) {
-            permissionDialog.resourceIdentifier = submissionId;
-            permissionDialog.open();
-        }
     }
 
     async handleOpenBatchTaggingModal(state) {
@@ -2120,9 +2134,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             case 'batch-tagging':
                 void this.handleOpenBatchTaggingModal(state);
                 break;
-            case 'edit-permission':
-                this.handleEditSubmissionsPermission(state);
-                break;
             case 'delete-all':
                 void this.handleDeleteSubmissions(state);
                 break;
@@ -2243,9 +2254,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .enableFormsBulkDelete=${this.enableFormsBulkDelete}
                     .selectedFormsCount=${this.selectedFormsCount}
                     .isDeleteSelectedFormsEnabled=${this.isDeleteSelectedFormsEnabled}
+                    .isEditSelectedFormPermissionEnabled=${this.isEditSelectedFormPermissionEnabled}
                     @create-form-request=${() => this.handleOpenCreateFormDialog()}
-                    @delete-forms-request=${() =>
-                        this.handleDeleteForms()}></dbp-formalize-manage-forms-overview-page>
+                    @form-action=${(event) =>
+                        this.handleFormsPageAction(
+                            event,
+                        )}></dbp-formalize-manage-forms-overview-page>
 
                 <dbp-formalize-manage-form-submissions-page
                     lang="${this.lang}"
@@ -2272,7 +2286,6 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .isActionAvailable=${this.isActionAvailable}
                     .isEditSubmissionEnabled=${this.isEditSubmissionEnabled}
                     .isBatchTaggingEnabled=${this.isBatchTaggingEnabled}
-                    .isEditSubmissionPermissionEnabled=${this.isEditSubmissionPermissionEnabled}
                     .isDeleteAllSubmissionEnabled=${this.isDeleteAllSubmissionEnabled}
                     .isDeleteSelectedSubmissionEnabled=${this.isDeleteSelectedSubmissionEnabled}
                     .optionsSubmissions=${this.options_submissions}
@@ -2313,13 +2326,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             )}
 
             <dbp-grant-permission-dialog
-                id="grant-permission-dialog"
+                id="form-grant-permission-dialog"
                 lang="${this.lang}"
                 modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
                 subscribe="auth"
                 entry-point-url="${this.entryPointUrl}"
-                resource-identifier="${this.submissionId}"
-                resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+                resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
 
             <dbp-file-sink
                 streamed
