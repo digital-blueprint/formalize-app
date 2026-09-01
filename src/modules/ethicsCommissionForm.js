@@ -5700,19 +5700,6 @@ class FormalizeFormElement extends BaseFormElement {
 
                 <article>
                     <h3 class="section-title">${i18n.t('render-form.forms.ethics-commission-form.section-documents-title')}</h3>
-                    <div class="description">
-                        <dbp-translated subscribe="lang">
-                            <div slot="en">
-                                <p>If applicable: Please enclose questionnaires, survey forms or tasks addressed to participants with your application.</p>
-                                <p>If necessary, you can enclose further documents that you consider relevant for the assessment of your research project as a whole.</p>
-                            </div>
-                            <div slot="de">
-                                <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
-                                <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
-                            </div>
-                        </dbp-translated>
-                    </div>
-
                     <div class="file-upload-container">
                         <div class="file-upload-title-container">
                             <h4 class="attachments-title">
@@ -5742,6 +5729,18 @@ class FormalizeFormElement extends BaseFormElement {
                             <dbp-icon name="upload" aria-hidden="true"></dbp-icon>
                             ${i18n.t('render-form.download-widget.upload-file-button-label', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}
                         </button>
+                    </div>
+                    <div class="description">
+                        <dbp-translated subscribe="lang">
+                            <div slot="en">
+                                <p>If applicable: Please enclose questionnaires, survey forms or tasks addressed to participants with your application.</p>
+                                <p>If necessary, you can enclose further documents that you consider relevant for the assessment of your research project as a whole.</p>
+                            </div>
+                            <div slot="de">
+                                <p>Falls zutreffend: Bitte legen Sie an Proband*innen gerichtete Fragebögen, Erhebungsbögen oder Aufgabenstellungen Ihrem Antrag bei.</p>
+                                <p>Allenfalls können Sie weitere Dokumente beilegen, die aus Ihrer Sicht von Relevanz für die Beurteilung Ihres Forschungsvorhabens im Gesamten sind.</p>
+                            </div>
+                        </dbp-translated>
                     </div>
                 </article>
 
