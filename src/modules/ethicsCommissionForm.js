@@ -1333,8 +1333,7 @@ class FormalizeFormElement extends BaseFormElement {
                         label="${i18n.t('render-form.forms.ethics-commission-form.applicant-label')}"
                         .auth=${this.auth ?? {}}
                         .entryPointUrl=${this.entryPointUrl}
-                        .value=${Array.isArray(data.applicant) ? data.applicant : []}
-                        multiple>
+                        .value=${data.applicant || ''}>
                     </dbp-form-person-select-view>
 
                     <p class="field-note">${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}</p>
@@ -3455,8 +3454,7 @@ class FormalizeFormElement extends BaseFormElement {
                         description="${i18n.t('render-form.forms.ethics-commission-form.applicant-description')}"
                         .auth=${this.auth ?? {}}
                         .entryPointUrl=${this.entryPointUrl}
-                        .value=${Array.isArray(data.applicant) ? data.applicant : []}
-                        multiple
+                        .value=${data.applicant || ''}
                         required>
                     </dbp-form-person-select-element>
 
