@@ -6,6 +6,7 @@
   permissions to form permissions
 - Remove unused methods
 - Manage Forms activity: added bulk deletion of selected forms in the forms overview table, gated per form by its `grantedActions` (delete/manage); added `apiDeleteForm` (DELETE `/formalize/forms/{identifier}`); the feature is opt-in via the new `enable-forms-bulk-delete` attribute and disabled by default
+- Manage Forms activity: move permission editing from submissions to forms, support editing permissions for multiple selected forms, and gate form actions using `grantedActions`
 - CourseSelect: only offer courses from the previous, current, and next semester
 - Format base course teaching term as returned by the Public REST API to match the legacy API format (e.g. "Winter Term 2023/24")
 - Update toolkit and adapt to the new version of PersonSelect
