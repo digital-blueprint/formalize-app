@@ -167,17 +167,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         })}">
                         <dbp-mini-spinner text="${i18n.t('loading-message')}"></dbp-mini-spinner>
                     </span>
-                    <dbp-select
-                        ?disabled=${
-                            this.selectedFormsCount === 0 ||
-                            (!this.isDeleteSelectedFormsEnabled &&
-                                !this.isEditSelectedFormPermissionEnabled)
-                        }
-                        @change=${this._onFormAction}
-                        label="${i18n.t('manage-forms.actions-button-text')}"
-                        align="left"
-                        allow-expand
-                        .options=${formActions}></dbp-select>
                     <button
                         class="button is-primary create-form-btn ${classMap({
                             hidden: this.creatableModulesCount === 0,
@@ -190,6 +179,19 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                             aria-hidden="true"></dbp-icon>
                         ${i18n.t('manage-forms.create-form-button')}
                     </button>
+                </div>
+                <div>
+                    <dbp-select
+                        ?disabled=${
+                            this.selectedFormsCount === 0 ||
+                            (!this.isDeleteSelectedFormsEnabled &&
+                                !this.isEditSelectedFormPermissionEnabled)
+                        }
+                        @change=${this._onFormAction}
+                        label="${i18n.t('manage-forms.actions-button-text')}"
+                        align="left"
+                        allow-expand
+                        .options=${formActions}></dbp-select>
                 </div>
                 <dbp-tabulator-table
                     lang="${this.lang}"
