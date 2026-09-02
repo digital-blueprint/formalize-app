@@ -4,7 +4,7 @@ import '../src/dbp-formalize-manage-forms';
 import '../src/dbp-formalize.js';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
-import {getListOfAllForms} from '../src/manage-forms-api.js';
+import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 
 customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
 customElements.define(
@@ -283,6 +283,38 @@ suite('dbp-formalize-manage-forms basics', () => {
 });
 
 suite('manage forms action menus', () => {
+    test('should forward grant-based submission authorization when saving forms', async () => {
+        const originalFetch = window.fetch;
+        const requests = [];
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            return Promise.resolve({ok: true, json: () => Promise.resolve({identifier: 'form-1'})});
+        };
+        const host = {
+            auth: {token: 'token'},
+            entryPointUrl: 'https://example.com',
+            _i18n: {t: (key) => key},
+        };
+        const formData = {
+            name: 'Job offer',
+            localizedNames: [],
+            frontendKey: 'job-offer',
+            grantBasedSubmissionAuthorization: true,
+        };
+
+        try {
+            await apiCreateForm(host, formData);
+            await apiUpdateForm(host, 'form-1', formData);
+        } finally {
+            window.fetch = originalFetch;
+        }
+
+        assert.lengthOf(requests, 2);
+        requests.forEach(({options}) => {
+            assert.isTrue(JSON.parse(options.body).grantBasedSubmissionAuthorization);
+        });
+    });
+
     test('should only show inline edit for forms with update or manage grants', async () => {
         const originalFetch = window.fetch;
         const moduleInstance = {

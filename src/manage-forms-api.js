@@ -781,6 +781,7 @@ export async function apiGetTags(host, identifier) {
  * @param {string} formData.frontendKey - Frontend key for filtering (e.g. 'job-offer').
  * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
  * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
+ * @param {boolean} [formData.grantBasedSubmissionAuthorization] - Whether submissions use resource grants.
  * @param {object} [options] - Notification options.
  * @param {string} [options.errorNotificationTargetId] - Notification component for errors.
  * @returns {Promise<object|null>} The created form object from the API, or null on failure.
@@ -802,6 +803,10 @@ export async function apiCreateForm(host, formData, options = {}) {
     // Store the JSON Schema for validating submission data
     if (formData.dataFeedSchema) {
         body.dataFeedSchema = formData.dataFeedSchema;
+    }
+
+    if (typeof formData.grantBasedSubmissionAuthorization === 'boolean') {
+        body.grantBasedSubmissionAuthorization = formData.grantBasedSubmissionAuthorization;
     }
 
     try {
@@ -858,6 +863,7 @@ export async function apiCreateForm(host, formData, options = {}) {
  * @param {Array<{languageTag: string, name: string}>} formData.localizedNames - Localized names.
  * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
  * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
+ * @param {boolean} [formData.grantBasedSubmissionAuthorization] - Whether submissions use resource grants.
  * @param {object} [options] - Notification options.
  * @param {string} [options.errorNotificationTargetId] - Notification component for errors.
  * @returns {Promise<object|null>} The updated form object from the API, or null on failure.
@@ -876,6 +882,10 @@ export async function apiUpdateForm(host, formIdentifier, formData, options = {}
 
     if (formData.dataFeedSchema) {
         body.dataFeedSchema = formData.dataFeedSchema;
+    }
+
+    if (typeof formData.grantBasedSubmissionAuthorization === 'boolean') {
+        body.grantBasedSubmissionAuthorization = formData.grantBasedSubmissionAuthorization;
     }
 
     try {
