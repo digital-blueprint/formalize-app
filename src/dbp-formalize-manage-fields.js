@@ -1271,7 +1271,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
 
             .manage-fields h2 {
-                font-weight: bold;
+                font-weight: 300;
+                margin: 0;
             }
 
             .active-form-header {
