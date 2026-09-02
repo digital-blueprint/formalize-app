@@ -145,6 +145,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.options_forms = {};
         // Bulk removal of forms in the overview is opt-in and disabled by default.
         this.enableFormsBulkDelete = false;
+        this.enableSubmissionPermissionEditing = false;
         // Initialize the forms table options (including `langs`) up front so the
         // table can be built before the `lang`/`langDir` branch of updated() runs.
         // Otherwise buildTable() may access options.langs while it is still undefined.
@@ -220,6 +221,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             submitted: false,
         };
         this.isEditSubmissionEnabled = {
+            draft: false,
+            submitted: false,
+        };
+        this.isEditSubmissionPermissionEnabled = {
             draft: false,
             submitted: false,
         };
@@ -330,6 +335,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             isDeleteSelectedSubmissionEnabled: {type: Boolean, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Boolean, attribute: false},
             isEditSubmissionEnabled: {type: Boolean, attribute: false},
+            isEditSubmissionPermissionEnabled: {type: Object, attribute: false},
 
             selectedFormsCount: {type: Number, attribute: false},
             isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
@@ -366,6 +372,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             enableFormsBulkDelete: {
                 type: Boolean,
                 attribute: 'enable-forms-bulk-delete',
+            },
+            enableSubmissionPermissionEditing: {
+                type: Boolean,
+                attribute: 'enable-submission-permission-editing',
             },
         };
     }
@@ -651,6 +661,19 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.setFormsActionButtonsState();
 
             this.rebuildFormsTable();
+        }
+
+        if (changedProperties.has('enableSubmissionPermissionEditing')) {
+            for (const state of Object.values(SUBMISSION_STATES)) {
+                if (this.submissionTables[state]?.tabulatorTable) {
+                    this.setIsActionAvailable(state);
+                } else if (!this.enableSubmissionPermissionEditing) {
+                    this.isEditSubmissionPermissionEnabled = {
+                        ...this.isEditSubmissionPermissionEnabled,
+                        [state]: false,
+                    };
+                }
+            }
         }
 
         if (changedProperties.has('allForms')) {
@@ -1577,6 +1600,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.setActionButtonsStates(state);
         if (
             this.isEditSubmissionEnabled[state] === false &&
+            this.isEditSubmissionPermissionEnabled[state] === false &&
             this.isDeleteAllSubmissionEnabled[state] === false &&
             this.isDeleteSelectedSubmissionEnabled[state] === false &&
             this.isBatchTaggingEnabled[state] === false
@@ -1664,6 +1688,18 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.UPDATE)),
         };
 
+        this.isEditSubmissionPermissionEnabled = {
+            ...this.isEditSubmissionPermissionEnabled,
+            [state]:
+                this.enableSubmissionPermissionEditing &&
+                selectedCount > 0 &&
+                selectedRows.every((row) => {
+                    const submissionId = row.getData().submissionId;
+                    const grants = this.submissionsGrantedActions.get(submissionId) ?? [];
+                    return grants.includes(SUBMISSION_PERMISSIONS.MANAGE);
+                }),
+        };
+
         // this.isBatchTaggingEnabled = {
         //     ...this.isBatchTaggingEnabled,
         //     [state]:
@@ -1685,6 +1721,22 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             batchTaggingModal.submissionCount = this.submissionIdsForTagging.length;
             batchTaggingModal.open();
         }
+    }
+
+    handleEditSubmissionsPermission(state) {
+        if (!this.enableSubmissionPermissionEditing) return;
+
+        const submissionIds =
+            this.submissionTables[state]?.tabulatorTable
+                ?.getSelectedData()
+                ?.map((submission) => submission.submissionId)
+                .filter(Boolean) ?? [];
+        const permissionDialog = this._('#submission-grant-permission-dialog');
+        if (!permissionDialog || submissionIds.length === 0) return;
+
+        permissionDialog.resourceIdentifier = submissionIds.length === 1 ? submissionIds[0] : '';
+        permissionDialog.resourceIdentifiers = submissionIds;
+        permissionDialog.open();
     }
 
     async handleBatchTaggingConfirm(event) {
@@ -2134,6 +2186,11 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             case 'batch-tagging':
                 void this.handleOpenBatchTaggingModal(state);
                 break;
+            case 'edit-permission':
+                if (this.isEditSubmissionPermissionEnabled[state]) {
+                    this.handleEditSubmissionsPermission(state);
+                }
+                break;
             case 'delete-all':
                 void this.handleDeleteSubmissions(state);
                 break;
@@ -2285,6 +2342,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .actionsWidgetIsOpen=${this.actionsWidgetIsOpen}
                     .isActionAvailable=${this.isActionAvailable}
                     .isEditSubmissionEnabled=${this.isEditSubmissionEnabled}
+                    .enableSubmissionPermissionEditing=${this.enableSubmissionPermissionEditing}
+                    .isEditSubmissionPermissionEnabled=${this.isEditSubmissionPermissionEnabled}
                     .isBatchTaggingEnabled=${this.isBatchTaggingEnabled}
                     .isDeleteAllSubmissionEnabled=${this.isDeleteAllSubmissionEnabled}
                     .isDeleteSelectedSubmissionEnabled=${this.isDeleteSelectedSubmissionEnabled}
@@ -2332,6 +2391,20 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 subscribe="auth"
                 entry-point-url="${this.entryPointUrl}"
                 resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
+
+            ${
+                this.enableSubmissionPermissionEditing
+                    ? html`
+                          <dbp-grant-permission-dialog
+                              id="submission-grant-permission-dialog"
+                              lang="${this.lang}"
+                              modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
+                              subscribe="auth"
+                              entry-point-url="${this.entryPointUrl}"
+                              resource-class-identifier="DbpRelayFormalizeSubmission"></dbp-grant-permission-dialog>
+                      `
+                    : ''
+            }
 
             <dbp-file-sink
                 streamed

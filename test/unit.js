@@ -217,6 +217,69 @@ suite('dbp-formalize-manage-forms basics', () => {
             'DbpRelayFormalizeForm',
         );
     });
+
+    test('should open permission editing for selected submissions', () => {
+        const calls = [];
+        const dialog = {
+            resourceIdentifier: '',
+            resourceIdentifiers: [],
+            open: () => calls.push('open'),
+        };
+        const actionHost = {
+            enableSubmissionPermissionEditing: true,
+            submissionTables: {
+                submitted: {
+                    tabulatorTable: {
+                        getSelectedData: () => [
+                            {submissionId: 'submission-1'},
+                            {submissionId: 'submission-2'},
+                        ],
+                    },
+                },
+            },
+            _: () => dialog,
+        };
+
+        node.handleEditSubmissionsPermission.call(actionHost, 'submitted');
+
+        assert.equal(dialog.resourceIdentifier, '');
+        assert.deepEqual(dialog.resourceIdentifiers, ['submission-1', 'submission-2']);
+        assert.deepEqual(calls, ['open']);
+    });
+
+    test('should require manage on every selected submission', () => {
+        const submissions = [{submissionId: 'submission-1'}, {submissionId: 'submission-2'}];
+        const rows = submissions.map((submission) => ({getData: () => submission}));
+        const actionHost = {
+            enableSubmissionPermissionEditing: true,
+            submissionTables: {
+                submitted: {
+                    tabulatorTable: {
+                        getSelectedRows: () => rows,
+                        getRows: () => rows,
+                    },
+                },
+            },
+            submissionsGrantedActions: new Map([
+                ['submission-1', ['manage']],
+                ['submission-2', ['read']],
+            ]),
+            selectedRowCount: {submitted: 0},
+            allRowCount: {submitted: 0},
+            isDeleteSelectedSubmissionEnabled: {submitted: false},
+            isDeleteAllSubmissionEnabled: {submitted: false},
+            isEditSubmissionEnabled: {submitted: false},
+            isEditSubmissionPermissionEnabled: {submitted: false},
+            isBatchTaggingEnabled: {submitted: false},
+        };
+
+        node.setActionButtonsStates.call(actionHost, 'submitted');
+        assert.isFalse(actionHost.isEditSubmissionPermissionEnabled.submitted);
+
+        actionHost.submissionsGrantedActions.set('submission-2', ['manage']);
+        node.setActionButtonsStates.call(actionHost, 'submitted');
+        assert.isTrue(actionHost.isEditSubmissionPermissionEnabled.submitted);
+    });
 });
 
 suite('manage forms action menus', () => {
@@ -321,6 +384,23 @@ suite('manage forms action menus', () => {
             .querySelector('#action-dropdown--draft')
             .options.map(({value}) => value);
         assert.notInclude(actions, 'edit-permission');
+
+        page.remove();
+    });
+
+    test('should provide submission permission editing when enabled', async () => {
+        const page = document.createElement('test-manage-form-submissions-page');
+        page.noSubmissionAvailable = {draft: false, submitted: true};
+        page.isActionAvailable = {draft: true, submitted: false};
+        page.enableSubmissionPermissionEditing = true;
+        page.isEditSubmissionPermissionEnabled = {draft: true, submitted: false};
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const select = page.shadowRoot.querySelector('#action-dropdown--draft');
+        const permissionAction = select.options.find(({value}) => value === 'edit-permission');
+        assert.isDefined(permissionAction);
+        assert.isFalse(permissionAction.disabled);
 
         page.remove();
     });
