@@ -90,6 +90,39 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     margin-bottom: 1rem;
                 }
 
+                .forms-table-actions {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .forms-search {
+                    flex: 1;
+                    min-width: 12rem;
+                }
+
+                .forms-search label {
+                    clip: rect(0 0 0 0);
+                    clip-path: inset(50%);
+                    height: 1px;
+                    overflow: hidden;
+                    position: absolute;
+                    white-space: nowrap;
+                    width: 1px;
+                }
+
+                @media (max-width: 530px) {
+                    .forms-table-actions {
+                        align-items: stretch;
+                        flex-wrap: wrap;
+                    }
+
+                    .forms-search {
+                        flex-basis: 100%;
+                    }
+                }
+
                 .create-form-btn {
                     display: inline-flex;
                     align-items: center;
@@ -110,6 +143,42 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
     getFormsTable() {
         return this.renderRoot?.querySelector('#tabulator-table-forms') ?? null;
+    }
+
+    getSearchbar() {
+        return this.renderRoot?.querySelector('#forms-searchbar') ?? null;
+    }
+
+    handleSearch(event) {
+        event?.preventDefault();
+
+        const searchInput = this.getSearchbar();
+        const table = this.getFormsTable();
+        if (!searchInput || !table) return;
+
+        const filterValue = searchInput.value.trim();
+        if (filterValue === '') {
+            table.clearFilter();
+            return;
+        }
+
+        const filters = (this.optionsForms.columns ?? [])
+            .filter(
+                (column) => column.field && column.visible !== false && column.formatter !== 'html',
+            )
+            .map((column) => ({field: column.field, type: 'like', value: filterValue}));
+
+        table.setFilter([filters]);
+    }
+
+    handleResetSearch() {
+        const searchInput = this.getSearchbar();
+        const table = this.getFormsTable();
+        if (!searchInput || !table) return;
+
+        searchInput.value = '';
+        table.clearFilter();
+        searchInput.focus();
     }
 
     /**
@@ -180,7 +249,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         ${i18n.t('manage-forms.create-form-button')}
                     </button>
                 </div>
-                <div>
+                <div class="forms-table-actions">
                     <dbp-select
                         ?disabled=${
                             this.selectedFormsCount === 0 ||
@@ -192,6 +261,27 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         align="left"
                         allow-expand
                         .options=${formActions}></dbp-select>
+                    <form class="search-input forms-search" @submit=${this.handleSearch}>
+                        <label for="forms-searchbar">
+                            ${i18n.t('manage-forms.search-input-label')}:
+                        </label>
+                        <input
+                            type="text"
+                            id="forms-searchbar"
+                            class="searchbar"
+                            placeholder="${i18n.t('manage-forms.searchbar-placeholder')}" />
+                        <button
+                            type="submit"
+                            class="button search-button"
+                            title="${i18n.t('manage-forms.search-button')}"
+                            aria-label="${i18n.t('manage-forms.search-button')}">
+                            <dbp-icon name="search" aria-hidden="true"></dbp-icon>
+                        </button>
+                    </form>
+                    <button type="button" class="reset-search" @click=${this.handleResetSearch}>
+                        <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
+                        ${i18n.t('manage-forms.reset-search-label')}
+                    </button>
                 </div>
                 <dbp-tabulator-table
                     lang="${this.lang}"

@@ -405,6 +405,45 @@ suite('manage forms action menus', () => {
         page.remove();
     });
 
+    test('should search visible form table fields and reset the search', async () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        page.optionsForms = {
+            columns: [
+                {field: 'id'},
+                {field: 'name'},
+                {field: 'formId', visible: false},
+                {field: 'actionButton', formatter: 'html'},
+            ],
+        };
+        const filters = [];
+        let clearCount = 0;
+        page.getFormsTable = () => ({
+            setFilter: (filter) => filters.push(filter),
+            clearFilter: () => clearCount++,
+        });
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const searchInput = page.getSearchbar();
+        searchInput.value = 'Job offer';
+        page.shadowRoot.querySelector('.forms-search').requestSubmit();
+
+        assert.deepEqual(filters, [
+            [
+                [
+                    {field: 'id', type: 'like', value: 'Job offer'},
+                    {field: 'name', type: 'like', value: 'Job offer'},
+                ],
+            ],
+        ]);
+
+        page.shadowRoot.querySelector('.reset-search').click();
+        assert.equal(searchInput.value, '');
+        assert.equal(clearCount, 1);
+
+        page.remove();
+    });
+
     test('should not provide a permission action for submissions', async () => {
         const page = document.createElement('test-manage-form-submissions-page');
         page.noSubmissionAvailable = {draft: false, submitted: true};
