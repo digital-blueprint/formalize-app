@@ -332,7 +332,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                     <h3 class="dialog-title">
                         <dbp-icon
                             class="title-icon"
-                            name="${isEdit ? 'pencil' : 'plus'}"
+                            name="${isEdit ? 'pencil' : 'add-job'}"
                             aria-hidden="true"></dbp-icon>
                         ${isEdit ? t('edit-form.dialog-title') : t('create-form.dialog-title')}
                     </h3>
