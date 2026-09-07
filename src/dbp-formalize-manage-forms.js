@@ -549,9 +549,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
-            initialSort: [
-                {column: 'dateCreated', dir: 'desc'},
-            ],
+            initialSort: [{column: 'dateCreated', dir: 'desc'}],
         };
 
         this.options_forms.selectableRows = 'highlight';
