@@ -535,6 +535,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // Hidden helper columns carrying data needed for bulk deletion.
                 {field: 'formId', visible: false},
                 {field: 'grantedActions', visible: false},
+                {field: 'dateCreated', visible: false},
                 {
                     field: 'actionButton',
                     formatter: 'html',
@@ -548,6 +549,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 hozAlign: 'left',
                 resizable: false,
             },
+            initialSort: [
+                {column: 'dateCreated', dir: 'desc'},
+            ],
         };
 
         this.options_forms.selectableRows = 'highlight';

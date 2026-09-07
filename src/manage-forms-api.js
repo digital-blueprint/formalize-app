@@ -192,6 +192,7 @@ export async function getListOfAllForms(host) {
                 const formName = localizedFormName ? localizedFormName.name : entry['name'];
                 const formId = entry['identifier'];
                 const frontendKey = entry['frontendKey'] ?? null;
+                const dateCreated = entry['dateCreated'] ?? null;
 
                 // Apply allow-list: if non-empty, only include forms whose frontendKey is in the list
                 if (
@@ -245,6 +246,7 @@ export async function getListOfAllForms(host) {
                 host.forms.set(formId, {
                     ...host.forms.get(formId),
                     formName,
+                    dateCreated,
                     formId,
                     formSlug:
                         host.forms.get(formId)?.formSlug ??
@@ -310,6 +312,7 @@ export async function getListOfAllForms(host) {
                     id: id,
                     name: formName,
                     formId: formId,
+                    dateCreated: dateCreated,
                     grantedActions: grantedActions,
                     actionButton: actionContainer,
                 };
