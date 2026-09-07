@@ -53,6 +53,9 @@ export function setSubmissionFormOptions(host, state) {
             hozAlign: 'left',
             resizable: false,
         },
+        initialSort:[
+            {column:"dateCreated", dir:"desc"},
+        ],
         placeholder: noSubmissionDataPlaceholder,
     };
 
