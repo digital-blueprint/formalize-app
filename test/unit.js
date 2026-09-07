@@ -1,7 +1,7 @@
 import {assert} from 'chai';
 
-import '../src/dbp-formalize-manage-forms';
 import '../src/dbp-formalize.js';
+import '../src/dbp-formalize-manage-forms';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
@@ -18,6 +18,7 @@ suite('dbp-formalize-manage-forms basics', () => {
     suiteSetup(async () => {
         node = document.createElement('dbp-formalize-manage-forms');
         node.auth = {token: ''};
+        node.refreshTableReferences = () => {};
         document.body.appendChild(node);
         await node.updateComplete;
     });
@@ -213,7 +214,9 @@ suite('dbp-formalize-manage-forms basics', () => {
         assert.deepEqual(dialog.resourceIdentifiers, ['job-offer-1', 'job-offer-2']);
         assert.deepEqual(calls, ['open']);
         assert.equal(
-            node.shadowRoot.querySelector('#form-grant-permission-dialog').resourceClassIdentifier,
+            node.shadowRoot
+                .querySelector('#form-grant-permission-dialog')
+                .getAttribute('resource-class-identifier'),
             'DbpRelayFormalizeForm',
         );
     });
@@ -379,11 +382,11 @@ suite('manage forms action menus', () => {
         const select = page.shadowRoot.querySelector('dbp-select');
         const actions = select.options.map(({value}) => value);
         assert.deepEqual(actions, ['delete', 'edit-permission']);
-        assert.isTrue(select.disabled);
+        assert.isTrue(select.hasAttribute('disabled'));
 
         page.isEditSelectedFormPermissionEnabled = true;
         await page.updateComplete;
-        assert.isFalse(select.disabled);
+        assert.isFalse(select.hasAttribute('disabled'));
 
         page.remove();
     });
@@ -400,7 +403,7 @@ suite('manage forms action menus', () => {
             select.options.map(({value}) => value),
             ['edit-permission'],
         );
-        assert.isFalse(select.disabled);
+        assert.isFalse(select.hasAttribute('disabled'));
 
         page.remove();
     });
