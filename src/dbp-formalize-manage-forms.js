@@ -75,6 +75,8 @@ const keepDynamicTranslations = (t) => {
     t('errors.submissions-processing-failed', {count: 0});
 };
 
+const PAGINATION_SIZES = [5, 10, 20, 50, 100];
+
 // Accept JSON arrays and comma-separated HTML attribute values for frontendKey lists.
 function parseFormListAttribute(value) {
     console.log('parseFormListAttribute input:', value);
@@ -110,7 +112,7 @@ function parseFormListAttribute(value) {
 /**
  * @augments {DBPFormalizeLitElement}
  */
-class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
+export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     constructor() {
         super();
         this.allForms = [];
@@ -277,6 +279,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Counter: incremented on each switchToSubmissionTable call so that a
         // stale .then() callback from an earlier call is discarded.
         this._switchGeneration = 0;
+        this._restoringUrlStateTables = new Set();
+        this._urlStateReadyTables = new Set();
     }
 
     static get scopedElements() {
@@ -393,6 +397,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.boundTablePaginationPageLoaded,
         );
         document.removeEventListener(
+            'dbp-tabulator-table-page-size-changed-event',
+            this.boundTablePaginationPageLoaded,
+        );
+        document.removeEventListener(
             'dbp-file-sink-download-started',
             this.boundFileSinkDownloadStartedHandler,
         );
@@ -457,6 +465,10 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 'dbp-tabulator-table-page-loaded-event',
                 this.boundTablePaginationPageLoaded,
             );
+            document.addEventListener(
+                'dbp-tabulator-table-page-size-changed-event',
+                this.boundTablePaginationPageLoaded,
+            );
 
             document.addEventListener(
                 'dbp-file-sink-download-started',
@@ -501,6 +513,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     this.requestDetailedSubmission(state, cols, id);
                                 }
                             }
+                            void this.restoreSubmissionTableState(state);
+                        } else if (e.detail.id === this.formsTable?.identifier) {
+                            void this.restoreFormsTableState();
                         }
                     }
                 },
@@ -758,6 +773,8 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.closeEditFormDialog();
                     this.showFormsOverview();
                 }
+
+                void this.restoreVisibleTableState();
             }
         }
 
@@ -1269,10 +1286,133 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     // Search / filter
     // -----------------------------------------------------------------------
 
+    getUrlPaginationValue(value, fallback) {
+        const parsedValue = Number.parseInt(value ?? '', 10);
+        return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : fallback;
+    }
+
+    updateRoutingQuery(values) {
+        const {pathname, queryParams, hash} = this.getRoutingData();
+        const updatedQueryParams = new URLSearchParams(queryParams);
+
+        for (const [name, value] of Object.entries(values)) {
+            if (value === undefined || value === null || value === '') {
+                updatedQueryParams.delete(name);
+            } else {
+                updatedQueryParams.set(name, `${value}`);
+            }
+        }
+
+        const queryString = updatedQueryParams.toString();
+        const routingUrl = `${pathname}${queryString ? `?${queryString}` : ''}${hash}`;
+        if (routingUrl !== this.routingUrl) {
+            this.sendSetPropertyEvent('routing-url', routingUrl, true);
+        }
+    }
+
+    syncFormsFilterToUrl(value) {
+        this.updateRoutingQuery({'forms-search': value, 'forms-page': null});
+    }
+
+    syncSubmissionFilterToUrl(state) {
+        const submissionsPage = this.getSubmissionsPage();
+        const searchInput = submissionsPage?.getSearchbar(state);
+        const searchColumn = submissionsPage?.getSearchSelect(state);
+        const searchOperator = submissionsPage?.getSearchOperator(state);
+        if (!searchInput || !searchColumn || !searchOperator) return;
+
+        this.updateRoutingQuery({
+            [`${state}-search`]: searchInput.value,
+            [`${state}-search-column`]: searchColumn.value === 'all' ? null : searchColumn.value,
+            [`${state}-search-operator`]:
+                searchOperator.value === 'like' ? null : searchOperator.value,
+            [`${state}-page`]: null,
+        });
+    }
+
+    async restoreFormsTableState() {
+        const overviewPage = this.getOverviewPage();
+        const searchInput = overviewPage?.getSearchbar();
+        const table = this.formsTable;
+        if (!searchInput || !table?.tabulatorTable) return;
+
+        const {queryParams} = this.getRoutingData();
+        const searchValue = queryParams.get('forms-search') ?? '';
+        const page = this.getUrlPaginationValue(queryParams.get('forms-page'), 1);
+        const requestedPageSize = this.getUrlPaginationValue(queryParams.get('forms-page-size'), 5);
+        const pageSize = PAGINATION_SIZES.includes(requestedPageSize) ? requestedPageSize : 5;
+
+        this._restoringUrlStateTables.add(table.identifier);
+        try {
+            searchInput.value = searchValue;
+            table.paginationSize = pageSize;
+            await table.tabulatorTable.setPageSize(pageSize);
+            overviewPage.applySearch(searchValue);
+            await table.tabulatorTable.setPage(page);
+        } finally {
+            this._restoringUrlStateTables.delete(table.identifier);
+            this._urlStateReadyTables.add(table.identifier);
+        }
+    }
+
+    async restoreSubmissionTableState(state) {
+        const submissionsPage = this.getSubmissionsPage();
+        const searchInput = submissionsPage?.getSearchbar(state);
+        const searchColumn = submissionsPage?.getSearchSelect(state);
+        const searchOperator = submissionsPage?.getSearchOperator(state);
+        const table = this.submissionTables[state];
+        if (!searchInput || !searchColumn || !searchOperator || !table?.tabulatorTable) return;
+
+        const {queryParams} = this.getRoutingData();
+        const columnValue = queryParams.get(`${state}-search-column`) ?? 'all';
+        const operatorValue = queryParams.get(`${state}-search-operator`) ?? 'like';
+        const page = this.getUrlPaginationValue(queryParams.get(`${state}-page`), 1);
+        const requestedPageSize = this.getUrlPaginationValue(
+            queryParams.get(`${state}-page-size`),
+            5,
+        );
+        const pageSize = PAGINATION_SIZES.includes(requestedPageSize) ? requestedPageSize : 5;
+
+        this._restoringUrlStateTables.add(table.identifier);
+        try {
+            searchInput.value = queryParams.get(`${state}-search`) ?? '';
+            searchColumn.value = Array.from(searchColumn.options).some(
+                (option) => option.value === columnValue,
+            )
+                ? columnValue
+                : 'all';
+            searchOperator.value = Array.from(searchOperator.options).some(
+                (option) => option.value === operatorValue,
+            )
+                ? operatorValue
+                : 'like';
+            table.paginationSize = pageSize;
+            await table.tabulatorTable.setPageSize(pageSize);
+            this.filterTable(state, false);
+            await table.tabulatorTable.setPage(page);
+        } finally {
+            this._restoringUrlStateTables.delete(table.identifier);
+            this._urlStateReadyTables.add(table.identifier);
+        }
+    }
+
+    async restoreVisibleTableState() {
+        if (this.showFormsTable) {
+            await this.restoreFormsTableState();
+            return;
+        }
+
+        if (this.showSubmissionTables) {
+            for (const state of Object.values(SUBMISSION_STATES)) {
+                await this.restoreSubmissionTableState(state);
+            }
+        }
+    }
+
     /**
      * Filters the submissions table
      */
-    filterTable(state) {
+    filterTable(state, updateUrl = true) {
         const submissionsPage = this.getSubmissionsPage();
         let filter = /** @type {HTMLInputElement} */ (submissionsPage?.getSearchbar(state));
         let search = /** @type {HTMLSelectElement} */ (submissionsPage?.getSearchSelect(state));
@@ -1284,6 +1424,9 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (filter.value === '') {
             table.clearFilter();
+            this.searchIsActive = {...this.searchIsActive, [state]: false};
+            this.setVisibleRowCount(state);
+            if (updateUrl) this.syncSubmissionFilterToUrl(state);
             return;
         }
         const filterValue = filter.value;
@@ -1313,13 +1456,17 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.setVisibleRowCount(state);
             this.searchIsActive = {...this.searchIsActive, [state]: true};
         }
+
+        if (updateUrl) this.syncSubmissionFilterToUrl(state);
     }
 
     /**
      * Removes the current filters from the submissions table
      */
-    clearAllFilters() {
-        for (const state of Object.keys(this.submissionTables)) {
+    clearAllFilters(stateToClear = null, updateUrl = true) {
+        const states = stateToClear ? [stateToClear] : Object.keys(this.submissionTables);
+        const queryUpdates = {};
+        for (const state of states) {
             const submissionsPage = this.getSubmissionsPage();
             let searchInput = /** @type {HTMLInputElement} */ (
                 submissionsPage?.getSearchbar(state)
@@ -1332,7 +1479,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             );
             const table = this.submissionTables[state];
 
-            if (!table || !searchInput || !searchColumn || !searchOperator) return;
+            if (!table || !searchInput || !searchColumn || !searchOperator) continue;
 
             searchInput.value = '';
             searchColumn.value = 'all';
@@ -1340,7 +1487,12 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             table.clearFilter();
             this.searchIsActive = {...this.searchIsActive, [state]: false};
             this.setVisibleRowCount(state);
+            queryUpdates[`${state}-search`] = null;
+            queryUpdates[`${state}-search-column`] = null;
+            queryUpdates[`${state}-search-operator`] = null;
+            queryUpdates[`${state}-page`] = null;
         }
+        if (updateUrl) this.updateRoutingQuery(queryUpdates);
     }
 
     // -----------------------------------------------------------------------
@@ -1383,9 +1535,20 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const tableId = event.detail.tableId;
         const state = this.getTableState(tableId);
 
-        if (!state) return;
+        if (state) this.setVisibleRowCount(state);
 
-        this.setVisibleRowCount(state);
+        if (this._restoringUrlStateTables.has(tableId) || !this._urlStateReadyTables.has(tableId))
+            return;
+
+        const prefix = state ?? (tableId === this.formsTable?.identifier ? 'forms' : null);
+        if (!prefix) return;
+
+        const page = event.detail.page ?? 1;
+        const pageSize = event.detail.paginationSize ?? event.detail.pageSize ?? 5;
+        this.updateRoutingQuery({
+            [`${prefix}-page`]: page === 1 ? null : page,
+            [`${prefix}-page-size`]: pageSize === 5 ? null : pageSize,
+        });
     }
 
     setVisibleRowCount(state) {
@@ -2095,7 +2258,14 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             if (!this.formsTable.tableReady && !this.formsTable.tableBuilding) {
                 this.formsTable.buildTable();
             } else if (this.formsTable.tableReady) {
-                this.formsTable.setData(this.allForms);
+                const tableId = this.formsTable.identifier;
+                this._urlStateReadyTables.delete(tableId);
+                const dataLoaded = this.formsTable.setData(this.allForms);
+                void Promise.resolve(dataLoaded).then(() => {
+                    if (this.showFormsTable && this.formsTable?.identifier === tableId) {
+                        return this.restoreFormsTableState();
+                    }
+                });
             }
         }
         this.loadingFormsTable = false;
@@ -2141,7 +2311,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     handleBackToOverview() {
         this.showSubmissionTables = false;
         this.loadingSubmissionTables = false;
-        this.clearAllFilters();
+        this.clearAllFilters(null, false);
         this.closeAllSearchWidgets();
         this.loadingFormsTable = false;
         this.showFormsTable = true;
@@ -2314,6 +2484,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .selectedFormsCount=${this.selectedFormsCount}
                     .isDeleteSelectedFormsEnabled=${this.isDeleteSelectedFormsEnabled}
                     .isEditSelectedFormPermissionEnabled=${this.isEditSelectedFormPermissionEnabled}
+                    @forms-search-change=${(event) => this.syncFormsFilterToUrl(event.detail.value)}
                     @create-form-request=${() => this.handleOpenCreateFormDialog()}
                     @form-action=${(event) =>
                         this.handleFormsPageAction(
@@ -2362,7 +2533,7 @@ class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     @submission-actions-toggle=${(event) =>
                         this.handleSubmissionsPageActionsToggle(event)}
                     @submission-search=${(event) => this.filterTable(event.detail.state)}
-                    @submission-search-reset=${() => this.clearAllFilters()}
+                    @submission-search-reset=${(event) => this.clearAllFilters(event.detail.state)}
                     @submission-action=${(event) =>
                         this.handleSubmissionsPageAction(
                             event,

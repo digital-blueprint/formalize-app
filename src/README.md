@@ -32,6 +32,35 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
 
+#### Routing
+
+The activity supports deep links through the app shell `routing-url` property:
+
+- `/` shows the forms overview.
+- `/<form-identifier>` shows the draft and submitted submission lists for a form.
+- `/<form-identifier>/edit` opens the form editor.
+- `/<form-identifier>/details/<submission-identifier>` opens submission details.
+
+The forms overview stores its search and pagination state in these query parameters:
+
+| Query parameter   | Description                                       |
+| ----------------- | ------------------------------------------------- |
+| `forms-search`    | Search text                                       |
+| `forms-page`      | Current page; page 1 is omitted                   |
+| `forms-page-size` | Number of rows per page; the default 5 is omitted |
+
+Each submission list has independent query parameters. Replace `<state>` with `draft` or `submitted`:
+
+| Query parameter           | Description                                                       |
+| ------------------------- | ----------------------------------------------------------------- |
+| `<state>-search`          | Search text                                                       |
+| `<state>-search-column`   | Selected column; the default `all` is omitted                     |
+| `<state>-search-operator` | Selected Tabulator filter operator; the default `like` is omitted |
+| `<state>-page`            | Current page; page 1 is omitted                                   |
+| `<state>-page-size`       | Number of rows per page; the default 5 is omitted                 |
+
+Changing a filter or pagination control updates the URL. Loading such a URL, reloading the page, or navigating with browser history restores the represented state after the table data has loaded. Changing a filter resets that table to page 1.
+
 #### Slots
 
 You use templates tags to inject slots into the activity.

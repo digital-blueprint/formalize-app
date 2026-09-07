@@ -153,9 +153,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         );
     }
 
-    handleResetSearch() {
+    handleResetSearch(state) {
         this.dispatchEvent(
             new CustomEvent('submission-search-reset', {
+                detail: {state},
                 bubbles: true,
                 composed: true,
             }),
@@ -536,7 +537,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     class="reset-search"
                     ?disabled="${this.searchIsActive[state] === false}"
                     @click="${() => {
-                        this.handleResetSearch();
+                        this.handleResetSearch(state);
                     }}">
                     <dbp-icon
                         name="spinner-arrow"

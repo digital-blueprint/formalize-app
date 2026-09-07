@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## Unreleased (v1.3.1)
 
+- Manage Forms activity: synchronize the forms overview search and pagination and both submission-list filters and pagination with `routing-url`; URL state is restored after loading table data and supports browser history and shareable links
 - Prepare for update to formalize API v0.5.36 where `create_submissions` permission is moved from submission collection
   permissions to form permissions
 - Remove unused methods

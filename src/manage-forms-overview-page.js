@@ -153,10 +153,16 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         event?.preventDefault();
 
         const searchInput = this.getSearchbar();
-        const table = this.getFormsTable();
-        if (!searchInput || !table) return;
+        if (!searchInput) return;
 
-        const filterValue = searchInput.value.trim();
+        this.applySearch(searchInput.value.trim());
+        this.dispatchSearchChange(searchInput.value.trim());
+    }
+
+    applySearch(filterValue) {
+        const table = this.getFormsTable();
+        if (!table) return;
+
         if (filterValue === '') {
             table.clearFilter();
             return;
@@ -171,6 +177,16 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         table.setFilter([filters]);
     }
 
+    dispatchSearchChange(value) {
+        this.dispatchEvent(
+            new CustomEvent('forms-search-change', {
+                detail: {value},
+                bubbles: true,
+                composed: true,
+            }),
+        );
+    }
+
     handleResetSearch() {
         const searchInput = this.getSearchbar();
         const table = this.getFormsTable();
@@ -178,6 +194,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
         searchInput.value = '';
         table.clearFilter();
+        this.dispatchSearchChange('');
         searchInput.focus();
     }
 

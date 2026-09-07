@@ -1,12 +1,13 @@
 import {assert} from 'chai';
 
 import '../src/dbp-formalize.js';
-import '../src/dbp-formalize-manage-forms';
+import {ManageForms} from '../src/dbp-formalize-manage-forms';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 
 customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
+customElements.define('test-manage-forms', class extends ManageForms {});
 customElements.define(
     'test-manage-form-submissions-page',
     class extends ManageFormSubmissionsPage {},
@@ -419,12 +420,16 @@ suite('manage forms action menus', () => {
             ],
         };
         const filters = [];
+        const searchValues = [];
         let clearCount = 0;
         page.getFormsTable = () => ({
             setFilter: (filter) => filters.push(filter),
             clearFilter: () => clearCount++,
         });
         document.body.appendChild(page);
+        page.addEventListener('forms-search-change', (event) => {
+            searchValues.push(event.detail.value);
+        });
         await page.updateComplete;
 
         const searchInput = page.getSearchbar();
@@ -443,8 +448,172 @@ suite('manage forms action menus', () => {
         page.shadowRoot.querySelector('.reset-search').click();
         assert.equal(searchInput.value, '');
         assert.equal(clearCount, 1);
+        assert.deepEqual(searchValues, ['Job offer', '']);
 
         page.remove();
+    });
+
+    test('should put all submission filters into the routing URL', () => {
+        const host = document.createElement('test-manage-forms');
+        const searchInput = document.createElement('input');
+        const searchColumn = document.createElement('select');
+        const searchOperator = document.createElement('select');
+        searchColumn.add(new Option('All', 'all'));
+        searchColumn.add(new Option('Name', 'name'));
+        searchOperator.add(new Option('Like', 'like'));
+        searchOperator.add(new Option('Starts', 'starts'));
+        searchInput.value = 'Alice';
+        searchColumn.value = 'name';
+        searchOperator.value = 'starts';
+
+        host.routingUrl = '/job-offer?submitted-search=Existing';
+        host.getRoutingData = () => ({
+            pathname: '/job-offer',
+            queryParams: new URLSearchParams('submitted-search=Existing'),
+            hash: '',
+        });
+        host.getSubmissionsPage = () => ({
+            getSearchbar: () => searchInput,
+            getSearchSelect: () => searchColumn,
+            getSearchOperator: () => searchOperator,
+        });
+        host.submissionTables.draft = {
+            clearFilter: () => {},
+            setFilter: () => {},
+            getColumnsFields: () => ['name'],
+            tabulatorTable: {
+                deselectRow: () => {},
+                getRows: () => [],
+            },
+        };
+        let routingUrl = '';
+        host.sendSetPropertyEvent = (name, value) => {
+            if (name === 'routing-url') routingUrl = value;
+        };
+
+        host.filterTable('draft');
+
+        const url = new URL(routingUrl, 'https://example.com');
+        assert.equal(url.searchParams.get('draft-search'), 'Alice');
+        assert.equal(url.searchParams.get('draft-search-column'), 'name');
+        assert.equal(url.searchParams.get('draft-search-operator'), 'starts');
+        assert.equal(url.searchParams.get('submitted-search'), 'Existing');
+    });
+
+    test('should put form and submission pagination into the routing URL', () => {
+        const host = document.createElement('test-manage-forms');
+        host.routingUrl = '/';
+        host.getRoutingData = () => ({
+            pathname: '/',
+            queryParams: new URLSearchParams(),
+            hash: '',
+        });
+        host.formsTable = {identifier: 'forms-table'};
+        host._urlStateReadyTables.add('forms-table');
+        let routingUrl = '';
+        host.sendSetPropertyEvent = (name, value) => {
+            if (name === 'routing-url') routingUrl = value;
+        };
+
+        host.handleTablePaginationPageLoaded({
+            detail: {tableId: 'forms-table', page: 3, pageSize: 3, paginationSize: 20},
+        });
+
+        const url = new URL(routingUrl, 'https://example.com');
+        assert.equal(url.searchParams.get('forms-page'), '3');
+        assert.equal(url.searchParams.get('forms-page-size'), '20');
+
+        host.submissionTables.draft = {
+            identifier: 'submissions-table-draft',
+            tabulatorTable: {getRows: () => []},
+        };
+        host._urlStateReadyTables.add('submissions-table-draft');
+        host.handleTablePaginationPageLoaded({
+            detail: {
+                tableId: 'submissions-table-draft',
+                page: 2,
+                pageSize: 2,
+                paginationSize: 10,
+            },
+        });
+
+        const submissionUrl = new URL(routingUrl, 'https://example.com');
+        assert.equal(submissionUrl.searchParams.get('draft-page'), '2');
+        assert.equal(submissionUrl.searchParams.get('draft-page-size'), '10');
+    });
+
+    test('should restore submission filters and pagination from the routing URL', async () => {
+        const host = document.createElement('test-manage-forms');
+        const searchInput = document.createElement('input');
+        const searchColumn = document.createElement('select');
+        const searchOperator = document.createElement('select');
+        searchColumn.add(new Option('All', 'all'));
+        searchColumn.add(new Option('Name', 'name'));
+        searchOperator.add(new Option('Like', 'like'));
+        searchOperator.add(new Option('Starts', 'starts'));
+        host.getRoutingData = () => ({
+            queryParams: new URLSearchParams(
+                'draft-search=Alice&draft-search-column=name&draft-search-operator=starts&draft-page=2&draft-page-size=10',
+            ),
+        });
+        host.getSubmissionsPage = () => ({
+            getSearchbar: () => searchInput,
+            getSearchSelect: () => searchColumn,
+            getSearchOperator: () => searchOperator,
+        });
+        const calls = [];
+        host.submissionTables.draft = {
+            identifier: 'submissions-table-draft',
+            paginationSize: 5,
+            setFilter: (filters) => calls.push(['filter', filters]),
+            getColumnsFields: () => ['name'],
+            tabulatorTable: {
+                deselectRow: () => {},
+                getRows: () => [],
+                setPageSize: (size) => Promise.resolve(calls.push(['page-size', size])),
+                setPage: (page) => Promise.resolve(calls.push(['page', page])),
+            },
+        };
+
+        await host.restoreSubmissionTableState('draft');
+
+        assert.equal(searchInput.value, 'Alice');
+        assert.equal(searchColumn.value, 'name');
+        assert.equal(searchOperator.value, 'starts');
+        assert.deepInclude(calls, ['page-size', 10]);
+        assert.deepInclude(calls, ['page', 2]);
+        assert.isTrue(host._urlStateReadyTables.has('submissions-table-draft'));
+    });
+
+    test('should restore form pagination after table data has loaded', async () => {
+        const host = document.createElement('test-manage-forms');
+        let resolveData;
+        const dataLoaded = new Promise((resolve) => {
+            resolveData = resolve;
+        });
+        const calls = [];
+        host.allForms = [{id: 1}];
+        host.formsTable = {
+            identifier: 'forms-table',
+            tableReady: true,
+            tableBuilding: false,
+            setData: () => dataLoaded,
+        };
+        host.refreshTableReferences = () => {};
+        host.restoreFormsTableState = () => {
+            calls.push('restore');
+        };
+        host._urlStateReadyTables.add('forms-table');
+
+        host.showFormsOverview();
+        assert.deepEqual(calls, []);
+        assert.isFalse(host._urlStateReadyTables.has('forms-table'));
+
+        resolveData();
+        await dataLoaded;
+        await Promise.resolve();
+
+        assert.deepEqual(calls, ['restore']);
     });
 
     test('should not provide a permission action for submissions', async () => {
