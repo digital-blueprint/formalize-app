@@ -277,7 +277,11 @@ export async function getListOfAllForms(host) {
                     // Let the router handle the history entry via sendSetPropertyEvent.
                     // A manual pushState here would create a duplicate history entry,
                     // requiring the user to press the back button twice.
-                    host.sendSetPropertyEvent('routing-url', `/${formId}`, true);
+                    host.sendSetPropertyEvent(
+                        'routing-url',
+                        host.getRoutingUrlWithQueryPrefixes(`/${formId}`, ['forms-']),
+                        true,
+                    );
                 });
                 actionContainer.appendChild(btn);
 

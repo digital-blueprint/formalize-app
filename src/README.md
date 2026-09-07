@@ -59,7 +59,7 @@ Each submission list has independent query parameters. Replace `<state>` with `d
 | `<state>-page`            | Current page; page 1 is omitted                                   |
 | `<state>-page-size`       | Number of rows per page; the default 5 is omitted                 |
 
-Changing a filter or pagination control updates the URL. Loading such a URL, reloading the page, or navigating with browser history restores the represented state after the table data has loaded. Changing a filter resets that table to page 1.
+Changing a filter or pagination control updates the URL. Loading such a URL, reloading the page, or navigating with browser history restores the represented state after the table data has loaded. Changing a filter resets that table to page 1. The `forms-*` parameters remain in the URL while viewing a form's submissions or editing the form, so returning to the overview restores the previous search and page.
 
 #### Slots
 

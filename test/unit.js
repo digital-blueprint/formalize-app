@@ -57,6 +57,25 @@ suite('dbp-formalize-manage-forms basics', () => {
         assert.equal(dialog.existingForm.formId, 'job-offer');
     });
 
+    test('should preserve form-list parameters when returning to the overview', () => {
+        const calls = [];
+        node.getRoutingData = () => ({
+            pathname: '/job-offer',
+            pathSegments: ['job-offer'],
+            queryParams: new URLSearchParams(
+                'forms-search=cont&forms-page=2&draft-search=application',
+            ),
+        });
+        node.clearAllFilters = () => {};
+        node.closeAllSearchWidgets = () => {};
+        node.showFormsOverview = () => {};
+        node.sendSetPropertyEvent = (...args) => calls.push(args);
+
+        node.handleBackToOverview();
+
+        assert.deepEqual(calls, [['routing-url', '/?forms-search=cont&forms-page=2', true]]);
+    });
+
     test('should open an edit URL instead of the submissions page', () => {
         const calls = [];
         const form = {formId: 'job-offer'};

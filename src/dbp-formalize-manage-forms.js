@@ -1310,6 +1310,20 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    getRoutingUrlWithQueryPrefixes(pathname, prefixes) {
+        const retainedQueryParams = new URLSearchParams();
+        const queryParams = this.getRoutingData().queryParams ?? new URLSearchParams();
+
+        for (const [name, value] of queryParams) {
+            if (prefixes.some((prefix) => name.startsWith(prefix))) {
+                retainedQueryParams.append(name, value);
+            }
+        }
+
+        const queryString = retainedQueryParams.toString();
+        return `${pathname}${queryString ? `?${queryString}` : ''}`;
+    }
+
     syncFormsFilterToUrl(value) {
         this.updateRoutingQuery({'forms-search': value, 'forms-page': null});
     }
@@ -2083,7 +2097,11 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             localizedNames: formEntry.localizedNames || [],
         };
         if (updateRoutingUrl) {
-            this.sendSetPropertyEvent('routing-url', `/${formId}/edit`, true);
+            this.sendSetPropertyEvent(
+                'routing-url',
+                this.getRoutingUrlWithQueryPrefixes(`/${formId}/edit`, ['forms-']),
+                true,
+            );
         }
         dialog.open();
     }
@@ -2097,7 +2115,11 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
         const {pathSegments} = this.getRoutingData();
         if (pathSegments[0] && pathSegments[1] === 'edit') {
-            this.sendSetPropertyEvent('routing-url', '/', true);
+            this.sendSetPropertyEvent(
+                'routing-url',
+                this.getRoutingUrlWithQueryPrefixes('/', ['forms-']),
+                true,
+            );
         }
     }
 
@@ -2320,7 +2342,11 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         // Direct links to a form view skip the initial overview table build.
         this.showFormsOverview();
 
-        this.sendSetPropertyEvent('routing-url', '/', true);
+        this.sendSetPropertyEvent(
+            'routing-url',
+            this.getRoutingUrlWithQueryPrefixes('/', ['forms-']),
+            true,
+        );
     }
 
     // -----------------------------------------------------------------------
