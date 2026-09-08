@@ -8,13 +8,7 @@
  */
 
 import {sendNotification} from '@dbp-toolkit/common';
-import {
-    getFormRenderUrl,
-    SUBMISSION_STATES_BINARY,
-    FORM_PERMISSIONS,
-    addDetailsToUrl,
-} from './utils.js';
-import metadata from './dbp-formalize-manage-forms.metadata.json';
+import {getFormRenderUrl, SUBMISSION_STATES_BINARY, FORM_PERMISSIONS} from './utils.js';
 import xss from 'xss';
 
 // ---------------------------------------------------------------------------
@@ -554,7 +548,7 @@ export async function getAllFormSubmissions(host, formId) {
                 const routingData = host.getRoutingData();
                 const routeFormId = routingData.pathSegments[0];
                 if (routeFormId.match(/[0-9a-f-]+/)) {
-                    addDetailsToUrl(submissionId, metadata['routing_name']);
+                    host.setSubmissionDetailsRoute(submissionId);
                     host.requestDetailedSubmission(state, cols, id);
                 }
             });

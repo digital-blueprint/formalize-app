@@ -561,6 +561,28 @@ suite('manage forms action menus', () => {
         assert.equal(submissionUrl.searchParams.get('draft-page-size'), '10');
     });
 
+    test('should put submission details into the activity routing URL', () => {
+        const host = document.createElement('test-manage-forms');
+        const formId = '11111111-1111-1111-1111-111111111111';
+        const submissionId = '22222222-2222-2222-2222-222222222222';
+        host.activeFormId = formId;
+        host.getRoutingData = () => ({
+            pathSegments: [formId],
+            queryParams: new URLSearchParams('submitted-page=2'),
+            hash: '',
+        });
+        let routingUrl = '';
+        host.sendSetPropertyEvent = (name, value) => {
+            if (name === 'routing-url') routingUrl = value;
+        };
+
+        host.setSubmissionDetailsRoute(submissionId);
+        assert.equal(routingUrl, `/${formId}/details/${submissionId}?submitted-page=2`);
+
+        host.setSubmissionDetailsRoute();
+        assert.equal(routingUrl, `/${formId}?submitted-page=2`);
+    });
+
     test('should restore submission filters and pagination from the routing URL', async () => {
         const host = document.createElement('test-manage-forms');
         const searchInput = document.createElement('input');

@@ -22,11 +22,8 @@ import {
     FORM_PERMISSIONS,
     isDraftStateEnabled,
     isSubmittedStateEnabled,
-    addDetailsToUrl,
-    removeDetailsFromUrl,
 } from './utils.js';
 import {getSelectorFixCSS, getFileHandlingCss, getTagsCSS, getManageFormsCSS} from './styles.js';
-import metadata from './dbp-formalize-manage-forms.metadata.json';
 import xss from 'xss';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
@@ -1123,8 +1120,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             }
         }
 
-        // Append /details/submissionId to the URL
-        addDetailsToUrl(next_data.submissionId, metadata['routing_name']);
+        this.setSubmissionDetailsRoute(next_data.submissionId);
 
         this.requestDetailedSubmission(state, next_data, positionToShow);
     }
@@ -2272,6 +2268,22 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     // Navigation / routing helpers
     // -----------------------------------------------------------------------
 
+    setSubmissionDetailsRoute(submissionId = null) {
+        const {pathSegments, queryParams, hash} = this.getRoutingData();
+        const formId = this.activeFormId || pathSegments[0];
+        if (!formId) return;
+
+        const pathname = submissionId
+            ? `/${formId}/details/${encodeURIComponent(submissionId)}`
+            : `/${formId}`;
+        const queryString = queryParams?.toString() ?? '';
+        const routingUrl = `${pathname}${queryString ? `?${queryString}` : ''}${hash ?? ''}`;
+
+        if (routingUrl !== this.routingUrl) {
+            this.sendSetPropertyEvent('routing-url', routingUrl, true);
+        }
+    }
+
     showFormsOverview() {
         this.refreshTableReferences();
         if (this.formsTable) {
@@ -2402,7 +2414,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     handleSubmissionModalClose() {
-        removeDetailsFromUrl();
+        this.setSubmissionDetailsRoute();
     }
 
     handleSubmissionModalPrevious(event) {
