@@ -925,6 +925,61 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedItemCount = event.detail?.count ?? 0;
     }
 
+    /** @returns {CustomTabulatorTable | null} */
+    getItemTable() {
+        return /** @type {CustomTabulatorTable | null} */ (
+            this.renderRoot?.querySelector('#manage-fields-item-table') ?? null
+        );
+    }
+
+    /** @returns {HTMLInputElement | null} */
+    getItemSearchbar() {
+        return /** @type {HTMLInputElement | null} */ (
+            this.renderRoot?.querySelector('#manage-fields-item-searchbar') ?? null
+        );
+    }
+
+    handleItemSearch(event) {
+        event?.preventDefault();
+
+        const searchInput = this.getItemSearchbar();
+        if (!searchInput) return;
+
+        this.applyItemSearch(searchInput.value.trim());
+    }
+
+    handleItemSearchInput(event) {
+        const target = /** @type {HTMLInputElement | null} */ (event.target);
+        if (!target) return;
+        this.applyItemSearch(target.value.trim());
+    }
+
+    applyItemSearch(filterValue) {
+        const table = this.getItemTable();
+        if (!table) return;
+
+        if (filterValue === '') {
+            table.clearFilter();
+            return;
+        }
+
+        const filters = this.getInitialItemColumns()
+            .filter((column) => column.field && column.visible !== false)
+            .map((column) => ({field: column.field, type: 'like', value: filterValue}));
+
+        table.setFilter([filters]);
+    }
+
+    handleResetItemSearch() {
+        const searchInput = this.getItemSearchbar();
+        const table = this.getItemTable();
+        if (!searchInput || !table) return;
+
+        searchInput.value = '';
+        table.clearFilter();
+        searchInput.focus();
+    }
+
     async syncTabulatorTable(selector, options) {
         const table = this.renderRoot?.querySelector(selector);
         if (!table) {
@@ -1035,6 +1090,46 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                     align="left"
                                     allow-expand
                                     .options=${this.getItemActionOptions()}></dbp-select>
+                                <form
+                                    class="search-input items-search search-field"
+                                    @submit=${this.handleItemSearch}>
+                                    <label
+                                        for="manage-fields-item-searchbar"
+                                        class="label visually-hidden">
+                                        ${i18n.t('manage-fields.search-input-label')}:
+                                    </label>
+                                    <div class="control search-control">
+                                        <input
+                                            type="text"
+                                            id="manage-fields-item-searchbar"
+                                            class="input searchbar"
+                                            placeholder="${i18n.t(
+                                                'manage-fields.searchbar-placeholder',
+                                            )}"
+                                            aria-label="${i18n.t(
+                                                'manage-fields.search-input-label',
+                                            )}"
+                                            @input=${this.handleItemSearchInput} />
+                                        <span class="search-icon" aria-hidden="true">
+                                            <dbp-icon name="search"></dbp-icon>
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        class="button search-button"
+                                        title="${i18n.t('manage-fields.search-button')}"
+                                        aria-label="${i18n.t('manage-fields.search-button')}"
+                                        style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+                                        <dbp-icon name="search" aria-hidden="true"></dbp-icon>
+                                    </button>
+                                </form>
+                                <button
+                                    type="button"
+                                    class="reset-search"
+                                    @click=${this.handleResetItemSearch}>
+                                    <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
+                                    ${i18n.t('manage-fields.reset-search-label')}
+                                </button>
                             </div>
                             <dbp-tabulator-table
                                 lang="${this.lang}"
@@ -1354,10 +1449,122 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 width: 100%;
             }
 
+            .forms-table-actions,
             .items-action-header {
                 display: flex;
-                justify-content: flex-start;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 0.5rem;
             }
+
+            .forms-search,
+            .items-search {
+                flex: 1;
+                min-width: 12rem;
+            }
+
+            .forms-search label,
+            .items-search label {
+                clip: rect(0 0 0 0);
+                clip-path: inset(50%);
+                height: 1px;
+                overflow: hidden;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+
+            .reset-search {
+                cursor: pointer;
+                background: none;
+                border: 0 none;
+                padding: 5px;
+                transform: translateX(5px);
+            }
+
+            .reset-search:disabled {
+                cursor: not-allowed;
+            }
+
+            .reset-search dbp-icon {
+                transition: transform 250ms ease-in;
+            }
+
+            .reset-search:hover:not(:disabled) dbp-icon {
+                transform: rotate(360deg);
+            }
+
+            @media (max-width: 530px) {
+                .forms-table-actions,
+                .items-action-header {
+                    align-items: stretch;
+                    flex-wrap: wrap;
+                }
+
+                .forms-search,
+                .items-search {
+                    flex-basis: 100%;
+                }
+            }
+
+            .create-form-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+
+            .create-form-btn-icon {
+                flex-shrink: 0;
+                top: 0;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            /* 1:1 aus dbp-bulletin-view-job-offers.js:1522-1552 – overlay icon statt separatem button */
+            .search-field {
+                margin-bottom: 0;
+            }
+
+            .search-control {
+                position: relative;
+                flex: 1;
+            }
+
+            .search-control .input {
+                padding-right: 2.5rem;
+                width: 100%;
+            }
+
+            .search-control .input.searchbar {
+                /* überschreibt .searchbar aus styles.js (border-right:0) für job-offers look */
+                border: 1px solid var(--dbp-content);
+                border-right: 1px solid var(--dbp-content);
+                padding: 0 2.5rem 0 0.5em;
+                height: 32px;
+                box-sizing: border-box;
+            }
+
+            .search-icon {
+                position: absolute;
+                right: 0.75rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--dbp-muted);
+                pointer-events: none;
+            }
+
+            .visually-hidden {
+                clip: rect(0 0 0 0);
+                clip-path: inset(50%);
+                height: 1px;
+                overflow: hidden;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+        }
 
             .empty-state {
                 color: var(--dbp-muted);
