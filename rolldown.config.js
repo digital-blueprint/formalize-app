@@ -4,7 +4,6 @@ import {globSync} from 'node:fs';
 import serve from 'rollup-plugin-serve';
 import license from 'rollup-plugin-license';
 import emitEJS from 'rollup-plugin-emit-ejs';
-import {getBabelOutputPlugin} from '@rollup/plugin-babel';
 import {
     getPackagePath,
     getBuildInfo,
@@ -22,7 +21,7 @@ const appEnv = typeof process.env.APP_ENV !== 'undefined' ? process.env.APP_ENV 
 const watch = process.env.ROLLUP_WATCH === 'true';
 const buildFull = (!watch && appEnv !== 'test') || process.env.FORCE_FULL !== undefined;
 let doMinify = buildFull;
-let useBabel = buildFull;
+let transform = buildFull;
 let checkLicenses = buildFull;
 let treeshake = buildFull;
 
@@ -137,6 +136,9 @@ let input = [
 export default (async () => {
     let privatePath = await getDistPath(pkg.name);
     return {
+        transform: {
+            target: transform ? ['chrome106', 'firefox110', 'safari16'] : 'esnext',
+        },
         input:
             appEnv != 'test'
                 ? !whitelabel
@@ -347,22 +349,6 @@ export default (async () => {
                         {src: 'assets/*.metadata.json', dest: 'dist'},
                     ],
                 })),
-            useBabel &&
-                getBabelOutputPlugin({
-                    compact: false,
-                    presets: [
-                        [
-                            '@babel/preset-env',
-                            {
-                                modules: false,
-                                shippedProposals: true,
-                                targets: {
-                                    esmodules: true,
-                                },
-                            },
-                        ],
-                    ],
-                }),
             watch
                 ? serve({
                       contentBase: '.',
