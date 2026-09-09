@@ -326,7 +326,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 modal-id="edit-form-dialog"
                 lang="${this.lang}"
                 sticky-footer
-                style="--dbp-modal-min-width: min(95vw, 740px); --dbp-modal-max-width: min(95vw, 740px); --dbp-modal-max-height: 90vh; --dbp-modal-content-overflow-y: auto;">
+                class="modal-width">
                 <!-- Title -->
                 <div slot="title">
                     <h3 class="dialog-title">
@@ -442,6 +442,12 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
             ${commonStyles.getButtonCSS()}
             ${getSelectorFixCSS()}
 
+            .modal-width {
+                --dbp-modal-min-width: min(95vw, 700px);
+                --dbp-modal-max-width: min(95vw, 700px);
+                --dbp-modal-max-height: 90vh;
+                --dbp-modal-content-overflow-y: auto;
+            }
             /* Match the color of the modal's own close button (--dbp-accent) */
             .title-icon {
                 color: var(--dbp-accent);
@@ -534,6 +540,15 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
             /* Edit-form component area */
             .form-component-area {
                 margin-top: 1rem;
+            }
+
+            @media (max-width: 560px) {
+                .modal-width {
+                    --dbp-modal-min-width: unset;
+                    --dbp-modal-max-width: unset;
+                    --dbp-modal-max-height: 90vh;
+                    --dbp-modal-content-overflow-y: auto;
+                }
             }
         `;
     }

@@ -1170,11 +1170,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 id="manage-fields-edit-modal"
                 modal-id="manage-fields-edit-modal"
                 subscribe="lang"
+                class="modal-width"
                 sticky-footer
                 @dbp-modal-closed=${() => {
                     if (this.mode === 'edit') this.cancelEdit();
-                }}
-                style="--dbp-modal-min-width: min(95vw, 900px); --dbp-modal-max-width: min(95vw, 900px); --dbp-modal-max-height: 90vh; --dbp-modal-content-overflow-y: auto;">
+                }}>
                 <div slot="title">
                     <h2 class="edit-title">${i18n.t(titleKey, {name: titleName, itemName})}</h2>
                 </div>
@@ -1564,6 +1564,13 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 white-space: nowrap;
                 width: 1px;
             }
+
+            .modal-width {
+                --dbp-modal-min-width: min(95vw, 900px);
+                --dbp-modal-max-width: min(95vw, 900px);
+                --dbp-modal-max-height: 90vh;
+                --dbp-modal-content-overflow-y: auto;
+            }
         }
 
             .empty-state {
@@ -1587,6 +1594,15 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
                 .active-form-header .form-name {
                     margin-bottom: 0.5em;
+                }
+            }
+
+            @media (max-width: 560px) {
+                .modal-width {
+                    --dbp-modal-min-width: unset;
+                    --dbp-modal-max-width: unset;
+                    --dbp-modal-max-height: 90vh;
+                    --dbp-modal-content-overflow-y: auto;
                 }
             }
         `;
