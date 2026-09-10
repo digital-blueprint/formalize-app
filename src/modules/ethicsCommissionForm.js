@@ -5913,7 +5913,7 @@ class FormalizeFormElement extends BaseFormElement {
                 class="file-source"
                 lang="${this.lang}"
                 allowed-mime-types='application/pdf'
-                max-file-size="50000"
+                max-file-size="10000"
                 enabled-targets="local,clipboard,nextcloud"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
 
