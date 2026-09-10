@@ -338,14 +338,18 @@ suite('manage forms action menus', () => {
         });
     });
 
-    test('should only show inline edit for forms with update or manage grants', async () => {
+    test('should only show forms with grants relevant to form management', async () => {
         const originalFetch = window.fetch;
         const moduleInstance = {
             getFormFrontendKey: () => 'job-offer',
             getUrlSlug: () => 'job-offer',
             getEditFormComponent: () => document.createElement('div'),
         };
-        const makeHost = (grantedActions) => ({
+        const makeHost = (
+            grantedActions,
+            grantedFormActions,
+            grantedSubmissionCollectionActions,
+        ) => ({
             _i18n: {t: (key) => key},
             entryPointUrl: 'https://example.com',
             auth: {token: 'token'},
@@ -360,6 +364,8 @@ suite('manage forms action menus', () => {
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
             apiGrantedActions: grantedActions,
+            apiGrantedFormActions: grantedFormActions,
+            apiGrantedSubmissionCollectionActions: grantedSubmissionCollectionActions,
         });
         window.fetch = () =>
             Promise.resolve({
@@ -373,6 +379,9 @@ suite('manage forms action menus', () => {
                                 name: 'Job offer',
                                 localizedNames: [],
                                 grantedActions: currentHost.apiGrantedActions,
+                                grantedFormActions: currentHost.apiGrantedFormActions,
+                                grantedSubmissionCollectionActions:
+                                    currentHost.apiGrantedSubmissionCollectionActions,
                             },
                         ],
                     }),
@@ -380,12 +389,22 @@ suite('manage forms action menus', () => {
         let currentHost;
 
         try {
-            currentHost = makeHost(['read']);
+            currentHost = makeHost(['read'], ['read'], []);
             await getListOfAllForms(currentHost);
+            assert.isEmpty(currentHost.allForms);
+
+            currentHost = makeHost(
+                ['read', 'create_submissions'],
+                ['read'],
+                ['create_submissions'],
+            );
+            await getListOfAllForms(currentHost);
+            assert.lengthOf(currentHost.allForms, 1);
             assert.equal(currentHost.allForms[0].actionButton.children.length, 1);
 
-            currentHost = makeHost(['update']);
+            currentHost = makeHost(['update'], ['update'], []);
             await getListOfAllForms(currentHost);
+            assert.lengthOf(currentHost.allForms, 1);
             assert.equal(currentHost.allForms[0].actionButton.children.length, 2);
         } finally {
             window.fetch = originalFetch;

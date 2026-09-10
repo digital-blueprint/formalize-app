@@ -201,6 +201,18 @@ export async function getListOfAllForms(host) {
                     continue;
                 }
 
+                const grantedFormActions = entry['grantedFormActions'] ?? [];
+                const grantedSubmissionCollectionActions =
+                    entry['grantedSubmissionCollectionActions'] ?? [];
+                const hasNonReadFormGrant = grantedFormActions.some(
+                    (action) => action !== FORM_PERMISSIONS.READ,
+                );
+                // Show forms that can be managed directly or through their submissions;
+                // a form-level read grant alone is not relevant to this management activity.
+                if (grantedSubmissionCollectionActions.length === 0 && !hasNonReadFormGrant) {
+                    continue;
+                }
+
                 // Skip forms whose identifier does not match any locally loaded
                 // module from modules.json.  This ensures that a whitelabel build
                 // (which ships a reduced modules.json) does not display forms it
