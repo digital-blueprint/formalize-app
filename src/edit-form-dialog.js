@@ -365,7 +365,9 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                                               aria-hidden="true"></dbp-icon>
                                       `
                             }
-                            ${isEdit ? t('edit-form.save') : t('create-form.create')}
+                            <span class="button-label">
+                                ${isEdit ? t('edit-form.save') : t('create-form.create')}
+                            </span>
                         </button>
                     </div>
 

@@ -395,7 +395,9 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                                 }}"
                                 ?disabled=${!this.isPrevEnabled}>
                                 <dbp-icon name="chevron-left" aria-hidden="true"></dbp-icon>
-                                ${i18n.t('manage-forms.previous-entry-btn-title')}
+                                <span class="button-label">
+                                    ${i18n.t('manage-forms.previous-entry-btn-title')}
+                                </span>
                             </dbp-button>
                             <div class="page-numbering">
                                 ${i18n.t('manage-forms.detailed-submission-dialog-id', {
@@ -417,7 +419,9 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                                     );
                                 }}"
                                 ?disabled=${!this.isNextEnabled}>
-                                ${i18n.t('manage-forms.next-entry-btn-title')}
+                                <span class="button-label">
+                                    ${i18n.t('manage-forms.next-entry-btn-title')}
+                                </span>
                                 <dbp-icon name="chevron-right" aria-hidden="true"></dbp-icon>
                             </dbp-button>
                         </div>

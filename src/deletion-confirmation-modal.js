@@ -186,7 +186,7 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
                         no-spinner-on-click
                         @click="${() => this._handleCancel()}">
                         <dbp-icon name="close" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('manage-forms.abort')}
+                        <span class="button-label">${i18n.t('manage-forms.abort')}</span>
                     </dbp-button>
                     <dbp-button
                         type="is-danger"
@@ -194,7 +194,7 @@ export class DeletionConfirmationModal extends ScopedElementsMixin(DBPLitElement
                         @click="${() => this._handleConfirm()}">
                         <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
 
-                        ${i18n.t('manage-forms.delete')}
+                        <span class="button-label">${i18n.t('manage-forms.delete')}</span>
                     </dbp-button>
                 </menu>
             </dbp-modal>

@@ -1194,7 +1194,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 this.renderRoot?.querySelector('#manage-fields-edit-modal')
                             )?.close()}>
                         <dbp-icon name="close" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('manage-fields.cancel')}
+                        <span class="button-label">${i18n.t('manage-fields.cancel')}</span>
                     </dbp-button>
                     <dbp-button
                         type="is-primary"
@@ -1202,7 +1202,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         no-spinner-on-click
                         @click=${() => this.saveItem()}>
                         <dbp-icon name="save" aria-hidden="true"></dbp-icon>
-                        ${i18n.t('manage-fields.save-item')}
+                        <span class="button-label">${i18n.t('manage-fields.save-item')}</span>
                     </dbp-button>
                 </div>
             </dbp-modal>
