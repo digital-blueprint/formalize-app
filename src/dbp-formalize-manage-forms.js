@@ -605,6 +605,12 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return `formalize-${scope}-${userId}`;
     }
 
+    getPaginationSizeStorageKey() {
+        const userId = this.auth?.['user-id'];
+        if (!this.storeSession || !this.isLoggedIn() || !userId) return '';
+        return `formalize-manage-forms-${userId}`;
+    }
+
     rebuildFormsTable() {
         this.refreshTableReferences();
         if (!this.formsTable) return;
@@ -1350,7 +1356,10 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const {queryParams} = this.getRoutingData();
         const searchValue = queryParams.get('forms-search') ?? '';
         const page = this.getUrlPaginationValue(queryParams.get('forms-page'), 1);
-        const requestedPageSize = this.getUrlPaginationValue(queryParams.get('forms-page-size'), 5);
+        const requestedPageSize = this.getUrlPaginationValue(
+            queryParams.get('forms-page-size'),
+            table.paginationSize,
+        );
         const pageSize = PAGINATION_SIZES.includes(requestedPageSize) ? requestedPageSize : 5;
 
         this._restoringUrlStateTables.add(table.identifier);
@@ -1380,7 +1389,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const page = this.getUrlPaginationValue(queryParams.get(`${state}-page`), 1);
         const requestedPageSize = this.getUrlPaginationValue(
             queryParams.get(`${state}-page-size`),
-            5,
+            table.paginationSize,
         );
         const pageSize = PAGINATION_SIZES.includes(requestedPageSize) ? requestedPageSize : 5;
 
@@ -2517,6 +2526,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .showFormsTable=${this.showFormsTable}
                     .showSubmissionTables=${this.showSubmissionTables}
                     .optionsForms=${this.options_forms}
+                    .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                     .noFormsAvailable=${this.noFormsAvailable}
                     .creatableModulesCount=${this.creatableModulesCount}
                     .enableFormsBulkDelete=${this.enableFormsBulkDelete}
@@ -2538,6 +2548,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .showSubmissionTables=${this.showSubmissionTables}
                     .loadingSubmissionTables=${this.loadingSubmissionTables}
                     .activeFormName=${this.activeFormName}
+                    .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                     .columnConfigurationStorageKeys=${Object.fromEntries(
                         Object.values(SUBMISSION_STATES).map((state) => [
                             state,

@@ -2,6 +2,7 @@
 
 ## Unreleased (v1.3.1)
 
+- Manage Forms and Manage Fields activities: remember the selected pagination size per user and browser; explicit Manage Forms URL pagination continues to take precedence
 - Manage Forms activity: synchronize the forms overview search and pagination and both submission-list filters and pagination with `routing-url`; URL state is restored after loading table data and supports browser history and shareable links
 - Manage Forms activity: add mount-independent submission detail URLs that open the submission popup from shareable links and return to the form URL when closed
 - Prepare for update to formalize API v0.5.36 where `create_submissions` permission is moved from submission collection

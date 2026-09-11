@@ -18,6 +18,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.showFormsTable = false;
         this.showSubmissionTables = false;
         this.optionsForms = {};
+        this.paginationSizeStorageKey = '';
         this.noFormsAvailable = false;
         // Number of modules that implement createForm(); the button is only shown when > 0
         this.creatableModulesCount = 0;
@@ -48,6 +49,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             showFormsTable: {type: Boolean, attribute: false},
             showSubmissionTables: {type: Boolean, attribute: false},
             optionsForms: {type: Object, attribute: false},
+            paginationSizeStorageKey: {type: String, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
             creatableModulesCount: {type: Number, attribute: false},
             enableFormsBulkDelete: {type: Boolean, attribute: false},
@@ -307,6 +309,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     identifier="forms-table"
                     pagination-enabled
                     pagination-size="5"
+                    .paginationSizeStorageKey=${this.paginationSizeStorageKey}
                     .options=${this.optionsForms}></dbp-tabulator-table>
                 ${
                     this.noFormsAvailable

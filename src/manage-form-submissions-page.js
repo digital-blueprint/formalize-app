@@ -20,6 +20,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.loadingSubmissionTables = false;
         this.activeFormName = '';
         this.columnConfigurationStorageKeys = {draft: '', submitted: ''};
+        this.paginationSizeStorageKey = '';
         this.createSubmissionUrl = '';
         this.hideCreateSubmissionButton = false;
         this.enabledStates = {draft: false, submitted: false};
@@ -59,6 +60,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             loadingSubmissionTables: {type: Boolean, attribute: false},
             activeFormName: {type: String, attribute: false},
             columnConfigurationStorageKeys: {type: Object, attribute: false},
+            paginationSizeStorageKey: {type: String, attribute: false},
             createSubmissionUrl: {type: String, attribute: false},
             hideCreateSubmissionButton: {type: Boolean, attribute: false},
             enabledStates: {type: Object, attribute: false},
@@ -648,6 +650,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                 identifier="submissions-table-${state}"
                                 .options=${this.optionsSubmissions[state]}
                                 pagination-size="5"
+                                .paginationSizeStorageKey=${this.paginationSizeStorageKey}
                                 sticky-header
                                 select-rows-enabled
                                 column-configuration-enabled

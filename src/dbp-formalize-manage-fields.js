@@ -1027,6 +1027,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return this.isLoggedIn() && userId ? `formalize-manage-fields-${scope}-${userId}` : '';
     }
 
+    getPaginationSizeStorageKey() {
+        const userId = this.auth?.['user-id'];
+        return this.isLoggedIn() && userId ? `formalize-manage-fields-${userId}` : '';
+    }
+
     renderFormOverview() {
         const i18n = this._i18n;
 
@@ -1044,6 +1049,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 identifier="manage-fields-form-table"
                 pagination-enabled
                 pagination-size="5"
+                .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                 .options=${this.getFormTableOptions()}></dbp-tabulator-table>
         `;
     }
@@ -1138,6 +1144,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                 identifier="manage-fields-item-table"
                                 pagination-enabled
                                 pagination-size="5"
+                                .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                                 select-rows-enabled
                                 column-configuration-enabled
                                 column-configuration-in-header

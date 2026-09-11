@@ -580,6 +580,17 @@ suite('manage forms action menus', () => {
         assert.equal(submissionUrl.searchParams.get('draft-page-size'), '10');
     });
 
+    test('should scope pagination size storage to the current user and activity', () => {
+        const host = document.createElement('test-manage-forms');
+        host.auth = {'user-id': 'user-1'};
+        host.isLoggedIn = () => true;
+
+        assert.equal(host.getPaginationSizeStorageKey(), 'formalize-manage-forms-user-1');
+
+        host.auth = {'user-id': 'user-2'};
+        assert.equal(host.getPaginationSizeStorageKey(), 'formalize-manage-forms-user-2');
+    });
+
     test('should put submission details into the activity routing URL', () => {
         const host = document.createElement('test-manage-forms');
         const formId = '11111111-1111-1111-1111-111111111111';
@@ -643,6 +654,39 @@ suite('manage forms action menus', () => {
         assert.deepInclude(calls, ['page-size', 10]);
         assert.deepInclude(calls, ['page', 2]);
         assert.isTrue(host._urlStateReadyTables.has('submissions-table-draft'));
+    });
+
+    test('should keep the stored page size when the routing URL has no page size', async () => {
+        const host = document.createElement('test-manage-forms');
+        const searchInput = document.createElement('input');
+        const searchColumn = document.createElement('select');
+        const searchOperator = document.createElement('select');
+        searchColumn.add(new Option('All', 'all'));
+        searchOperator.add(new Option('Like', 'like'));
+        host.getRoutingData = () => ({queryParams: new URLSearchParams()});
+        host.getSubmissionsPage = () => ({
+            getSearchbar: () => searchInput,
+            getSearchSelect: () => searchColumn,
+            getSearchOperator: () => searchOperator,
+        });
+        const calls = [];
+        host.submissionTables.draft = {
+            identifier: 'submissions-table-draft',
+            paginationSize: 20,
+            clearFilter: () => {},
+            setFilter: () => {},
+            getColumnsFields: () => [],
+            tabulatorTable: {
+                deselectRow: () => {},
+                getRows: () => [],
+                setPageSize: (size) => Promise.resolve(calls.push(['page-size', size])),
+                setPage: () => Promise.resolve(),
+            },
+        };
+
+        await host.restoreSubmissionTableState('draft');
+
+        assert.deepInclude(calls, ['page-size', 20]);
     });
 
     test('should restore form pagination after table data has loaded', async () => {
