@@ -1152,7 +1152,12 @@ export function getFormHeaderCSS() {
             gap: 1em;
             align-items: center;
         }
-
+        .action-dropdown {
+            --dbp-select-border-color: var(--dbp-content);
+            --dbp-select-chevron-color: var(--dbp-content);
+            --dbp-select-placeholder-color: var(--dbp-content);
+            --dbp-select-placeholder-font-weight: var(--dbp-content);
+        }
         .form-validity-indicator {
             display: flex;
             align-items: center;

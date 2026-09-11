@@ -626,6 +626,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                             ? html`
                                   <dbp-select
                                       id="action-dropdown"
+                                      class="action-dropdown"
                                       label="${i18n.t(
                                           'render-form.forms.base-object.actions-dropdown-label',
                                       )}"
