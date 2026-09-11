@@ -738,6 +738,13 @@ export function getManageFormsCSS() {
             width: 100%;
         }
 
+        .export-dropdown {
+            --dbp-select-border-color: var(--dbp-content);
+            --dbp-select-chevron-color: var(--dbp-content);
+            --dbp-select-placeholder-color: var(--dbp-content);
+            --dbp-select-placeholder-font-weight: var(--dbp-content);
+        }
+
         /* TABLE BUTTON HEADER END */
 
         .modal-container {

@@ -281,6 +281,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             <div class="export-container">
                 <dbp-select
                     id="export-dropdown--${state}"
+                    class="export-dropdown"
                     @change="${(event) => {
                         this.handleAction('export', state, {event: event});
                     }}"
