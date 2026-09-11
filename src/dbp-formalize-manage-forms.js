@@ -543,7 +543,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             layout: 'fitColumns',
             columns: [
                 {field: 'id', width: 40, sorter: 'number'},
-                {field: 'name', sorter: 'string'},
+                {field: 'name', sorter: 'string', widthGrow: 4},
                 // Hidden helper columns carrying data needed for bulk deletion.
                 {field: 'formId', visible: false},
                 {field: 'grantedActions', visible: false},
@@ -552,7 +552,8 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     field: 'actionButton',
                     formatter: 'html',
                     hozAlign: 'right',
-                    minWidth: 64,
+                    widthShrink: 1,
+                    minWidth: 88,
                     headerSort: false,
                 },
             ],
