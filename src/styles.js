@@ -436,6 +436,13 @@ export function getManageFormsCSS() {
             width: 100%;
         }
 
+        .action-dropdown-state {
+            --dbp-select-border-color: var(--dbp-content);
+            --dbp-select-chevron-color: var(--dbp-content);
+            --dbp-select-placeholder-color: var(--dbp-content);
+            --dbp-select-placeholder-font-weight: var(--dbp-content);
+        }
+
         /* search bar */
 
         .search-input {

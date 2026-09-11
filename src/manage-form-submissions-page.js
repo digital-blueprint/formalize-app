@@ -382,6 +382,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             <div class="actions-container" id="actions-container--${state}">
                 <dbp-select
                     id="action-dropdown--${state}"
+                    class="action-dropdown-state"
                     ?disabled=${!this.isActionAvailable[state]}
                     @change="${(event) => this.handleActionsDropdownChange(event, state)}"
                     label="${i18n.t('manage-forms.actions-button-text')}"
