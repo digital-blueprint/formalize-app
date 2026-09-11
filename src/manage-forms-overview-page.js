@@ -99,6 +99,13 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     margin-bottom: 0.5rem;
                 }
 
+                .forms-table-actions-select {
+                    --dbp-select-border-color: var(--dbp-content);
+                    --dbp-select-chevron-color: var(--dbp-content);
+                    --dbp-select-placeholder-color: var(--dbp-content);
+                    --dbp-select-placeholder-font-weight: var(--dbp-content);
+                }
+
                 .forms-search {
                     flex: 1;
                     min-width: 12rem;
@@ -276,6 +283,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                                 !this.isEditSelectedFormPermissionEnabled)
                         }
                         @change=${this._onFormAction}
+                        id="forms-table-actions-select"
+                        class="forms-table-actions-select"
                         label="${i18n.t('manage-forms.actions-button-text')}"
                         align="left"
                         allow-expand
