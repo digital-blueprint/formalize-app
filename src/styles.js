@@ -1908,5 +1908,9 @@ export function getMediaTransparencyFormCSS() {
             justify-content: flex-end;
             animation: fadeIn 0.25s ease-in-out forwards;
         }
+
+        code {
+            overflow-wrap: anywhere;
+        }
     `;
 }
