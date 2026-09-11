@@ -19,6 +19,7 @@
 - Centralized conditional field handling and tag management
 - Translation keys: Moved common UI to `base-object.*` namespace
 - Manage Forms activity: added `allow-list-frontend-keys` and `deny-list-frontend-keys` attributes to filter visible forms by `frontendKey`; a single key can match multiple forms, so a group of related forms can be shown or hidden at once; attributes accept comma-separated values in HTML and are parsed to arrays internally
+- Manage Forms activity: use module schema labels when persisted submission schemas lack `localizedName`, support localized attachment column names, and translate the submission ID column
 
 ## v1.3.0
 

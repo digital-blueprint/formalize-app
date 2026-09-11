@@ -61,6 +61,7 @@ export function setSubmissionFormOptions(host, state) {
         definitions.forEach((columnDefinition) => {
             if (columnDefinition.field === 'submissionId') {
                 columnDefinition.visible = false;
+                columnDefinition.title = host._i18n.t('manage-forms.submission-id');
             }
             if (columnDefinition.field === 'dateCreated') {
                 columnDefinition.visible = true;
@@ -172,7 +173,25 @@ export function enablePagination(host, state) {
 function getFormSchema(activeForm) {
     if (!activeForm.dataFeedSchema) return null;
     try {
-        return JSON.parse(activeForm.dataFeedSchema);
+        const schema = JSON.parse(activeForm.dataFeedSchema);
+        const fallbackSchemaValue = activeForm.moduleInstance?.getDataFeedSchema?.();
+        if (!fallbackSchemaValue) {
+            return schema;
+        }
+
+        const fallbackSchema =
+            typeof fallbackSchemaValue === 'string'
+                ? JSON.parse(fallbackSchemaValue)
+                : fallbackSchemaValue;
+        for (const [field, definition] of Object.entries(schema.properties ?? {})) {
+            definition.localizedName ??=
+                fallbackSchema.properties?.[field]?.localizedName ??
+                fallbackSchema.files?.[field]?.localizedName;
+        }
+        for (const [field, definition] of Object.entries(schema.files ?? {})) {
+            definition.localizedName ??= fallbackSchema.files?.[field]?.localizedName;
+        }
+        return schema;
     } catch (e) {
         console.log('Failed parsing json data', e);
         return null;
@@ -274,13 +293,15 @@ function getSchemaFields(
  * @param {object} formSchemaFields
  * @returns {Array}
  */
-function getAttachmentFields(formSchemaFields) {
+function getAttachmentFields(host, formSchemaFields) {
     const attachmentFields = [];
     if (formSchemaFields?.files && typeof formSchemaFields.files === 'object') {
         Object.keys(formSchemaFields.files).forEach((attachmentType) => {
             attachmentFields.push({
                 field: `form_files-${attachmentType}`,
-                title: attachmentType,
+                title:
+                    formSchemaFields.files[attachmentType]?.localizedName?.[host.lang] ||
+                    attachmentType,
                 visible: true,
             });
         });
@@ -339,7 +360,7 @@ export function setDefaultSubmissionTableOrder(host, state) {
         state,
         hasTagsColumn,
     );
-    const attachmentFields = getAttachmentFields(formSchemaFields);
+    const attachmentFields = getAttachmentFields(host, formSchemaFields);
     const systemFields = getSystemFields(initialColumnDefinitions, formSchemaFields);
 
     // Ensure rowIndex is included

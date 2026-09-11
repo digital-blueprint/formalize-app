@@ -583,6 +583,7 @@ export async function getAllFormSubmissions(host, formId) {
             definitions.forEach((columnDefinition) => {
                 if (columnDefinition.field === 'submissionId') {
                     columnDefinition.visible = true;
+                    columnDefinition.title = host._i18n.t('manage-forms.submission-id');
                 }
                 if (columnDefinition.field === 'dateCreated') {
                     columnDefinition.visible = true;

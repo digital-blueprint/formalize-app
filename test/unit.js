@@ -5,6 +5,10 @@ import {ManageForms} from '../src/dbp-formalize-manage-forms';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
+import {
+    setDefaultSubmissionTableOrder,
+    setSubmissionFormOptions,
+} from '../src/manage-forms-table-config.js';
 
 customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
 customElements.define('test-manage-forms', class extends ManageForms {});
@@ -12,6 +16,80 @@ customElements.define(
     'test-manage-form-submissions-page',
     class extends ManageFormSubmissionsPage {},
 );
+
+suite('manage forms table configuration', () => {
+    test('should use module schema labels when persisted labels are missing', () => {
+        const definitions = [
+            {field: 'dateCreated', title: 'Date created'},
+            {field: 'givenName', title: 'givenName'},
+            {field: 'attachments', title: 'attachments'},
+            {field: 'submissionId', title: 'submissionId'},
+        ];
+        const host = {
+            activeFormId: 'job-offer',
+            availableTags: [],
+            forms: new Map([
+                [
+                    'job-offer',
+                    {
+                        dataFeedSchema: JSON.stringify({
+                            properties: {givenName: {}, attachments: {}},
+                            files: {attachments: {}},
+                        }),
+                        moduleInstance: {
+                            getDataFeedSchema: () => ({
+                                properties: {
+                                    givenName: {
+                                        localizedName: {de: 'Vorname', en: 'First name'},
+                                    },
+                                },
+                                files: {
+                                    attachments: {
+                                        localizedName: {de: 'Anhänge', en: 'Attachments'},
+                                    },
+                                },
+                            }),
+                        },
+                    },
+                ],
+            ]),
+            lang: 'en',
+            submissionTables: {
+                submitted: {
+                    getColumns: () =>
+                        definitions.map((definition) => ({
+                            getDefinition: () => definition,
+                        })),
+                },
+            },
+            submissionsColumnsInitial: {},
+        };
+
+        setDefaultSubmissionTableOrder(host, 'submitted');
+
+        const columns = host.submissionsColumnsInitial.submitted;
+        assert.equal(columns.find(({field}) => field === 'givenName').title, 'First name');
+        assert.equal(columns.find(({field}) => field === 'attachments').title, 'Attachments');
+        assert.equal(
+            columns.find(({field}) => field === 'form_files-attachments').title,
+            'Attachments',
+        );
+    });
+
+    test('should localize the submission identifier column', () => {
+        const host = {
+            lang: 'de',
+            _i18n: {t: (key) => ({'manage-forms.submission-id': 'Einreichungs-ID'})[key]},
+            options_submissions: {},
+        };
+        setSubmissionFormOptions(host, 'submitted');
+        const definitions = [{field: 'submissionId', title: 'submissionId'}];
+
+        host.options_submissions.submitted.autoColumnsDefinitions(definitions);
+
+        assert.equal(definitions[0].title, 'Einreichungs-ID');
+    });
+});
 
 suite('dbp-formalize-manage-forms basics', () => {
     let node;
