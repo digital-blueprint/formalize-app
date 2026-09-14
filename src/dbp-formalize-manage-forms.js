@@ -544,7 +544,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             langs: langs_forms,
             layout: 'fitColumns',
             columns: [
-                {field: 'id', width: 45, sorter: 'number'},
+                {field: 'id', width: 50, sorter: 'number'},
                 {field: 'name', sorter: 'string', widthGrow: 4},
                 // Hidden helper columns carrying data needed for bulk deletion.
                 {field: 'formId', visible: false},
