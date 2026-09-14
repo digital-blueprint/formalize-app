@@ -268,7 +268,6 @@ export async function getListOfAllForms(host) {
                 });
 
                 // Build the action button container (view submissions + optional edit button).
-                const formEntry = host.forms.get(formId);
                 const grantedActions = entry['grantedActions'] ?? [];
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =
@@ -290,28 +289,6 @@ export async function getListOfAllForms(host) {
                     );
                 });
                 actionContainer.appendChild(btn);
-
-                // Show an edit button only for forms whose module implements getEditFormComponent().
-                if (
-                    formEntry.moduleInstance &&
-                    typeof formEntry.moduleInstance.getEditFormComponent === 'function' &&
-                    (grantedActions.includes(FORM_PERMISSIONS.UPDATE) ||
-                        grantedActions.includes(FORM_PERMISSIONS.MANAGE))
-                ) {
-                    const editBtn = host.createScopedElement('dbp-icon-button');
-                    editBtn.setAttribute('subscribe', 'lang');
-                    editBtn.setAttribute('icon-name', 'pencil');
-                    editBtn.title = i18n.t('manage-forms.edit-form-button', {formName});
-                    editBtn.setAttribute(
-                        'aria-label',
-                        i18n.t('manage-forms.edit-form-button', {formName}),
-                    );
-                    editBtn.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                        host.handleOpenEditFormDialog(formId);
-                    });
-                    actionContainer.appendChild(editBtn);
-                }
 
                 // Store the granted actions for this form so the overview can gate bulk deletion.
                 if (host.formsGrantedActions instanceof Map) {

@@ -111,7 +111,6 @@
         "detailed-submission-dialog-id": "{{id}} von {{nItems}}",
         "detailed-submission-dialog-title": "Detailansicht",
         "edit-button-text": "Bearbeiten",
-        "edit-form-button": "Formular {{formName}} bearbeiten",
         "edit-permission-button-text": "Berechtigung bearbeiten",
         "edit-permission-modal-title": "Berechtigung bearbeiten",
         "edit-submission-button-text": "Einreichung bearbeiten",
