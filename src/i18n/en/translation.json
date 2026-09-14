@@ -110,6 +110,7 @@
         "delete-selected-submissions-button-text": "Delete selected ({{n}})",
         "detailed-submission-dialog-id": "{{id}} of {{nItems}}",
         "detailed-submission-dialog-title": "Detailed view",
+        "edit-button-text": "Edit",
         "edit-form-button": "Edit {{formName}} form",
         "edit-permission-button-text": "Edit permissions",
         "edit-permission-modal-title": "Edit permissions",

@@ -162,6 +162,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.selectedFormsCount = 0;
         // Whether deleting the selected forms is allowed (all selected forms grant delete/manage).
         this.isDeleteSelectedFormsEnabled = false;
+        this.isEditSelectedFormEnabled = false;
         this.isEditSelectedFormPermissionEnabled = false;
         this.submissions = {
             draft: [],
@@ -340,6 +341,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             selectedFormsCount: {type: Number, attribute: false},
             isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
+            isEditSelectedFormEnabled: {type: Boolean, attribute: false},
             isEditSelectedFormPermissionEnabled: {type: Boolean, attribute: false},
 
             selectedRowCount: {type: Object, attribute: false},
@@ -1646,6 +1648,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!this.formsTable?.tabulatorTable) {
             this.selectedFormsCount = 0;
             this.isDeleteSelectedFormsEnabled = false;
+            this.isEditSelectedFormEnabled = false;
             this.isEditSelectedFormPermissionEnabled = false;
             return;
         }
@@ -1655,6 +1658,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (selectedRows.length === 0) {
             this.isDeleteSelectedFormsEnabled = false;
+            this.isEditSelectedFormEnabled = false;
             this.isEditSelectedFormPermissionEnabled = false;
             return;
         }
@@ -1669,6 +1673,20 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 return (
                     grants.includes(FORM_PERMISSIONS.DELETE) ||
                     grants.includes(FORM_PERMISSIONS.MANAGE)
+                );
+            });
+        // The row edit button is available only for one editable form at a time.
+        this.isEditSelectedFormEnabled =
+            selectedRows.length === 1 &&
+            selectedRows.every((row) => {
+                const form = row.getData();
+                const formEntry = this.forms.get(form.formId);
+                const grants =
+                    this.formsGrantedActions.get(form.formId) ?? form.grantedActions ?? [];
+                return (
+                    typeof formEntry?.moduleInstance?.getEditFormComponent === 'function' &&
+                    (grants.includes(FORM_PERMISSIONS.UPDATE) ||
+                        grants.includes(FORM_PERMISSIONS.MANAGE))
                 );
             });
 
@@ -1689,6 +1707,12 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         if (action === 'delete' && this.isDeleteSelectedFormsEnabled) {
             void this.handleDeleteForms();
+        } else if (
+            action === 'edit' &&
+            this.isEditSelectedFormEnabled &&
+            selectedFormIds.length === 1
+        ) {
+            this.handleOpenEditFormDialog(selectedFormIds[0]);
         } else if (
             action === 'edit-permission' &&
             this.isEditSelectedFormPermissionEnabled &&
@@ -2532,6 +2556,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     .enableFormsBulkDelete=${this.enableFormsBulkDelete}
                     .selectedFormsCount=${this.selectedFormsCount}
                     .isDeleteSelectedFormsEnabled=${this.isDeleteSelectedFormsEnabled}
+                    .isEditSelectedFormEnabled=${this.isEditSelectedFormEnabled}
                     .isEditSelectedFormPermissionEnabled=${this.isEditSelectedFormPermissionEnabled}
                     @forms-search-change=${(event) => this.syncFormsFilterToUrl(event.detail.value)}
                     @create-form-request=${() => this.handleOpenCreateFormDialog()}

@@ -29,6 +29,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         // Whether the selected forms may be deleted (all of them grant delete/manage).
         this.isDeleteSelectedFormsEnabled = false;
         this.isEditSelectedFormPermissionEnabled = false;
+        this.isEditSelectedFormEnabled = false;
     }
 
     static get scopedElements() {
@@ -56,6 +57,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             selectedFormsCount: {type: Number, attribute: false},
             isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
             isEditSelectedFormPermissionEnabled: {type: Boolean, attribute: false},
+            isEditSelectedFormEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -246,6 +248,12 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                   ]
                 : []),
             {
+                value: 'edit',
+                disabled: !this.isEditSelectedFormEnabled,
+                label: i18n.t('manage-forms.edit-button-text'),
+                iconName: 'pencil',
+            },
+            {
                 value: 'edit-permission',
                 disabled: !this.isEditSelectedFormPermissionEnabled,
                 label: i18n.t('manage-forms.edit-permission-button-text'),
@@ -280,6 +288,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         ?disabled=${
                             this.selectedFormsCount === 0 ||
                             (!this.isDeleteSelectedFormsEnabled &&
+                                !this.isEditSelectedFormEnabled &&
                                 !this.isEditSelectedFormPermissionEnabled)
                         }
                         @change=${this._onFormAction}
