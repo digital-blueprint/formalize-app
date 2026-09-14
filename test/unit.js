@@ -208,9 +208,11 @@ suite('dbp-formalize-manage-forms basics', () => {
         const form = {formId: 'job-offer', grantedActions: ['read']};
         const actionHost = {
             enableFormsBulkDelete: true,
+            forms: new Map([['job-offer', {moduleInstance: {getEditFormComponent: () => {}}}]]),
             formsGrantedActions: new Map(),
             selectedFormsCount: 0,
             isDeleteSelectedFormsEnabled: true,
+            isEditSelectedFormEnabled: true,
             isEditSelectedFormPermissionEnabled: true,
             formsTable: {
                 tabulatorTable: {
@@ -222,6 +224,7 @@ suite('dbp-formalize-manage-forms basics', () => {
         node.setFormsActionButtonsState.call(actionHost);
 
         assert.isFalse(actionHost.isDeleteSelectedFormsEnabled);
+        assert.isFalse(actionHost.isEditSelectedFormEnabled);
         assert.isFalse(actionHost.isEditSelectedFormPermissionEnabled);
     });
 
@@ -276,9 +279,11 @@ suite('dbp-formalize-manage-forms basics', () => {
         const form = {formId: 'job-offer', grantedActions: ['manage']};
         const actionHost = {
             enableFormsBulkDelete: false,
+            forms: new Map([['job-offer', {moduleInstance: {getEditFormComponent: () => {}}}]]),
             formsGrantedActions: new Map(),
             selectedFormsCount: 0,
             isDeleteSelectedFormsEnabled: true,
+            isEditSelectedFormEnabled: false,
             isEditSelectedFormPermissionEnabled: false,
             formsTable: {
                 tabulatorTable: {
@@ -290,6 +295,7 @@ suite('dbp-formalize-manage-forms basics', () => {
         node.setFormsActionButtonsState.call(actionHost);
 
         assert.isFalse(actionHost.isDeleteSelectedFormsEnabled);
+        assert.isTrue(actionHost.isEditSelectedFormEnabled);
         assert.isTrue(actionHost.isEditSelectedFormPermissionEnabled);
     });
 
@@ -489,7 +495,7 @@ suite('manage forms action menus', () => {
         }
     });
 
-    test('should provide delete and permission actions for forms', async () => {
+    test('should provide delete, edit, and permission actions for forms', async () => {
         const page = document.createElement('test-manage-forms-overview-page');
         page.enableFormsBulkDelete = true;
         page.selectedFormsCount = 1;
@@ -498,7 +504,7 @@ suite('manage forms action menus', () => {
 
         const select = page.shadowRoot.querySelector('dbp-select');
         const actions = select.options.map(({value}) => value);
-        assert.deepEqual(actions, ['delete', 'edit-permission']);
+        assert.deepEqual(actions, ['delete', 'edit', 'edit-permission']);
         assert.isTrue(select.hasAttribute('disabled'));
 
         page.isEditSelectedFormPermissionEnabled = true;
@@ -518,7 +524,7 @@ suite('manage forms action menus', () => {
         const select = page.shadowRoot.querySelector('dbp-select');
         assert.deepEqual(
             select.options.map(({value}) => value),
-            ['edit-permission'],
+            ['edit', 'edit-permission'],
         );
         assert.isFalse(select.hasAttribute('disabled'));
 
