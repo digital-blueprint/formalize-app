@@ -555,7 +555,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     formatter: 'html',
                     hozAlign: 'right',
                     widthShrink: 1,
-                    minWidth: 88,
+                    minWidth: 44,
                     headerSort: false,
                 },
             ],
