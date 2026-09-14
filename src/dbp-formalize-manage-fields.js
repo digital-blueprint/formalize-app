@@ -807,7 +807,8 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 field: 'title',
                 title: i18n.t('manage-fields.item'),
                 sorter: 'string',
-                minWidth: 220,
+                minWidth: 150,
+                widthGrow: 1,
                 visible: true,
                 frozen: false,
             },
@@ -815,7 +816,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 field: 'dateCreated',
                 title: i18n.t('manage-fields.date-created'),
                 sorter: 'string',
-                minWidth: 180,
+                width: 180,
+                widthGrow: 0,
+                widthShrink: 0,
                 visible: true,
                 frozen: false,
             },
@@ -828,7 +831,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             headerSort: false,
             hozAlign: 'right',
             headerHozAlign: 'right',
-            minWidth: 120,
+            width: 100,
+            widthGrow: 0,
+            widthShrink: 0,
             formatter: (cell) => this.createItemActions(cell.getRow().getData().item),
         };
     }
@@ -871,6 +876,9 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 resizable: false,
                 frozen: true,
                 width: 40,
+                minWidth: 40,
+                widthGrow: 0,
+                widthShrink: 0,
                 headerHozAlign: 'center',
                 hozAlign: 'center',
             },
@@ -1455,6 +1463,12 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .tabulator-table {
                 width: 100%;
+            }
+
+            #manage-fields-item-table {
+                display: block;
+                max-width: 100%;
+                min-width: 0;
             }
 
             .forms-table-actions,
