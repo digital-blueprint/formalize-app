@@ -1450,6 +1450,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 flex-wrap: wrap;
                 gap: 0.75rem;
                 justify-content: flex-end;
+                padding: 1em 0;
             }
 
             .tabulator-table {
@@ -1582,12 +1583,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .empty-state {
                 color: var(--dbp-muted);
-            }
-
-            @media (max-width: 640px) {
-                .edit-actions {
-                    flex-direction: column;
-                }
             }
 
             @media only screen and (orientation: portrait) and (max-width: 768px) {
