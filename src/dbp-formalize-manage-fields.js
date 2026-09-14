@@ -787,13 +787,15 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             },
             placeholder: i18n.t('manage-fields.no-form'),
             columns: [
-                {field: 'name', sorter: 'string', minWidth: 220},
+                {field: 'name', sorter: 'string', minWidth: 150, widthGrow: 1},
                 {
                     field: 'actions',
                     headerSort: false,
                     hozAlign: 'right',
                     formatter: (cell) => this.createFormActions(cell.getRow().getData().entry),
-                    minWidth: 120,
+                    width: 100,
+                    widthGrow: 0,
+                    widthShrink: 0,
                 },
             ],
         };
@@ -1465,6 +1467,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 width: 100%;
             }
 
+            #manage-fields-form-table,
             #manage-fields-item-table {
                 display: block;
                 max-width: 100%;
