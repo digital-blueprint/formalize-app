@@ -304,6 +304,18 @@ export function getManageFormsCSS() {
             white-space: nowrap;
         }
 
+        .element-left::selection {
+            background: var(--dbp-background);
+            color: var(--dbp-content);
+            text-shadow: none;
+        }
+
+        .element-left::-moz-selection {
+            background: red;
+            color: #EEE;
+            text-shadow: none;
+        }
+
         .element-right {
             text-align: left;
             margin-left: 12px;
