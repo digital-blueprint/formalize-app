@@ -1524,7 +1524,16 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 .items-action-header {
                     align-items: stretch;
                     flex-wrap: wrap;
+                    justify-content: space-between;
                 }
+
+                .items-action-header dbp-select {
+                    order: 1;
+                }
+
+                .items-action-header .reset-search {
+                    order: 2;
+                 }
 
                 .forms-search,
                 .items-search {
