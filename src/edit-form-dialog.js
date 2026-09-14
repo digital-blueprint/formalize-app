@@ -329,13 +329,13 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 class="modal-width">
                 <!-- Title -->
                 <div slot="title">
-                    <h3 class="dialog-title">
+                    <h2 class="dialog-title">
                         <dbp-icon
                             class="title-icon"
                             name="${isEdit ? 'pencil' : 'add-job'}"
                             aria-hidden="true"></dbp-icon>
                         ${isEdit ? t('edit-form.dialog-title') : t('create-form.dialog-title')}
-                    </h3>
+                    </h2>
                 </div>
 
                 <!-- Header content stays pinned above the scrollable modal content. -->
@@ -453,17 +453,16 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
             /* Match the color of the modal's own close button (--dbp-accent) */
             .title-icon {
                 color: var(--dbp-accent);
-                top: 0;
+                top: 5px;
             }
 
             /* Dialog title layout */
             .dialog-title {
                 display: inline-flex;
-                align-items: center;
+                align-items: start;
                 gap: 0.4rem;
                 margin: 0;
                 font-size: 1.4rem;
-                font-weight: 700;
             }
 
             /* Action bar: Cancel on the left, Save on the right */
