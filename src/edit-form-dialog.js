@@ -470,6 +470,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                padding-bottom: 1em;
             }
 
             .cancel-btn,
