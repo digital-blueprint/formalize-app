@@ -312,7 +312,7 @@ export function getManageFormsCSS() {
 
         .element-left::-moz-selection {
             background: red;
-            color: #EEE;
+            color: #eee;
             text-shadow: none;
         }
 

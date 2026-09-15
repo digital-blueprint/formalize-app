@@ -1391,6 +1391,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             .active-form-header .button {
                 display: inline-flex;
                 width: auto;
+                gap: 0.25rem;
             }
 
             .active-form-top-bar {
