@@ -267,7 +267,7 @@ export async function getListOfAllForms(host) {
                     localizedNames,
                 });
 
-                // Build the action button container (view submissions + optional edit button).
+                // Build the view-submissions action button container.
                 const grantedActions = entry['grantedActions'] ?? [];
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =

@@ -489,7 +489,7 @@ suite('manage forms action menus', () => {
             currentHost = makeHost(['update'], ['update'], []);
             await getListOfAllForms(currentHost);
             assert.lengthOf(currentHost.allForms, 1);
-            assert.equal(currentHost.allForms[0].actionButton.children.length, 2);
+            assert.equal(currentHost.allForms[0].actionButton.children.length, 1);
         } finally {
             window.fetch = originalFetch;
         }
