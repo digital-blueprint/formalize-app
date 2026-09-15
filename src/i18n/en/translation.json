@@ -113,6 +113,7 @@
         "edit-permission-button-text": "Edit permissions",
         "edit-permission-modal-title": "Edit permissions",
         "edit-submission-button-text": "Edit submission",
+        "employer": "Employer",
         "export-attachments-label": "Attachments ({{n}})",
         "export-csv-label": "Table in CSV ({{n}})",
         "export-pdf-label": "Table in PDF ({{n}})",

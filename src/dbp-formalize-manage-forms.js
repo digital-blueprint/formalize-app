@@ -524,18 +524,23 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     updateFormsTableOptions() {
         const i18n = this._i18n;
+        const showEmployerColumn =
+            this.allowListFrontendKeys?.length === 1 &&
+            this.allowListFrontendKeys[0] === 'job-offer';
 
         let langs_forms = {
             en: {
                 columns: {
                     id: i18n.t('manage-forms.id', {lng: 'en'}),
                     name: i18n.t('manage-forms.name', {lng: 'en'}),
+                    employer: i18n.t('manage-forms.employer', {lng: 'en'}),
                 },
             },
             de: {
                 columns: {
                     id: i18n.t('manage-forms.id', {lng: 'de'}),
                     name: i18n.t('manage-forms.name', {lng: 'de'}),
+                    employer: i18n.t('manage-forms.employer', {lng: 'de'}),
                 },
             },
         };
@@ -545,7 +550,10 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             layout: 'fitColumns',
             columns: [
                 {field: 'id', width: 50, sorter: 'number'},
-                {field: 'name', sorter: 'string', widthGrow: 4},
+                {field: 'name', sorter: 'string', widthGrow: showEmployerColumn ? 2 : 4},
+                ...(showEmployerColumn
+                    ? [{field: 'employer', sorter: 'string', widthGrow: 2}]
+                    : []),
                 // Hidden helper columns carrying data needed for bulk deletion.
                 {field: 'formId', visible: false},
                 {field: 'grantedActions', visible: false},
@@ -849,6 +857,15 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             const denyChanged =
                 changedProperties.has('denyListFrontendKeys') &&
                 JSON.stringify(oldDeny) !== JSON.stringify(this.denyListFrontendKeys);
+
+            if (
+                allowChanged &&
+                !changedProperties.has('lang') &&
+                !changedProperties.has('langDir')
+            ) {
+                this.updateFormsTableOptions();
+                this.rebuildFormsTable();
+            }
 
             if ((allowChanged || denyChanged) && this.isLoggedIn()) {
                 console.log(

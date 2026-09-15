@@ -295,9 +295,17 @@ export async function getListOfAllForms(host) {
                     host.formsGrantedActions.set(formId, grantedActions);
                 }
 
+                const employer =
+                    frontendKey === 'job-offer'
+                        ? additionalData?.jobOfferType === 'external'
+                            ? additionalData?.companyName || ''
+                            : 'TU Graz'
+                        : '';
+
                 let new_form = {
                     id: id,
                     name: formName,
+                    employer: employer,
                     formId: formId,
                     dateCreated: dateCreated,
                     grantedActions: grantedActions,
@@ -312,9 +320,16 @@ export async function getListOfAllForms(host) {
             // prevents the Lit reactive cycle from re-triggering
             // updated('allForms'), which would rebuild/reset the tabulator
             // tables, show a loading spinner, and disrupt the user.
-            const prevIds = (host.allForms || []).map((f) => f.name).join('\0');
-            const nextIds = forms.map((f) => f.name).join('\0');
-            if (prevIds === nextIds && host.allForms.length > 0) {
+            const prevRows = (host.allForms || []).map(({formId, name, employer}) => [
+                formId,
+                name,
+                employer,
+            ]);
+            const nextRows = forms.map(({formId, name, employer}) => [formId, name, employer]);
+            if (
+                JSON.stringify(prevRows) === JSON.stringify(nextRows) &&
+                (host.allForms || []).length > 0
+            ) {
                 // Forms unchanged — just make sure the loading spinner is hidden.
                 host.loadingFormsTable = false;
                 return;

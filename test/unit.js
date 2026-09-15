@@ -18,6 +18,33 @@ customElements.define(
 );
 
 suite('manage forms table configuration', () => {
+    test('should only show the employer column for job-offer-only activities', () => {
+        const node = document.createElement('test-manage-forms');
+
+        node.allowListFrontendKeys = [];
+        node.updateFormsTableOptions();
+        assert.notInclude(
+            node.options_forms.columns.map(({field}) => field),
+            'employer',
+        );
+        assert.equal(node.options_forms.columns.find(({field}) => field === 'name').widthGrow, 4);
+
+        node.allowListFrontendKeys = ['job-offer'];
+        node.updateFormsTableOptions();
+        assert.include(
+            node.options_forms.columns.map(({field}) => field),
+            'employer',
+        );
+        assert.equal(node.options_forms.columns.find(({field}) => field === 'name').widthGrow, 2);
+
+        node.allowListFrontendKeys = ['job-offer', 'other-form'];
+        node.updateFormsTableOptions();
+        assert.notInclude(
+            node.options_forms.columns.map(({field}) => field),
+            'employer',
+        );
+    });
+
     test('should use module schema labels when persisted labels are missing', () => {
         const definitions = [
             {field: 'dateCreated', title: 'Date created'},
@@ -490,6 +517,69 @@ suite('manage forms action menus', () => {
             await getListOfAllForms(currentHost);
             assert.lengthOf(currentHost.allForms, 1);
             assert.equal(currentHost.allForms[0].actionButton.children.length, 1);
+        } finally {
+            window.fetch = originalFetch;
+        }
+    });
+
+    test('should add employers to job-offer rows and refresh changed employers', async () => {
+        const originalFetch = window.fetch;
+        let companyName = 'Example Company';
+        const makeEntry = (identifier, frontendKey, additionalData) => ({
+            identifier,
+            frontendKey,
+            name: identifier,
+            localizedNames: [],
+            grantedActions: ['read'],
+            grantedFormActions: ['update'],
+            grantedSubmissionCollectionActions: [],
+            additionalData,
+        });
+        const host = {
+            _i18n: {t: (key) => key},
+            entryPointUrl: 'https://example.com',
+            auth: {token: 'token'},
+            allForms: [],
+            allowListFrontendKeys: [],
+            denyListFrontendKeys: [],
+            loadedModules: new Map(),
+            forms: new Map(),
+            formsGrantedActions: new Map(),
+            options_forms: {},
+            lang: 'en',
+            createScopedElement: () => document.createElement('button'),
+            sendSetPropertyEvent: () => {},
+        };
+
+        window.fetch = () =>
+            Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        'hydra:member': [
+                            makeEntry('external', 'job-offer', {
+                                jobOfferType: 'external',
+                                companyName,
+                            }),
+                            makeEntry('internal', 'job-offer', {
+                                jobOfferType: 'internal',
+                                organization: 'Faculty',
+                            }),
+                            makeEntry('other', 'other-form', {companyName: 'Ignored Company'}),
+                        ],
+                    }),
+            });
+
+        try {
+            await getListOfAllForms(host);
+            assert.deepEqual(
+                host.allForms.map(({employer}) => employer),
+                ['Example Company', 'TU Graz', ''],
+            );
+
+            companyName = 'Updated Company';
+            await getListOfAllForms(host);
+            assert.equal(host.allForms[0].employer, 'Updated Company');
         } finally {
             window.fetch = originalFetch;
         }
