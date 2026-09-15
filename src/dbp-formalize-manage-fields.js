@@ -754,9 +754,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.createTableActionButton('pencil', i18n.t('manage-fields.edit-item'), () =>
                 this.editItem(item),
             ),
-            this.createTableActionButton('trash', i18n.t('manage-fields.delete-item'), () =>
-                this.deleteItem(item),
-            ),
         ]);
     }
 

@@ -58,7 +58,6 @@
         "delete-all-items": "Delete all ({{n}})",
         "delete-confirmation-message": "Are you sure you want to delete the selected item(s)?",
         "delete-confirmation-message-li2": "Deleted items will be permanently lost.",
-        "delete-item": "Delete",
         "delete-selected-items": "Delete selected ({{n}})",
         "edit-item": "Edit entry",
         "edit-item-title-with-name": "{{itemName}}",
