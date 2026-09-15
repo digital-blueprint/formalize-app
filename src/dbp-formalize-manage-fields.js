@@ -1187,7 +1187,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 id="manage-fields-edit-modal"
                 modal-id="manage-fields-edit-modal"
                 subscribe="lang"
-                class="modal-width"
+                class="modal-width manage-fields-edit-modal"
                 sticky-footer
                 @dbp-modal-closed=${() => {
                     if (this.mode === 'edit') this.cancelEdit();
@@ -1604,6 +1604,10 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 --dbp-modal-max-width: min(95vw, 900px);
                 --dbp-modal-max-height: 90vh;
                 --dbp-modal-content-overflow-y: auto;
+            }
+
+            .manage-fields-edit-modal {
+                --dbp-label-margin-bottom: 3px;
             }
         }
 
