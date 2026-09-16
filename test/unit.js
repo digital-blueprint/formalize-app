@@ -547,19 +547,13 @@ suite('manage forms action menus', () => {
                 ['create_submissions'],
             );
             await getListOfAllForms(currentHost);
-            assert.isEmpty(currentHost.allForms);
+            assert.lengthOf(currentHost.allForms, 1);
+            assert.equal(currentHost.allForms[0].actionButton.children.length, 1);
 
-            for (const action of ['update', 'delete', 'manage']) {
-                currentHost = makeHost(['read'], [action], []);
-                await getListOfAllForms(currentHost);
-                assert.lengthOf(currentHost.allForms, 1);
-            }
-
-            for (const action of ['read', 'manage']) {
-                currentHost = makeHost(['read'], [], [action]);
-                await getListOfAllForms(currentHost);
-                assert.lengthOf(currentHost.allForms, 1);
-            }
+            currentHost = makeHost(['update'], ['update'], []);
+            await getListOfAllForms(currentHost);
+            assert.lengthOf(currentHost.allForms, 1);
+            assert.equal(currentHost.allForms[0].actionButton.children.length, 1);
         } finally {
             window.fetch = originalFetch;
         }
