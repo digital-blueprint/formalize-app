@@ -22,6 +22,7 @@
         "failed-to-get-last-modifier-details": "Details zum letzten Bearbeiter konnten nicht abgerufen werden",
         "failed-to-save-draft": "Speichern des Entwurfs fehlgeschlagen",
         "feature-not-implemented": "Funktion noch nicht implementiert",
+        "file-security-validation-failed": "Eine oder mehrere Dateien wurden von der Sicherheitsprüfung abgelehnt. Entfernen oder ersetzen Sie diese und versuchen Sie es erneut.",
         "form-submission-failed": "Formular konnte nicht gesendet werden. Antwortstatus: {{status}}\n{{details}}",
         "form-validation-warning-notification-body": "Das Formular ist ungültig oder enthält fehlende Angaben. Bitte korrigieren Sie dies vor dem Absenden.",
         "forms-processing-failed_one": "{{count}} Formular konnte nicht verarbeitet werden",

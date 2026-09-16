@@ -5,6 +5,7 @@ import {ManageForms} from '../src/dbp-formalize-manage-forms';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
+import {BaseFormElement, FILE_SECURITY_VALIDATION_ERROR_ID} from '../src/form/base-object.js';
 import {
     setDefaultSubmissionTableOrder,
     setSubmissionFormOptions,
@@ -16,6 +17,42 @@ customElements.define(
     'test-manage-form-submissions-page',
     class extends ManageFormSubmissionsPage {},
 );
+customElements.define('test-base-form-element', class extends BaseFormElement {});
+
+suite('submission error handling', () => {
+    test('should show a localized message for rejected files', async () => {
+        const element = document.createElement('test-base-form-element');
+        await element._i18n.changeLanguage('en');
+        let notificationDetail;
+        const notificationHandler = (event) => {
+            notificationDetail = event.detail;
+            event.preventDefault();
+        };
+        window.addEventListener('dbp-notification-send', notificationHandler);
+
+        try {
+            await element.displayErrors({
+                status: 400,
+                json: () =>
+                    Promise.resolve({
+                        'relay:errorId': FILE_SECURITY_VALIDATION_ERROR_ID,
+                        'relay:errorDetails': [
+                            'clamav_check: Virus detected in application.pdf: test-signature',
+                        ],
+                    }),
+            });
+        } finally {
+            window.removeEventListener('dbp-notification-send', notificationHandler);
+        }
+
+        assert.equal(notificationDetail?.type, 'danger');
+        assert.equal(
+            notificationDetail?.body,
+            'One or more files were rejected by the security scan. Remove or replace them and try again.',
+        );
+        assert.notInclude(notificationDetail?.body, 'test-signature');
+    });
+});
 
 suite('manage forms table configuration', () => {
     test('should only show the employer column for job-offer-only activities', () => {

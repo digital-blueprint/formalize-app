@@ -37,6 +37,9 @@ import {
 } from '../utils.js';
 
 /** @typedef {import('lit').CSSResultGroup} CSSResultGroup */
+export const FILE_SECURITY_VALIDATION_ERROR_ID =
+    'blob:create-file-data-file-does-not-validate-against-type';
+
 /**
  * @typedef {object} FileGroup
  * @property {Map<string, File>} submittedFiles - Files already stored by the API.
@@ -1712,6 +1715,13 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
 
         if (responseBody['relay:errorId'] === 'formalize:submission-data-feed-invalid-schema') {
             this.displayValidationErrors(responseBody);
+        } else if (responseBody['relay:errorId'] === FILE_SECURITY_VALIDATION_ERROR_ID) {
+            sendNotification({
+                summary: this._i18n.t('errors.error-title'),
+                body: this._i18n.t('errors.file-security-validation-failed'),
+                type: 'danger',
+                timeout: 0,
+            });
         } else {
             sendNotification({
                 summary: this._i18n.t('errors.error-title'),
