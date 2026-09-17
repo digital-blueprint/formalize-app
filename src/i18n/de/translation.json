@@ -163,6 +163,9 @@
         "submission-table-submitted-title": "Eingereicht"
     },
     "render-form": {
+        "available-forms-description": "Wählen Sie ein Formular aus, um eine neue Einreichung zu beginnen.",
+        "available-forms-load-failed": "Die verfügbaren Formulare konnten nicht geladen werden. Bitte versuchen Sie es später erneut.",
+        "available-forms-title": "Verfügbare Formulare",
         "check-previous-submissions-warning": "Hier können Sie Ihre früheren Einreichungen überprüfen.",
         "course-select": {
             "placeholder": "Bitte wählen Sie einen Kurs aus",
@@ -189,8 +192,8 @@
         "form-already-submitted-n-times-warning": "Sie haben dieses Formular bereits {{n}} Mal abgeschickt. Sie können es nicht noch einmal abschicken",
         "form-already-submitted-warning": "Sie haben dieses Formular bereits abgeschickt!",
         "form-exit-warning-message": "Sind Sie sich sicher, dass Sie dieses Formular nicht mehr ausfüllen möchten? Nicht gespeicherte Änderungen könnten verloren gehen.",
+        "form-name": "Formular",
         "form-not-accessible": "Dieses Formular ist für Sie nicht verfügbar!",
-        "form-not-found": "Es ist kein Formular zum Ausfüllen gewählt. Bitte starten Sie den Prozess über die entsprechende Webseite.",
         "form-with-slug-not-found": "Formular mit Slug '{{slug}}' nicht gefunden!",
         "forms": {
             "accessible-courses-form": {
@@ -490,14 +493,20 @@
                 "validation-amount-in-euro-label": "Der Betrag darf maximal 2 Nachkommastellen enthalten und kein Eurozeichen."
             }
         },
+        "no-available-forms": "Derzeit stehen Ihnen keine Formulare zum Ausfüllen zur Verfügung.",
+        "open-form": "Formular öffnen",
         "person-select": {
             "placeholder": "Bitte wählen Sie eine Person aus"
         },
         "required-files-asterisk": "* ",
         "required-files-text": "kennzeichnet ein Pflichtfeld",
+        "reset-search-label": "Suche zurücksetzen",
         "room-select": {
             "placeholder": "Bitte wählen Sie einen Raum aus"
-        }
+        },
+        "search-button": "Suchen",
+        "search-input-label": "Formulare durchsuchen",
+        "search-placeholder": "Nach einem Formular suchen..."
     },
     "success": {
         "back-to-submissions-list-button-label": "Früheren Einreichungen",

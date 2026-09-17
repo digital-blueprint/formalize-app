@@ -14,5 +14,5 @@
         "de": "Ermöglicht das Ausfüllen von Formularen",
         "en": "Enables filling out forms"
     },
-    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url,nextcloud-auth-url,nextcloud-web-app-password-url,nextcloud-webdav-url,nextcloud-name,nextcloud-file-url"
+    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,nextcloud-auth-url,nextcloud-web-app-password-url,nextcloud-webdav-url,nextcloud-name,nextcloud-file-url"
 }

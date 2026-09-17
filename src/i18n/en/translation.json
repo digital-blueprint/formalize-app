@@ -163,6 +163,9 @@
         "submission-table-submitted-title": "Submitted"
     },
     "render-form": {
+        "available-forms-description": "Select a form to start a new submission.",
+        "available-forms-load-failed": "The available forms could not be loaded. Please try again later.",
+        "available-forms-title": "Available forms",
         "check-previous-submissions-warning": "You can check your previous submissions here.",
         "course-select": {
             "placeholder": "Please select a course",
@@ -189,8 +192,8 @@
         "form-already-submitted-n-times-warning": "You already submitted this form {{n}} times. You can't submit it again.",
         "form-already-submitted-warning": "You already submitted this form!",
         "form-exit-warning-message": "Are you sure you want to quit filling out this form? Any unsaved changes may get lost.",
+        "form-name": "Form",
         "form-not-accessible": "This form is not available for you!",
-        "form-not-found": "No form is selected to be filled out. Please start the process through the corresponding website.",
         "form-with-slug-not-found": "Form with slug '{{slug}}' not found!",
         "forms": {
             "accessible-courses-form": {
@@ -490,14 +493,20 @@
                 "validation-amount-in-euro-label": "The amount may contain a maximum of two decimal places and no euro sign."
             }
         },
+        "no-available-forms": "There are currently no forms available for you to fill out.",
+        "open-form": "Open form",
         "person-select": {
             "placeholder": "Please select a person"
         },
         "required-files-asterisk": "* ",
         "required-files-text": "indicates a required field",
+        "reset-search-label": "Reset search",
         "room-select": {
             "placeholder": "Please select a room"
-        }
+        },
+        "search-button": "Search",
+        "search-input-label": "Search forms",
+        "search-placeholder": "Search for a form..."
     },
     "success": {
         "back-to-submissions-list-button-label": "Previous submissions",

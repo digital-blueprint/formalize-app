@@ -1,6 +1,6 @@
 import {html, css} from 'lit';
 import {html as staticHtml, unsafeStatic} from 'lit/static-html.js';
-import {ScopedElementsMixin, sendNotification} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, sendNotification, MiniSpinner} from '@dbp-toolkit/common';
 import * as commonUtils from '@dbp-toolkit/common/utils';
 import {Icon} from '@dbp-toolkit/common';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
@@ -9,11 +9,74 @@ import {
     pascalToKebab,
     getFormRenderUrl,
     getFormManageFormsUrl,
+    FORM_PERMISSIONS,
+    SUBMISSION_COLLECTION_PERMISSIONS,
 } from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
+import {CustomTabulatorTable, GetDetailsButton} from './table-components.js';
 
 /** @typedef {import('./form/base-object.js').BaseObject} BaseObject */
+
+const parseFormListAttribute = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value !== 'string' || value.trim() === '') return [];
+
+    try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed;
+    } catch {
+        // Fall back to comma-separated attribute values.
+    }
+
+    return value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+};
+
+export function filterAvailableForms(
+    entries,
+    formIdentifiers,
+    lang,
+    allowList = [],
+    denyList = [],
+) {
+    return entries
+        .filter((entry) => {
+            const frontendKey = entry.frontendKey ?? null;
+            if (allowList.length > 0 && (!frontendKey || !allowList.includes(frontendKey))) {
+                return false;
+            }
+            if (frontendKey && denyList.includes(frontendKey)) return false;
+
+            const formActions = entry.grantedFormActions ?? [];
+            const submissionActions = entry.grantedSubmissionCollectionActions ?? [];
+            return (
+                formActions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS) ||
+                formActions.includes(FORM_PERMISSIONS.MANAGE) ||
+                submissionActions.includes(SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS) ||
+                submissionActions.includes(SUBMISSION_COLLECTION_PERMISSIONS.MANAGE)
+            );
+        })
+        .map((entry) => {
+            const slug = Object.keys(formIdentifiers).find(
+                (candidate) => formIdentifiers[candidate] === entry.identifier,
+            );
+            if (!slug) return null;
+
+            const localizedName = (entry.localizedNames ?? []).find(
+                (name) => name.languageTag === lang,
+            );
+            return {
+                identifier: entry.identifier,
+                name: localizedName?.name ?? entry.name ?? slug,
+                slug,
+            };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.name.localeCompare(b.name, lang));
+}
 
 /**
  * @augments {DBPFormalizeLitElement}
@@ -35,6 +98,12 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.submissionAllowed = false;
         this.formDisplayDenied = false;
         this.disableBeforeUnloadWarning = false;
+        this.availableForms = [];
+        this.availableFormsLoading = true;
+        this.availableFormsLoadFailed = false;
+        this.availableFormsTableOptions = this.getAvailableFormsTableOptions();
+        this.allowListFrontendKeys = [];
+        this.denyListFrontendKeys = [];
 
         this._onReceiveBeforeUnload = this.onReceiveBeforeUnload.bind(this);
         this._onDisableBeforeunloadWarning = this.onDisableBeforeunloadWarning.bind(this);
@@ -45,6 +114,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     static get scopedElements() {
         return {
             'dbp-icon': Icon,
+            'dbp-mini-spinner': MiniSpinner,
+            'dbp-tabulator-table': CustomTabulatorTable,
+            'dbp-formalize-get-details-button': GetDetailsButton,
         };
     }
 
@@ -56,6 +128,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             loadedSubmission: {type: Object, attribute: false},
             userAllSubmissions: {type: Object, attribute: false},
             formProperties: {type: Array, attribute: false},
+            availableForms: {type: Array, attribute: false},
+            availableFormsLoading: {type: Boolean, attribute: false},
+            availableFormsLoadFailed: {type: Boolean, attribute: false},
+            availableFormsTableOptions: {type: Object, attribute: false},
+            allowListFrontendKeys: {
+                type: Array,
+                attribute: 'allow-list-frontend-keys',
+                converter: {fromAttribute: parseFormListAttribute},
+            },
+            denyListFrontendKeys: {
+                type: Array,
+                attribute: 'deny-list-frontend-keys',
+                converter: {fromAttribute: parseFormListAttribute},
+            },
         };
     }
 
@@ -109,30 +195,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             this.formUrlSlug = formUrlSlug;
             console.log('updateFormUrlSlug this.formUrlSlug', this.formUrlSlug);
 
-            // Notify the app-shell whether a form slug is present in the URL
-            this._dispatchActivityEnabled(formUrlSlug !== '');
-
             // We need to check permissions, because the user has navigated to a different form
             void this.handlePermissionsForCurrentForm();
         }
-    }
-
-    /**
-     * Dispatches an event to the app-shell to toggle menu item disabled state.
-     *
-     * @param {boolean} enabled - true if a form slug is in the URL
-     */
-    _dispatchActivityEnabled(enabled) {
-        this.dispatchEvent(
-            new CustomEvent('dbp-app-shell-activity-enabled', {
-                detail: {
-                    name: 'render-form',
-                    enabled,
-                },
-                bubbles: true,
-                composed: true,
-            }),
-        );
     }
 
     async handlePermissionsForCurrentForm() {
@@ -231,6 +296,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // because we finally have a formIdentifier
             await this.handlePermissionsForCurrentForm();
 
+            await this.loadAvailableForms();
+
             // Get users all submission for this form
             await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
 
@@ -238,6 +305,157 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         } catch (error) {
             console.error('Error loading modules:', error);
         }
+    }
+
+    async loadAvailableForms() {
+        if (!this.auth?.token || this.formUrlSlug !== '') {
+            this.availableFormsLoading = false;
+            return;
+        }
+
+        this.availableFormsLoading = true;
+        this.availableFormsLoadFailed = false;
+        try {
+            const response = await fetch(`${this.entryPointUrl}/formalize/forms?perPage=9999`, {
+                headers: {
+                    'Content-Type': 'application/ld+json',
+                    Authorization: `Bearer ${this.auth.token}`,
+                },
+            });
+            if (!response.ok) throw new Error(`Failed to load forms: ${response.status}`);
+
+            const data = await response.json();
+            this.availableForms = filterAvailableForms(
+                data['hydra:member'] ?? [],
+                this.formIdentifiers,
+                this.lang,
+                this.allowListFrontendKeys,
+                this.denyListFrontendKeys,
+            ).map((form) => ({
+                ...form,
+                actionButton: this.createAvailableFormAction(form),
+            }));
+            this.availableFormsTableOptions = this.getAvailableFormsTableOptions();
+        } catch (error) {
+            console.error('Error loading available forms:', error);
+            this.availableForms = [];
+            this.availableFormsLoadFailed = true;
+        } finally {
+            this.availableFormsLoading = false;
+        }
+    }
+
+    getAvailableFormsTableOptions() {
+        return {
+            data: this.availableForms,
+            layout: 'fitColumns',
+            langs: {
+                en: {columns: {name: this._i18n.t('render-form.form-name', {lng: 'en'})}},
+                de: {columns: {name: this._i18n.t('render-form.form-name', {lng: 'de'})}},
+            },
+            columns: [
+                {
+                    field: 'name',
+                    sorter: 'string',
+                },
+                {field: 'identifier', visible: false},
+                {field: 'slug', visible: false},
+                {
+                    field: 'actionButton',
+                    formatter: 'html',
+                    hozAlign: 'right',
+                    widthShrink: 1,
+                    minWidth: 44,
+                    headerSort: false,
+                },
+            ],
+            columnDefaults: {
+                vertAlign: 'middle',
+                hozAlign: 'left',
+                resizable: false,
+            },
+            initialSort: [{column: 'name', dir: 'asc'}],
+        };
+    }
+
+    createAvailableFormAction(form) {
+        const container = document.createElement('span');
+        container.style.cssText = 'display: inline-flex; align-items: center;';
+
+        const button = this.createScopedElement('dbp-formalize-get-details-button');
+        button.setAttribute('subscribe', 'lang');
+        button.title = this._i18n.t('render-form.open-form');
+        button.ariaLabel = this._i18n.t('render-form.open-form');
+        button.addEventListener('click', () => {
+            this.sendSetPropertyEvent('routing-url', `/${form.slug}`, true);
+        });
+        container.appendChild(button);
+
+        return container;
+    }
+
+    getAvailableFormsTable() {
+        return /** @type {CustomTabulatorTable | null} */ (
+            this.renderRoot?.querySelector('#available-forms-table') ?? null
+        );
+    }
+
+    getAvailableFormsSearchInput() {
+        return /** @type {HTMLInputElement | null} */ (
+            this.renderRoot?.querySelector('#available-forms-search') ?? null
+        );
+    }
+
+    handleAvailableFormsSearch(event) {
+        event?.preventDefault();
+        const input = this.getAvailableFormsSearchInput();
+        if (!input) return;
+
+        this.applyAvailableFormsSearch(input.value.trim());
+    }
+
+    applyAvailableFormsSearch(value) {
+        const table = this.getAvailableFormsTable();
+        if (!table) return;
+
+        if (value === '') {
+            table.clearFilter();
+            return;
+        }
+
+        const filters = (this.availableFormsTableOptions.columns ?? [])
+            .filter(
+                (column) => column.field && column.visible !== false && column.formatter !== 'html',
+            )
+            .map((column) => ({field: column.field, type: 'like', value}));
+        table.setFilter([filters]);
+    }
+
+    handleAvailableFormsSearchReset() {
+        const input = this.getAvailableFormsSearchInput();
+        const table = this.getAvailableFormsTable();
+        if (!input || !table) return;
+
+        input.value = '';
+        table.clearFilter();
+        input.focus();
+    }
+
+    rebuildAvailableFormsTable() {
+        const table = this.getAvailableFormsTable();
+        if (!table) return;
+
+        void table.updateComplete.then(() => {
+            table.options = this.availableFormsTableOptions;
+            table.data = this.availableForms;
+
+            if (table.tabulatorTable) {
+                table.tabulatorTable.destroy();
+            }
+            table.tableReady = false;
+            table.tableBuilding = false;
+            table.buildTable();
+        });
     }
 
     async getUserAllSubmissionsData(formIdentifier) {
@@ -388,11 +606,79 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (formUrlSlug === '') {
+            if (this.availableFormsLoading) {
+                return html`
+                    <dbp-mini-spinner text="${this._i18n.t('loading-message')}"></dbp-mini-spinner>
+                `;
+            }
+
+            if (this.availableFormsLoadFailed) {
+                return html`
+                    <div class="notification is-danger">
+                        <dbp-icon name="warning-high"></dbp-icon>
+                        ${this._i18n.t('render-form.available-forms-load-failed')}
+                    </div>
+                `;
+            }
+
             return html`
-                <div class="notification is-warning">
-                    <dbp-icon name="warning-high"></dbp-icon>
-                    ${this._i18n.t('render-form.form-not-found')}
-                </div>
+                <section class="available-forms" aria-labelledby="available-forms-title">
+                    <h1 id="available-forms-title">
+                        ${this._i18n.t('render-form.available-forms-title')}
+                    </h1>
+                    <p>${this._i18n.t('render-form.available-forms-description')}</p>
+                    ${
+                        this.availableForms.length === 0
+                            ? html`
+                                  <p>${this._i18n.t('render-form.no-available-forms')}</p>
+                              `
+                            : html`
+                                  <div class="forms-table-actions">
+                                      <form
+                                          class="search-input forms-search"
+                                          @submit=${this.handleAvailableFormsSearch}>
+                                          <label for="available-forms-search">
+                                              ${this._i18n.t('render-form.search-input-label')}:
+                                          </label>
+                                          <input
+                                              id="available-forms-search"
+                                              class="searchbar"
+                                              type="text"
+                                              placeholder="${this._i18n.t(
+                                                  'render-form.search-placeholder',
+                                              )}" />
+                                          <button
+                                              class="button search-button"
+                                              type="submit"
+                                              title="${this._i18n.t('render-form.search-button')}"
+                                              aria-label="${this._i18n.t(
+                                                  'render-form.search-button',
+                                              )}">
+                                              <dbp-icon name="search" aria-hidden="true"></dbp-icon>
+                                          </button>
+                                      </form>
+                                      <button
+                                          class="reset-search"
+                                          type="button"
+                                          @click=${this.handleAvailableFormsSearchReset}>
+                                          <dbp-icon
+                                              name="spinner-arrow"
+                                              aria-hidden="true"></dbp-icon>
+                                          ${this._i18n.t('render-form.reset-search-label')}
+                                      </button>
+                                  </div>
+                                  <dbp-tabulator-table
+                                      id="available-forms-table"
+                                      identifier="available-forms-table"
+                                      lang="${this.lang}"
+                                      pagination-enabled
+                                      pagination-size="10"
+                                      .options=${
+                                          this.availableFormsTableOptions
+                                      }></dbp-tabulator-table>
+                              `
+                    }
+                </section>
             `;
         }
 
@@ -561,7 +847,9 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     static get styles() {
         // language=css
         return css`
+            ${commonStyles.getGeneralCSS(false)}
             ${commonStyles.getNotificationCSS()}
+            ${commonStyles.getButtonCSS()}
 
             .notification {
                 margin-bottom: 2em;
@@ -576,6 +864,80 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
             .notification a {
                 text-underline-offset: 2px;
+            }
+
+            .available-forms h1 {
+                margin-top: 0;
+            }
+
+            .forms-table-actions {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin: 1.5rem 0 0.5rem;
+            }
+
+            .forms-search {
+                flex: 1;
+                min-width: 12rem;
+            }
+
+            .forms-search label {
+                clip: rect(0 0 0 0);
+                clip-path: inset(50%);
+                height: 1px;
+                overflow: hidden;
+                position: absolute;
+                white-space: nowrap;
+                width: 1px;
+            }
+
+            .search-input {
+                display: flex;
+                position: relative;
+            }
+
+            .searchbar,
+            .search-button {
+                box-sizing: border-box;
+                height: 32px;
+            }
+
+            .searchbar {
+                flex-grow: 1;
+                padding: 0 0.5em;
+                border: 1px solid var(--dbp-content);
+            }
+
+            .search-button {
+                position: absolute;
+                top: 0;
+                right: 0;
+                border: 0;
+                background: transparent;
+            }
+
+            .reset-search {
+                border: 0;
+                background: none;
+                cursor: pointer;
+                padding: 5px;
+            }
+
+            .search-button dbp-icon,
+            .reset-search dbp-icon {
+                position: static;
+            }
+
+            @media (max-width: 530px) {
+                .forms-table-actions {
+                    align-items: stretch;
+                    flex-wrap: wrap;
+                }
+
+                .forms-search {
+                    flex-basis: 100%;
+                }
             }
         `;
     }
@@ -611,12 +973,41 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
                 await this.getSubmissionData();
             }
+
+            if (this.auth?.token && Object.keys(this.formIdentifiers).length > 0) {
+                await this.loadAvailableForms();
+            }
         }
         if (changedProperties.has('routingUrl')) {
             this.updateFormUrlSlug();
+            if (Object.keys(this.formIdentifiers).length > 0) {
+                await this.loadAvailableForms();
+            }
+        }
+
+        if (
+            (changedProperties.has('lang') ||
+                changedProperties.has('allowListFrontendKeys') ||
+                changedProperties.has('denyListFrontendKeys')) &&
+            Object.keys(this.formIdentifiers).length > 0
+        ) {
+            await this.loadAvailableForms();
         }
 
         super.update(changedProperties);
+    }
+
+    updated(changedProperties) {
+        super.updated(changedProperties);
+
+        if (
+            !this.availableFormsLoading &&
+            this.availableForms.length > 0 &&
+            (changedProperties.has('availableFormsTableOptions') ||
+                changedProperties.has('availableFormsLoading'))
+        ) {
+            this.rebuildAvailableFormsTable();
+        }
     }
 }
 

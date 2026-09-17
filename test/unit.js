@@ -4,6 +4,7 @@ import '../src/dbp-formalize.js';
 import {ManageForms} from '../src/dbp-formalize-manage-forms';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
+import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 import {BaseFormElement, FILE_SECURITY_VALIDATION_ERROR_ID} from '../src/form/base-object.js';
 import {
@@ -18,6 +19,147 @@ customElements.define(
     class extends ManageFormSubmissionsPage {},
 );
 customElements.define('test-base-form-element', class extends BaseFormElement {});
+
+suite('available forms', () => {
+    const formIdentifiers = {
+        exam: 'exam-id',
+        course: 'course-id',
+    };
+
+    test('only includes supported forms that the user can submit', () => {
+        const forms = filterAvailableForms(
+            [
+                {
+                    identifier: 'exam-id',
+                    name: 'Exam',
+                    localizedNames: [{languageTag: 'de', name: 'Prüfung'}],
+                    grantedFormActions: ['create_submissions'],
+                },
+                {
+                    identifier: 'course-id',
+                    name: 'Course',
+                    grantedFormActions: ['read'],
+                },
+                {
+                    identifier: 'unsupported-id',
+                    name: 'Unsupported',
+                    grantedFormActions: ['manage'],
+                },
+            ],
+            formIdentifiers,
+            'de',
+        );
+
+        assert.deepEqual(forms, [
+            {
+                identifier: 'exam-id',
+                name: 'Prüfung',
+                slug: 'exam',
+            },
+        ]);
+    });
+
+    test('applies frontend key allow and deny lists', () => {
+        const entries = [
+            {
+                identifier: 'exam-id',
+                name: 'Exam',
+                frontendKey: 'exam',
+                grantedSubmissionCollectionActions: ['manage'],
+            },
+            {
+                identifier: 'course-id',
+                name: 'Course',
+                frontendKey: 'course',
+                grantedSubmissionCollectionActions: ['create_submissions'],
+            },
+        ];
+
+        assert.deepEqual(filterAvailableForms(entries, formIdentifiers, 'en', ['exam'], []), [
+            {identifier: 'exam-id', name: 'Exam', slug: 'exam'},
+        ]);
+        assert.deepEqual(filterAvailableForms(entries, formIdentifiers, 'en', [], ['exam']), [
+            {identifier: 'course-id', name: 'Course', slug: 'course'},
+        ]);
+    });
+
+    test('configures a sortable name and action column for the available forms table', () => {
+        const node = document.createElement('dbp-formalize-render-form');
+        node.availableForms = [{identifier: 'exam-id', name: 'Exam', slug: 'exam'}];
+
+        const options = node.getAvailableFormsTableOptions();
+
+        assert.equal(options.data, node.availableForms);
+        assert.deepInclude(options.columns[0], {
+            field: 'name',
+            sorter: 'string',
+        });
+        assert.deepInclude(options.columns[3], {
+            field: 'actionButton',
+            formatter: 'html',
+            headerSort: false,
+        });
+    });
+
+    test('opens a form from its table action', () => {
+        const node = document.createElement('dbp-formalize-render-form');
+        const calls = [];
+        node.sendSetPropertyEvent = (...args) => calls.push(args);
+        node.createScopedElement = () => document.createElement('button');
+
+        const action = node.createAvailableFormAction({slug: 'exam'});
+        action.firstElementChild.dispatchEvent(new Event('click'));
+
+        assert.deepEqual(calls, [['routing-url', '/exam', true]]);
+    });
+
+    test('searches and resets the available forms table', () => {
+        const node = document.createElement('dbp-formalize-render-form');
+        const calls = [];
+        const input = {value: '  exam  ', focus: () => calls.push(['focus'])};
+        const table = {
+            setFilter: (...args) => calls.push(['setFilter', ...args]),
+            clearFilter: () => calls.push(['clearFilter']),
+        };
+        node.getAvailableFormsSearchInput = () => input;
+        node.getAvailableFormsTable = () => table;
+
+        node.handleAvailableFormsSearch({preventDefault: () => calls.push(['preventDefault'])});
+        node.handleAvailableFormsSearchReset();
+
+        assert.deepEqual(calls, [
+            ['preventDefault'],
+            ['setFilter', [[{field: 'name', type: 'like', value: 'exam'}]]],
+            ['clearFilter'],
+            ['focus'],
+        ]);
+        assert.equal(input.value, '');
+    });
+
+    test('explicitly builds the table after it is rendered', async () => {
+        const node = document.createElement('dbp-formalize-render-form');
+        const calls = [];
+        const table = {
+            updateComplete: Promise.resolve(),
+            options: null,
+            data: [],
+            tabulatorTable: null,
+            tableReady: false,
+            tableBuilding: false,
+            buildTable: () => calls.push('build'),
+        };
+        node.availableForms = [{name: 'Exam'}];
+        node.availableFormsTableOptions = {data: node.availableForms};
+        node.getAvailableFormsTable = () => table;
+
+        node.rebuildAvailableFormsTable();
+        await table.updateComplete;
+
+        assert.equal(table.options, node.availableFormsTableOptions);
+        assert.equal(table.data, node.availableForms);
+        assert.deepEqual(calls, ['build']);
+    });
+});
 
 suite('submission error handling', () => {
     test('should show a localized message for rejected files', async () => {
