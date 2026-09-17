@@ -194,6 +194,7 @@
         "form-exit-warning-message": "Are you sure you want to quit filling out this form? Any unsaved changes may get lost.",
         "form-name": "Form",
         "form-not-accessible": "This form is not available for you!",
+        "form-not-found": "No form is selected to be filled out. Please start the process through the corresponding website.",
         "form-with-slug-not-found": "Form with slug '{{slug}}' not found!",
         "forms": {
             "accessible-courses-form": {

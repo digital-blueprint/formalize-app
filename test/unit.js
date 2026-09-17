@@ -1,4 +1,5 @@
 import {assert} from 'chai';
+import {setFeatureFlag} from '@dbp-toolkit/common';
 
 import '../src/dbp-formalize.js';
 import {ManageForms} from '../src/dbp-formalize-manage-forms';
@@ -7,6 +8,10 @@ import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js'
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 import {BaseFormElement, FILE_SECURITY_VALIDATION_ERROR_ID} from '../src/form/base-object.js';
+import {
+    AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG,
+    isAvailableFormsOverviewEnabled,
+} from '../src/feature-flags.js';
 import {
     setDefaultSubmissionTableOrder,
     setSubmissionFormOptions,
@@ -19,6 +24,41 @@ customElements.define(
     class extends ManageFormSubmissionsPage {},
 );
 customElements.define('test-base-form-element', class extends BaseFormElement {});
+
+suite('available forms feature flag', () => {
+    teardown(() => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+    });
+
+    test('is disabled by default and can be enabled', () => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        assert.isFalse(isAvailableFormsOverviewEnabled());
+
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, true);
+        assert.isTrue(isAvailableFormsOverviewEnabled());
+    });
+
+    test('controls whether the render-form menu entry is disabled', () => {
+        const shell = document.createElement('dbp-formalize');
+        shell.routes = ['render-form'];
+        shell.metadata = {
+            'render-form': {
+                required_roles: [],
+                visible: true,
+                disabled: true,
+                feature_flag: AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG,
+            },
+        };
+
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        shell._updateVisibleRoutes();
+        assert.isTrue(shell.visibleRoutes[0].disabled);
+
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, true);
+        shell._updateVisibleRoutes();
+        assert.isFalse(shell.visibleRoutes[0].disabled);
+    });
+});
 
 suite('available forms', () => {
     const formIdentifiers = {

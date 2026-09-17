@@ -2,6 +2,7 @@
     "element": "dbp-formalize-render-form",
     "module_src": "dbp-formalize-render-form.js",
     "routing_name": "render-form",
+    "feature_flag": "available-forms-overview",
     "name": {
         "de": "Formular ausfüllen",
         "en": "Fill out form"

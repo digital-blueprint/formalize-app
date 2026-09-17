@@ -15,6 +15,7 @@ import {
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
 import {CustomTabulatorTable, GetDetailsButton} from './table-components.js';
+import {isAvailableFormsOverviewEnabled} from './feature-flags.js';
 
 /** @typedef {import('./form/base-object.js').BaseObject} BaseObject */
 
@@ -308,7 +309,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async loadAvailableForms() {
-        if (!this.auth?.token || this.formUrlSlug !== '') {
+        if (!isAvailableFormsOverviewEnabled() || !this.auth?.token || this.formUrlSlug !== '') {
             this.availableFormsLoading = false;
             return;
         }
@@ -606,6 +607,15 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
 
         if (formUrlSlug === '') {
+            if (!isAvailableFormsOverviewEnabled()) {
+                return html`
+                    <div class="notification is-warning">
+                        <dbp-icon name="warning-high"></dbp-icon>
+                        ${this._i18n.t('render-form.form-not-found')}
+                    </div>
+                `;
+            }
+
             if (this.availableFormsLoading) {
                 return html`
                     <dbp-mini-spinner text="${this._i18n.t('loading-message')}"></dbp-mini-spinner>
