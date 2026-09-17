@@ -407,7 +407,8 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     id="searchbar--${state}"
                     data-state="${state}"
                     class="searchbar"
-                    placeholder="${i18n.t('manage-forms.searchbar-placeholder')}" />
+                    placeholder="${i18n.t('manage-forms.searchbar-placeholder')}"
+                    @input=${() => this.handleSearch(state)} />
 
                 <button
                     class="button search-button"

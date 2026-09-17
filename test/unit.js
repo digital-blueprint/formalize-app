@@ -865,7 +865,7 @@ suite('manage forms action menus', () => {
 
         const searchInput = page.getSearchbar();
         searchInput.value = 'Job offer';
-        page.shadowRoot.querySelector('.forms-search').requestSubmit();
+        searchInput.dispatchEvent(new Event('input'));
 
         assert.deepEqual(filters, [
             [
@@ -881,6 +881,26 @@ suite('manage forms action menus', () => {
         assert.equal(clearCount, 1);
         assert.deepEqual(searchValues, ['Job offer', '']);
 
+        page.remove();
+    });
+
+    test('should search submissions as the user types', async () => {
+        const page = document.createElement('test-manage-form-submissions-page');
+        page.noSubmissionAvailable = {draft: false, submitted: true};
+        page.submissions = {draft: [{name: 'Draft'}], submitted: []};
+        page.isActionAvailable = {draft: false, submitted: false};
+        const searchedStates = [];
+        page.addEventListener('submission-search', (event) => {
+            searchedStates.push(event.detail.state);
+        });
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const searchInput = page.getSearchbar('draft');
+        searchInput.value = 'Draft';
+        searchInput.dispatchEvent(new Event('input'));
+
+        assert.deepEqual(searchedStates, ['draft']);
         page.remove();
     });
 

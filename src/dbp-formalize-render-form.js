@@ -656,7 +656,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                                               type="text"
                                               placeholder="${this._i18n.t(
                                                   'render-form.search-placeholder',
-                                              )}" />
+                                              )}"
+                                              @input=${this.handleAvailableFormsSearch} />
                                           <button
                                               class="button search-button"
                                               type="submit"

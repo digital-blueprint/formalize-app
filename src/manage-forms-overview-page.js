@@ -306,7 +306,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                             type="text"
                             id="forms-searchbar"
                             class="searchbar"
-                            placeholder="${i18n.t('manage-forms.searchbar-placeholder')}" />
+                            placeholder="${i18n.t('manage-forms.searchbar-placeholder')}"
+                            @input=${this.handleSearch} />
                         <button
                             type="submit"
                             class="button search-button"
