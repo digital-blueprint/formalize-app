@@ -769,6 +769,10 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
             oldUrl = oldUrl.replace(/^(.*)#.*$/, '$1');
 
             if (oldUrl !== newUrl) {
+                const queryChanged =
+                    new URL(newUrl, window.location.origin).search !==
+                    new URL(oldUrl, window.location.origin).search;
+
                 if (this.forms.size === 0 && this.isLoggedIn()) {
                     await loadModules(this);
                     // Refresh count after modules are loaded so the button visibility is updated
@@ -788,7 +792,11 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     this.showFormsOverview();
                 }
 
-                void this.restoreVisibleTableState();
+                // Detail modal routes only change the path. Reapplying the current
+                // filter would deselect the row that opened the modal.
+                if (queryChanged) {
+                    void this.restoreVisibleTableState();
+                }
             }
         }
 
