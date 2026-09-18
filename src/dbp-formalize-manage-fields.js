@@ -704,12 +704,14 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }));
     }
 
-    createTableActionButton(iconName, title, onClick) {
+    createTableActionButton(iconName, title, onClick, ariaLabel = title) {
         const button = this.createScopedElement('dbp-icon-button');
         button.setAttribute('subscribe', 'lang');
         button.setAttribute('icon-name', iconName);
+        // The title stays short as a tooltip, while the aria-label additionally names the row
+        // so screen reader users can tell the repeated action buttons apart.
         button.title = title;
-        button.setAttribute('aria-label', title);
+        button.setAttribute('aria-label', ariaLabel);
         button.addEventListener('click', (event) => {
             event.stopPropagation();
             onClick();
@@ -731,10 +733,11 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
     createFormActions(entry) {
         const i18n = this._i18n;
+        const formName = getLocalizedFormName(entry.form, this.lang);
         const openButton = this.createScopedElement('dbp-formalize-get-details-button');
         openButton.setAttribute('subscribe', 'lang');
         openButton.title = i18n.t('manage-fields.open-form');
-        openButton.ariaLabel = i18n.t('manage-fields.open-form');
+        openButton.ariaLabel = i18n.t('manage-fields.open-form-aria', {formName});
         openButton.addEventListener('click', (event) => {
             event.stopPropagation();
             this.openForm(entry);
@@ -742,17 +745,24 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return this.createTableActions([
             openButton,
-            this.createTableActionButton('plus', i18n.t('manage-fields.create-item'), () =>
-                this.createItem(entry),
+            this.createTableActionButton(
+                'plus',
+                i18n.t('manage-fields.create-item'),
+                () => this.createItem(entry),
+                i18n.t('manage-fields.create-item-aria', {formName}),
             ),
         ]);
     }
 
     createItemActions(item) {
         const i18n = this._i18n;
+        const itemName = this.getItemTitle(item);
         return this.createTableActions([
-            this.createTableActionButton('pencil', i18n.t('manage-fields.edit-item'), () =>
-                this.editItem(item),
+            this.createTableActionButton(
+                'pencil',
+                i18n.t('manage-fields.edit-item'),
+                () => this.editItem(item),
+                i18n.t('manage-fields.edit-item-aria', {itemName}),
             ),
         ]);
     }

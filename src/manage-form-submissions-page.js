@@ -393,7 +393,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         `;
     }
 
-    renderSearchWidget(state) {
+    renderSearchWidget(state, tableName) {
         const i18n = this._i18n;
 
         return html`
@@ -413,13 +413,12 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 <button
                     class="button search-button"
                     id="search-button--${state}"
+                    title="${i18n.t('manage-forms.search-button')}"
+                    aria-label="${i18n.t('manage-forms.search-button-aria', {tableName})}"
                     @click="${() => {
                         this.handleSearch(state);
                     }}">
-                    <dbp-icon
-                        title="${i18n.t('manage-forms.search-button')}"
-                        aria-label="${i18n.t('manage-forms.search-button')}"
-                        name="search"></dbp-icon>
+                    <dbp-icon name="search" aria-hidden="true"></dbp-icon>
                 </button>
 
                 <button
@@ -462,10 +461,8 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                         ${this.getTableHeaderOptions(state)}
                     </optgroup>
                 </select>
-                <dbp-icon
-                    name="chevron-down"
-                    title="${i18n.t('manage-forms.filter-toggle-button')}"
-                    aria-label="${i18n.t('manage-forms.filter-toggle-button')}"></dbp-icon>
+                <!-- Purely decorative chevron, the adjacent select already carries the label -->
+                <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
             </div>
 
             <div
@@ -490,10 +487,8 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                         ${this.getTableFilterOptions()}
                     </optgroup>
                 </select>
-                <dbp-icon
-                    name="chevron-down"
-                    title="${i18n.t('manage-forms.filter-toggle-button')}"
-                    aria-label="${i18n.t('manage-forms.filter-toggle-button')}"></dbp-icon>
+                <!-- Purely decorative chevron, the adjacent select already carries the label -->
+                <dbp-icon name="chevron-down" aria-hidden="true"></dbp-icon>
             </div>
             <button
                 class="button search-toggle-filters-button"
@@ -544,10 +539,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     @click="${() => {
                         this.handleResetSearch(state);
                     }}">
-                    <dbp-icon
-                        name="spinner-arrow"
-                        title="${i18n.t('manage-forms.reset-search-label')}"
-                        aria-label="${i18n.t('manage-forms.reset-search-label')}"></dbp-icon>
+                    <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
                     ${i18n.t('manage-forms.reset-search-label')}
                 </button>
             </div>
@@ -632,7 +624,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                         ? ''
                                         : html`
                                               ${this.renderActionsWidget(state)}
-                                              ${this.renderSearchWidget(state)}
+                                              ${this.renderSearchWidget(
+                                                  state,
+                                                  submissionTableTitle[state],
+                                              )}
                                               ${this.renderExportWidget(state)}
                                           `
                                 }

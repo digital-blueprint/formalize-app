@@ -300,11 +300,23 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                             ? html`
                                   <button
                                       class="view-file-button button is-secondary"
+                                      title="${this._i18n.t(
+                                          'render-form.download-widget.view-attachment-title',
+                                          {
+                                              filename: file.fileName,
+                                          },
+                                      )}"
+                                      aria-label="${this._i18n.t(
+                                          'render-form.download-widget.view-attachment-title',
+                                          {
+                                              filename: file.fileName,
+                                          },
+                                      )}"
                                       @click=${(event) => {
                                           event.preventDefault();
                                           void this.previewPdfFile(file);
                                       }}>
-                                      <dbp-icon name="eye"></dbp-icon>
+                                      <dbp-icon name="eye" aria-hidden="true"></dbp-icon>
                                       ${this._i18n.t('render-form.download-widget.view-attachment')}
                                   </button>
                               `
@@ -312,11 +324,23 @@ export class ManageSubmissionModal extends ScopedElementsMixin(DBPLitElement) {
                     }
                     <button
                         class="download-file-button button is-secondary"
+                        title="${this._i18n.t(
+                            'render-form.download-widget.download-attachment-title',
+                            {
+                                filename: file.fileName,
+                            },
+                        )}"
+                        aria-label="${this._i18n.t(
+                            'render-form.download-widget.download-attachment-title',
+                            {
+                                filename: file.fileName,
+                            },
+                        )}"
                         @click=${(event) => {
                             event.preventDefault();
                             void this.downloadFile(file);
                         }}>
-                        <dbp-icon name="download"></dbp-icon>
+                        <dbp-icon name="download" aria-hidden="true"></dbp-icon>
                         ${this._i18n.t('render-form.download-widget.download-attachment')}
                     </button>
                 </div>

@@ -72,12 +72,14 @@ export class GetDetailsButton extends ScopedElementsMixin(DBPLitElement) {
     }
 
     render() {
-        let i18n = this._i18n;
+        // The title and aria-label are already translated by the caller, so they must not be
+        // passed through t() again: i18next would treat a ":" in the text as a namespace
+        // separator and return only the part after it.
         return html`
             <dbp-icon-button
                 icon-name="${this.iconName}"
-                title="${i18n.t(this.title)}"
-                aria-label="${i18n.t(this.ariaLabel)}"></dbp-icon-button>
+                title="${this.title}"
+                aria-label="${this.ariaLabel}"></dbp-icon-button>
         `;
     }
 }
@@ -146,13 +148,15 @@ export class GetSubmissionLink extends ScopedElementsMixin(DBPLitElement) {
     }
 
     render() {
-        let i18n = this._i18n;
+        // The title and aria-label are already translated by the caller, so they must not be
+        // passed through t() again: i18next would treat a ":" in the text as a namespace
+        // separator and return only the part after it.
         return html`
             <a href="${this.submissionUrl}" target="_blank" rel="noopener noreferrer">
                 <dbp-icon
                     name="${this.iconName}"
-                    title="${i18n.t(this.title)}"
-                    aria-label="${i18n.t(this.ariaLabel)}"></dbp-icon>
+                    title="${this.title}"
+                    aria-label="${this.ariaLabel}"></dbp-icon>
             </a>
         `;
     }

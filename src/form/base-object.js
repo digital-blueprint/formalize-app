@@ -1618,6 +1618,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                                   <button
                                       class="view-file-button button is-secondary"
                                       title="${this._i18n.t('render-form.download-widget.view-attachment-title', {filename: file.name})}"
+                                      aria-label="${this._i18n.t('render-form.download-widget.view-attachment-title', {filename: file.name})}"
                                       @click=${(e) => {
                                           e.preventDefault();
                                           const pdfModal = this._('#pdf-view-modal');
@@ -1627,7 +1628,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                                               pdfViewer.showPDF(file);
                                           }
                                       }}>
-                                      <dbp-icon name="eye"></dbp-icon>
+                                      <dbp-icon name="eye" aria-hidden="true"></dbp-icon>
                                       ${this._i18n.t('render-form.download-widget.view-attachment')}
                                   </button>
                               `
@@ -1636,22 +1637,24 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                     <button
                         class="download-file-button button is-secondary"
                         title="${this._i18n.t('render-form.download-widget.download-attachment-title', {filename: file.name})}"
+                        aria-label="${this._i18n.t('render-form.download-widget.download-attachment-title', {filename: file.name})}"
                         @click=${(e) => {
                             e.preventDefault();
                             this._('#file-sink').files = [file];
                         }}>
-                        <dbp-icon name="download"></dbp-icon>
+                        <dbp-icon name="download" aria-hidden="true"></dbp-icon>
                         ${this._i18n.t('render-form.download-widget.download-attachment')}
                     </button>
                     <button
                         class="delete-file-button button is-secondary"
                         .disabled=${groupData.filesToRemove.has(identifier) || this.readOnly}
                         title="${this._i18n.t('render-form.download-widget.delete-attachment-title', {filename: file.name})}"
+                        aria-label="${this._i18n.t('render-form.download-widget.delete-attachment-title', {filename: file.name})}"
                         @click=${(e) => {
                             e.preventDefault();
                             this.deleteAttachment(identifier, fileGroup);
                         }}>
-                        <dbp-icon name="trash"></dbp-icon>
+                        <dbp-icon name="trash" aria-hidden="true"></dbp-icon>
                         ${this._i18n.t('render-form.download-widget.delete-attachment')}
                     </button>
                 </div>
