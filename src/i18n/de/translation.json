@@ -180,14 +180,17 @@
             "attachment-upload-warning-text": "(Dokumente werden beim Speichern oder Einreichen hochgeladen.)",
             "attachments-title": "Anhänge",
             "delete-attachment": "Löschen",
+            "delete-attachment-title": "Datei {{filename}} löschen",
             "download-attachment": "Herunterladen",
+            "download-attachment-title": "Datei {{filename}} herunterladen",
             "file-upload-count-limit-warning_one": "(max. 1 Datei)",
             "file-upload-count-limit-warning_other": "(max. {{count}} Dateien)",
             "file-upload-size-limit-warning": "(max. {{size}} MB pro Datei)",
             "upload-file-button-label_one": "Dokument auswählen",
             "upload-file-button-label_other": "Dokumente auswählen",
             "upload-file-button-label-no-limit": "Dokumente auswählen",
-            "view-attachment": "Ansehen"
+            "view-attachment": "Ansehen",
+            "view-attachment-title": "Datei {{filename}} anzeigen"
         },
         "form-already-submitted-n-times-warning": "Sie haben dieses Formular bereits {{n}} Mal abgeschickt. Sie können es nicht noch einmal abschicken",
         "form-already-submitted-warning": "Sie haben dieses Formular bereits abgeschickt!",

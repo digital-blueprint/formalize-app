@@ -1617,6 +1617,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                             ? html`
                                   <button
                                       class="view-file-button button is-secondary"
+                                      title="${this._i18n.t('render-form.download-widget.view-attachment-title', {filename: file.name})}"
                                       @click=${(e) => {
                                           e.preventDefault();
                                           const pdfModal = this._('#pdf-view-modal');
@@ -1634,6 +1635,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                     }
                     <button
                         class="download-file-button button is-secondary"
+                        title="${this._i18n.t('render-form.download-widget.download-attachment-title', {filename: file.name})}"
                         @click=${(e) => {
                             e.preventDefault();
                             this._('#file-sink').files = [file];
@@ -1644,6 +1646,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                     <button
                         class="delete-file-button button is-secondary"
                         .disabled=${groupData.filesToRemove.has(identifier) || this.readOnly}
+                        title="${this._i18n.t('render-form.download-widget.delete-attachment-title', {filename: file.name})}"
                         @click=${(e) => {
                             e.preventDefault();
                             this.deleteAttachment(identifier, fileGroup);

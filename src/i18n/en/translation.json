@@ -180,14 +180,17 @@
             "attachment-upload-warning-text": "(Documents will get uploaded by saving or submitting the form.)",
             "attachments-title": "Attachments",
             "delete-attachment": "Delete",
+            "delete-attachment-title": "Delete file {{filename}}",
             "download-attachment": "Download",
+            "download-attachment-title": "Download file {{filename}}",
             "file-upload-count-limit-warning_one": "(max. 1 file)",
             "file-upload-count-limit-warning_other": "(max. {{count}} files)",
             "file-upload-size-limit-warning": "(max. {{size}} MB per file)",
             "upload-file-button-label_one": "Select file",
             "upload-file-button-label_other": "Select files",
             "upload-file-button-label-no-limit": "Select files",
-            "view-attachment": "View"
+            "view-attachment": "View",
+            "view-attachment-title": "View file {{filename}}"
         },
         "form-already-submitted-n-times-warning": "You already submitted this form {{n}} times. You can't submit it again.",
         "form-already-submitted-warning": "You already submitted this form!",
