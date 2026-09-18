@@ -801,6 +801,7 @@ export async function apiGetTags(host, identifier) {
  * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
  * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
  * @param {boolean} [formData.grantBasedSubmissionAuthorization] - Whether submissions use resource grants.
+ * @param {string[]} [formData.allowedActionsWhenSubmitted] - Actions granted to the submitter after submission.
  * @param {object} [options] - Notification options.
  * @param {string} [options.errorNotificationTargetId] - Notification component for errors.
  * @returns {Promise<object|null>} The created form object from the API, or null on failure.
@@ -826,6 +827,10 @@ export async function apiCreateForm(host, formData, options = {}) {
 
     if (typeof formData.grantBasedSubmissionAuthorization === 'boolean') {
         body.grantBasedSubmissionAuthorization = formData.grantBasedSubmissionAuthorization;
+    }
+
+    if (Array.isArray(formData.allowedActionsWhenSubmitted)) {
+        body.allowedActionsWhenSubmitted = formData.allowedActionsWhenSubmitted;
     }
 
     try {
@@ -883,6 +888,7 @@ export async function apiCreateForm(host, formData, options = {}) {
  * @param {object} [formData.additionalData] - Free-form metadata stored as the form's additionalData field.
  * @param {string} [formData.dataFeedSchema] - JSON Schema for validating submissions.
  * @param {boolean} [formData.grantBasedSubmissionAuthorization] - Whether submissions use resource grants.
+ * @param {string[]} [formData.allowedActionsWhenSubmitted] - Actions granted to the submitter after submission.
  * @param {object} [options] - Notification options.
  * @param {string} [options.errorNotificationTargetId] - Notification component for errors.
  * @returns {Promise<object|null>} The updated form object from the API, or null on failure.
@@ -905,6 +911,10 @@ export async function apiUpdateForm(host, formIdentifier, formData, options = {}
 
     if (typeof formData.grantBasedSubmissionAuthorization === 'boolean') {
         body.grantBasedSubmissionAuthorization = formData.grantBasedSubmissionAuthorization;
+    }
+
+    if (Array.isArray(formData.allowedActionsWhenSubmitted)) {
+        body.allowedActionsWhenSubmitted = formData.allowedActionsWhenSubmitted;
     }
 
     try {

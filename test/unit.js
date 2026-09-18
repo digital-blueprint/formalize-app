@@ -636,7 +636,7 @@ suite('dbp-formalize-manage-forms basics', () => {
 });
 
 suite('manage forms action menus', () => {
-    test('should forward grant-based submission authorization when saving forms', async () => {
+    test('should forward submission authorization settings when saving forms', async () => {
         const originalFetch = window.fetch;
         const requests = [];
         window.fetch = (url, options) => {
@@ -653,6 +653,7 @@ suite('manage forms action menus', () => {
             localizedNames: [],
             frontendKey: 'job-offer',
             grantBasedSubmissionAuthorization: true,
+            allowedActionsWhenSubmitted: ['read'],
         };
 
         try {
@@ -664,7 +665,9 @@ suite('manage forms action menus', () => {
 
         assert.lengthOf(requests, 2);
         requests.forEach(({options}) => {
-            assert.isTrue(JSON.parse(options.body).grantBasedSubmissionAuthorization);
+            const body = JSON.parse(options.body);
+            assert.isTrue(body.grantBasedSubmissionAuthorization);
+            assert.deepEqual(body.allowedActionsWhenSubmitted, ['read']);
         });
     });
 
