@@ -52,7 +52,7 @@
     "manage-fields": {
         "actions-button-text": "Aktionen",
         "back-to-forms": "Zurück zu Nutzerdefinierte Datenfelder",
-        "cancel": "Abbrechen",
+        "cancel": "Schließen",
         "create-item": "Eintrag erstellen",
         "create-item-title": "{{name}} hinzufügen",
         "date-created": "Erstellt am",
