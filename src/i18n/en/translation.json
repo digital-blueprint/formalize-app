@@ -137,6 +137,7 @@
         "open-detailed-view-form": "Open detailed view for row {{id}}",
         "open-detailed-view-modal": "Open quick view for row {{id}}",
         "open-forms": "Manage {{formName}} form submissions",
+        "open-forms-aria": "Manage {{- formName}} form submissions",
         "open-search-filters": "Advanced search",
         "previous-entry-btn-title": "Previous entry",
         "reset-search-label": "Reset search",

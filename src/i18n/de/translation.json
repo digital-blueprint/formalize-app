@@ -137,6 +137,7 @@
         "open-detailed-view-form": "Detaillierte Formularansicht öffnen für Zeile {{id}}",
         "open-detailed-view-modal": "Schnellansicht öffnen für Zeile {{id}}",
         "open-forms": "Formulareinreichungen {{formName}} verwalten",
+        "open-forms-aria": "Formulareinreichungen {{- formName}} verwalten",
         "open-search-filters": "Erweiterte Suche",
         "previous-entry-btn-title": "Vorheriger",
         "reset-search-label": "Suche zurücksetzen",

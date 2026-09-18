@@ -2,6 +2,7 @@
 
 ## Unreleased (v1.3.1)
 
+- Manage Forms activity: the open-submissions button in the forms table now takes its `aria-label` from the new `manage-forms.open-forms-aria` key instead of reusing the tooltip key, so apps can shorten the tooltip through a translation override without losing the form name from the accessible name
 - Manage Fields activity: the table row action buttons (open form, create entry, edit entry) now have row-specific `aria-label`s naming the form or entry, while the tooltip stays short, so screen reader users can tell the repeated buttons apart
 - Attachment lists in forms and in the submission detail popup: the view, download and delete buttons now also expose the file name as their `aria-label`, the submission detail popup got the file name tooltips that forms already had, and the button icons are marked `aria-hidden`
 - Attachment button labels now use unescaped interpolation, so file names containing `&` or `'` are no longer shown as HTML entities
