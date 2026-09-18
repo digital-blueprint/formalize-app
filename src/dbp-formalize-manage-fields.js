@@ -1078,12 +1078,13 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             <div class="active-form-wrapper">
                 <div class="active-form-top-bar">
                     <span class="back-navigation">
-                        <a
+                        <button
+                            type="button"
                             @click=${() => this.setRoute('/')}
                             title="${i18n.t('manage-fields.back-to-forms')}">
                             <dbp-icon name="chevron-left"></dbp-icon>
                             ${i18n.t('manage-fields.back-to-forms')}
-                        </a>
+                        </button>
                     </span>
                 </div>
                 <div class="active-form-header">
@@ -1428,10 +1429,12 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 background-color: var(--dbp-hover-color, var(--dbp-content));
             }
 
-            .back-navigation a {
+            .back-navigation button {
+                border: 0;
+                padding: 0;
+                background: none;
                 color: inherit;
-                cursor: pointer;
-                text-decoration: none;
+                font: inherit;
             }
 
             .active-form-header h2,

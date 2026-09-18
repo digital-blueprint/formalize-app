@@ -387,6 +387,14 @@ export function getManageFormsCSS() {
             padding-bottom: 2px;
         }
 
+        .back-navigation button {
+            border: 0;
+            padding: 0;
+            background: none;
+            color: inherit;
+            font: inherit;
+        }
+
         .back-navigation:hover {
             color: var(--dbp-hover-color, var(--dbp-content));
             background-color: var(--dbp-hover-background-color);

@@ -569,12 +569,13 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 })}">
                 <div class="submissions-top-bar">
                     <span class="back-navigation">
-                        <a
+                        <button
+                            type="button"
                             @click="${() => this.handleBackToOverview()}"
                             title="${i18n.t('manage-forms.back-text')}">
                             <dbp-icon name="chevron-left"></dbp-icon>
                             ${i18n.t('manage-forms.back-text')}
-                        </a>
+                        </button>
                     </span>
                     <span
                         class="loading submissions-spinner ${classMap({
