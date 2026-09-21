@@ -8,7 +8,12 @@
  */
 
 import {sendNotification} from '@dbp-toolkit/common';
-import {getFormRenderUrl, SUBMISSION_STATES_BINARY, FORM_PERMISSIONS} from './utils.js';
+import {
+    getFormRenderUrl,
+    SUBMISSION_STATES_BINARY,
+    FORM_PERMISSIONS,
+    SUBMISSION_PERMISSIONS,
+} from './utils.js';
 import xss from 'xss';
 
 // ---------------------------------------------------------------------------
@@ -202,7 +207,22 @@ export async function getListOfAllForms(host) {
                 }
 
                 const grantedFormActions = entry['grantedFormActions'] ?? [];
-                if (!grantedFormActions.includes(FORM_PERMISSIONS.MANAGE)) {
+                const grantedSubmissionCollectionActions =
+                    entry['grantedSubmissionCollectionActions'] ?? [];
+                const hasAllowedFormAction = grantedFormActions.some((action) =>
+                    [
+                        FORM_PERMISSIONS.UPDATE,
+                        FORM_PERMISSIONS.DELETE,
+                        FORM_PERMISSIONS.MANAGE,
+                    ].includes(action),
+                );
+                const hasAllowedSubmissionCollectionAction =
+                    grantedSubmissionCollectionActions.some((action) =>
+                        [SUBMISSION_PERMISSIONS.READ, SUBMISSION_PERMISSIONS.MANAGE].includes(
+                            action,
+                        ),
+                    );
+                if (!hasAllowedFormAction && !hasAllowedSubmissionCollectionAction) {
                     continue;
                 }
 

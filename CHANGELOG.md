@@ -2,7 +2,6 @@
 
 ## Unreleased (v1.3.1)
 
-- Manage Forms activity: only show forms whose `grantedFormActions` contain `manage`; update, delete, or submission collection permissions alone no longer make a form visible
 - Manage Forms activity: the open-submissions button in the forms table now takes its `aria-label` from the new `manage-forms.open-forms-aria` key instead of reusing the tooltip key, so apps can shorten the tooltip through a translation override without losing the form name from the accessible name
 - Manage Fields activity: the table row action buttons (open form, create entry, edit entry) now have row-specific `aria-label`s naming the form or entry, while the tooltip stays short, so screen reader users can tell the repeated buttons apart
 - Attachment lists in forms and in the submission detail popup: the view, download and delete buttons now also expose the file name as their `aria-label`, the submission detail popup got the file name tooltips that forms already had, and the button icons are marked `aria-hidden`
@@ -10,6 +9,7 @@
 - Manage Forms activity: the icon-only search button now carries its label itself instead of on the inner icon, and its `aria-label` names the table (drafts or submitted) it searches
 - Manage Forms activity: marked the decorative chevron and reset-search icons as `aria-hidden` instead of giving them labels that duplicated the adjacent controls
 - Fixed `GetDetailsButton` and `GetSubmissionLink` translating their already translated `title` and `aria-label` a second time, which truncated any label containing a colon
+- Manage Forms activity: only show forms when `grantedFormActions` contains `update`, `delete`, or `manage`, or `grantedSubmissionCollectionActions` contains `read` or `manage`
 - Manage Forms and Manage Fields activities: remember the selected pagination size per user and browser; explicit Manage Forms URL pagination continues to take precedence
 - Manage Forms activity: synchronize the forms overview search and pagination and both submission-list filters and pagination with `routing-url`; URL state is restored after loading table data and supports browser history and shareable links
 - Manage Forms activity: add mount-independent submission detail URLs that open the submission popup from shareable links and return to the form URL when closed
