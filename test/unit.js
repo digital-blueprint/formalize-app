@@ -7,7 +7,11 @@ import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
-import {BaseFormElement, BaseObject, FILE_SECURITY_VALIDATION_ERROR_ID} from '../src/form/base-object.js';
+import {
+    BaseFormElement,
+    BaseObject,
+    FILE_SECURITY_VALIDATION_ERROR_ID,
+} from '../src/form/base-object.js';
 import {
     AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG,
     isAvailableFormsOverviewEnabled,
