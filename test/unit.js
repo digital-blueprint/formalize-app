@@ -680,7 +680,7 @@ suite('manage forms action menus', () => {
                             name: frontendKey,
                             localizedNames: [],
                             grantedActions: ['read'],
-                            grantedFormActions: ['update'],
+                            grantedFormActions: ['manage'],
                             grantedSubmissionCollectionActions: [],
                         })),
                     }),
@@ -736,35 +736,23 @@ suite('manage forms action menus', () => {
         });
     });
 
-    test('should only show forms with grants relevant to form management', async () => {
+    test('should only show forms with manage permission', async () => {
         const originalFetch = window.fetch;
-        const moduleInstance = {
-            getFormFrontendKey: () => 'job-offer',
-            getUrlSlug: () => 'job-offer',
-            getEditFormComponent: () => document.createElement('div'),
-        };
-        const makeHost = (
-            grantedActions,
-            grantedFormActions,
-            grantedSubmissionCollectionActions,
-        ) => ({
+        const host = {
             _i18n: {t: (key) => key},
             entryPointUrl: 'https://example.com',
             auth: {token: 'token'},
             allForms: [],
             allowListFrontendKeys: [],
             denyListFrontendKeys: [],
-            loadedModules: new Map([['job-offer', {formId: 'job-offer', moduleInstance}]]),
+            loadedModules: new Map(),
             forms: new Map(),
             formsGrantedActions: new Map(),
             options_forms: {},
             lang: 'en',
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
-            apiGrantedActions: grantedActions,
-            apiGrantedFormActions: grantedFormActions,
-            apiGrantedSubmissionCollectionActions: grantedSubmissionCollectionActions,
-        });
+        };
         window.fetch = () =>
             Promise.resolve({
                 ok: true,
@@ -772,47 +760,40 @@ suite('manage forms action menus', () => {
                     Promise.resolve({
                         'hydra:member': [
                             {
-                                identifier: 'job-offer',
-                                frontendKey: 'job-offer',
-                                name: 'Job offer',
+                                identifier: 'editable',
+                                name: 'Editable form',
                                 localizedNames: [],
-                                grantedActions: currentHost.apiGrantedActions,
-                                grantedFormActions: currentHost.apiGrantedFormActions,
-                                grantedSubmissionCollectionActions:
-                                    currentHost.apiGrantedSubmissionCollectionActions,
+                                grantedFormActions: ['update'],
+                                grantedSubmissionCollectionActions: ['manage'],
+                            },
+                            {
+                                identifier: 'deletable',
+                                name: 'Deletable form',
+                                localizedNames: [],
+                                grantedFormActions: ['delete'],
+                                grantedSubmissionCollectionActions: [],
+                            },
+                            {
+                                identifier: 'manageable',
+                                name: 'Manageable form',
+                                localizedNames: [],
+                                grantedFormActions: ['manage'],
+                                grantedSubmissionCollectionActions: [],
                             },
                         ],
                     }),
             });
-        let currentHost;
 
         try {
-            currentHost = makeHost(['read'], ['read'], []);
-            await getListOfAllForms(currentHost);
-            assert.isEmpty(currentHost.allForms);
-
-            currentHost = makeHost(
-                ['read', 'create_submissions'],
-                ['read'],
-                ['create_submissions'],
-            );
-            await getListOfAllForms(currentHost);
-            assert.isEmpty(currentHost.allForms);
-
-            for (const action of ['update', 'delete', 'manage']) {
-                currentHost = makeHost(['read'], [action], []);
-                await getListOfAllForms(currentHost);
-                assert.lengthOf(currentHost.allForms, 1);
-            }
-
-            for (const action of ['read', 'manage']) {
-                currentHost = makeHost(['read'], [], [action]);
-                await getListOfAllForms(currentHost);
-                assert.lengthOf(currentHost.allForms, 1);
-            }
+            await getListOfAllForms(host);
         } finally {
             window.fetch = originalFetch;
         }
+
+        assert.deepEqual(
+            host.allForms.map((form) => form.formId),
+            ['manageable'],
+        );
     });
 
     test('should add employers to job-offer rows and refresh changed employers', async () => {
@@ -824,7 +805,7 @@ suite('manage forms action menus', () => {
             name: identifier,
             localizedNames: [],
             grantedActions: ['read'],
-            grantedFormActions: ['update'],
+            grantedFormActions: ['manage'],
             grantedSubmissionCollectionActions: [],
             additionalData,
         });

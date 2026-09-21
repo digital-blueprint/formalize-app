@@ -34,6 +34,8 @@ Note that you will need a Keycloak server along with a client id for the domain 
 
 #### Routing
 
+The overview only displays forms for which `grantedFormActions` contains `manage`. Form update or delete permissions and submission collection permissions alone are not sufficient.
+
 The activity supports deep links through the app shell `routing-url` property:
 
 - `/` shows the forms overview.
