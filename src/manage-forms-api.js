@@ -291,6 +291,11 @@ export async function getListOfAllForms(host) {
                 // The title is the short tooltip, while the aria-label is a separate key so apps
                 // can shorten the tooltip via a translation override without losing the form
                 // name from the accessible name.
+                const overviewActionIcon =
+                    matchedModuleInstance?.getManageFormsOverviewActionIcon?.();
+                if (overviewActionIcon) {
+                    btn.iconName = overviewActionIcon;
+                }
                 btn.title = i18n.t('manage-forms.open-forms', {formName: formName});
                 btn.ariaLabel = i18n.t('manage-forms.open-forms-aria', {formName: formName});
                 btn.addEventListener('click', () => {

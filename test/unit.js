@@ -7,7 +7,7 @@ import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
-import {BaseFormElement, FILE_SECURITY_VALIDATION_ERROR_ID} from '../src/form/base-object.js';
+import {BaseFormElement, BaseObject, FILE_SECURITY_VALIDATION_ERROR_ID} from '../src/form/base-object.js';
 import {
     AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG,
     isAvailableFormsOverviewEnabled,
@@ -636,6 +636,67 @@ suite('dbp-formalize-manage-forms basics', () => {
 });
 
 suite('manage forms action menus', () => {
+    test('should use a module overview icon without changing the default icon', async () => {
+        const originalFetch = window.fetch;
+        const createModule = (frontendKey, iconName) => ({
+            getFormFrontendKey: () => frontendKey,
+            getUrlSlug: () => frontendKey,
+            getManageFormsOverviewActionIcon: () => iconName,
+        });
+        const host = {
+            _i18n: {t: (key) => key},
+            entryPointUrl: 'https://example.com',
+            auth: {token: 'token'},
+            allForms: [],
+            allowListFrontendKeys: [],
+            denyListFrontendKeys: [],
+            loadedModules: new Map([
+                ['custom', {formId: 'custom', moduleInstance: createModule('custom', 'list')}],
+                ['default', {formId: 'default', moduleInstance: createModule('default', null)}],
+            ]),
+            forms: new Map(),
+            formsGrantedActions: new Map(),
+            options_forms: {},
+            lang: 'en',
+            createScopedElement: () => {
+                const button = document.createElement('button');
+                button.iconName = 'keyword-research';
+                return button;
+            },
+            sendSetPropertyEvent: () => {},
+        };
+        window.fetch = () =>
+            Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        'hydra:member': ['custom', 'default'].map((frontendKey) => ({
+                            identifier: frontendKey,
+                            frontendKey,
+                            name: frontendKey,
+                            localizedNames: [],
+                            grantedActions: ['read'],
+                            grantedFormActions: ['update'],
+                            grantedSubmissionCollectionActions: [],
+                        })),
+                    }),
+            });
+
+        try {
+            await getListOfAllForms(host);
+        } finally {
+            window.fetch = originalFetch;
+        }
+
+        const getIconName = (formId) =>
+            host.allForms
+                .find((form) => form.formId === formId)
+                .actionButton.querySelector('button').iconName;
+        assert.equal(getIconName('custom'), 'list');
+        assert.equal(getIconName('default'), 'keyword-research');
+        assert.isNull(new BaseObject().getManageFormsOverviewActionIcon());
+    });
+
     test('should forward submission authorization settings when saving forms', async () => {
         const originalFetch = window.fetch;
         const requests = [];

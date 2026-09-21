@@ -71,6 +71,15 @@ export class BaseObject {
     }
 
     /**
+     * Returns an optional icon for opening this form in the manage-forms overview.
+     * Override in subclasses to replace the default action icon.
+     * @returns {string|null}
+     */
+    getManageFormsOverviewActionIcon() {
+        return null;
+    }
+
+    /**
      * Indicates whether this form supports a read-only view mode.
      * Override in subclasses and return true to enable the read-only
      * submission view and the "open in render-form" actions.
