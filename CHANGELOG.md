@@ -2,6 +2,7 @@
 
 ## Unreleased (v1.3.1)
 
+- Edit form dialog: added two visually hidden skip links at the end of the form content that move focus to the primary save button and to the dialog's close button, both of which sit in the pinned header and therefore come before the form in the tab order; keyboard and screen reader users no longer have to tab back through the whole form to save or abort. The save link reuses the button's own label (`edit-form-dialog.skip-to-save-button`) so it stays correct in create and edit mode and with translation overrides, and it falls back to the action bar while the button is still disabled. Requires the toolkit's new `Modal.focusCloseButton()`
 - Manage Forms activity: the open-submissions button in the forms table now takes its `aria-label` from the new `manage-forms.open-forms-aria` key instead of reusing the tooltip key, so apps can shorten the tooltip through a translation override without losing the form name from the accessible name
 - Manage Fields activity: the table row action buttons (open form, create entry, edit entry) now have row-specific `aria-label`s naming the form or entry, while the tooltip stays short, so screen reader users can tell the repeated buttons apart
 - Attachment lists in forms and in the submission detail popup: the view, download and delete buttons now also expose the file name as their `aria-label`, the submission detail popup got the file name tooltips that forms already had, and the button icons are marked `aria-hidden`

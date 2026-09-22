@@ -308,6 +308,36 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         this._isSubmitting = false;
     }
 
+    /**
+     * Moves focus from the skip link at the end of the form to the primary save
+     * button in the pinned modal header. Falls back to the action bar while the
+     * save button is still disabled and therefore not focusable.
+     */
+    _skipToSaveButton() {
+        const saveButton = this._('#dialog-save-btn');
+        if (saveButton && !saveButton.disabled) {
+            saveButton.focus();
+            return;
+        }
+
+        const actionsBar = this._('#dialog-actions-bar');
+        if (actionsBar) {
+            actionsBar.focus();
+        }
+    }
+
+    /**
+     * Moves focus to the modal's close button, which is the only way to abort the
+     * dialog besides Escape. It lives in the modal's shadow root, so we have to go
+     * through the modal's public API.
+     */
+    _skipToCloseButton() {
+        const modal = this._('dbp-modal');
+        if (modal && typeof modal.focusCloseButton === 'function') {
+            modal.focusCloseButton();
+        }
+    }
+
     /** Called by the parent after the API call completes (success or failure). */
     submitComplete() {
         this._isSubmitting = false;
@@ -318,6 +348,9 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
         const t = (key, opts) => (i18n ? i18n.t(key, opts) : key);
         const isEdit = this._isEditMode;
         const saveDisabled = !this._isFormValid || this._isSubmitting;
+        // The save button is labelled differently per mode (and can be overridden by apps),
+        // so reuse its label in the skip link instead of hardcoding "save".
+        const saveLabel = isEdit ? t('edit-form.save') : t('create-form.create');
         const showFormTypeSelector = !isEdit && this.creatableModules.length > 1;
         const generalSectionTitle = t('create-form.section-general');
 
@@ -341,7 +374,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                 <!-- Header content stays pinned above the scrollable modal content. -->
                 <div slot="header">
                     <!-- Action bar: Cancel (left) + Create/Save (right) -->
-                    <div class="dialog-actions-bar">
+                    <div id="dialog-actions-bar" class="dialog-actions-bar" tabindex="-1">
                         <p class="required-fields-hint">
                             <span class="required-marker">
                                 ${t('render-form.required-files-asterisk')}
@@ -349,6 +382,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                             ${t('render-form.required-files-text')}
                         </p>
                         <button
+                            id="dialog-save-btn"
                             class="button is-primary save-btn"
                             type="button"
                             ?disabled="${saveDisabled}"
@@ -365,9 +399,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                                               aria-hidden="true"></dbp-icon>
                                       `
                             }
-                            <span class="button-label">
-                                ${isEdit ? t('edit-form.save') : t('create-form.create')}
-                            </span>
+                            <span class="button-label">${saveLabel}</span>
                         </button>
                     </div>
 
@@ -432,6 +464,33 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                         id="form-component-container"
                         class="form-component-area"
                         ?hidden="${!this._formComponentTag}"></div>
+
+                    <!--
+                        Skip links to the dialog actions, which sit in the pinned modal header
+                        and therefore come before the form in the tab order.
+                    -->
+                    ${
+                        this._formComponentTag
+                            ? html`
+                                  <div class="skip-links">
+                                      <button
+                                          type="button"
+                                          class="skip-link"
+                                          @click="${this._skipToSaveButton}">
+                                          ${t('edit-form-dialog.skip-to-save-button', {
+                                              label: saveLabel,
+                                          })}
+                                      </button>
+                                      <button
+                                          type="button"
+                                          class="skip-link"
+                                          @click="${this._skipToCloseButton}">
+                                          ${t('edit-form-dialog.skip-to-close-button')}
+                                      </button>
+                                  </div>
+                              `
+                            : ''
+                    }
                 </div>
             </dbp-modal>
         `;
@@ -542,6 +601,49 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
             /* Edit-form component area */
             .form-component-area {
                 margin-top: 1rem;
+            }
+
+            /* Skip links: hidden until they receive keyboard focus */
+            .skip-link {
+                position: absolute !important;
+                clip: rect(1px, 1px, 1px, 1px);
+                overflow: hidden;
+                height: 1px;
+                width: 1px;
+                word-wrap: normal;
+                appearance: none;
+                border: none;
+                padding: 0;
+                background: none;
+                font: inherit;
+                color: var(--dbp-accent);
+                text-decoration: underline;
+                cursor: pointer;
+            }
+
+            .skip-link:focus-visible {
+                position: static !important;
+                clip: auto;
+                overflow: visible;
+                display: inline-block;
+                height: auto;
+                width: auto;
+            }
+
+            /* Only the focused link becomes visible, so the gap never shows twice */
+            .skip-links:focus-within {
+                display: flex;
+                margin-top: 1rem;
+            }
+
+            /* Fallback focus target while the save button is disabled */
+            #dialog-actions-bar:focus {
+                outline: none;
+            }
+
+            #dialog-actions-bar:focus-visible {
+                outline: 1px solid var(--dbp-accent);
+                outline-offset: 2px;
             }
 
             @media (max-width: 560px) {

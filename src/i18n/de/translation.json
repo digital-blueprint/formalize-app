@@ -14,6 +14,10 @@
         "save": "Speichern",
         "success-updated": "Formular erfolgreich aktualisiert"
     },
+    "edit-form-dialog": {
+        "skip-to-close-button": "Zum Schließen-Button springen",
+        "skip-to-save-button": "Zum Button „{{label}}“ springen"
+    },
     "error-login-link": "Anmelden",
     "error-login-message": "Bitte melden Sie sich an, um diese Funktion nutzen zu können.",
     "errors": {

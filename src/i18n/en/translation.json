@@ -14,6 +14,10 @@
         "save": "Save",
         "success-updated": "Form updated successfully"
     },
+    "edit-form-dialog": {
+        "skip-to-close-button": "Skip to the close button",
+        "skip-to-save-button": "Skip to the {{label}} button"
+    },
     "error-login-link": "Log in",
     "error-login-message": "Please log in to use this functionality.",
     "errors": {
