@@ -75,8 +75,8 @@ export class BaseObject {
      * Override in subclasses to modify built-in actions or append module-specific actions.
      *
      * @param {object} _context
-     * @param {Array<{id: string, iconName: string, title: string, ariaLabel: string, handler: (context: object) => void}>} actions
-     * @returns {Array<{id: string, iconName: string, title: string, ariaLabel: string, handler: (context: object) => void}>}
+     * @param {Array<Record<string, any>>} actions
+     * @returns {Array<Record<string, any>>}
      */
     getManageFormsOverviewActions(_context, actions = []) {
         return actions;

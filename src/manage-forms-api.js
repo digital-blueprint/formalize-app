@@ -15,6 +15,11 @@ import {
     SUBMISSION_PERMISSIONS,
 } from './utils.js';
 import xss from 'xss';
+import {
+    createDefaultManageFormsOverviewActions,
+    createManageFormsOverviewActionContext,
+    resolveManageFormsOverviewAction,
+} from './manage-forms-overview-actions.js';
 
 // ---------------------------------------------------------------------------
 // Utility helpers used only by the functions in this module
@@ -128,11 +133,17 @@ export function createManageFormsOverviewActionButton(host, action, context) {
     if (action.iconName) {
         button.iconName = action.iconName;
     }
-    button.title = action.title;
-    button.ariaLabel = action.ariaLabel;
+    const initialContext = typeof context === 'function' ? context() : context;
+    const resolvedAction = resolveManageFormsOverviewAction(action, initialContext);
+    button.title = resolvedAction.title;
+    button.ariaLabel = resolvedAction.ariaLabel;
     button.addEventListener('click', (event) => {
-        const currentContext = typeof context === 'function' ? context() : context;
-        action.handler({...currentContext, event});
+        const contextValue = typeof context === 'function' ? context() : context;
+        const currentContext = {...contextValue, event};
+        const currentAction = resolveManageFormsOverviewAction(action, currentContext);
+        if (currentAction.visible && currentAction.enabled) {
+            action.handler(currentContext);
+        }
     });
     return button;
 }
@@ -207,6 +218,7 @@ export async function getListOfAllForms(host) {
             }
 
             let id = 0;
+            const overviewActions = new Map();
             for (let x = 0; x < data['hydra:member'].length; x++) {
                 const entry = data['hydra:member'][x];
                 let localizedFormName = entry['localizedNames'].find((localizedName) => {
@@ -263,6 +275,7 @@ export async function getListOfAllForms(host) {
                 const tagPermissionsForSubmitters = entry['tagPermissionsForSubmitters'];
                 const allowedSubmissionStates = entry['allowedSubmissionStates'];
                 const dataFeedSchema = entry['dataFeedSchema'];
+                const grantedActions = entry['grantedActions'] ?? [];
 
                 const additionalData = entry['additionalData'] ?? null;
                 const localizedNames = entry['localizedNames'] ?? [];
@@ -302,35 +315,25 @@ export async function getListOfAllForms(host) {
                     tagPermissionsForSubmitters,
                     additionalData,
                     localizedNames,
+                    grantedActions,
                 });
+
+                // Store current grants before modules build permission-gated row actions.
+                if (host.formsGrantedActions instanceof Map) {
+                    host.formsGrantedActions.set(formId, grantedActions);
+                }
 
                 const managedForm = host.forms.get(formId);
 
                 // Build the row action button container. All actions use descriptors so
                 // toolbar/dropdown actions can be moved into rows without new button markup.
-                const grantedActions = entry['grantedActions'] ?? [];
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =
                     'display: inline-flex; gap: 0.5rem; align-items: center;';
-                const actionContext = {host, form: managedForm};
-                const defaultAction = {
-                    id: 'open-submissions',
-                    iconName: 'keyword-research',
-                    // The title is the short tooltip, while the aria-label keeps the form name.
-                    title: i18n.t('manage-forms.open-forms', {formName: formName}),
-                    ariaLabel: i18n.t('manage-forms.open-forms-aria', {formName: formName}),
-                    handler: () => {
-                        host.loadingSubmissionTables = true;
-                        // Let the router handle the history entry via sendSetPropertyEvent.
-                        host.sendSetPropertyEvent(
-                            'routing-url',
-                            host.getRoutingUrlWithQueryPrefixes(`/${formId}`, ['forms-']),
-                            true,
-                        );
-                    },
-                };
-                const getCurrentActionContext = () => ({host, form: host.forms.get(formId)});
-                const defaultActions = [defaultAction];
+                const actionContext = createManageFormsOverviewActionContext(host, [managedForm]);
+                const getCurrentActionContext = () =>
+                    createManageFormsOverviewActionContext(host, [host.forms.get(formId)]);
+                const defaultActions = createDefaultManageFormsOverviewActions();
                 const customizedActions = matchedModuleInstance?.getManageFormsOverviewActions?.(
                     actionContext,
                     defaultActions,
@@ -339,7 +342,20 @@ export async function getListOfAllForms(host) {
                     ? customizedActions
                     : defaultActions;
                 rowActions.forEach((action) => {
-                    if (action?.id && typeof action.handler === 'function') {
+                    const placements = Array.isArray(action?.placements)
+                        ? action.placements
+                        : ['row'];
+                    if (action?.id) {
+                        overviewActions.set(action.id, action);
+                    }
+                    const resolvedAction = resolveManageFormsOverviewAction(action, actionContext);
+                    if (
+                        placements.includes('row') &&
+                        action?.id &&
+                        typeof action.handler === 'function' &&
+                        resolvedAction.visible &&
+                        resolvedAction.enabled
+                    ) {
                         actionContainer.appendChild(
                             createManageFormsOverviewActionButton(
                                 host,
@@ -349,11 +365,6 @@ export async function getListOfAllForms(host) {
                         );
                     }
                 });
-
-                // Store the granted actions for this form so the overview can gate bulk deletion.
-                if (host.formsGrantedActions instanceof Map) {
-                    host.formsGrantedActions.set(formId, grantedActions);
-                }
 
                 const employer =
                     frontendKey === 'job-offer'
@@ -374,18 +385,28 @@ export async function getListOfAllForms(host) {
                 forms.push(new_form);
             }
 
+            host.formsOverviewActionDefinitions = [...overviewActions.values()];
+
             // Avoid replacing allForms when the set of forms hasn't changed.
             // A token refresh can cause this function to be re-invoked even
             // though the API returns the same data.  Skipping the assignment
             // prevents the Lit reactive cycle from re-triggering
             // updated('allForms'), which would rebuild/reset the tabulator
             // tables, show a loading spinner, and disrupt the user.
-            const prevRows = (host.allForms || []).map(({formId, name, employer}) => [
+            const prevRows = (host.allForms || []).map(
+                ({formId, name, employer, grantedActions}) => [
+                    formId,
+                    name,
+                    employer,
+                    grantedActions,
+                ],
+            );
+            const nextRows = forms.map(({formId, name, employer, grantedActions}) => [
                 formId,
                 name,
                 employer,
+                grantedActions,
             ]);
-            const nextRows = forms.map(({formId, name, employer}) => [formId, name, employer]);
             if (
                 JSON.stringify(prevRows) === JSON.stringify(nextRows) &&
                 (host.allForms || []).length > 0

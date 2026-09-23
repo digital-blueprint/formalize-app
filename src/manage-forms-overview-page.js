@@ -22,14 +22,9 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.noFormsAvailable = false;
         // Number of modules that implement createForm(); the button is only shown when > 0
         this.creatableModulesCount = 0;
-        // Whether bulk removal of forms is enabled (opt-in via the host attribute).
-        this.enableFormsBulkDelete = false;
+        this.actions = [];
         // Number of currently selected forms in the overview table.
         this.selectedFormsCount = 0;
-        // Whether the selected forms may be deleted (all of them grant delete/manage).
-        this.isDeleteSelectedFormsEnabled = false;
-        this.isEditSelectedFormPermissionEnabled = false;
-        this.isEditSelectedFormEnabled = false;
     }
 
     static get scopedElements() {
@@ -53,11 +48,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             paginationSizeStorageKey: {type: String, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
             creatableModulesCount: {type: Number, attribute: false},
-            enableFormsBulkDelete: {type: Boolean, attribute: false},
+            actions: {type: Array, attribute: false},
             selectedFormsCount: {type: Number, attribute: false},
-            isDeleteSelectedFormsEnabled: {type: Boolean, attribute: false},
-            isEditSelectedFormPermissionEnabled: {type: Boolean, attribute: false},
-            isEditSelectedFormEnabled: {type: Boolean, attribute: false},
         };
     }
 
@@ -236,30 +228,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
     render() {
         const i18n = this._i18n;
-        const formActions = [
-            ...(this.enableFormsBulkDelete
-                ? [
-                      {
-                          value: 'delete',
-                          disabled: !this.isDeleteSelectedFormsEnabled,
-                          label: i18n.t('manage-forms.delete'),
-                          iconName: 'trash',
-                      },
-                  ]
-                : []),
-            {
-                value: 'edit',
-                disabled: !this.isEditSelectedFormEnabled,
-                label: i18n.t('manage-forms.edit-button-text'),
-                iconName: 'pencil',
-            },
-            {
-                value: 'edit-permission',
-                disabled: !this.isEditSelectedFormPermissionEnabled,
-                label: i18n.t('manage-forms.edit-permission-button-text'),
-                iconName: 'edit-permission',
-            },
-        ];
+        const formActions = this.actions;
 
         return html`
             <div class="container forms-table ${classMap({hidden: !this.showFormsTable})}">
@@ -287,9 +256,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     <dbp-select
                         ?disabled=${
                             this.selectedFormsCount === 0 ||
-                            (!this.isDeleteSelectedFormsEnabled &&
-                                !this.isEditSelectedFormEnabled &&
-                                !this.isEditSelectedFormPermissionEnabled)
+                            !formActions.some((action) => !action.disabled)
                         }
                         @change=${this._onFormAction}
                         id="forms-table-actions-select"
