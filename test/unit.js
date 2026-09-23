@@ -640,12 +640,13 @@ suite('dbp-formalize-manage-forms basics', () => {
 });
 
 suite('manage forms action menus', () => {
-    test('should use a module overview icon without changing the default icon', async () => {
+    test('should let a module customize row actions without changing defaults', async () => {
         const originalFetch = window.fetch;
         const createModule = (frontendKey, iconName) => ({
             getFormFrontendKey: () => frontendKey,
             getUrlSlug: () => frontendKey,
-            getManageFormsOverviewActionIcon: () => iconName,
+            getManageFormsOverviewActions: (_context, actions) =>
+                iconName ? actions.map((action) => ({...action, iconName})) : actions,
         });
         const host = {
             _i18n: {t: (key) => key},
@@ -698,7 +699,82 @@ suite('manage forms action menus', () => {
                 .actionButton.querySelector('button').iconName;
         assert.equal(getIconName('custom'), 'list');
         assert.equal(getIconName('default'), 'keyword-research');
-        assert.isNull(new BaseObject().getManageFormsOverviewActionIcon());
+        const defaultActions = [{id: 'default'}];
+        assert.equal(
+            new BaseObject().getManageFormsOverviewActions({}, defaultActions),
+            defaultActions,
+        );
+    });
+
+    test('should append module actions beside the default row action', async () => {
+        const originalFetch = window.fetch;
+        let actionContext = null;
+        const moduleInstance = {
+            getFormFrontendKey: () => 'job-offer',
+            getUrlSlug: () => 'job-offer',
+            getManageFormsOverviewActions: (_context, actions) => [
+                ...actions,
+                {
+                    id: 'preview',
+                    iconName: 'eye',
+                    title: 'Preview',
+                    ariaLabel: 'Preview job offer',
+                    handler: (context) => (actionContext = context),
+                },
+            ],
+        };
+        const host = {
+            _i18n: {t: (key) => key},
+            entryPointUrl: 'https://example.com',
+            auth: {token: 'token'},
+            allForms: [],
+            allowListFrontendKeys: [],
+            denyListFrontendKeys: [],
+            loadedModules: new Map([['job-offer', {formId: 'job-offer', moduleInstance}]]),
+            forms: new Map(),
+            formsGrantedActions: new Map(),
+            options_forms: {},
+            lang: 'en',
+            createScopedElement: () => document.createElement('button'),
+            sendSetPropertyEvent: () => {},
+        };
+        window.fetch = () =>
+            Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        'hydra:member': [
+                            {
+                                identifier: 'job-1',
+                                frontendKey: 'job-offer',
+                                name: 'Developer',
+                                localizedNames: [],
+                                additionalData: {title: 'Developer'},
+                                grantedActions: ['read'],
+                                grantedFormActions: ['update'],
+                                grantedSubmissionCollectionActions: [],
+                            },
+                        ],
+                    }),
+            });
+
+        try {
+            await getListOfAllForms(host);
+        } finally {
+            window.fetch = originalFetch;
+        }
+
+        const buttons = host.allForms[0].actionButton.querySelectorAll('button');
+        assert.lengthOf(buttons, 2);
+        assert.equal(buttons[0].dataset.action, 'open-submissions');
+        assert.equal(buttons[1].dataset.action, 'preview');
+        assert.equal(buttons[1].iconName, 'eye');
+
+        host.forms.set('job-1', {...host.forms.get('job-1'), formName: 'Updated developer'});
+        buttons[1].click();
+        assert.equal(actionContext.host, host);
+        assert.equal(actionContext.form.formId, 'job-1');
+        assert.equal(actionContext.form.formName, 'Updated developer');
     });
 
     test('should forward submission authorization settings when saving forms', async () => {

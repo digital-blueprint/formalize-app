@@ -114,6 +114,30 @@ export function loadModules(host) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Creates the standard icon button used for an action in a manage-forms table row.
+ *
+ * @param {object} host - The ManageForms element.
+ * @param {{id: string, iconName?: string, title: string, ariaLabel: string, handler: (context: object) => void}} action
+ * @param {object|(() => object)} context - Data passed to the action handler.
+ * @returns {HTMLElement}
+ */
+export function createManageFormsOverviewActionButton(host, action, context) {
+    const button = host.createScopedElement('dbp-formalize-get-details-button');
+    button.setAttribute('subscribe', 'lang');
+    button.dataset.action = action.id;
+    if (action.iconName) {
+        button.iconName = action.iconName;
+    }
+    button.title = action.title;
+    button.ariaLabel = action.ariaLabel;
+    button.addEventListener('click', (event) => {
+        const currentContext = typeof context === 'function' ? context() : context;
+        action.handler({...currentContext, event});
+    });
+    return button;
+}
+
+/**
  * Fetch the list of all forms and populate `host.allForms`.
  *
  * Forms are filtered by `host.allowListFrontendKeys` and `host.denyListFrontendKeys`,
@@ -280,36 +304,51 @@ export async function getListOfAllForms(host) {
                     localizedNames,
                 });
 
-                // Build the view-submissions action button container.
+                const managedForm = host.forms.get(formId);
+
+                // Build the row action button container. All actions use descriptors so
+                // toolbar/dropdown actions can be moved into rows without new button markup.
                 const grantedActions = entry['grantedActions'] ?? [];
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =
                     'display: inline-flex; gap: 0.5rem; align-items: center;';
-
-                let btn = host.createScopedElement('dbp-formalize-get-details-button');
-                btn.setAttribute('subscribe', 'lang');
-                // The title is the short tooltip, while the aria-label is a separate key so apps
-                // can shorten the tooltip via a translation override without losing the form
-                // name from the accessible name.
-                const overviewActionIcon =
-                    matchedModuleInstance?.getManageFormsOverviewActionIcon?.();
-                if (overviewActionIcon) {
-                    btn.iconName = overviewActionIcon;
-                }
-                btn.title = i18n.t('manage-forms.open-forms', {formName: formName});
-                btn.ariaLabel = i18n.t('manage-forms.open-forms-aria', {formName: formName});
-                btn.addEventListener('click', () => {
-                    host.loadingSubmissionTables = true;
-                    // Let the router handle the history entry via sendSetPropertyEvent.
-                    // A manual pushState here would create a duplicate history entry,
-                    // requiring the user to press the back button twice.
-                    host.sendSetPropertyEvent(
-                        'routing-url',
-                        host.getRoutingUrlWithQueryPrefixes(`/${formId}`, ['forms-']),
-                        true,
-                    );
+                const actionContext = {host, form: managedForm};
+                const defaultAction = {
+                    id: 'open-submissions',
+                    iconName: 'keyword-research',
+                    // The title is the short tooltip, while the aria-label keeps the form name.
+                    title: i18n.t('manage-forms.open-forms', {formName: formName}),
+                    ariaLabel: i18n.t('manage-forms.open-forms-aria', {formName: formName}),
+                    handler: () => {
+                        host.loadingSubmissionTables = true;
+                        // Let the router handle the history entry via sendSetPropertyEvent.
+                        host.sendSetPropertyEvent(
+                            'routing-url',
+                            host.getRoutingUrlWithQueryPrefixes(`/${formId}`, ['forms-']),
+                            true,
+                        );
+                    },
+                };
+                const getCurrentActionContext = () => ({host, form: host.forms.get(formId)});
+                const defaultActions = [defaultAction];
+                const customizedActions = matchedModuleInstance?.getManageFormsOverviewActions?.(
+                    actionContext,
+                    defaultActions,
+                );
+                const rowActions = Array.isArray(customizedActions)
+                    ? customizedActions
+                    : defaultActions;
+                rowActions.forEach((action) => {
+                    if (action?.id && typeof action.handler === 'function') {
+                        actionContainer.appendChild(
+                            createManageFormsOverviewActionButton(
+                                host,
+                                action,
+                                getCurrentActionContext,
+                            ),
+                        );
+                    }
                 });
-                actionContainer.appendChild(btn);
 
                 // Store the granted actions for this form so the overview can gate bulk deletion.
                 if (host.formsGrantedActions instanceof Map) {

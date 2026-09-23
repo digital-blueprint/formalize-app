@@ -71,12 +71,15 @@ export class BaseObject {
     }
 
     /**
-     * Returns an optional icon for opening this form in the manage-forms overview.
-     * Override in subclasses to replace the default action icon.
-     * @returns {string|null}
+     * Customizes the actions for a form row in the manage-forms overview.
+     * Override in subclasses to modify built-in actions or append module-specific actions.
+     *
+     * @param {object} _context
+     * @param {Array<{id: string, iconName: string, title: string, ariaLabel: string, handler: (context: object) => void}>} actions
+     * @returns {Array<{id: string, iconName: string, title: string, ariaLabel: string, handler: (context: object) => void}>}
      */
-    getManageFormsOverviewActionIcon() {
-        return null;
+    getManageFormsOverviewActions(_context, actions = []) {
+        return actions;
     }
 
     /**
