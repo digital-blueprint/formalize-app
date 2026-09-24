@@ -999,7 +999,7 @@ class FormalizeFormElement extends BaseFormElement {
         // this.extractShadowContent(form);
         const restoreElements = this.extractShadowContent(form);
 
-        // window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
 
         const opt = {
             margin: /** @type {[number, number]} */ ([70, 51]), // Don't change vertical margin or lines can break when printing.
@@ -1144,6 +1144,13 @@ class FormalizeFormElement extends BaseFormElement {
                 el.insertAdjacentElement('afterend', wrapper);
             }
             if (el.tagName.startsWith('DBP-FORM') && el.shadowRoot) {
+                // The comments field must not appear in the print/PDF version.
+                // Hide the original and skip creating a rendered clone for it.
+                if (el.getAttribute('name') === 'comments') {
+                    el.style.display = 'none';
+                    return;
+                }
+
                 const shadowContent = el.shadowRoot.innerHTML;
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = shadowContent;
@@ -2715,26 +2722,13 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.exposeParticipantsToRisk || ''
                                           }></dbp-form-enum-view>
 
-                                      ${
-                                          this.conditionalFields.lowIncomeCountries
-                                              ? html`
-                                                    <dbp-form-string-view
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .lowIncomeCountries,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="riskCountries"
-                                                        label="4.1.6. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.risk-countries-label',
-                                                        )}"
-                                                        value=${
-                                                            data.riskCountries || ''
-                                                        }></dbp-form-string-view>
-                                                `
-                                              : ''
-                                      }
+                                      <dbp-form-string-view
+                                          subscribe="lang"
+                                          name="riskCountries"
+                                          label="4.1.6. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.risk-countries-label',
+                                          )}"
+                                          value=${data.riskCountries || ''}></dbp-form-string-view>
                                   </div>
                               `
                             : ''
@@ -3285,7 +3279,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips</a>.</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/en/about-this-page/electronic-mailbox-for-anonymous-tips-whistleblowing">Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips</a>.</p></li>
                                     <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
@@ -3703,62 +3697,64 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.studyDescriptionDateOfTransmission || ''
                                           }></dbp-form-date-element>
 
-                                      <dbp-form-enum-element
-                                          subscribe="lang"
-                                          name="dataProtectionChecked"
-                                          display-mode="list"
-                                          data-condition="yes-at"
-                                          label="${i18n.t(
-                                              'render-form.forms.ethics-commission-form.data-protection-checked-label',
-                                          )}"
-                                          .items=${{
-                                              'yes-at': i18n.t(
-                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
-                                              ),
-                                              not: i18n.t(
-                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
-                                              ),
-                                          }}
-                                          .value=${
-                                              data.dataProtectionChecked || ''
-                                          }></dbp-form-enum-element>
+                                      <div class="data-protection-wrapper">
+                                          <dbp-form-enum-element
+                                              subscribe="lang"
+                                              name="dataProtectionChecked"
+                                              display-mode="list"
+                                              data-condition="yes-at"
+                                              label="${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label',
+                                              )}"
+                                              .items=${{
+                                                  'yes-at': i18n.t(
+                                                      'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
+                                                  ),
+                                                  not: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
+                                                  ),
+                                              }}
+                                              .value=${
+                                                  data.dataProtectionChecked || ''
+                                              }></dbp-form-enum-element>
 
-                                      ${
-                                          this.formData?.dataProtectionChecked === 'yes-at'
-                                              ? html`
-                                                    <dbp-form-date-element
-                                                        subscribe="lang"
-                                                        name="dataProtectionDate"
-                                                        class="fade-in"
-                                                        label="${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.data-protection-date-label',
-                                                        )}"
-                                                        description="${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.filled-by-admins-warning',
-                                                        )}"
-                                                        value=${
-                                                            data.dataProtectionDate || ''
-                                                        }></dbp-form-date-element>
-                                                `
-                                              : this.formData?.dataProtectionChecked === 'not'
-                                                ? html`
-                                                      <dbp-form-string-element
-                                                          subscribe="lang"
-                                                          name="dataProtectionComment"
-                                                          class="fade-in"
-                                                          label="${i18n.t(
-                                                              'render-form.forms.ethics-commission-form.data-protection-comment-label',
-                                                          )}"
-                                                          description="${i18n.t(
-                                                              'render-form.forms.ethics-commission-form.filled-by-admins-warning',
-                                                          )}"
-                                                          maxlength="1000"
-                                                          value=${
-                                                              data.dataProtectionComment || ''
-                                                          }></dbp-form-string-element>
-                                                  `
-                                                : ''
-                                      }
+                                          ${
+                                              this.formData?.dataProtectionChecked === 'yes-at'
+                                                  ? html`
+                                                        <dbp-form-date-element
+                                                            subscribe="lang"
+                                                            name="dataProtectionDate"
+                                                            class="fade-in"
+                                                            label="${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.data-protection-date-label',
+                                                            )}"
+                                                            description="${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.filled-by-admins-warning',
+                                                            )}"
+                                                            value=${
+                                                                data.dataProtectionDate || ''
+                                                            }></dbp-form-date-element>
+                                                    `
+                                                  : this.formData?.dataProtectionChecked === 'not'
+                                                    ? html`
+                                                          <dbp-form-string-element
+                                                              subscribe="lang"
+                                                              name="dataProtectionComment"
+                                                              class="fade-in"
+                                                              label="${i18n.t(
+                                                                  'render-form.forms.ethics-commission-form.data-protection-comment-label',
+                                                              )}"
+                                                              description="${i18n.t(
+                                                                  'render-form.forms.ethics-commission-form.filled-by-admins-warning',
+                                                              )}"
+                                                              maxlength="1000"
+                                                              value=${
+                                                                  data.dataProtectionComment || ''
+                                                              }></dbp-form-string-element>
+                                                      `
+                                                    : ''
+                                          }
+                                      </div>
                                   </div>
                               `
                             : ''
@@ -5117,27 +5113,16 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.exposeParticipantsToRisk || ''
                                           }></dbp-form-enum-element>
 
-                                      ${
-                                          this.conditionalFields.lowIncomeCountries
-                                              ? html`
-                                                    <dbp-form-string-element
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .lowIncomeCountries,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="riskCountries"
-                                                        maxlength="1000"
-                                                        rows="3"
-                                                        label="4.1.6. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.risk-countries-label',
-                                                        )}"
-                                                        value=${data.riskCountries || ''}
-                                                        required></dbp-form-string-element>
-                                                `
-                                              : ''
-                                      }
+                                      <dbp-form-string-element
+                                          subscribe="lang"
+                                          name="riskCountries"
+                                          maxlength="1000"
+                                          rows="3"
+                                          label="4.1.6. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.risk-countries-label',
+                                          )}"
+                                          value=${data.riskCountries || ''}
+                                          required></dbp-form-string-element>
                                   </div>
                               `
                             : ''

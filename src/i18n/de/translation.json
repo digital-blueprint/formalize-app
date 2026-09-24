@@ -310,7 +310,7 @@
                 "contact-details-label": "Organisationseinheit",
                 "data-protection-checked-label": "Datenschutzrechtlich geprüft",
                 "data-protection-checked-label-not": "Nein",
-                "data-protection-checked-label-yes-at": "Ja, am",
+                "data-protection-checked-label-yes-at": "Ja",
                 "data-protection-comment-label": "Kommentar zum Datenschutz",
                 "data-protection-date-label": "Datum des Datenschutzes",
                 "data-source-description": "Bitte beschreiben Sie kurz, woher die Daten stammen (z.B.: werden sie selbst erhoben, stammen sie von Open Data Sources oder von Forschungspartner*innen, …)",
