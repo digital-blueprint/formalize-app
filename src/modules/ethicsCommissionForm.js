@@ -2722,26 +2722,13 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.exposeParticipantsToRisk || ''
                                           }></dbp-form-enum-view>
 
-                                      ${
-                                          this.conditionalFields.lowIncomeCountries
-                                              ? html`
-                                                    <dbp-form-string-view
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .lowIncomeCountries,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="riskCountries"
-                                                        label="4.1.6. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.risk-countries-label',
-                                                        )}"
-                                                        value=${
-                                                            data.riskCountries || ''
-                                                        }></dbp-form-string-view>
-                                                `
-                                              : ''
-                                      }
+                                      <dbp-form-string-view
+                                          subscribe="lang"
+                                          name="riskCountries"
+                                          label="4.1.6. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.risk-countries-label',
+                                          )}"
+                                          value=${data.riskCountries || ''}></dbp-form-string-view>
                                   </div>
                               `
                             : ''
@@ -5124,27 +5111,16 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.exposeParticipantsToRisk || ''
                                           }></dbp-form-enum-element>
 
-                                      ${
-                                          this.conditionalFields.lowIncomeCountries
-                                              ? html`
-                                                    <dbp-form-string-element
-                                                        class="${classMap({
-                                                            'fade-in':
-                                                                this.conditionalFields
-                                                                    .lowIncomeCountries,
-                                                        })}"
-                                                        subscribe="lang"
-                                                        name="riskCountries"
-                                                        maxlength="1000"
-                                                        rows="3"
-                                                        label="4.1.6. ${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.risk-countries-label',
-                                                        )}"
-                                                        value=${data.riskCountries || ''}
-                                                        required></dbp-form-string-element>
-                                                `
-                                              : ''
-                                      }
+                                      <dbp-form-string-element
+                                          subscribe="lang"
+                                          name="riskCountries"
+                                          maxlength="1000"
+                                          rows="3"
+                                          label="4.1.6. ${i18n.t(
+                                              'render-form.forms.ethics-commission-form.risk-countries-label',
+                                          )}"
+                                          value=${data.riskCountries || ''}
+                                          required></dbp-form-string-element>
                                   </div>
                               `
                             : ''
