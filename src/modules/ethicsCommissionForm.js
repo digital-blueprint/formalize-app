@@ -3697,62 +3697,64 @@ class FormalizeFormElement extends BaseFormElement {
                                               data.studyDescriptionDateOfTransmission || ''
                                           }></dbp-form-date-element>
 
-                                      <dbp-form-enum-element
-                                          subscribe="lang"
-                                          name="dataProtectionChecked"
-                                          display-mode="list"
-                                          data-condition="yes-at"
-                                          label="${i18n.t(
-                                              'render-form.forms.ethics-commission-form.data-protection-checked-label',
-                                          )}"
-                                          .items=${{
-                                              'yes-at': i18n.t(
-                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
-                                              ),
-                                              not: i18n.t(
-                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
-                                              ),
-                                          }}
-                                          .value=${
-                                              data.dataProtectionChecked || ''
-                                          }></dbp-form-enum-element>
+                                      <div class="data-protection-wrapper">
+                                          <dbp-form-enum-element
+                                              subscribe="lang"
+                                              name="dataProtectionChecked"
+                                              display-mode="list"
+                                              data-condition="yes-at"
+                                              label="${i18n.t(
+                                                  'render-form.forms.ethics-commission-form.data-protection-checked-label',
+                                              )}"
+                                              .items=${{
+                                                  'yes-at': i18n.t(
+                                                      'render-form.forms.ethics-commission-form.data-protection-checked-label-yes-at',
+                                                  ),
+                                                  not: i18n.t(
+                                                      'render-form.forms.ethics-commission-form.data-protection-checked-label-not',
+                                                  ),
+                                              }}
+                                              .value=${
+                                                  data.dataProtectionChecked || ''
+                                              }></dbp-form-enum-element>
 
-                                      ${
-                                          this.formData?.dataProtectionChecked === 'yes-at'
-                                              ? html`
-                                                    <dbp-form-date-element
-                                                        subscribe="lang"
-                                                        name="dataProtectionDate"
-                                                        class="fade-in"
-                                                        label="${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.data-protection-date-label',
-                                                        )}"
-                                                        description="${i18n.t(
-                                                            'render-form.forms.ethics-commission-form.filled-by-admins-warning',
-                                                        )}"
-                                                        value=${
-                                                            data.dataProtectionDate || ''
-                                                        }></dbp-form-date-element>
-                                                `
-                                              : this.formData?.dataProtectionChecked === 'not'
-                                                ? html`
-                                                      <dbp-form-string-element
-                                                          subscribe="lang"
-                                                          name="dataProtectionComment"
-                                                          class="fade-in"
-                                                          label="${i18n.t(
-                                                              'render-form.forms.ethics-commission-form.data-protection-comment-label',
-                                                          )}"
-                                                          description="${i18n.t(
-                                                              'render-form.forms.ethics-commission-form.filled-by-admins-warning',
-                                                          )}"
-                                                          maxlength="1000"
-                                                          value=${
-                                                              data.dataProtectionComment || ''
-                                                          }></dbp-form-string-element>
-                                                  `
-                                                : ''
-                                      }
+                                          ${
+                                              this.formData?.dataProtectionChecked === 'yes-at'
+                                                  ? html`
+                                                        <dbp-form-date-element
+                                                            subscribe="lang"
+                                                            name="dataProtectionDate"
+                                                            class="fade-in"
+                                                            label="${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.data-protection-date-label',
+                                                            )}"
+                                                            description="${i18n.t(
+                                                                'render-form.forms.ethics-commission-form.filled-by-admins-warning',
+                                                            )}"
+                                                            value=${
+                                                                data.dataProtectionDate || ''
+                                                            }></dbp-form-date-element>
+                                                    `
+                                                  : this.formData?.dataProtectionChecked === 'not'
+                                                    ? html`
+                                                          <dbp-form-string-element
+                                                              subscribe="lang"
+                                                              name="dataProtectionComment"
+                                                              class="fade-in"
+                                                              label="${i18n.t(
+                                                                  'render-form.forms.ethics-commission-form.data-protection-comment-label',
+                                                              )}"
+                                                              description="${i18n.t(
+                                                                  'render-form.forms.ethics-commission-form.filled-by-admins-warning',
+                                                              )}"
+                                                              maxlength="1000"
+                                                              value=${
+                                                                  data.dataProtectionComment || ''
+                                                              }></dbp-form-string-element>
+                                                      `
+                                                    : ''
+                                          }
+                                      </div>
                                   </div>
                               `
                             : ''

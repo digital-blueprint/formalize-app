@@ -1463,6 +1463,19 @@ export function getEthicsCommissionFormCSS() {
             font-style: italic;
         }
 
+        .data-protection-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1em;
+        }
+
+        .data-protection-wrapper [name='dataProtectionComment'],
+        .data-protection-wrapper [name='dataProtectionDate'],
+        .data-protection-wrapper [name='dataProtectionChecked'] {
+            width: calc(50% - 0.5em);
+            min-width: 250px;
+        }
+
         @media only screen and (max-width: 1600px) {
             .scroller {
                 opacity: 0.7;
@@ -1476,6 +1489,15 @@ export function getEthicsCommissionFormCSS() {
         @media only screen and (max-width: 683px) {
             .edit-mode .form-header.is-pinned:has(.tag-management > dbp-form-enum-element) {
                 transform: translateY(calc(-100% + 63px));
+            }
+
+            .data-protection-wrapper {
+                gap: 0rem;
+            }
+
+            .data-protection-wrapper [name='dataProtectionComment'],
+            .data-protection-wrapper [name='dataProtectionDate'] {
+                width: 100%;
             }
         }
 
