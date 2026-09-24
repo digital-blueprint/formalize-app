@@ -1636,8 +1636,7 @@ export function getEthicsCommissionFormPrintCSS() {
                 .scroller-container,
                 .tag-management,
                 .article-votum-file-attachments,
-                .article-consent,
-                dbp-form-string-view[name='comments'] + div
+                .article-consent
             ) {
             display: none !important;
             height: 0;

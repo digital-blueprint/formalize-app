@@ -999,7 +999,7 @@ class FormalizeFormElement extends BaseFormElement {
         // this.extractShadowContent(form);
         const restoreElements = this.extractShadowContent(form);
 
-        // window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
 
         const opt = {
             margin: /** @type {[number, number]} */ ([70, 51]), // Don't change vertical margin or lines can break when printing.
@@ -1144,6 +1144,13 @@ class FormalizeFormElement extends BaseFormElement {
                 el.insertAdjacentElement('afterend', wrapper);
             }
             if (el.tagName.startsWith('DBP-FORM') && el.shadowRoot) {
+                // The comments field must not appear in the print/PDF version.
+                // Hide the original and skip creating a rendered clone for it.
+                if (el.getAttribute('name') === 'comments') {
+                    el.style.display = 'none';
+                    return;
+                }
+
                 const shadowContent = el.shadowRoot.innerHTML;
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = shadowContent;
