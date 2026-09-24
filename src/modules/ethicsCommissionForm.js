@@ -3292,7 +3292,7 @@ class FormalizeFormElement extends BaseFormElement {
                                     </li>
                                     <li><p>Reference to the voluntary nature of participation, including the right to withdraw consent at any time without giving reasons and to terminate participation prematurely without any disadvantage to the participants</p></li>
                                     <li><p>Reference to the Ethics Committee’s decision</p></li>
-                                    <li><p><a target="_blank" href="https://www.tugraz.at/ueber-diese-seite/elektronischer-briefkasten-fuer-anonyme-hinweise-whistleblowing">Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips</a>.</p></li>
+                                    <li><p><a target="_blank" href="https://www.tugraz.at/en/about-this-page/electronic-mailbox-for-anonymous-tips-whistleblowing">Reference to the TU Graz Whistleblowing Policy and the Electronic Mailbox for Anonymous Tips</a>.</p></li>
                                     <li><p>Reference regarding data storage (e.g., which server, who has access), the retention period, and whether the data is personally identifiable</p></li>
                                     <li><p>Declaration of consent of the participants (or their legal representatives) to participate in the study </p></li>
                                 </ol>
