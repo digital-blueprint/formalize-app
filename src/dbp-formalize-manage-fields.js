@@ -745,12 +745,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         return this.createTableActions([
             openButton,
-            this.createTableActionButton(
-                'plus',
-                i18n.t('manage-fields.create-item'),
-                () => this.createItem(entry),
-                i18n.t('manage-fields.create-item-aria', {formName}),
-            ),
         ]);
     }
 
