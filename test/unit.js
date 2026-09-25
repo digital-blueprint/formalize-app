@@ -1100,6 +1100,7 @@ suite('manage forms action menus', () => {
         const searchInput = page.getSearchbar();
         searchInput.value = 'Job offer';
         searchInput.dispatchEvent(new Event('input'));
+        await page.updateComplete;
 
         assert.deepEqual(filters, [
             [
