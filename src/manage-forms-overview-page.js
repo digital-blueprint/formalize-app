@@ -1,7 +1,13 @@
 // @ts-nocheck
 import {css, html, unsafeCSS} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
-import {ScopedElementsMixin, MiniSpinner, Icon, DBPSelect, getIconSVGURL} from '@dbp-toolkit/common';
+import {
+    ScopedElementsMixin,
+    MiniSpinner,
+    Icon,
+    DBPSelect,
+    getIconSVGURL,
+} from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
@@ -25,6 +31,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.actions = [];
         // Number of currently selected forms in the overview table.
         this.selectedFormsCount = 0;
+        this.searchInProgress = false;
     }
 
     static get scopedElements() {
@@ -50,6 +57,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             creatableModulesCount: {type: Number, attribute: false},
             actions: {type: Array, attribute: false},
             selectedFormsCount: {type: Number, attribute: false},
+            searchInProgress: {type: Boolean, attribute: false},
         };
     }
 
@@ -164,6 +172,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         const searchInput = this.getSearchbar();
         if (!searchInput) return;
 
+        this.searchInProgress = searchInput.value.trim() !== '';
+
         this.applySearch(searchInput.value.trim());
         this.dispatchSearchChange(searchInput.value.trim());
     }
@@ -200,6 +210,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         const searchInput = this.getSearchbar();
         const table = this.getFormsTable();
         if (!searchInput || !table) return;
+        this.searchInProgress = false;
 
         searchInput.value = '';
         table.clearFilter();
@@ -282,7 +293,11 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                             placeholder="${i18n.t('manage-forms.searchbar-placeholder')}"
                             @input=${this.handleSearch} />
                     </form>
-                    <button type="button" class="reset-search" @click=${this.handleResetSearch}>
+                    <button
+                        type="button"
+                        class="reset-search"
+                        @click=${this.handleResetSearch}
+                        ?disabled=${!this.searchInProgress}>
                         <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
                         ${i18n.t('manage-forms.reset-search-label')}
                     </button>
