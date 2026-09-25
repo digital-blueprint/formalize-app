@@ -1,7 +1,7 @@
 // @ts-nocheck
-import {css, html} from 'lit';
+import {css, html, unsafeCSS} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
-import {ScopedElementsMixin, MiniSpinner, Icon, DBPSelect} from '@dbp-toolkit/common';
+import {ScopedElementsMixin, MiniSpinner, Icon, DBPSelect, getIconSVGURL} from '@dbp-toolkit/common';
 import DBPLitElement from '@dbp-toolkit/common/dbp-lit-element';
 import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import {createInstance} from './i18n.js';
@@ -113,6 +113,12 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     position: absolute;
                     white-space: nowrap;
                     width: 1px;
+                }
+
+                .forms-search .searchbar {
+                    background: calc(100% - 0.5em) center no-repeat
+                        url('${unsafeCSS(getIconSVGURL('search'))}');
+                    background-size: 1em;
                 }
 
                 @media (max-width: 530px) {
@@ -275,13 +281,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                             class="searchbar"
                             placeholder="${i18n.t('manage-forms.searchbar-placeholder')}"
                             @input=${this.handleSearch} />
-                        <button
-                            type="submit"
-                            class="button search-button"
-                            title="${i18n.t('manage-forms.search-button')}"
-                            aria-label="${i18n.t('manage-forms.search-button')}">
-                            <dbp-icon name="search" aria-hidden="true"></dbp-icon>
-                        </button>
                     </form>
                     <button type="button" class="reset-search" @click=${this.handleResetSearch}>
                         <dbp-icon name="spinner-arrow" aria-hidden="true"></dbp-icon>
