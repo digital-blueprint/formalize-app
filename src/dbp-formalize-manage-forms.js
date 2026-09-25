@@ -2659,7 +2659,7 @@ export class ManageForms extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 lang="${this.lang}"
                 allowed-mime-types="application/pdf,.pdf"
                 decompress-zip
-                enabled-targets="local,clipboard,nextcloud"
+                enabled-targets="local,nextcloud"
                 subscribe="auth,nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-sink>
 
             <dbp-formalize-deletion-confirmation-modal
