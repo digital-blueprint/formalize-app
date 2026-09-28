@@ -309,7 +309,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
     }
 
     /**
-     * Moves focus from the skip link at the end of the form to the primary save
+     * Moves focus from a form skip link to the primary save
      * button in the pinned modal header. Falls back to the action bar while the
      * save button is still disabled and therefore not focusable.
      */
@@ -463,6 +463,7 @@ export class EditFormDialog extends ScopedElementsMixin(DBPLitElement) {
                     <div
                         id="form-component-container"
                         class="form-component-area"
+                        @dbp-edit-form-skip-to-save-button="${this._skipToSaveButton}"
                         ?hidden="${!this._formComponentTag}"></div>
 
                     <!--
