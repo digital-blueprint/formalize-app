@@ -280,7 +280,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
         // Validate the form before proceeding
         const validationResult = await validateRequiredFields(formElement);
         if (!validationResult) {
-            this.scrollToFirstInvalidField(formElement);
+            this.scrollToFirstInvalidField(formElement, true);
             return;
         }
 

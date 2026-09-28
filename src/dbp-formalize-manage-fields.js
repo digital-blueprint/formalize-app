@@ -459,6 +459,10 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
 
         const isValid = await validateRequiredFields(formElement);
         if (!isValid) {
+            const form = /** @type {import('./form/base-object.js').BaseFormElement | null} */ (
+                this.formRef.value
+            );
+            form?.scrollToFirstInvalidField(formElement, true);
             sendNotification({
                 summary: this._i18n.t('errors.warning-title'),
                 body: this._i18n.t('errors.form-validation-warning-notification-body'),
