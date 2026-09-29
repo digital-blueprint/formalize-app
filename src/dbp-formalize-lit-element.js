@@ -91,8 +91,8 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 break;
             case 403:
                 sendNotification({
-                    summary: this._i18n.t('errors.unauthorized-title'),
-                    body: this._i18n.t('errors.unauthorized-body'),
+                    summary: this._i18n.t('errors.forbidden-title'),
+                    body: this._i18n.t('errors.forbidden-body'),
                     type: 'danger',
                     timeout: 0,
                     targetNotificationId,
