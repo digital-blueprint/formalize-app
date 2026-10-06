@@ -114,6 +114,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
     constructor() {
         super();
         this.entryPointUrl = null;
+        this.courseIdentifier = null;
         // True while the course is being set programmatically (e.g. presetting a
         // loaded submission). Used to suppress the `dbp-course-changed` event so
         // it is only dispatched for genuine user selections.
@@ -125,6 +126,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         return {
             ...super.properties,
             entryPointUrl: {type: String, attribute: 'entry-point-url'},
+            courseIdentifier: {type: String, attribute: 'course-identifier'},
         };
     }
 
@@ -213,18 +215,28 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
     /**
      * Presets the inner CourseSelect with the course from a loaded submission.
-     * Looks up candidates by code, then uses all saved course details to find
-     * the unique `@id` required by ResourceSelect.
+     * Uses the saved identifier when available. For older submissions, looks up
+     * candidates by code and uses all saved course details to find a unique match.
      *
      * @param {string} courseName - The formatted course name string.
+     * @param {string|null} courseIdentifier - The unique course identifier.
      */
-    async _presetCourse(courseName) {
-        const courseCode = this._extractCourseCode(courseName);
-        if (!courseCode) return;
-
+    async _presetCourse(courseName, courseIdentifier) {
         /** @type {CourseSelect | null} */
         const picker = this.renderRoot.querySelector('#' + this.name + '-picker');
         if (!picker) return;
+
+        if (courseIdentifier) {
+            const courseId = `/base/courses/${encodeURIComponent(courseIdentifier)}`;
+            if (picker.value === courseId) return;
+
+            this._presettingCourse = true;
+            picker.value = courseId;
+            return;
+        }
+
+        const courseCode = this._extractCourseCode(courseName);
+        if (!courseCode) return;
 
         // Look up the course by code to get its @id (code !== identifier)
         const params = new URLSearchParams({
@@ -273,12 +285,14 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         }
 
         if (
-            (changedProperties.has('value') || changedProperties.has('auth')) &&
+            (changedProperties.has('value') ||
+                changedProperties.has('courseIdentifier') ||
+                changedProperties.has('auth')) &&
             typeof this.value === 'string' &&
             this.value &&
             this.auth?.token
         ) {
-            void this._presetCourse(this.value);
+            void this._presetCourse(this.value, this.courseIdentifier);
         }
     }
 

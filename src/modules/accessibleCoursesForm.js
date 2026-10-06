@@ -85,6 +85,7 @@ class FormalizeFormElement extends BaseFormElement {
                         // submit relevant data
                         const payload = {
                             courseName: formData.courseName,
+                            courseIdentifier: this.formData.courseIdentifier ?? '',
                             lecturers: formData.lecturers,
                             groupAssignment: formData.groupAssignment ?? '',
                             adaptations: formData.adaptations,
@@ -258,6 +259,7 @@ class FormalizeFormElement extends BaseFormElement {
         this.formData.groupAssignment = '';
 
         const course = e.detail?.course;
+        this.formData.courseIdentifier = course?.identifier ?? '';
 
         if (!course) {
             this.formData.lecturers = [this.getLecturerFallbackLabel()];
@@ -426,6 +428,7 @@ class FormalizeFormElement extends BaseFormElement {
         data.lecturers = this.getLecturerList(data.lecturers);
         const payload = {
             courseName: data.courseName,
+            courseIdentifier: this.formData.courseIdentifier ?? '',
             lecturers: data.lecturers,
             groupAssignment: data.groupAssignment ?? '',
             adaptations: data.adaptations,
@@ -544,9 +547,6 @@ class FormalizeFormElement extends BaseFormElement {
         const data = this.formData || {};
         const hasMultipleLecturers = this.getLecturerList(data.lecturers).length > 1;
 
-        // Extract courseId from courseName if available
-        data.courseId = data.courseName ? data.courseName.replace(/^([a-zA-Z0-9]+): .*/, '$1') : '';
-
         return html`
             <form
                 id="accessible-courses-form"
@@ -619,6 +619,7 @@ class FormalizeFormElement extends BaseFormElement {
                         name="courseName"
                         label="${i18n.t('render-form.forms.accessible-courses-form.course-name')}"
                         value=${data.courseName || ''}
+                        course-identifier=${data.courseIdentifier || ''}
                         required
                         @dbp-course-changed=${(e) =>
                             this.handleCourseChange(e)}></dbp-course-select-element>
