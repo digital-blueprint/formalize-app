@@ -215,14 +215,18 @@ class FormalizeFormElement extends BaseFormElement {
 
             const person = await response.json();
 
+            // A submission may have been loaded while the request was in flight.
+            // Its saved personal data must not be replaced by the current user's data.
+            if (this.data?.identifier) return;
+
             // completing/updating fields
             this.formData = this.formData || {};
 
-            this.formData.identifier = `${person['identifier']}`;
-            this.formData.studentGivenName = `${person['givenName']}`;
-            this.formData.studentFamilyName = `${person['familyName']}`;
-            this.formData.matriculationNumber = `${person['localData']['matriculationNumber']}`;
-            this.formData.studentEmail = `${person['localData']['email']}`;
+            this.formData.identifier = String(person.identifier ?? '');
+            this.formData.studentGivenName = String(person.givenName ?? '');
+            this.formData.studentFamilyName = String(person.familyName ?? '');
+            this.formData.matriculationNumber = String(person.localData?.matriculationNumber ?? '');
+            this.formData.studentEmail = String(person.localData?.email ?? '');
 
             this.requestUpdate();
         } catch (error) {
@@ -524,24 +528,25 @@ class FormalizeFormElement extends BaseFormElement {
     renderFormElements() {
         const i18n = this._i18n;
 
-        if (Object.keys(this.formData).length > 0) {
-            // Check if submission already contains student data (from either key format)
-            if (
-                this.formData.studentGivenName &&
-                this.formData.studentFamilyName &&
-                this.formData.studentEmail &&
-                this.formData.matriculationNumber
-            ) {
-                // Student data is already present, no need to fetch
+        const hasPersonalData =
+            this.formData.studentGivenName &&
+            this.formData.studentFamilyName &&
+            this.formData.studentEmail;
+        const isExistingSubmission = Boolean(this.data?.identifier);
+
+        if (
+            !isExistingSubmission &&
+            !hasPersonalData &&
+            !this._userDataFetched &&
+            !this._fetchingUserData &&
+            this.getToken() &&
+            this.getUserId()
+        ) {
+            this._fetchingUserData = true;
+            void this.fetchUserData().finally(() => {
+                this._fetchingUserData = false;
                 this._userDataFetched = true;
-            } else if (!this._userDataFetched && !this._fetchingUserData) {
-                // No student data from submission, fetch from logged-in user
-                this._fetchingUserData = true;
-                void this.fetchUserData().finally(() => {
-                    this._fetchingUserData = false;
-                    this._userDataFetched = true;
-                });
-            }
+            });
         }
 
         const data = this.formData || {};
