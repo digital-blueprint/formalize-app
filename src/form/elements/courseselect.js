@@ -118,6 +118,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         // loaded submission). Used to suppress the `dbp-course-changed` event so
         // it is only dispatched for genuine user selections.
         this._presettingCourse = false;
+        this._userSelectedValue = null;
     }
 
     static get properties() {
@@ -176,8 +177,15 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
             let courseCode = courseDataObject['code'];
             let courseName = courseDataObject['name'];
-            this.value = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+            const value = `${courseCode}: ${courseName} (${courseType}, ${courseTerm})`;
+            if (!this._presettingCourse) {
+                this._userSelectedValue = value;
+            }
+            this.value = value;
         } else {
+            if (!this._presettingCourse) {
+                this._userSelectedValue = '';
+            }
             this.value = '';
         }
 
@@ -197,22 +205,16 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         );
     }
 
-    /**
-     * Extracts the course code from a formatted course name string.
-     * @param {string} courseName - e.g. "661071: Course Name (Type, Term)"
-     * @returns {string|null} The course code, or null if not found.
-     */
     _extractCourseCode(courseName) {
         if (!courseName) return null;
-        const match = courseName.match(/^([^:]+):/);
-        return match ? match[1].trim() : null;
+        const separatorIndex = courseName.indexOf(':');
+        return separatorIndex === -1 ? null : courseName.slice(0, separatorIndex).trim();
     }
 
     /**
      * Presets the inner CourseSelect with the course from a loaded submission.
-     * Extracts the course code from the formatted value string, looks up the
-     * course by code to get its `@id`, then sets the ResourceSelect value so it
-     * can fetch and display the course.
+     * Looks up candidates by code, then uses all saved course details to find
+     * the unique `@id` required by ResourceSelect.
      *
      * @param {string} courseName - The formatted course name string.
      */
@@ -226,6 +228,7 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
         // Look up the course by code to get its @id (code !== identifier)
         const params = new URLSearchParams({
+            includeLocal: 'semesterKey,typeKey,lecturers',
             'filter[foo][condition][path]': 'code',
             'filter[foo][condition][operator]': 'EQUALS',
             'filter[foo][condition][value]': `"${courseCode}"`,
@@ -234,12 +237,21 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
         const resp = await fetch(`${this.entryPointUrl}/base/courses?${params.toString()}`, {
             headers: {
                 Authorization: 'Bearer ' + this.getToken(),
+                'Accept-Language': 'de',
             },
         });
         if (!resp.ok) return;
 
         const data = await resp.json();
-        const course = data['hydra:member']?.[0];
+        const matchingCourses = (data['hydra:member'] ?? []).filter(
+            (course) =>
+                `${course.code}: ${course.name} (${course.localData?.typeKey}, ${
+                    course.localData?.semesterKey
+                })` === courseName,
+        );
+        if (matchingCourses.length !== 1) return;
+
+        const course = matchingCourses[0];
         if (!course?.['@id']) return;
 
         // Skip if the picker already holds this course to avoid redundant
@@ -254,6 +266,11 @@ export class DbpCourseSelectElement extends ScopedElementsMixin(DbpBaseElement) 
 
     updated(changedProperties) {
         super.updated(changedProperties);
+
+        if (changedProperties.has('value') && this._userSelectedValue === this.value) {
+            this._userSelectedValue = null;
+            return;
+        }
 
         if (
             (changedProperties.has('value') || changedProperties.has('auth')) &&
