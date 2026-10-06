@@ -1,7 +1,11 @@
 # Changelog
 
-## Unreleased (v1.3.1)
+## Unreleased
 
+## v1.4.0
+
+- Fixed course-selector prefilling and saved stable course identifiers.
+- Fixed Personal data prefilling without overwriting existing submissions.
 - Manage Forms activity: centralized forms-overview actions in shared descriptors containing placement, visibility, permission, labels, and handlers; the table rows and Actions dropdown now consume the same definitions, allowing modules to move or duplicate actions without additional component properties
 - Manage Forms activity: replaced the module-specific overview action icon hook with `BaseObject.getManageFormsOverviewActions()`, allowing modules to modify, reorder, remove, or append table row actions; handlers receive the latest form data when invoked
 - Edit form dialog: added two visually hidden skip links at the end of the form content that move focus to the primary save button and to the dialog's close button, both of which sit in the pinned header and therefore come before the form in the tab order; keyboard and screen reader users no longer have to tab back through the whole form to save or abort. The save link reuses the button's own label (`edit-form-dialog.skip-to-save-button`) so it stays correct in create and edit mode and with translation overrides, and it falls back to the action bar while the button is still disabled. Requires the toolkit's new `Modal.focusCloseButton()`
