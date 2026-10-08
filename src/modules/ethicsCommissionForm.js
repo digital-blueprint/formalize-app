@@ -3480,8 +3480,7 @@ class FormalizeFormElement extends BaseFormElement {
                         .auth=${this.auth ?? {}}
                         .entryPointUrl=${this.entryPointUrl}
                         .value=${Array.isArray(data.coApplicants) ? data.coApplicants : []}
-                        multiple
-                        required>
+                        multiple>
                     </dbp-form-person-select-element>
 
                     <dbp-form-string-element
