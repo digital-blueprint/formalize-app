@@ -154,6 +154,9 @@ export default (async () => {
             sourcemap: true,
             minify: doMinify,
             cleanDir: true,
+            // Tests are loaded as "unit.js?wtr-session-id=…". A lazily loaded chunk importing
+            // "../unit.js" would evaluate the test bundle a second time and fail the run.
+            ...(appEnv === 'test' ? {codeSplitting: false} : {}),
         },
         resolve: {
             modules: getResolveModules(),
