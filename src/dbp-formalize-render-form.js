@@ -8,7 +8,7 @@ import {
     SUBMISSION_STATES_BINARY,
     pascalToKebab,
     getFormRenderUrl,
-    getFormManageFormsUrl,
+    getFormManageSubmissionsUrl,
     FORM_PERMISSIONS,
     SUBMISSION_COLLECTION_PERMISSIONS,
 } from './utils.js';
@@ -796,7 +796,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (this.usersSubmittedSubmissionCount >= maxNumberOfSubmissionsPerUser) {
             // User can't submit the form again
             // A message is shown that the user already submitted the form
-            // and show a link to the submissions in the manage-forms page
+            // and show a link to the submissions in the manage-submissions page
             return html`
                 <div class="notification is-warning">
                     <dbp-icon name="warning-high"></dbp-icon>
@@ -804,7 +804,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                         n: this.usersSubmittedSubmissionCount,
                     })}
                     <a
-                        href="${getFormManageFormsUrl(
+                        href="${getFormManageSubmissionsUrl(
                             this.formIdentifiers[this.formUrlSlug],
                             this.lang,
                         )}">
@@ -817,12 +817,12 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         let formAlreadySubmittedWarning = html``;
         if (this.usersSubmittedSubmissionCount > 0) {
             // An empty form is shown with the message that the user already submitted the form
-            // and show a link to the submissions in the manage-forms page
+            // and show a link to the submissions in the manage-submissions page
             formAlreadySubmittedWarning = html`
                 <div class="notification is-info">
                     <dbp-icon name="information-circle"></dbp-icon>
                     <a
-                        href="${getFormManageFormsUrl(
+                        href="${getFormManageSubmissionsUrl(
                             this.formIdentifiers[this.formUrlSlug],
                             this.lang,
                         )}">

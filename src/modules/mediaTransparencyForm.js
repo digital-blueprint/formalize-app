@@ -24,7 +24,7 @@ import {
     handleDeletionCancel,
     SUBMISSION_STATES,
     SUBMISSION_STATES_BINARY,
-    getFormManageFormsUrl,
+    getFormManageSubmissionsUrl,
 } from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
@@ -1468,7 +1468,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       this.areSubmissionReadableAfterSubmission()
                                           ? html`
                                                 <a
-                                                    href="${getFormManageFormsUrl(
+                                                    href="${getFormManageSubmissionsUrl(
                                                         this.formIdentifier,
                                                         this.lang,
                                                     )}"
@@ -2128,7 +2128,7 @@ class FormalizeFormElement extends BaseFormElement {
                             this.areSubmissionReadableAfterSubmission()
                                 ? html`
                                       <a
-                                          href="${getFormManageFormsUrl(
+                                          href="${getFormManageSubmissionsUrl(
                                               this.formIdentifier,
                                               this.lang,
                                           )}"

@@ -149,11 +149,55 @@ export function createManageFormsOverviewActionButton(host, action, context) {
 }
 
 /**
+ * Returns true if a form collection entry grants actions relevant to managing the
+ * form itself or its submissions. Used when the host does not define `isFormListed()`.
+ *
+ * @param {object} entry - Form entry from the API.
+ * @returns {boolean}
+ */
+function isFormListedByDefault(entry) {
+    const grantedFormActions = entry['grantedFormActions'] ?? [];
+    const grantedSubmissionCollectionActions = entry['grantedSubmissionCollectionActions'] ?? [];
+    const hasAllowedFormAction = grantedFormActions.some((action) =>
+        [FORM_PERMISSIONS.UPDATE, FORM_PERMISSIONS.DELETE, FORM_PERMISSIONS.MANAGE].includes(
+            action,
+        ),
+    );
+    const hasAllowedSubmissionCollectionAction = grantedSubmissionCollectionActions.some((action) =>
+        [SUBMISSION_PERMISSIONS.READ, SUBMISSION_PERMISSIONS.MANAGE].includes(action),
+    );
+    return hasAllowedFormAction || hasAllowedSubmissionCollectionAction;
+}
+
+/**
+ * Builds the form collection URL including the host-specific filters.
+ *
+ * @param {object} host
+ * @returns {string}
+ */
+function getFormsCollectionUrl(host) {
+    const queryParams = new URLSearchParams({perPage: '9999'});
+    const filters =
+        typeof host.getFormsCollectionFilters === 'function'
+            ? host.getFormsCollectionFilters()
+            : {};
+    for (const [name, value] of Object.entries(filters)) {
+        queryParams.append(name, `${value}`);
+    }
+    return `${host.entryPointUrl}/formalize/forms?${queryParams.toString()}`;
+}
+
+/**
  * Fetch the list of all forms and populate `host.allForms`.
  *
  * Forms are filtered by `host.allowListFrontendKeys` and `host.denyListFrontendKeys`,
  * which contain `frontendKey` values. A single frontendKey may match multiple
  * forms, so one entry in the list can show a whole group of forms.
+ *
+ * The host can customize the request and the result with these optional methods:
+ * - `getFormsCollectionFilters()`: query parameters added to the form collection request
+ * - `isFormListed(entry)`: whether a form entry from the API is shown
+ * - `createDefaultOverviewActions()`: the built-in overview actions passed to the modules
  *
  * @param {object} host - The ManageForms element.
  * @returns {Promise<void>}
@@ -178,7 +222,7 @@ export async function getListOfAllForms(host) {
             host.loadingFormsTable = true;
         }
 
-        const response = await fetch(host.entryPointUrl + '/formalize/forms' + '?perPage=9999', {
+        const response = await fetch(getFormsCollectionUrl(host), {
             headers: {
                 'Content-Type': 'application/ld+json',
                 Authorization: 'Bearer ' + host.auth.token,
@@ -242,23 +286,11 @@ export async function getListOfAllForms(host) {
                     continue;
                 }
 
-                const grantedFormActions = entry['grantedFormActions'] ?? [];
-                const grantedSubmissionCollectionActions =
-                    entry['grantedSubmissionCollectionActions'] ?? [];
-                const hasAllowedFormAction = grantedFormActions.some((action) =>
-                    [
-                        FORM_PERMISSIONS.UPDATE,
-                        FORM_PERMISSIONS.DELETE,
-                        FORM_PERMISSIONS.MANAGE,
-                    ].includes(action),
-                );
-                const hasAllowedSubmissionCollectionAction =
-                    grantedSubmissionCollectionActions.some((action) =>
-                        [SUBMISSION_PERMISSIONS.READ, SUBMISSION_PERMISSIONS.MANAGE].includes(
-                            action,
-                        ),
-                    );
-                if (!hasAllowedFormAction && !hasAllowedSubmissionCollectionAction) {
+                const isListed =
+                    typeof host.isFormListed === 'function'
+                        ? host.isFormListed(entry)
+                        : isFormListedByDefault(entry);
+                if (!isListed) {
                     continue;
                 }
 
@@ -333,7 +365,10 @@ export async function getListOfAllForms(host) {
                 const actionContext = createManageFormsOverviewActionContext(host, [managedForm]);
                 const getCurrentActionContext = () =>
                     createManageFormsOverviewActionContext(host, [host.forms.get(formId)]);
-                const defaultActions = createDefaultManageFormsOverviewActions();
+                const defaultActions =
+                    typeof host.createDefaultOverviewActions === 'function'
+                        ? host.createDefaultOverviewActions()
+                        : createDefaultManageFormsOverviewActions();
                 const customizedActions = matchedModuleInstance?.getManageFormsOverviewActions?.(
                     actionContext,
                     defaultActions,
@@ -417,7 +452,6 @@ export async function getListOfAllForms(host) {
             }
 
             host.allForms = forms;
-            host.options_forms.data = host.allForms;
         }
     } catch (e) {
         host.loadCourses = true;
@@ -443,6 +477,7 @@ export async function getListOfAllForms(host) {
  * @returns {Promise<Response|undefined>}
  */
 export async function getAllFormSubmissions(host, formId) {
+    // The host is the form submissions component, `host.form` is the form being shown.
     const i18n = host._i18n;
     let response;
     let data;
@@ -503,7 +538,7 @@ export async function getAllFormSubmissions(host, formId) {
         }
 
         let submissions_list = [];
-        const activeForm = host.forms.get(formId);
+        const activeForm = host.form;
         const enumTranslations = activeForm?.moduleInstance?.getEnumTranslations
             ? activeForm.moduleInstance.getEnumTranslations(host.lang)
             : {};

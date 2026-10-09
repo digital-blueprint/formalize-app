@@ -10,6 +10,8 @@ You can use every activity alone. Take a look at our examples [here](https://git
 
 ### dbp-formalize-manage-forms
 
+Lets users create, edit and delete forms and edit form permissions. The overview only lists forms the user has an edit right for (`grantedFormActions` contains `update` or `manage`). Submissions are managed in [dbp-formalize-manage-submissions](#dbp-formalize-manage-submissions).
+
 Note that you will need a Keycloak server along with a client id for the domain you are running this html on.
 
 #### Attributes
@@ -22,12 +24,8 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `allow-list-frontend-keys="job-offer, ethics-proposal"`
 - `deny-list-frontend-keys` (optional): comma-separated list of `frontendKey` values; forms whose `frontendKey` matches one of the listed values are hidden; one key can hide a whole group of forms
     - example `deny-list-frontend-keys="job-offer"`
-- `hide-create-submission-button` (optional): hides the create submission button in the submissions view when set
-    - example `hide-create-submission-button`
 - `enable-forms-bulk-delete` (optional, default: off): enables bulk removal of forms in the forms overview when set; deletion is still gated per form by the user's granted actions (`delete`/`manage`)
     - example `enable-forms-bulk-delete`
-- `enable-submission-permission-editing` (optional, default: off): enables permission editing for selected submissions when the user has `manage` on every selected submission
-    - example `enable-submission-permission-editing`
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
@@ -37,9 +35,7 @@ Note that you will need a Keycloak server along with a client id for the domain 
 The activity supports deep links through the app shell `routing-url` property:
 
 - `/` shows the forms overview.
-- `/<form-identifier>` shows the draft and submitted submission lists for a form.
 - `/<form-identifier>/edit` opens the form editor.
-- `/<form-identifier>/details/<submission-identifier>` opens submission details.
 
 The forms overview stores its search and pagination state in these query parameters:
 
@@ -49,7 +45,32 @@ The forms overview stores its search and pagination state in these query paramet
 | `forms-page`      | Current page; page 1 is omitted                   |
 | `forms-page-size` | Number of rows per page; the default 5 is omitted |
 
-Each submission list has independent query parameters. Replace `<state>` with `draft` or `submitted`:
+The `forms-*` parameters remain in the URL while editing a form, so closing the editor restores the previous search and page.
+
+#### Slots
+
+You use templates tags to inject slots into the activity.
+These templates will be converted to div containers when the page is loaded and will not show up before that.
+
+### dbp-formalize-manage-submissions
+
+Lets users view and manage form submissions. The overview lists forms where the user may read all submissions or at least one submission, e.g. their own or one shared with them. The forms are requested with the `whereMayReadSubmissions=true` filter of the form collection API.
+
+#### Attributes
+
+- `lang`, `entry-point-url`, `allow-list-frontend-keys`, `deny-list-frontend-keys` and `auth`: same as in [dbp-formalize-manage-forms](#dbp-formalize-manage-forms)
+- `hide-create-submission-button` (optional): hides the create submission button in the submissions view when set
+    - example `hide-create-submission-button`
+- `enable-submission-permission-editing` (optional, default: off): enables permission editing for selected submissions when the user has `manage` on every selected submission
+    - example `enable-submission-permission-editing`
+
+#### Routing
+
+- `/` shows the forms overview.
+- `/<form-identifier>` shows the draft and submitted submission lists for a form.
+- `/<form-identifier>/details/<submission-identifier>` opens submission details.
+
+The forms overview uses the same `forms-*` query parameters as [dbp-formalize-manage-forms](#dbp-formalize-manage-forms). Each submission list has independent query parameters. Replace `<state>` with `draft` or `submitted`:
 
 | Query parameter           | Description                                                       |
 | ------------------------- | ----------------------------------------------------------------- |
@@ -59,12 +80,20 @@ Each submission list has independent query parameters. Replace `<state>` with `d
 | `<state>-page`            | Current page; page 1 is omitted                                   |
 | `<state>-page-size`       | Number of rows per page; the default 5 is omitted                 |
 
-Changing a filter or pagination control updates the URL. Loading such a URL, reloading the page, or navigating with browser history restores the represented state after the table data has loaded. Changing a filter resets that table to page 1. The `forms-*` parameters remain in the URL while viewing a form's submissions or editing the form, so returning to the overview restores the previous search and page.
+Changing a filter or pagination control updates the URL. Loading such a URL, reloading the page, or navigating with browser history restores the represented state after the table data has loaded. Changing a filter resets that table to page 1. The `forms-*` parameters remain in the URL while viewing a form's submissions, so returning to the overview restores the previous search and page.
 
 #### Slots
 
-You use templates tags to inject slots into the activity.
-These templates will be converted to div containers when the page is loaded and will not show up before that.
+Same as in [dbp-formalize-manage-forms](#dbp-formalize-manage-forms).
+
+### Shared components
+
+Both activities are composed of these web components, which can be reused in other activities:
+
+- `ManageFormsOverviewPage` (`manage-forms-overview-page.js`): forms table with search, pagination, row actions and an actions dropdown. The activity passes the rows, the action definitions and the action host; search and pagination are synchronized with `routing-url`.
+- `FormSubmissions` (`form-submissions.js`): draft and submitted submission lists of one form (`form` property) with search, export, deletion, tagging, permission editing and the submission details modal.
+
+Sub-components request routing URL changes with a `dbp-formalize-routing-url-change` event, which `ManageFormsActivityBase` (`manage-forms-activity-base.js`) forwards to the app shell.
 
 ### dbp-formalize-render-from
 

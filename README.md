@@ -78,6 +78,7 @@ To do this you can for example open a shell with `runuser -u www-data -- bash`.
 This app has the following activities:
 
 - `dbp-formalize-manage-forms`
+- `dbp-formalize-manage-submissions`
 - `dbp-formalize-render-from`
 
 You can find the documentation of the activity in the [formalize activities documentation](https://github.com/digital-blueprint/formalize-app/tree/main/src).
