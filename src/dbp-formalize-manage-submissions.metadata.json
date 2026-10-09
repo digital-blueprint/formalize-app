@@ -1,0 +1,18 @@
+{
+    "element": "dbp-formalize-manage-submissions",
+    "module_src": "dbp-formalize-manage-submissions.js",
+    "routing_name": "manage-submissions",
+    "name": {
+        "de": "Einreichungen verwalten",
+        "en": "Manage submissions"
+    },
+    "short_name": {
+        "de": "Einreichungen verwalten",
+        "en": "Manage submissions"
+    },
+    "description": {
+        "de": "Verwaltet Einreichungen zu Formularen",
+        "en": "Manage form submissions"
+    },
+    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,hide-create-submission-button,enable-submission-permission-editing"
+}

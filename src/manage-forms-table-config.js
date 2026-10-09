@@ -333,7 +333,7 @@ function getSystemFields(initialColumnDefinitions, formSchemaFields) {
  * @param {string} state
  */
 export function setDefaultSubmissionTableOrder(host, state) {
-    const activeForm = host.forms.get(host.activeFormId);
+    const activeForm = host.form;
     if (!activeForm) return;
 
     const formSchemaFields = getFormSchema(activeForm);

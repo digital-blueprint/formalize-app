@@ -11,8 +11,8 @@
         "en": "Manage forms"
     },
     "description": {
-        "de": "Verwaltet verfügbare Formulareinträge",
-        "en": "Manage available forms"
+        "de": "Erstellt, bearbeitet und löscht Formulare",
+        "en": "Create, edit and delete forms"
     },
-    "subscribe": "lang,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,enable-submission-permission-editing"
+    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,enable-forms-bulk-delete"
 }

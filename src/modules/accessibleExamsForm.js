@@ -13,7 +13,7 @@ import {DbpPersonSelectElement} from '../form/elements/personselect.js';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 import {DbpRoomSelectElement} from '../form/elements/roomselect.js';
 import {createRef, ref} from 'lit/directives/ref.js';
-import {getFormManageFormsUrl, getFormRenderUrl} from '../utils.js';
+import {getFormManageSubmissionsUrl, getFormRenderUrl} from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
 /** @typedef {import('lit/directives/ref.js').Ref<DbpTimeElement>} TimeElementRef */
@@ -519,7 +519,7 @@ class FormalizeFormElement extends BaseFormElement {
                             this.areSubmissionReadableAfterSubmission()
                                 ? html`
                                       <a
-                                          href="${getFormManageFormsUrl(
+                                          href="${getFormManageSubmissionsUrl(
                                               this.formIdentifier,
                                               this.lang,
                                           )}"

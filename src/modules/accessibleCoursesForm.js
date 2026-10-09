@@ -6,7 +6,7 @@ import {sendNotification, Translated} from '@dbp-toolkit/common';
 import {DbpStringElement, DbpStringView} from '@dbp-toolkit/form-elements';
 import {DbpCourseSelectElement} from '../form/elements/courseselect.js';
 import {DeletionConfirmationModal} from '../deletion-confirmation-modal.js';
-import {getFormRenderUrl, SUBMISSION_STATES, getFormManageFormsUrl} from '../utils.js';
+import {getFormRenderUrl, SUBMISSION_STATES, getFormManageSubmissionsUrl} from '../utils.js';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
 export default class extends BaseObject {
@@ -915,7 +915,7 @@ class FormalizeFormElement extends BaseFormElement {
                             this.areSubmissionReadableAfterSubmission()
                                 ? html`
                                       <a
-                                          href="${getFormManageFormsUrl(
+                                          href="${getFormManageSubmissionsUrl(
                                               this.formIdentifier,
                                               this.lang,
                                           )}"

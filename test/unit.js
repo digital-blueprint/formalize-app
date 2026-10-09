@@ -2,7 +2,9 @@ import {assert} from 'chai';
 import {setFeatureFlag} from '@dbp-toolkit/common';
 
 import '../src/dbp-formalize.js';
-import {ManageForms} from '../src/dbp-formalize-manage-forms';
+import {ManageForms, hasFormEditRight} from '../src/dbp-formalize-manage-forms';
+import {ManageSubmissions} from '../src/dbp-formalize-manage-submissions.js';
+import {FormSubmissions} from '../src/form-submissions.js';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
@@ -20,10 +22,16 @@ import {
     setDefaultSubmissionTableOrder,
     setSubmissionFormOptions,
 } from '../src/manage-forms-table-config.js';
-import {createDefaultManageFormsOverviewActions} from '../src/manage-forms-overview-actions.js';
+import {
+    createDefaultManageFormsOverviewActions,
+    createDefaultManageSubmissionsOverviewActions,
+} from '../src/manage-forms-overview-actions.js';
+import {ROUTING_URL_CHANGE_EVENT} from '../src/manage-forms-routing.js';
 
 customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
 customElements.define('test-manage-forms', class extends ManageForms {});
+customElements.define('test-manage-submissions', class extends ManageSubmissions {});
+customElements.define('test-form-submissions', class extends FormSubmissions {});
 customElements.define(
     'test-manage-form-submissions-page',
     class extends ManageFormSubmissionsPage {},
@@ -244,29 +252,28 @@ suite('submission error handling', () => {
 suite('manage forms table configuration', () => {
     test('should only show the employer column for job-offer-only activities', () => {
         const node = document.createElement('test-manage-forms');
+        const page = document.createElement('test-manage-forms-overview-page');
 
         node.allowListFrontendKeys = [];
-        node.updateFormsTableOptions();
+        page.showEmployerColumn = node.showEmployerColumn;
+        page.updateTableOptions();
         assert.notInclude(
-            node.options_forms.columns.map(({field}) => field),
+            page.optionsForms.columns.map(({field}) => field),
             'employer',
         );
-        assert.equal(node.options_forms.columns.find(({field}) => field === 'name').widthGrow, 4);
+        assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 4);
 
         node.allowListFrontendKeys = ['job-offer'];
-        node.updateFormsTableOptions();
+        page.showEmployerColumn = node.showEmployerColumn;
+        page.updateTableOptions();
         assert.include(
-            node.options_forms.columns.map(({field}) => field),
+            page.optionsForms.columns.map(({field}) => field),
             'employer',
         );
-        assert.equal(node.options_forms.columns.find(({field}) => field === 'name').widthGrow, 2);
+        assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 2);
 
         node.allowListFrontendKeys = ['job-offer', 'other-form'];
-        node.updateFormsTableOptions();
-        assert.notInclude(
-            node.options_forms.columns.map(({field}) => field),
-            'employer',
-        );
+        assert.isFalse(node.showEmployerColumn);
     });
 
     test('should use module schema labels when persisted labels are missing', () => {
@@ -277,33 +284,28 @@ suite('manage forms table configuration', () => {
             {field: 'submissionId', title: 'submissionId'},
         ];
         const host = {
-            activeFormId: 'job-offer',
             availableTags: [],
-            forms: new Map([
-                [
-                    'job-offer',
-                    {
-                        dataFeedSchema: JSON.stringify({
-                            properties: {givenName: {}, attachments: {}},
-                            files: {attachments: {}},
-                        }),
-                        moduleInstance: {
-                            getDataFeedSchema: () => ({
-                                properties: {
-                                    givenName: {
-                                        localizedName: {de: 'Vorname', en: 'First name'},
-                                    },
-                                },
-                                files: {
-                                    attachments: {
-                                        localizedName: {de: 'Anhänge', en: 'Attachments'},
-                                    },
-                                },
-                            }),
+            form: {
+                formId: 'job-offer',
+                dataFeedSchema: JSON.stringify({
+                    properties: {givenName: {}, attachments: {}},
+                    files: {attachments: {}},
+                }),
+                moduleInstance: {
+                    getDataFeedSchema: () => ({
+                        properties: {
+                            givenName: {
+                                localizedName: {de: 'Vorname', en: 'First name'},
+                            },
                         },
-                    },
-                ],
-            ]),
+                        files: {
+                            attachments: {
+                                localizedName: {de: 'Anhänge', en: 'Attachments'},
+                            },
+                        },
+                    }),
+                },
+            },
             lang: 'en',
             submissionTables: {
                 submitted: {
@@ -341,6 +343,26 @@ suite('manage forms table configuration', () => {
         assert.equal(definitions[0].title, 'Einreichungs-ID');
     });
 });
+
+/**
+ * Creates an overview page with the given forms selected in a stubbed table.
+ */
+function createOverviewPage({
+    actionHost,
+    actionDefinitions = createDefaultManageFormsOverviewActions(),
+    formsById = new Map(),
+    selectedForms = [],
+}) {
+    const page = document.createElement('test-manage-forms-overview-page');
+    page.getFormsTable = () => ({
+        tabulatorTable: {getSelectedData: () => selectedForms},
+    });
+    page.actionHost = actionHost;
+    page.actionDefinitions = actionDefinitions;
+    page.formsById = formsById;
+    page.updateActions();
+    return page;
+}
 
 suite('dbp-formalize-manage-forms basics', () => {
     let node;
@@ -387,36 +409,47 @@ suite('dbp-formalize-manage-forms basics', () => {
     });
 
     test('should preserve form-list parameters when returning to the overview', () => {
+        const host = document.createElement('test-manage-submissions');
         const calls = [];
-        node.getRoutingData = () => ({
+        host.getRoutingData = () => ({
             pathname: '/job-offer',
             pathSegments: ['job-offer'],
             queryParams: new URLSearchParams(
                 'forms-search=cont&forms-page=2&draft-search=application',
             ),
         });
-        node.clearAllFilters = () => {};
-        node.closeAllSearchWidgets = () => {};
-        node.showFormsOverview = () => {};
-        node.sendSetPropertyEvent = (...args) => calls.push(args);
+        host.sendSetPropertyEvent = (...args) => calls.push(args);
 
-        node.handleBackToOverview();
+        host.handleBackToOverview();
 
         assert.deepEqual(calls, [['routing-url', '/?forms-search=cont&forms-page=2', true]]);
+        assert.equal(host.activeFormId, '');
+        assert.isTrue(host.showFormsTable);
     });
 
     test('should open an edit URL instead of the submissions page', () => {
         const calls = [];
-        const form = {formId: 'job-offer'};
+        node.forms.set('job-offer', {formId: 'job-offer'});
         node.getRoutingData = () => ({pathSegments: ['job-offer', 'edit']});
         node._ = () => ({existingForm: null});
-        node.showFormsOverview = () => calls.push('overview');
-        node.handleOpenEditFormDialog = (formId) => calls.push(`edit:${formId}`);
-        node.switchToSubmissionTable = () => calls.push('submissions');
+        node.handleOpenEditFormDialog = (formId, updateRoutingUrl) =>
+            calls.push(`edit:${formId}:${updateRoutingUrl}`);
 
-        node.showRoutedForm(form);
+        node.handleRoute();
 
-        assert.deepEqual(calls, ['overview', 'edit:job-offer']);
+        assert.isTrue(node.showFormsTable);
+        assert.deepEqual(calls, ['edit:job-offer:false']);
+    });
+
+    test('should open the submissions of a routed form', () => {
+        const host = document.createElement('test-manage-submissions');
+        host.forms.set('job-offer', {formId: 'job-offer'});
+        host.getRoutingData = () => ({pathSegments: ['job-offer']});
+
+        host.handleRoute();
+
+        assert.equal(host.activeFormId, 'job-offer');
+        assert.isFalse(host.showFormsTable);
     });
 
     test('should resolve enabled overview actions for one manageable form', () => {
@@ -424,9 +457,9 @@ suite('dbp-formalize-manage-forms basics', () => {
             formId: 'job-offer',
             grantedActions: ['manage'],
         };
-        const actionHost = {
-            enableFormsBulkDelete: true,
-            forms: new Map([
+        const page = createOverviewPage({
+            actionHost: {enableFormsBulkDelete: true, _i18n: {t: (key) => key}},
+            formsById: new Map([
                 [
                     'job-offer',
                     {
@@ -437,24 +470,12 @@ suite('dbp-formalize-manage-forms basics', () => {
                     },
                 ],
             ]),
-            formsGrantedActions: new Map(),
-            selectedFormsCount: 0,
-            formsOverviewActionDefinitions: createDefaultManageFormsOverviewActions().filter(
-                (action) => action.placements.includes('dropdown'),
-            ),
-            formsOverviewDropdownActions: [],
-            _i18n: {t: (key) => key},
-            formsTable: {
-                tabulatorTable: {
-                    getSelectedRows: () => [{getData: () => form}],
-                },
-            },
-        };
-        node.setFormsActionButtonsState.call(actionHost);
+            selectedForms: [form],
+        });
 
-        assert.equal(actionHost.selectedFormsCount, 1);
+        assert.equal(page.selectedFormsCount, 1);
         assert.deepEqual(
-            actionHost.formsOverviewDropdownActions.map(({value, disabled}) => ({value, disabled})),
+            page.actions.map(({value, disabled}) => ({value, disabled})),
             [
                 {value: 'delete', disabled: false},
                 {value: 'edit', disabled: false},
@@ -465,33 +486,21 @@ suite('dbp-formalize-manage-forms basics', () => {
 
     test('should disable form actions without the required grants', () => {
         const form = {formId: 'job-offer', grantedActions: ['read']};
-        const actionHost = {
-            enableFormsBulkDelete: true,
-            forms: new Map([['job-offer', {moduleInstance: {getEditFormComponent: () => {}}}]]),
-            formsGrantedActions: new Map(),
-            selectedFormsCount: 0,
-            formsOverviewActionDefinitions: createDefaultManageFormsOverviewActions().filter(
-                (action) => action.placements.includes('dropdown'),
-            ),
-            formsOverviewDropdownActions: [],
-            _i18n: {t: (key) => key},
-            formsTable: {
-                tabulatorTable: {
-                    getSelectedRows: () => [{getData: () => form}],
-                },
-            },
-        };
+        const page = createOverviewPage({
+            actionHost: {enableFormsBulkDelete: true, _i18n: {t: (key) => key}},
+            formsById: new Map([['job-offer', {moduleInstance: {getEditFormComponent: () => {}}}]]),
+            selectedForms: [form],
+        });
 
-        node.setFormsActionButtonsState.call(actionHost);
-
-        assert.isTrue(actionHost.formsOverviewDropdownActions.every((action) => action.disabled));
+        assert.isTrue(page.actions.every((action) => action.disabled));
     });
 
     test('should execute a resolved overview action without action-specific dispatch code', () => {
         const form = {formId: 'job-offer'};
         let handledContext = null;
-        const actionHost = {
-            formsOverviewActionDefinitions: [
+        const page = createOverviewPage({
+            actionHost: {_i18n: {t: (key) => key}},
+            actionDefinitions: [
                 {
                     id: 'custom-action',
                     placements: ['dropdown'],
@@ -499,18 +508,11 @@ suite('dbp-formalize-manage-forms basics', () => {
                     handler: (context) => (handledContext = context),
                 },
             ],
-            forms: new Map([['job-offer', form]]),
-            formsTable: {
-                tabulatorTable: {
-                    getSelectedData: () => [form],
-                },
-            },
-            _i18n: {t: (key) => key},
-        };
-
-        node.handleFormsPageAction.call(actionHost, {
-            detail: {action: 'custom-action'},
+            formsById: new Map([['job-offer', form]]),
+            selectedForms: [form],
         });
+
+        page.runAction('custom-action');
 
         assert.equal(handledContext.form.formId, form.formId);
         assert.deepEqual(
@@ -524,28 +526,13 @@ suite('dbp-formalize-manage-forms basics', () => {
             {formId: 'job-offer-1', grantedActions: ['manage']},
             {formId: 'job-offer-2', grantedActions: ['delete']},
         ];
-        const actionHost = {
-            enableFormsBulkDelete: true,
-            formsGrantedActions: new Map(),
-            selectedFormsCount: 0,
-            formsOverviewActionDefinitions: createDefaultManageFormsOverviewActions().filter(
-                (action) => action.placements.includes('dropdown'),
-            ),
-            formsOverviewDropdownActions: [],
-            _i18n: {t: (key) => key},
-            forms: new Map(forms.map((form) => [form.formId, form])),
-            formsTable: {
-                tabulatorTable: {
-                    getSelectedRows: () => forms.map((form) => ({getData: () => form})),
-                },
-            },
-        };
+        const page = createOverviewPage({
+            actionHost: {enableFormsBulkDelete: true, _i18n: {t: (key) => key}},
+            formsById: new Map(forms.map((form) => [form.formId, form])),
+            selectedForms: forms,
+        });
 
-        node.setFormsActionButtonsState.call(actionHost);
-
-        const actions = Object.fromEntries(
-            actionHost.formsOverviewDropdownActions.map((action) => [action.value, action]),
-        );
+        const actions = Object.fromEntries(page.actions.map((action) => [action.value, action]));
         assert.isFalse(actions.delete.disabled);
         assert.isTrue(actions.edit.disabled);
         assert.isTrue(actions['edit-permission'].disabled);
@@ -553,33 +540,17 @@ suite('dbp-formalize-manage-forms basics', () => {
 
     test('should disable deletion when form bulk deletion is not enabled', () => {
         const form = {formId: 'job-offer', grantedActions: ['manage']};
-        const actionHost = {
-            enableFormsBulkDelete: false,
-            forms: new Map([['job-offer', {moduleInstance: {getEditFormComponent: () => {}}}]]),
-            formsGrantedActions: new Map(),
-            selectedFormsCount: 0,
-            formsOverviewActionDefinitions: createDefaultManageFormsOverviewActions().filter(
-                (action) => action.placements.includes('dropdown'),
-            ),
-            formsOverviewDropdownActions: [],
-            _i18n: {t: (key) => key},
-            formsTable: {
-                tabulatorTable: {
-                    getSelectedRows: () => [{getData: () => form}],
-                },
-            },
-        };
-
-        node.setFormsActionButtonsState.call(actionHost);
+        const page = createOverviewPage({
+            actionHost: {enableFormsBulkDelete: false, _i18n: {t: (key) => key}},
+            formsById: new Map([['job-offer', {moduleInstance: {getEditFormComponent: () => {}}}]]),
+            selectedForms: [form],
+        });
 
         assert.notInclude(
-            actionHost.formsOverviewDropdownActions.map((action) => action.value),
+            page.actions.map((action) => action.value),
             'delete',
         );
-        assert.isFalse(
-            actionHost.formsOverviewDropdownActions.find((action) => action.value === 'edit')
-                .disabled,
-        );
+        assert.isFalse(page.actions.find((action) => action.value === 'edit').disabled);
     });
 
     test('should open the permission dialog for a form resource', () => {
@@ -630,7 +601,7 @@ suite('dbp-formalize-manage-forms basics', () => {
             _: () => dialog,
         };
 
-        node.handleEditSubmissionsPermission.call(actionHost, 'submitted');
+        FormSubmissions.prototype.handleEditSubmissionsPermission.call(actionHost, 'submitted');
 
         assert.equal(dialog.resourceIdentifier, '');
         assert.deepEqual(dialog.resourceIdentifiers, ['submission-1', 'submission-2']);
@@ -663,11 +634,11 @@ suite('dbp-formalize-manage-forms basics', () => {
             isBatchTaggingEnabled: {submitted: false},
         };
 
-        node.setActionButtonsStates.call(actionHost, 'submitted');
+        FormSubmissions.prototype.setActionButtonsStates.call(actionHost, 'submitted');
         assert.isFalse(actionHost.isEditSubmissionPermissionEnabled.submitted);
 
         actionHost.submissionsGrantedActions.set('submission-2', ['manage']);
-        node.setActionButtonsStates.call(actionHost, 'submitted');
+        FormSubmissions.prototype.setActionButtonsStates.call(actionHost, 'submitted');
         assert.isTrue(actionHost.isEditSubmissionPermissionEnabled.submitted);
     });
 });
@@ -716,8 +687,8 @@ suite('manage forms action menus', () => {
             ]),
             forms: new Map(),
             formsGrantedActions: new Map(),
-            options_forms: {},
             lang: 'en',
+            createDefaultOverviewActions: createDefaultManageSubmissionsOverviewActions,
             createScopedElement: () => {
                 const button = document.createElement('button');
                 button.iconName = 'keyword-research';
@@ -793,8 +764,11 @@ suite('manage forms action menus', () => {
             loadedModules: new Map([['job-offer', {formId: 'job-offer', moduleInstance}]]),
             forms: new Map(),
             formsGrantedActions: new Map(),
-            options_forms: {},
             lang: 'en',
+            createDefaultOverviewActions: () => [
+                ...createDefaultManageSubmissionsOverviewActions(),
+                ...createDefaultManageFormsOverviewActions(),
+            ],
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
         };
@@ -908,7 +882,6 @@ suite('manage forms action menus', () => {
             loadedModules: new Map([['job-offer', {formId: 'job-offer', moduleInstance}]]),
             forms: new Map(),
             formsGrantedActions: new Map(),
-            options_forms: {},
             lang: 'en',
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
@@ -966,6 +939,74 @@ suite('manage forms action menus', () => {
         }
     });
 
+    test('should only list forms with an edit right in the manage-forms activity', () => {
+        assert.isFalse(hasFormEditRight({grantedFormActions: ['read']}));
+        assert.isFalse(hasFormEditRight({grantedFormActions: ['read', 'delete']}));
+        assert.isFalse(
+            hasFormEditRight({
+                grantedFormActions: [],
+                grantedSubmissionCollectionActions: ['read'],
+            }),
+        );
+        assert.isTrue(hasFormEditRight({grantedFormActions: ['read', 'update']}));
+        assert.isTrue(hasFormEditRight({grantedFormActions: ['manage']}));
+
+        const host = document.createElement('test-manage-forms');
+        assert.isTrue(host.isFormListed({grantedFormActions: ['update']}));
+        assert.isFalse(host.isFormListed({grantedFormActions: ['read', 'create_submissions']}));
+        assert.deepEqual(
+            host.createDefaultOverviewActions().map(({id}) => id),
+            ['delete', 'edit', 'edit-permission'],
+        );
+    });
+
+    test('should request forms with readable submissions in the manage-submissions activity', async () => {
+        const originalFetch = window.fetch;
+        const requestedUrls = [];
+        const host = document.createElement('test-manage-submissions');
+        host.entryPointUrl = 'https://example.com';
+        host.auth = {token: 'token'};
+        host.createScopedElement = () => document.createElement('button');
+        window.fetch = (url) => {
+            requestedUrls.push(url);
+            return Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        'hydra:member': [
+                            {
+                                identifier: 'own-submissions',
+                                name: 'Own submissions',
+                                localizedNames: [],
+                                grantedActions: ['read', 'create_submissions'],
+                                grantedFormActions: ['read', 'create_submissions'],
+                                grantedSubmissionCollectionActions: [],
+                            },
+                        ],
+                    }),
+            });
+        };
+
+        try {
+            await getListOfAllForms(host);
+        } finally {
+            window.fetch = originalFetch;
+        }
+
+        const url = new URL(requestedUrls[0]);
+        assert.equal(url.pathname, '/formalize/forms');
+        assert.equal(url.searchParams.get('whereMayReadSubmissions'), 'true');
+        assert.equal(url.searchParams.get('perPage'), '9999');
+        // Forms with only own or shared submissions are listed as returned by the API.
+        assert.lengthOf(host.allForms, 1);
+        assert.deepEqual(
+            [...host.allForms[0].actionButton.querySelectorAll('button')].map(
+                (button) => button.dataset.action,
+            ),
+            ['open-submissions'],
+        );
+    });
+
     test('should add employers to job-offer rows and refresh changed employers', async () => {
         const originalFetch = window.fetch;
         let companyName = 'Example Company';
@@ -989,7 +1030,6 @@ suite('manage forms action menus', () => {
             loadedModules: new Map(),
             forms: new Map(),
             formsGrantedActions: new Map(),
-            options_forms: {},
             lang: 'en',
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
@@ -1140,7 +1180,7 @@ suite('manage forms action menus', () => {
     });
 
     test('should put all submission filters into the routing URL', () => {
-        const host = document.createElement('test-manage-forms');
+        const host = document.createElement('test-form-submissions');
         const searchInput = document.createElement('input');
         const searchColumn = document.createElement('select');
         const searchOperator = document.createElement('select');
@@ -1173,9 +1213,9 @@ suite('manage forms action menus', () => {
             },
         };
         let routingUrl = '';
-        host.sendSetPropertyEvent = (name, value) => {
-            if (name === 'routing-url') routingUrl = value;
-        };
+        host.addEventListener(ROUTING_URL_CHANGE_EVENT, (event) => {
+            routingUrl = event.detail.url;
+        });
 
         host.filterTable('draft');
 
@@ -1187,21 +1227,15 @@ suite('manage forms action menus', () => {
     });
 
     test('should put form and submission pagination into the routing URL', () => {
-        const host = document.createElement('test-manage-forms');
-        host.routingUrl = '/';
-        host.getRoutingData = () => ({
-            pathname: '/',
-            queryParams: new URLSearchParams(),
-            hash: '',
-        });
-        host.formsTable = {identifier: 'forms-table'};
-        host._urlStateReadyTables.add('forms-table');
+        const page = document.createElement('test-manage-forms-overview-page');
+        page.routingUrl = '/';
+        page._urlStateReady = true;
         let routingUrl = '';
-        host.sendSetPropertyEvent = (name, value) => {
-            if (name === 'routing-url') routingUrl = value;
-        };
+        page.addEventListener(ROUTING_URL_CHANGE_EVENT, (event) => {
+            routingUrl = event.detail.url;
+        });
 
-        host.handleTablePaginationPageLoaded({
+        page.handleTablePageLoaded({
             detail: {tableId: 'forms-table', page: 3, pageSize: 3, paginationSize: 20},
         });
 
@@ -1209,6 +1243,11 @@ suite('manage forms action menus', () => {
         assert.equal(url.searchParams.get('forms-page'), '3');
         assert.equal(url.searchParams.get('forms-page-size'), '20');
 
+        const host = document.createElement('test-form-submissions');
+        host.routingUrl = '/form-1';
+        host.addEventListener(ROUTING_URL_CHANGE_EVENT, (event) => {
+            routingUrl = event.detail.url;
+        });
         host.submissionTables.draft = {
             identifier: 'submissions-table-draft',
             tabulatorTable: {getRows: () => []},
@@ -1224,6 +1263,7 @@ suite('manage forms action menus', () => {
         });
 
         const submissionUrl = new URL(routingUrl, 'https://example.com');
+        assert.equal(submissionUrl.pathname, '/form-1');
         assert.equal(submissionUrl.searchParams.get('draft-page'), '2');
         assert.equal(submissionUrl.searchParams.get('draft-page-size'), '10');
     });
@@ -1237,22 +1277,30 @@ suite('manage forms action menus', () => {
 
         host.auth = {'user-id': 'user-2'};
         assert.equal(host.getPaginationSizeStorageKey(), 'formalize-manage-forms-user-2');
+
+        const submissionsHost = document.createElement('test-manage-submissions');
+        submissionsHost.auth = {'user-id': 'user-1'};
+        submissionsHost.isLoggedIn = () => true;
+        assert.equal(
+            submissionsHost.getPaginationSizeStorageKey(),
+            'formalize-manage-submissions-user-1',
+        );
     });
 
     test('should put submission details into the activity routing URL', () => {
-        const host = document.createElement('test-manage-forms');
+        const host = document.createElement('test-form-submissions');
         const formId = '11111111-1111-1111-1111-111111111111';
         const submissionId = '22222222-2222-2222-2222-222222222222';
-        host.activeFormId = formId;
+        host.form = {formId};
         host.getRoutingData = () => ({
             pathSegments: [formId],
             queryParams: new URLSearchParams('submitted-page=2'),
             hash: '',
         });
         let routingUrl = '';
-        host.sendSetPropertyEvent = (name, value) => {
-            if (name === 'routing-url') routingUrl = value;
-        };
+        host.addEventListener(ROUTING_URL_CHANGE_EVENT, (event) => {
+            routingUrl = event.detail.url;
+        });
 
         host.setSubmissionDetailsRoute(submissionId);
         assert.equal(routingUrl, `/${formId}/details/${submissionId}?submitted-page=2`);
@@ -1262,7 +1310,7 @@ suite('manage forms action menus', () => {
     });
 
     test('should restore submission filters and pagination from the routing URL', async () => {
-        const host = document.createElement('test-manage-forms');
+        const host = document.createElement('test-form-submissions');
         const searchInput = document.createElement('input');
         const searchColumn = document.createElement('select');
         const searchOperator = document.createElement('select');
@@ -1305,7 +1353,7 @@ suite('manage forms action menus', () => {
     });
 
     test('should keep the stored page size when the routing URL has no page size', async () => {
-        const host = document.createElement('test-manage-forms');
+        const host = document.createElement('test-form-submissions');
         const searchInput = document.createElement('input');
         const searchColumn = document.createElement('select');
         const searchOperator = document.createElement('select');
@@ -1338,28 +1386,29 @@ suite('manage forms action menus', () => {
     });
 
     test('should restore form pagination after table data has loaded', async () => {
-        const host = document.createElement('test-manage-forms');
+        const page = document.createElement('test-manage-forms-overview-page');
         let resolveData;
         const dataLoaded = new Promise((resolve) => {
             resolveData = resolve;
         });
         const calls = [];
-        host.allForms = [{id: 1}];
-        host.formsTable = {
+        page.forms = [{id: 1}];
+        page.showFormsTable = true;
+        const table = {
             identifier: 'forms-table',
             tableReady: true,
             tableBuilding: false,
             setData: () => dataLoaded,
         };
-        host.refreshTableReferences = () => {};
-        host.restoreFormsTableState = () => {
+        page.getFormsTable = () => table;
+        page.restoreTableState = () => {
             calls.push('restore');
         };
-        host._urlStateReadyTables.add('forms-table');
+        page._urlStateReady = true;
 
-        host.showFormsOverview();
+        page.syncTable();
         assert.deepEqual(calls, []);
-        assert.isFalse(host._urlStateReadyTables.has('forms-table'));
+        assert.isFalse(page._urlStateReady);
 
         resolveData();
         await dataLoaded;
@@ -1398,5 +1447,153 @@ suite('manage forms action menus', () => {
         assert.isFalse(permissionAction.disabled);
 
         page.remove();
+    });
+});
+
+suite('manage-forms and manage-submissions activities', () => {
+    const forms = [
+        {
+            identifier: 'form-own',
+            name: 'Own submissions only',
+            localizedNames: [],
+            grantedActions: ['read', 'create_submissions'],
+            grantedFormActions: ['read', 'create_submissions'],
+            grantedSubmissionCollectionActions: [],
+            allowedSubmissionStates: 4,
+            dateCreated: '2026-01-01T10:00:00+00:00',
+        },
+        {
+            identifier: 'form-edit',
+            name: 'Editable form',
+            localizedNames: [],
+            grantedActions: ['manage'],
+            grantedFormActions: ['manage'],
+            grantedSubmissionCollectionActions: ['manage'],
+            allowedSubmissionStates: 5,
+            dateCreated: '2026-02-01T10:00:00+00:00',
+        },
+    ];
+    let originalFetch;
+    let requests;
+
+    const waitFor = async (predicate, timeout = 5000) => {
+        const start = Date.now();
+        while (!predicate()) {
+            if (Date.now() - start > timeout) throw new Error('Timed out waiting for condition');
+            await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+    };
+
+    const mountActivity = (tagName) => {
+        const element = document.createElement(tagName);
+        element.setAttribute('entry-point-url', 'https://api.example.com');
+        element.setAttribute('base-path', '/');
+        element.setAttribute('lang', 'en');
+        element.routingUrl = '/';
+        element.routes = [];
+        element.sendSetPropertyEvent = (name, value) => {
+            if (name === 'routing-url') {
+                element.routes.push(value);
+                element.routingUrl = value;
+            }
+        };
+        document.body.appendChild(element);
+        element.auth = {token: 'token', 'login-status': 'logged-in', 'user-id': 'user-1'};
+        return element;
+    };
+
+    const getOverviewTable = (element) =>
+        element.shadowRoot
+            ?.querySelector('#overview-page')
+            ?.shadowRoot?.querySelector('#tabulator-table-forms');
+
+    setup(() => {
+        originalFetch = window.fetch;
+        requests = [];
+        const json = (data) => Promise.resolve({ok: true, json: () => Promise.resolve(data)});
+        window.fetch = (input) => {
+            const url = new URL(/** @type {string} */ (input), window.location.origin);
+            requests.push(url);
+            if (url.pathname === '/modules.json') return json({forms: {}});
+            if (url.pathname === '/formalize/forms') return json({'hydra:member': forms});
+            if (url.pathname.startsWith('/formalize/forms/')) return json({availableTags: []});
+            if (url.pathname === '/formalize/submissions') {
+                const formId = url.searchParams.get('formIdentifier');
+                return json({
+                    'hydra:member': [1, 2].map((index) => ({
+                        identifier: `${formId}-submission-${index}`,
+                        submissionState: 4,
+                        dateCreated: `2026-03-0${index}T10:00:00+00:00`,
+                        dataFeedElement: JSON.stringify({firstName: `Alice ${index}`}),
+                        tags: [],
+                        submittedFiles: [],
+                        grantedActions: ['read'],
+                    })),
+                });
+            }
+            return json({});
+        };
+    });
+
+    teardown(() => {
+        window.fetch = originalFetch;
+        document
+            .querySelectorAll('dbp-formalize-manage-forms, dbp-formalize-manage-submissions')
+            .forEach((element) => element.remove());
+    });
+
+    test('manage-forms only lists editable forms', async () => {
+        const element = mountActivity('dbp-formalize-manage-forms');
+        await waitFor(() => getOverviewTable(element)?.tabulatorTable?.getData().length > 0);
+
+        const formsRequest = requests.find((url) => url.pathname === '/formalize/forms');
+        assert.isNull(formsRequest.searchParams.get('whereMayReadSubmissions'));
+        assert.deepEqual(
+            element.allForms.map(({formId}) => formId),
+            ['form-edit'],
+        );
+        assert.isNull(element.shadowRoot.querySelector('dbp-formalize-form-submissions'));
+    });
+
+    test('manage-submissions lists forms with readable submissions and opens them', async () => {
+        const element = mountActivity('dbp-formalize-manage-submissions');
+        await waitFor(() => getOverviewTable(element)?.tabulatorTable?.getData().length === 2);
+
+        const formsRequest = requests.find((url) => url.pathname === '/formalize/forms');
+        assert.equal(formsRequest.searchParams.get('whereMayReadSubmissions'), 'true');
+
+        // Open the submissions with the row action
+        const row = element.allForms.find(({formId}) => formId === 'form-own');
+        row.actionButton.querySelector('[data-action="open-submissions"]').click();
+        assert.equal(element.routes.at(-1), '/form-own');
+
+        const formSubmissions = element.shadowRoot.querySelector('dbp-formalize-form-submissions');
+        await waitFor(
+            () =>
+                formSubmissions.submissionTables.submitted?.tabulatorTable?.getData().length === 2,
+        );
+        assert.equal(formSubmissions.activeFormName, 'Own submissions only');
+        assert.isFalse(element.showFormsTable);
+        assert.isTrue(
+            requests.some(
+                (url) =>
+                    url.pathname === '/formalize/submissions' &&
+                    url.searchParams.get('formIdentifier') === 'form-own',
+            ),
+        );
+
+        // Submission search is reflected in the activity routing URL
+        const page = formSubmissions.getSubmissionsPage();
+        const searchInput = page.getSearchbar('submitted');
+        searchInput.value = 'Alice 1';
+        searchInput.dispatchEvent(new Event('input'));
+        assert.equal(element.routes.at(-1), '/form-own?submitted-search=Alice+1');
+
+        // Back to the overview keeps only the forms list parameters
+        page.shadowRoot.querySelector('.back-navigation button').click();
+        await element.updateComplete;
+        assert.equal(element.routes.at(-1), '/');
+        assert.isTrue(element.showFormsTable);
+        assert.equal(element.activeFormId, '');
     });
 });

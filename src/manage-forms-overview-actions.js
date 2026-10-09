@@ -33,6 +33,8 @@ const canManageForm = (form) => getFormGrants(form).includes(FORM_PERMISSIONS.MA
 export function createManageFormsOverviewActionContext(host, items = [], event = null) {
     return {
         host,
+        // Lets modules tailor their actions to the activity ('manage-forms' or 'manage-submissions').
+        activity: /** @type {any} */ (host.constructor)?.activityName ?? null,
         items,
         form: items[0] ?? null,
         event,
@@ -41,11 +43,11 @@ export function createManageFormsOverviewActionContext(host, items = [], event =
 }
 
 /**
- * Returns the built-in actions for the forms overview.
+ * Returns the built-in actions for the forms overview of the manage-submissions activity.
  *
  * @returns {Array<Record<string, any>>}
  */
-export function createDefaultManageFormsOverviewActions() {
+export function createDefaultManageSubmissionsOverviewActions() {
     return [
         {
             id: 'open-submissions',
@@ -56,15 +58,19 @@ export function createDefaultManageFormsOverviewActions() {
                 t('manage-forms.open-forms-aria', {formName: form?.formName ?? ''}),
             isEnabled: ({items}) => items.length === 1,
             handler: ({host, form}) => {
-                if (!form?.formId) return;
-                host.loadingSubmissionTables = true;
-                host.sendSetPropertyEvent(
-                    'routing-url',
-                    host.getRoutingUrlWithQueryPrefixes(`/${form.formId}`, ['forms-']),
-                    true,
-                );
+                if (form?.formId) host.openFormSubmissions(form.formId);
             },
         },
+    ];
+}
+
+/**
+ * Returns the built-in actions for the forms overview of the manage-forms activity.
+ *
+ * @returns {Array<Record<string, any>>}
+ */
+export function createDefaultManageFormsOverviewActions() {
+    return [
         {
             id: 'delete',
             iconName: 'trash',
@@ -81,7 +87,7 @@ export function createDefaultManageFormsOverviewActions() {
         {
             id: 'edit',
             iconName: 'pencil',
-            placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
+            placements: [OVERVIEW_ACTION_PLACEMENTS.ROW, OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
             label: ({t}) => t('manage-forms.edit-button-text'),
             title: ({t}) => t('manage-forms.edit-form-button'),
             ariaLabel: ({t, form}) =>

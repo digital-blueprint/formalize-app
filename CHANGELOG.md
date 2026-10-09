@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Split the Manage Forms activity into two activities: `dbp-formalize-manage-forms` (routing name `manage-forms`) for creating, editing and deleting forms and editing form permissions, and the new `dbp-formalize-manage-submissions` (routing name `manage-submissions`) for viewing and managing submissions
+- Manage Forms activity: only list forms the user has an edit right for (`grantedFormActions` contains `update` or `manage`); the edit action is now also available as a table row action; the `/<form-identifier>` submission routes, `hide-create-submission-button` and `enable-submission-permission-editing` moved to the Manage Submissions activity
+- Manage Submissions activity: only list forms where the user may read all submissions or at least one submission (own or shared), using the `whereMayReadSubmissions` filter of the form collection API
+- Extracted the shared parts into web components: `ManageFormsOverviewPage` now owns the forms table, its search, selection, actions dropdown and URL state, and the new `FormSubmissions` component contains the submission lists, details modal, export, deletion, tagging and submission permission editing of a form; `ManageFormsActivityBase` contains the shared module and form loading of both activities
+- Overview actions: split the built-in actions into `createDefaultManageFormsOverviewActions()` (delete, edit, edit permissions) and `createDefaultManageSubmissionsOverviewActions()` (open submissions); the action context passed to `BaseObject.getManageFormsOverviewActions()` now contains the `activity` name
+- Links to a form's submissions (e.g. after submitting a form) now point to the Manage Submissions activity (`getFormManageFormsUrl()` was renamed to `getFormManageSubmissionsUrl()`)
+
 ## v1.4.0
 
 - Fixed course-selector prefilling and saved stable course identifiers.
