@@ -3,11 +3,14 @@ export const pascalToKebab = (str) => {
     return str.replace(/([A-Z])/g, '-$1').toLowerCase();
 };
 
-export const getFormRenderUrl = (formUrlSlug, lang) => {
+export const getFormRenderUrl = (formUrlSlug, lang, formIdentifier = '') => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
     const basePath = currentUrl.pathname.replace(/^(.*\/)[de][en]\/.*$/, '$1');
-    return `${origin}${basePath}${lang}/render-form/${formUrlSlug}`;
+    const query = formIdentifier
+        ? `?${new URLSearchParams({'form-identifier': formIdentifier})}`
+        : '';
+    return `${origin}${basePath}${lang}/render-form/${formUrlSlug}${query}`;
 };
 
 export const getFormManageSubmissionsUrl = (formId, lang) => {

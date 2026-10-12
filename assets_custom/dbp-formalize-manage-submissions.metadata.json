@@ -3,16 +3,16 @@
     "module_src": "dbp-formalize-manage-submissions.js",
     "routing_name": "manage-submissions",
     "name": {
-        "de": "Einreichungen verwalten",
-        "en": "Manage submissions"
+        "de": "Meine Formulareinreichungen",
+        "en": "My form submissions"
     },
     "short_name": {
-        "de": "Einreichungen verwalten",
-        "en": "Manage submissions"
+        "de": "Meine Formulareinreichungen",
+        "en": "My form submissions"
     },
     "description": {
-        "de": "Verwaltet Einreichungen zu Formularen",
-        "en": "Manage form submissions"
+        "de": "Eigene und mit Ihnen geteilte Formulareinreichungen anzeigen, bearbeiten und löschen",
+        "en": "View, edit and delete your own and shared form submissions"
     },
-    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,hide-create-submission-button,enable-submission-permission-editing"
+    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,enable-submission-permission-editing"
 }

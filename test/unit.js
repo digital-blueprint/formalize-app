@@ -8,6 +8,9 @@ import {FormSubmissions} from '../src/form-submissions.js';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
+import {FormLinks} from '../src/form-links.js';
+import {getFormRenderUrl} from '../src/utils.js';
+import {getReadableSubmissionIds, isPersonalSubmission} from '../src/personal-submissions.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 import {
     BaseFormElement,
@@ -32,6 +35,7 @@ customElements.define('test-manage-forms-overview-page', class extends ManageFor
 customElements.define('test-manage-forms', class extends ManageForms {});
 customElements.define('test-manage-submissions', class extends ManageSubmissions {});
 customElements.define('test-form-submissions', class extends FormSubmissions {});
+customElements.define('test-form-links', class extends FormLinks {});
 customElements.define(
     'test-manage-form-submissions-page',
     class extends ManageFormSubmissionsPage {},
@@ -430,6 +434,7 @@ suite('dbp-formalize-manage-forms basics', () => {
     test('should open an edit URL instead of the submissions page', () => {
         const calls = [];
         node.forms.set('job-offer', {formId: 'job-offer'});
+        node.allForms = [{formId: 'job-offer'}];
         node.getRoutingData = () => ({pathSegments: ['job-offer', 'edit']});
         node._ = () => ({existingForm: null});
         node.handleOpenEditFormDialog = (formId, updateRoutingUrl) =>
@@ -444,6 +449,7 @@ suite('dbp-formalize-manage-forms basics', () => {
     test('should open the submissions of a routed form', () => {
         const host = document.createElement('test-manage-submissions');
         host.forms.set('job-offer', {formId: 'job-offer'});
+        host.allForms = [{formId: 'job-offer'}];
         host.getRoutingData = () => ({pathSegments: ['job-offer']});
 
         host.handleRoute();
@@ -765,10 +771,7 @@ suite('manage forms action menus', () => {
             forms: new Map(),
             formsGrantedActions: new Map(),
             lang: 'en',
-            createDefaultOverviewActions: () => [
-                ...createDefaultManageSubmissionsOverviewActions(),
-                ...createDefaultManageFormsOverviewActions(),
-            ],
+            createDefaultOverviewActions: () => [...createDefaultManageFormsOverviewActions()],
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
         };
@@ -956,7 +959,7 @@ suite('manage forms action menus', () => {
         assert.isFalse(host.isFormListed({grantedFormActions: ['read', 'create_submissions']}));
         assert.deepEqual(
             host.createDefaultOverviewActions().map(({id}) => id),
-            ['delete', 'edit', 'edit-permission'],
+            ['open-submissions', 'delete', 'edit', 'edit-permission'],
         );
     });
 
@@ -965,10 +968,25 @@ suite('manage forms action menus', () => {
         const requestedUrls = [];
         const host = document.createElement('test-manage-submissions');
         host.entryPointUrl = 'https://example.com';
-        host.auth = {token: 'token'};
+        host.auth = {token: 'token', 'user-id': 'user-1'};
         host.createScopedElement = () => document.createElement('button');
         window.fetch = (url) => {
             requestedUrls.push(url);
+            if (url.includes('/authorization/')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({'hydra:member': []}),
+                });
+            }
+            if (url.includes('/formalize/submissions')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () =>
+                        Promise.resolve({
+                            'hydra:member': [{identifier: 'own-1', creatorId: 'user-1'}],
+                        }),
+                });
+            }
             return Promise.resolve({
                 ok: true,
                 json: () =>
@@ -997,7 +1015,7 @@ suite('manage forms action menus', () => {
         assert.equal(url.pathname, '/formalize/forms');
         assert.equal(url.searchParams.get('whereMayReadSubmissions'), 'true');
         assert.equal(url.searchParams.get('perPage'), '9999');
-        // Forms with only own or shared submissions are listed as returned by the API.
+        // Forms are narrowed to those containing an own or explicitly shared submission.
         assert.lengthOf(host.allForms, 1);
         assert.deepEqual(
             [...host.allForms[0].actionButton.querySelectorAll('button')].map(
@@ -1458,7 +1476,7 @@ suite('manage-forms and manage-submissions activities', () => {
             localizedNames: [],
             grantedActions: ['read', 'create_submissions'],
             grantedFormActions: ['read', 'create_submissions'],
-            grantedSubmissionCollectionActions: [],
+            grantedSubmissionCollectionActions: ['read'],
             allowedSubmissionStates: 4,
             dateCreated: '2026-01-01T10:00:00+00:00',
         },
@@ -1471,6 +1489,24 @@ suite('manage-forms and manage-submissions activities', () => {
             grantedSubmissionCollectionActions: ['manage'],
             allowedSubmissionStates: 5,
             dateCreated: '2026-02-01T10:00:00+00:00',
+        },
+        {
+            identifier: 'form-shared',
+            name: 'Shared submissions',
+            localizedNames: [],
+            grantedActions: ['read'],
+            grantedFormActions: ['read'],
+            grantedSubmissionCollectionActions: [],
+            allowedSubmissionStates: 4,
+        },
+        {
+            identifier: 'form-empty',
+            name: 'Empty form with broad submission access',
+            localizedNames: [],
+            grantedActions: ['read'],
+            grantedFormActions: ['read'],
+            grantedSubmissionCollectionActions: ['read'],
+            allowedSubmissionStates: 4,
         },
     ];
     let originalFetch;
@@ -1517,11 +1553,38 @@ suite('manage-forms and manage-submissions activities', () => {
             if (url.pathname === '/modules.json') return json({forms: {}});
             if (url.pathname === '/formalize/forms') return json({'hydra:member': forms});
             if (url.pathname.startsWith('/formalize/forms/')) return json({availableTags: []});
+            if (url.pathname === '/authorization/granted-actions/DbpRelayFormalizeSubmission') {
+                return json({
+                    'hydra:member': [
+                        {
+                            resourceIdentifier: 'form-shared-submission-1',
+                            actions: ['read', 'update'],
+                        },
+                    ],
+                });
+            }
             if (url.pathname === '/formalize/submissions') {
                 const formId = url.searchParams.get('formIdentifier');
                 return json({
-                    'hydra:member': [1, 2].map((index) => ({
+                    'hydra:view':
+                        formId === 'form-shared' && !url.searchParams.has('page')
+                            ? {
+                                  'hydra:next':
+                                      '/formalize/submissions?formIdentifier=form-shared&page=2',
+                              }
+                            : {},
+                    'hydra:member': (formId === 'form-empty'
+                        ? []
+                        : formId === 'form-shared'
+                          ? url.searchParams.has('page')
+                              ? [1]
+                              : [2]
+                          : formId === 'form-own'
+                            ? [1, 2, 3]
+                            : [1, 2]
+                    ).map((index) => ({
                         identifier: `${formId}-submission-${index}`,
+                        creatorId: formId === 'form-own' && index <= 2 ? 'user-1' : 'other-user',
                         submissionState: 4,
                         dateCreated: `2026-03-0${index}T10:00:00+00:00`,
                         dataFeedElement: JSON.stringify({firstName: `Alice ${index}`}),
@@ -1552,7 +1615,12 @@ suite('manage-forms and manage-submissions activities', () => {
             element.allForms.map(({formId}) => formId),
             ['form-edit'],
         );
-        assert.isNull(element.shadowRoot.querySelector('dbp-formalize-form-submissions'));
+        element.allForms[0].actionButton.querySelector('[data-action="open-submissions"]').click();
+        const component = element.getFormSubmissions();
+        await waitFor(() => component.rawSubmissions.length === 2);
+        assert.equal(element.routes.at(-1), '/form-edit');
+        assert.lengthOf(component.rawSubmissions, 2);
+        assert.isFalse(element.showFormsTable);
     });
 
     test('manage-submissions lists forms with readable submissions and opens them', async () => {
@@ -1561,6 +1629,10 @@ suite('manage-forms and manage-submissions activities', () => {
 
         const formsRequest = requests.find((url) => url.pathname === '/formalize/forms');
         assert.equal(formsRequest.searchParams.get('whereMayReadSubmissions'), 'true');
+        assert.deepEqual(
+            element.allForms.map(({formId}) => formId),
+            ['form-own', 'form-shared'],
+        );
 
         // Open the submissions with the row action
         const row = element.allForms.find(({formId}) => formId === 'form-own');
@@ -1595,5 +1667,110 @@ suite('manage-forms and manage-submissions activities', () => {
         assert.equal(element.routes.at(-1), '/');
         assert.isTrue(element.showFormsTable);
         assert.equal(element.activeFormId, '');
+
+        // Collection-level access never leaks other people's submissions into the personal view.
+        element.openFormSubmissions('form-shared');
+        await waitFor(
+            () => formSubmissions.rawSubmissions[0]?.identifier === 'form-shared-submission-1',
+        );
+        assert.lengthOf(formSubmissions.rawSubmissions, 1);
+        assert.isTrue(formSubmissions.hideCreateSubmissionButton);
+
+        // A manager-only form cannot be opened through a manually entered personal URL.
+        element.routingUrl = '/form-edit';
+        await element.updateComplete;
+        assert.equal(element.activeFormId, '');
+    });
+});
+
+suite('personal submissions and shareable links', () => {
+    test('distinguishes ownership and item grants from general read access', () => {
+        const shared = new Set(['shared']);
+        assert.isTrue(isPersonalSubmission({identifier: 'own', creatorId: 'me'}, 'me', shared));
+        assert.isTrue(
+            isPersonalSubmission({identifier: 'shared', creatorId: 'other'}, 'me', shared),
+        );
+        assert.isFalse(
+            isPersonalSubmission(
+                {identifier: 'other', creatorId: 'other', grantedActions: ['read']},
+                'me',
+                shared,
+            ),
+        );
+        assert.isFalse(
+            isPersonalSubmission({identifier: 'anonymous', creatorId: null}, null, shared),
+        );
+    });
+
+    test('reads all grant pages and only accepts readable or manageable item grants', async () => {
+        const originalFetch = window.fetch;
+        const requests = [];
+        window.fetch = (url) => {
+            requests.push(url);
+            return Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve(
+                        requests.length === 1
+                            ? {
+                                  'hydra:member': [
+                                      {resourceIdentifier: 'readable', actions: ['read']},
+                                  ],
+                                  'hydra:view': {
+                                      'hydra:next':
+                                          '/authorization/granted-actions/DbpRelayFormalizeSubmission?page=2',
+                                  },
+                              }
+                            : {
+                                  'hydra:member': [
+                                      {resourceIdentifier: 'managed', actions: ['manage']},
+                                      {resourceIdentifier: 'not-readable', actions: ['update']},
+                                  ],
+                              },
+                    ),
+            });
+        };
+        try {
+            const ids = await getReadableSubmissionIds({
+                entryPointUrl: 'https://api.example.com',
+                auth: {token: 'token'},
+            });
+            assert.deepEqual([...ids], ['readable', 'managed']);
+            assert.lengthOf(requests, 2);
+        } finally {
+            window.fetch = originalFetch;
+        }
+    });
+
+    test('website links select the exact form instance and retain personal activity URLs', async () => {
+        const links = document.createElement('test-form-links');
+        links.lang = 'en';
+        links.form = {
+            formId: 'instance-1',
+            formName: 'My form',
+            moduleInstance: {getUrlSlug: () => 'demo-form'},
+        };
+        document.body.appendChild(links);
+        try {
+            await links.updateComplete;
+            const anchors = links.shadowRoot.querySelectorAll('a');
+            assert.lengthOf(anchors, 2);
+            assert.equal(
+                new URL(anchors[0].href).searchParams.get('form-identifier'),
+                'instance-1',
+            );
+            assert.include(anchors[1].href, '/en/manage-submissions/instance-1');
+            assert.lengthOf(links.shadowRoot.querySelectorAll('button'), 2);
+            const render = document.createElement('dbp-formalize-render-form');
+            render.routingUrl = '/demo-form?form-identifier=instance-1';
+            render.formUrlSlug = 'demo-form';
+            render.formIdentifiers = {'demo-form': 'default-instance'};
+            assert.equal(render.getCurrentFormIdentifier(), 'instance-1');
+            render.routingUrl = '/demo-form';
+            assert.equal(render.getCurrentFormIdentifier(), 'default-instance');
+            assert.notInclude(getFormRenderUrl('demo-form', 'en'), 'form-identifier');
+        } finally {
+            links.remove();
+        }
     });
 });

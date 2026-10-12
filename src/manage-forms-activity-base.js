@@ -349,6 +349,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
                 .actionDefinitions=${this.formsOverviewActionDefinitions}
                 .actionHost=${this}
                 .showEmployerColumn=${this.showEmployerColumn}
+                .showFormLinks=${typeof this.createFormLinks === 'function'}
                 .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                 .noFormsAvailable=${this.noFormsAvailable}
                 .creatableModulesCount=${creatableModulesCount}></dbp-formalize-manage-forms-overview-page>

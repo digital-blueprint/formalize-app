@@ -6,13 +6,18 @@ import * as commonUtils from '@dbp-toolkit/common/utils';
 import {FormSubmissions} from './form-submissions.js';
 import {createDefaultManageSubmissionsOverviewActions} from './manage-forms-overview-actions.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
+import {getListOfAllForms} from './manage-forms-api.js';
+import {
+    getReadableSubmissionIds,
+    isPersonalSubmission,
+    readFormSubmissions,
+} from './personal-submissions.js';
 
 /**
  * Activity to view and manage form submissions.
  *
- * Only forms are listed where the user may read all submissions or at least one
- * submission (their own or one shared with them). The filtering is done by the
- * API with the `whereMayReadSubmissions` filter.
+ * Only forms containing the user's own or explicitly shared submissions are listed.
+ * Collection-level access alone does not qualify a form or submission.
  *
  * Routing: `/` shows the forms overview, `/<formId>` the submissions of a form and
  * `/<formId>/details/<submissionId>` additionally opens a submission.
@@ -23,7 +28,6 @@ export class ManageSubmissions extends ManageFormsActivityBase {
     constructor() {
         super();
         this.activeFormId = '';
-        this.hideCreateSubmissionButton = false;
         this.enableSubmissionPermissionEditing = false;
     }
 
@@ -42,10 +46,6 @@ export class ManageSubmissions extends ManageFormsActivityBase {
         return {
             ...super.properties,
             activeFormId: {type: String, attribute: false},
-            hideCreateSubmissionButton: {
-                type: Boolean,
-                attribute: 'hide-create-submission-button',
-            },
             enableSubmissionPermissionEditing: {
                 type: Boolean,
                 attribute: 'enable-submission-permission-editing',
@@ -55,6 +55,27 @@ export class ManageSubmissions extends ManageFormsActivityBase {
 
     getFormsCollectionFilters() {
         return {whereMayReadSubmissions: 'true'};
+    }
+
+    async filterFormsCollection(entries) {
+        if (entries.length === 0) return [];
+        const readableIds = await getReadableSubmissionIds(this);
+        // Sequential requests avoid flooding the API when many forms are available.
+        const personalForms = [];
+        for (const entry of entries) {
+            const submissions = await readFormSubmissions(this, entry.identifier);
+            const personalSubmissionIds = new Set(
+                submissions
+                    .filter((submission) =>
+                        isPersonalSubmission(submission, this.auth?.['user-id'], readableIds),
+                    )
+                    .map((submission) => submission.identifier),
+            );
+            if (personalSubmissionIds.size > 0) {
+                personalForms.push({...entry, personalSubmissionIds});
+            }
+        }
+        return personalForms;
     }
 
     isFormListed(entry) {
@@ -77,7 +98,7 @@ export class ManageSubmissions extends ManageFormsActivityBase {
             return;
         }
 
-        if (!this.forms.has(formId)) {
+        if (!this.allForms.some((form) => form.formId === formId)) {
             if (this.isLoggedIn() && !this.loadingFormsTable) {
                 sendNotification({
                     summary: this._i18n.t('errors.notfound-title'),
@@ -109,6 +130,13 @@ export class ManageSubmissions extends ManageFormsActivityBase {
         this.setRoutingUrl(this.getRoutingUrlWithQueryPrefixes('/', ['forms-']));
     }
 
+    handleSubmissionsDeleted(event) {
+        if (event.detail.formId !== this.activeFormId) return;
+        if (event.detail.remainingCount === 0) this.handleBackToOverview();
+        // Deleting the last personal submission must remove the form from the overview.
+        void getListOfAllForms(this);
+    }
+
     render() {
         const activeForm = this.activeFormId ? (this.forms.get(this.activeFormId) ?? null) : null;
 
@@ -130,9 +158,10 @@ export class ManageSubmissions extends ManageFormsActivityBase {
                     .auth=${this.auth}
                     .routingUrl=${this.routingUrl}
                     .form=${activeForm}
-                    .hideCreateSubmissionButton=${this.hideCreateSubmissionButton}
+                    .hideCreateSubmissionButton=${true}
                     .enableSubmissionPermissionEditing=${this.enableSubmissionPermissionEditing}
                     .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
+                    @submissions-deleted=${(event) => this.handleSubmissionsDeleted(event)}
                     @back-to-overview=${() =>
                         this.handleBackToOverview()}></dbp-formalize-form-submissions>
             </div>
