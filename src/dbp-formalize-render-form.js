@@ -202,11 +202,20 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     }
 
     async handlePermissionsForCurrentForm() {
-        const formIdentifier = this.formIdentifiers[this.formUrlSlug];
+        const formIdentifier = this.getCurrentFormIdentifier();
 
         this.submissionAllowed = formIdentifier
             ? await this.checkPermissionsToForm(formIdentifier)
             : false;
+    }
+
+    getCurrentFormIdentifier() {
+        // A form type can have several backend instances, e.g. forms created from a metaform.
+        // The backend still checks access to the selected instance.
+        return (
+            this.getRoutingData().queryParams.get('form-identifier') ||
+            this.formIdentifiers[this.formUrlSlug]
+        );
     }
 
     async checkPermissionsToForm(identifier) {
@@ -300,7 +309,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             await this.loadAvailableForms();
 
             // Get users all submission for this form
-            await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+            await this.getUserAllSubmissionsData(this.getCurrentFormIdentifier());
 
             this.requestUpdate();
         } catch (error) {
@@ -539,8 +548,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.loadedSubmission = {};
         this.submissionId = '';
         this.readOnly = false;
-        if (this.formIdentifiers[this.formUrlSlug]) {
-            await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+        if (this.getCurrentFormIdentifier()) {
+            await this.getUserAllSubmissionsData(this.getCurrentFormIdentifier());
         }
         this.requestUpdate();
     }
@@ -553,8 +562,8 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
     async onFormDataUpdated(event) {
         if (event.detail && event.detail.needUpdate) {
             await this.getSubmissionData();
-            if (this.formIdentifiers[this.formUrlSlug]) {
-                await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+            if (this.getCurrentFormIdentifier()) {
+                await this.getUserAllSubmissionsData(this.getCurrentFormIdentifier());
             }
         }
     }
@@ -719,7 +728,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const form = this.formComponents[formUrlSlug];
         this.defineScopedElement(tagName, form);
 
-        const formIdentifier = this.formIdentifiers[this.formUrlSlug];
+        const formIdentifier = this.getCurrentFormIdentifier();
         const allowedSubmissionStates = this.formProperties.allowedSubmissionStates;
         const maxNumberOfSubmissionsPerUser = this.formProperties.maxNumSubmissionsPerCreator;
         // const allowedActionsWhenSubmitted = this.formProperties.allowedActionsWhenSubmitted;
@@ -742,7 +751,11 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 // We have READ permission if we can see previous submissions
                 if (this.userAllSubmissions.length > 0) {
                     const oldSubmissionId = this.userAllSubmissions[0].identifier;
-                    submissionUrl = `${getFormRenderUrl(this.formUrlSlug, this.lang)}/${oldSubmissionId}/readonly`;
+                    const url = new URL(
+                        getFormRenderUrl(this.formUrlSlug, this.lang, formIdentifier),
+                    );
+                    url.pathname += `/${oldSubmissionId}/readonly`;
+                    submissionUrl = url.href;
                 }
                 return html`
                     <div class="notification is-warning">
@@ -769,8 +782,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (Object.keys(this.loadedSubmission).length > 0) {
             // Check if the submission is for the current form
             if (
-                this.loadedSubmission.form ===
-                `/formalize/forms/${this.formIdentifiers[formUrlSlug]}`
+                this.loadedSubmission.form === `/formalize/forms/${this.getCurrentFormIdentifier()}`
             ) {
                 data = this.loadedSubmission;
             } else {
@@ -805,7 +817,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     })}
                     <a
                         href="${getFormManageSubmissionsUrl(
-                            this.formIdentifiers[this.formUrlSlug],
+                            this.getCurrentFormIdentifier(),
                             this.lang,
                         )}">
                         ${this._i18n.t('render-form.check-previous-submissions-warning')}
@@ -823,7 +835,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                     <dbp-icon name="information-circle"></dbp-icon>
                     <a
                         href="${getFormManageSubmissionsUrl(
-                            this.formIdentifiers[this.formUrlSlug],
+                            this.getCurrentFormIdentifier(),
                             this.lang,
                         )}">
                         ${this._i18n.t('render-form.check-previous-submissions-warning')}
@@ -981,7 +993,7 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 this.authTokenExists = true;
                 void this.handlePermissionsForCurrentForm();
 
-                await this.getUserAllSubmissionsData(this.formIdentifiers[this.formUrlSlug]);
+                await this.getUserAllSubmissionsData(this.getCurrentFormIdentifier());
                 await this.getSubmissionData();
             }
 
@@ -991,6 +1003,15 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
         if (changedProperties.has('routingUrl')) {
             this.updateFormUrlSlug();
+            const previousUrl = changedProperties.get('routingUrl');
+            if (
+                previousUrl !== undefined &&
+                new URL(previousUrl, window.location.origin).searchParams.get('form-identifier') !==
+                    this.getRoutingData().queryParams.get('form-identifier')
+            ) {
+                await this.handlePermissionsForCurrentForm();
+                await this.getUserAllSubmissionsData(this.getCurrentFormIdentifier());
+            }
             if (Object.keys(this.formIdentifiers).length > 0) {
                 await this.loadAvailableForms();
             }

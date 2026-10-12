@@ -11,8 +11,8 @@
         "en": "Manage forms"
     },
     "description": {
-        "de": "Erstellt, bearbeitet und löscht Formulare",
-        "en": "Create, edit and delete forms"
+        "de": "Formulare und ihre Einreichungen verwalten und Links teilen",
+        "en": "Manage forms and their submissions and share website links"
     },
-    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,enable-forms-bulk-delete"
+    "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,enable-forms-bulk-delete,hide-create-submission-button,enable-submission-permission-editing"
 }

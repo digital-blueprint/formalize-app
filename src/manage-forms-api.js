@@ -261,10 +261,27 @@ export async function getListOfAllForms(host) {
                 host.formsGrantedActions.clear();
             }
 
+            let entries = data['hydra:member'].filter((entry) => {
+                const key = entry.frontendKey ?? null;
+                return (
+                    (allowList.length === 0 || allowList.includes(key)) && !denyList.includes(key)
+                );
+            });
+            if (typeof host.filterFormsCollection === 'function') {
+                entries = await host.filterFormsCollection(entries);
+            }
+
+            // Remove backend entries no longer present, so stale routes cannot bypass filtering.
+            const currentFormIds = new Set(entries.map((entry) => entry.identifier));
+            for (const formId of host.forms.keys()) {
+                if (!loadedModuleFormIds.has(formId) && !currentFormIds.has(formId)) {
+                    host.forms.delete(formId);
+                }
+            }
+
             let id = 0;
             const overviewActions = new Map();
-            for (let x = 0; x < data['hydra:member'].length; x++) {
-                const entry = data['hydra:member'][x];
+            for (const entry of entries) {
                 let localizedFormName = entry['localizedNames'].find((localizedName) => {
                     return localizedName.languageTag === host.lang;
                 });
@@ -348,6 +365,7 @@ export async function getListOfAllForms(host) {
                     additionalData,
                     localizedNames,
                     grantedActions,
+                    personalSubmissionIds: entry.personalSubmissionIds,
                 });
 
                 // Store current grants before modules build permission-gated row actions.
@@ -416,6 +434,10 @@ export async function getListOfAllForms(host) {
                     dateCreated: dateCreated,
                     grantedActions: grantedActions,
                     actionButton: actionContainer,
+                    formLinks: host.createFormLinks?.(managedForm),
+                    personalSubmissionIds: entry.personalSubmissionIds
+                        ? [...entry.personalSubmissionIds]
+                        : undefined,
                 };
                 forms.push(new_form);
             }
@@ -429,19 +451,23 @@ export async function getListOfAllForms(host) {
             // updated('allForms'), which would rebuild/reset the tabulator
             // tables, show a loading spinner, and disrupt the user.
             const prevRows = (host.allForms || []).map(
-                ({formId, name, employer, grantedActions}) => [
+                ({formId, name, employer, grantedActions, personalSubmissionIds}) => [
                     formId,
                     name,
                     employer,
                     grantedActions,
+                    personalSubmissionIds,
                 ],
             );
-            const nextRows = forms.map(({formId, name, employer, grantedActions}) => [
-                formId,
-                name,
-                employer,
-                grantedActions,
-            ]);
+            const nextRows = forms.map(
+                ({formId, name, employer, grantedActions, personalSubmissionIds}) => [
+                    formId,
+                    name,
+                    employer,
+                    grantedActions,
+                    personalSubmissionIds,
+                ],
+            );
             if (
                 JSON.stringify(prevRows) === JSON.stringify(nextRows) &&
                 (host.allForms || []).length > 0
@@ -502,6 +528,16 @@ export async function getAllFormSubmissions(host, formId) {
             options,
         );
         data = await response.json();
+        // A personal submission may occur beyond the first API page.
+        let next = data['hydra:view']?.['hydra:next'];
+        while (next && host.form?.personalSubmissionIds instanceof Set) {
+            const pageResponse = await fetch(new URL(next, host.entryPointUrl).href, options);
+            if (!pageResponse.ok)
+                throw new Error(`Failed to load submissions: ${pageResponse.status}`);
+            const page = await pageResponse.json();
+            data['hydra:member'].push(...page['hydra:member']);
+            next = page['hydra:view']?.['hydra:next'];
+        }
     } catch (e) {
         host.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
         throwSomethingWentWrongNotification(host);
@@ -509,6 +545,12 @@ export async function getAllFormSubmissions(host, formId) {
     }
 
     host.rawSubmissions = data['hydra:member'];
+    if (host.form?.personalSubmissionIds instanceof Set) {
+        host.rawSubmissions = host.rawSubmissions.filter((submission) =>
+            host.form.personalSubmissionIds.has(submission.identifier),
+        );
+    }
+    data['hydra:member'] = host.rawSubmissions;
     host.submissionsGrantedActions = new Map();
 
     host.rawSubmissions.forEach((submission) => {
@@ -626,8 +668,10 @@ export async function getAllFormSubmissions(host, formId) {
                 const submissionDetailsFormButton = host.createScopedElement(
                     'dbp-formalize-get-submission-link',
                 );
-                let formSubmissionUrl =
-                    getFormRenderUrl(activeForm.formSlug, host.lang) + `/${submissionId}/readonly`;
+                const formSubmissionUrl = new URL(
+                    getFormRenderUrl(activeForm.formSlug, host.lang, activeForm.formId),
+                );
+                formSubmissionUrl.pathname += `/${submissionId}/readonly`;
                 /*
                     t('manage-forms.open-detailed-view-form')
                 */
@@ -635,7 +679,7 @@ export async function getAllFormSubmissions(host, formId) {
                     'manage-forms.open-detailed-view-form',
                     {id: id},
                 );
-                submissionDetailsFormButton.submissionUrl = formSubmissionUrl;
+                submissionDetailsFormButton.submissionUrl = formSubmissionUrl.href;
                 submissionDetailsFormButton.iconName = 'open-new-window';
                 submissionDetailsFormButton.title = i18n.t('manage-forms.open-detailed-view-form', {
                     id: id,

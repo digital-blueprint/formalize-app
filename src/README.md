@@ -10,7 +10,7 @@ You can use every activity alone. Take a look at our examples [here](https://git
 
 ### dbp-formalize-manage-forms
 
-Lets users create, edit and delete forms and edit form permissions. The overview only lists forms the user has an edit right for (`grantedFormActions` contains `update` or `manage`). Submissions are managed in [dbp-formalize-manage-submissions](#dbp-formalize-manage-submissions).
+Lets users create, edit and delete forms, edit form permissions and manage their submissions. The overview only lists forms the user has an edit right for (`grantedFormActions` contains `update` or `manage`). [My form submissions](#dbp-formalize-manage-submissions) separately offers a personal view of own/shared submissions.
 
 Note that you will need a Keycloak server along with a client id for the domain you are running this html on.
 
@@ -26,6 +26,8 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `deny-list-frontend-keys="job-offer"`
 - `enable-forms-bulk-delete` (optional, default: off): enables bulk removal of forms in the forms overview when set; deletion is still gated per form by the user's granted actions (`delete`/`manage`)
     - example `enable-forms-bulk-delete`
+- `hide-create-submission-button` (optional): hides the create submission button in a form's submission view
+- `enable-submission-permission-editing` (optional, default: off): enables permission editing when the user has `manage` on every selected submission
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
@@ -36,6 +38,10 @@ The activity supports deep links through the app shell `routing-url` property:
 
 - `/` shows the forms overview.
 - `/<form-identifier>/edit` opens the form editor.
+- `/<form-identifier>` shows the form's readable submissions, with export, deletion and other permission-controlled actions.
+- `/<form-identifier>/details/<submission-identifier>` opens submission details.
+
+The overview prominently offers a form link and a **My form submissions** link, each with a copy button, for embedding on a website. Form links include `form-identifier` in their query string to select the exact backend instance when multiple forms share a frontend module. A fill-in link is only offered when a matching module is available.
 
 The forms overview stores its search and pagination state in these query parameters:
 
@@ -54,13 +60,14 @@ These templates will be converted to div containers when the page is loaded and 
 
 ### dbp-formalize-manage-submissions
 
-Lets users view and manage form submissions. The overview lists forms where the user may read all submissions or at least one submission, e.g. their own or one shared with them. The forms are requested with the `whereMayReadSubmissions=true` filter of the form collection API.
+Displayed as **My form submissions** (the `manage-submissions` routing name remains unchanged). Lets users view, collaboratively edit and delete their own or explicitly shared submissions, subject to their permissions. Only forms containing at least one such readable submission are listed; form-level access to all submissions alone does not qualify.
+
+The `whereMayReadSubmissions=true` API filter supplies candidate forms. The activity then reads the current user's submission-level grants from `/authorization/granted-actions/DbpRelayFormalizeSubmission` and each candidate's readable submissions, keeping only ownership or individual read/manage grants. The same scope is applied to the submission lists. This requires additional read requests because the form collection API has no combined own/shared filter. All grant and overview-probe submission pages are read. Empty forms and forms without a personal submission are excluded, including through direct routes.
 
 #### Attributes
 
 - `lang`, `entry-point-url`, `allow-list-frontend-keys`, `deny-list-frontend-keys` and `auth`: same as in [dbp-formalize-manage-forms](#dbp-formalize-manage-forms)
-- `hide-create-submission-button` (optional): hides the create submission button in the submissions view when set
-    - example `hide-create-submission-button`
+- Creating new submissions is intentionally not offered here; users follow the specific form link provided on a website instead. There is no new overview of all open forms.
 - `enable-submission-permission-editing` (optional, default: off): enables permission editing for selected submissions when the user has `manage` on every selected submission
     - example `enable-submission-permission-editing`
 

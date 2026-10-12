@@ -71,6 +71,7 @@ export function createDefaultManageSubmissionsOverviewActions() {
  */
 export function createDefaultManageFormsOverviewActions() {
     return [
+        ...createDefaultManageSubmissionsOverviewActions(),
         {
             id: 'delete',
             iconName: 'trash',

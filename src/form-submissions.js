@@ -266,9 +266,17 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
 
         if (changedProperties.has('form')) {
             const previousFormId = changedProperties.get('form')?.formId ?? '';
+            const personalScopeChanged =
+                JSON.stringify([
+                    ...(changedProperties.get('form')?.personalSubmissionIds ?? []),
+                ]) !== JSON.stringify([...(this.form?.personalSubmissionIds ?? [])]);
             if (!this.form) {
                 this.resetSubmissions();
-            } else if (this.form.formId !== previousFormId || !this.showSubmissionTables) {
+            } else if (
+                this.form.formId !== previousFormId ||
+                personalScopeChanged ||
+                !this.showSubmissionTables
+            ) {
                 // Avoid rebuilding intact tables when only the form entry got refreshed.
                 void this.loadSubmissions();
             }
@@ -411,7 +419,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             // If the slug is a UUID, do not create a submission URL as it is not a renderable form
             this.createSubmissionUrl =
                 form.formSlug && !form.formSlug.match(UUID_PATTERN)
-                    ? getFormRenderUrl(form.formSlug, this.lang)
+                    ? getFormRenderUrl(form.formSlug, this.lang, form.formId)
                     : '';
 
             // Fetch available tags before building the table, so they are available
@@ -1225,8 +1233,9 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             activeForm.moduleInstance.hasReadOnlyMode()
         ) {
             const url = new URL(
-                getFormRenderUrl(activeForm.formSlug, this.lang) + `/${submissionId}`,
+                getFormRenderUrl(activeForm.formSlug, this.lang, activeForm.formId),
             );
+            url.pathname += `/${submissionId}`;
             url.searchParams.set('validate', 'true');
             window.history.pushState({}, '', url);
 
@@ -1323,6 +1332,17 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                 .getRows()
                 .filter((row) => row.getData().submissionId === failedSubmissionId)
                 .forEach((row) => row.select());
+        }
+        if (responseStatus.includes(true)) {
+            this.dispatchEvent(
+                new CustomEvent('submissions-deleted', {
+                    detail: {
+                        formId: this.activeFormId,
+                        remainingCount:
+                            this.submissions.draft.length + this.submissions.submitted.length,
+                    },
+                }),
+            );
         }
     }
 

@@ -10,6 +10,8 @@ import {EditFormDialog} from './edit-form-dialog.js';
 import {createDefaultManageFormsOverviewActions} from './manage-forms-overview-actions.js';
 import {apiDeleteForm, getListOfAllForms, successFailureNotification} from './manage-forms-api.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
+import {FormSubmissions} from './form-submissions.js';
+import {FormLinks} from './form-links.js';
 
 /**
  * Statically reference translation keys that are only resolved dynamically
@@ -40,10 +42,11 @@ export function hasFormEditRight(entry) {
 }
 
 /**
- * Activity to create, edit, delete forms and to edit their permissions.
+ * Activity to manage forms, their permissions and submissions and share website links.
  * Only forms the user has an edit right for (`update` or `manage`) are listed.
  *
- * Routing: `/` shows the forms overview, `/<formId>/edit` opens the edit dialog.
+ * Routing: `/` shows the overview, `/<formId>/edit` opens the editor,
+ * `/<formId>` shows submissions and `/<formId>/details/<submissionId>` opens details.
  *
  * @augments {ManageFormsActivityBase}
  */
@@ -54,6 +57,9 @@ export class ManageForms extends ManageFormsActivityBase {
         this.enableFormsBulkDelete = false;
         // Number of loaded modules that implement getEditFormComponent(); drives button visibility
         this.creatableModulesCount = 0;
+        this.activeFormId = '';
+        this.hideCreateSubmissionButton = false;
+        this.enableSubmissionPermissionEditing = false;
     }
 
     static get activityName() {
@@ -66,6 +72,8 @@ export class ManageForms extends ManageFormsActivityBase {
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
             'dbp-formalize-edit-form-dialog': EditFormDialog,
+            'dbp-formalize-form-submissions': FormSubmissions,
+            'dbp-formalize-form-links': FormLinks,
         };
     }
 
@@ -73,6 +81,12 @@ export class ManageForms extends ManageFormsActivityBase {
         return {
             ...super.properties,
             creatableModulesCount: {type: Number, attribute: false},
+            activeFormId: {type: String, attribute: false},
+            hideCreateSubmissionButton: {type: Boolean, attribute: 'hide-create-submission-button'},
+            enableSubmissionPermissionEditing: {
+                type: Boolean,
+                attribute: 'enable-submission-permission-editing',
+            },
             enableFormsBulkDelete: {
                 type: Boolean,
                 attribute: 'enable-forms-bulk-delete',
@@ -103,15 +117,17 @@ export class ManageForms extends ManageFormsActivityBase {
 
     handleRoute() {
         this.showFormsOverview();
+        this.activeFormId = '';
 
         const {pathSegments} = this.getRoutingData();
         const formId = pathSegments[0] || '';
-        if (!formId || pathSegments[1] !== 'edit') {
+        if (!formId) {
             this.closeEditFormDialog();
             return;
         }
 
-        if (!this.forms.has(formId)) {
+        if (!this.allForms.some((form) => form.formId === formId)) {
+            this.closeEditFormDialog();
             if (this.isLoggedIn() && !this.loadingFormsTable) {
                 sendNotification({
                     summary: this._i18n.t('errors.notfound-title'),
@@ -123,10 +139,39 @@ export class ManageForms extends ManageFormsActivityBase {
             return;
         }
 
+        if (pathSegments[1] !== 'edit') {
+            this.closeEditFormDialog();
+            this.activeFormId = formId;
+            this.showFormsTable = false;
+            return;
+        }
+
         const dialog = this._('#edit-form-dialog');
         if (dialog?.existingForm?.formId !== formId) {
             this.handleOpenEditFormDialog(formId, false);
         }
+    }
+
+    openFormSubmissions(formId) {
+        this.setRoutingUrl(this.getRoutingUrlWithQueryPrefixes(`/${formId}`, ['forms-']));
+    }
+
+    handleBackToOverview() {
+        this.activeFormId = '';
+        this.showFormsOverview();
+        this.setRoutingUrl(this.getRoutingUrlWithQueryPrefixes('/', ['forms-']));
+    }
+
+    getFormSubmissions() {
+        return this._('dbp-formalize-form-submissions');
+    }
+
+    createFormLinks(form) {
+        const links = this.createScopedElement('dbp-formalize-form-links');
+        links.form = form;
+        links.lang = this.lang;
+        links.langDir = this.langDir;
+        return links;
     }
 
     /**
@@ -346,6 +391,7 @@ export class ManageForms extends ManageFormsActivityBase {
 
     render() {
         const i18n = this._i18n;
+        const activeForm = this.activeFormId ? (this.forms.get(this.activeFormId) ?? null) : null;
 
         return html`
             ${this.renderLoginState()}
@@ -358,6 +404,20 @@ export class ManageForms extends ManageFormsActivityBase {
                 <div @create-form-request=${() => this.handleOpenCreateFormDialog()}>
                     ${this.renderOverview({creatableModulesCount: this.creatableModulesCount})}
                 </div>
+
+                <dbp-formalize-form-submissions
+                    class="${classMap({hidden: !activeForm})}"
+                    lang="${this.lang}"
+                    lang-dir="${this.langDir}"
+                    entry-point-url="${this.entryPointUrl}"
+                    .auth=${this.auth}
+                    .routingUrl=${this.routingUrl}
+                    .form=${activeForm}
+                    .hideCreateSubmissionButton=${this.hideCreateSubmissionButton}
+                    .enableSubmissionPermissionEditing=${this.enableSubmissionPermissionEditing}
+                    .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
+                    @back-to-overview=${() =>
+                        this.handleBackToOverview()}></dbp-formalize-form-submissions>
             </div>
 
             <dbp-grant-permission-dialog
