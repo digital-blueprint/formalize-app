@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Ethics form make `coApplicants` field optional
+
 ## v1.4.0
 
 - Fixed course-selector prefilling and saved stable course identifiers.
