@@ -10,7 +10,7 @@ You can use every activity alone. Take a look at our examples [here](https://git
 
 ### dbp-formalize-manage-forms
 
-Lets users create, edit and delete forms, edit form permissions and manage their submissions. The overview only lists forms the user has an edit right for (`grantedFormActions` contains `update` or `manage`). [My form submissions](#dbp-formalize-manage-submissions) separately offers a personal view of own/shared submissions.
+Lets users create, edit and delete forms, edit form permissions and manage their submissions. The overview only lists forms the user has an edit right for (`grantedFormActions` contains `update` or `manage`). [My form submissions](#dbp-formalize-manage-submissions) separately lists forms with readable submissions or permission to read all submissions.
 
 Note that you will need a Keycloak server along with a client id for the domain you are running this html on.
 
@@ -60,9 +60,9 @@ These templates will be converted to div containers when the page is loaded and 
 
 ### dbp-formalize-manage-submissions
 
-Displayed as **My form submissions** (the `manage-submissions` routing name remains unchanged). Lets users view, collaboratively edit and delete their own or explicitly shared submissions, subject to their permissions. Only forms containing at least one such readable submission are listed; form-level access to all submissions alone does not qualify.
+Displayed as **My form submissions** (the `manage-submissions` routing name remains unchanged). Lets users view, collaboratively edit and delete submissions, subject to their permissions. The overview lists forms with at least one readable submission (own or shared), or where the user has the right to read all submissions, including currently empty forms.
 
-The `whereMayReadSubmissions=true` API filter supplies candidate forms. The activity then reads the current user's submission-level grants from `/authorization/granted-actions/DbpRelayFormalizeSubmission` and each candidate's readable submissions, keeping only ownership or individual read/manage grants. The same scope is applied to the submission lists. This requires additional read requests because the form collection API has no combined own/shared filter. All grant and overview-probe submission pages are read. Empty forms and forms without a personal submission are excluded, including through direct routes.
+The form collection is requested with `whereMayReadSubmissions=true`; the backend determines eligibility without additional grant or per-form submission requests for the overview. Opening a form loads its readable submissions from the submission collection API, following pagination and relying on backend authorization. Forms excluded by the overview cannot be opened through direct routes.
 
 #### Attributes
 

@@ -11,8 +11,8 @@
         "en": "My form submissions"
     },
     "description": {
-        "de": "Eigene und mit Ihnen geteilte Formulareinreichungen anzeigen, bearbeiten und löschen",
-        "en": "View, edit and delete your own and shared form submissions"
+        "de": "Formulareinreichungen gemäß Ihren Berechtigungen anzeigen, bearbeiten und löschen",
+        "en": "View, edit and delete form submissions according to your permissions"
     },
     "subscribe": "lang,lang-dir,entry-point-url,auth,html-overrides,base-path,routing-url,allow-list-frontend-keys,deny-list-frontend-keys,enable-submission-permission-editing"
 }
