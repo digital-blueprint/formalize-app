@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v1.4.2
+
 - Ethics form make `coApplicants` field optional
 
 ## v1.4.0
