@@ -266,17 +266,9 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
 
         if (changedProperties.has('form')) {
             const previousFormId = changedProperties.get('form')?.formId ?? '';
-            const personalScopeChanged =
-                JSON.stringify([
-                    ...(changedProperties.get('form')?.personalSubmissionIds ?? []),
-                ]) !== JSON.stringify([...(this.form?.personalSubmissionIds ?? [])]);
             if (!this.form) {
                 this.resetSubmissions();
-            } else if (
-                this.form.formId !== previousFormId ||
-                personalScopeChanged ||
-                !this.showSubmissionTables
-            ) {
+            } else if (this.form.formId !== previousFormId || !this.showSubmissionTables) {
                 // Avoid rebuilding intact tables when only the form entry got refreshed.
                 void this.loadSubmissions();
             }

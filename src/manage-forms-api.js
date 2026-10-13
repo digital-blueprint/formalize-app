@@ -261,15 +261,12 @@ export async function getListOfAllForms(host) {
                 host.formsGrantedActions.clear();
             }
 
-            let entries = data['hydra:member'].filter((entry) => {
+            const entries = data['hydra:member'].filter((entry) => {
                 const key = entry.frontendKey ?? null;
                 return (
                     (allowList.length === 0 || allowList.includes(key)) && !denyList.includes(key)
                 );
             });
-            if (typeof host.filterFormsCollection === 'function') {
-                entries = await host.filterFormsCollection(entries);
-            }
 
             // Remove backend entries no longer present, so stale routes cannot bypass filtering.
             const currentFormIds = new Set(entries.map((entry) => entry.identifier));
@@ -365,7 +362,6 @@ export async function getListOfAllForms(host) {
                     additionalData,
                     localizedNames,
                     grantedActions,
-                    personalSubmissionIds: entry.personalSubmissionIds,
                 });
 
                 // Store current grants before modules build permission-gated row actions.
@@ -435,9 +431,6 @@ export async function getListOfAllForms(host) {
                     grantedActions: grantedActions,
                     actionButton: actionContainer,
                     formLinks: host.createFormLinks?.(managedForm),
-                    personalSubmissionIds: entry.personalSubmissionIds
-                        ? [...entry.personalSubmissionIds]
-                        : undefined,
                 };
                 forms.push(new_form);
             }
@@ -451,23 +444,19 @@ export async function getListOfAllForms(host) {
             // updated('allForms'), which would rebuild/reset the tabulator
             // tables, show a loading spinner, and disrupt the user.
             const prevRows = (host.allForms || []).map(
-                ({formId, name, employer, grantedActions, personalSubmissionIds}) => [
+                ({formId, name, employer, grantedActions}) => [
                     formId,
                     name,
                     employer,
                     grantedActions,
-                    personalSubmissionIds,
                 ],
             );
-            const nextRows = forms.map(
-                ({formId, name, employer, grantedActions, personalSubmissionIds}) => [
-                    formId,
-                    name,
-                    employer,
-                    grantedActions,
-                    personalSubmissionIds,
-                ],
-            );
+            const nextRows = forms.map(({formId, name, employer, grantedActions}) => [
+                formId,
+                name,
+                employer,
+                grantedActions,
+            ]);
             if (
                 JSON.stringify(prevRows) === JSON.stringify(nextRows) &&
                 (host.allForms || []).length > 0
@@ -528,9 +517,9 @@ export async function getAllFormSubmissions(host, formId) {
             options,
         );
         data = await response.json();
-        // A personal submission may occur beyond the first API page.
+        // Follow API pagination so all readable submissions are included.
         let next = data['hydra:view']?.['hydra:next'];
-        while (next && host.form?.personalSubmissionIds instanceof Set) {
+        while (next) {
             const pageResponse = await fetch(new URL(next, host.entryPointUrl).href, options);
             if (!pageResponse.ok)
                 throw new Error(`Failed to load submissions: ${pageResponse.status}`);
@@ -545,12 +534,6 @@ export async function getAllFormSubmissions(host, formId) {
     }
 
     host.rawSubmissions = data['hydra:member'];
-    if (host.form?.personalSubmissionIds instanceof Set) {
-        host.rawSubmissions = host.rawSubmissions.filter((submission) =>
-            host.form.personalSubmissionIds.has(submission.identifier),
-        );
-    }
-    data['hydra:member'] = host.rawSubmissions;
     host.submissionsGrantedActions = new Map();
 
     host.rawSubmissions.forEach((submission) => {

@@ -7,17 +7,12 @@ import {FormSubmissions} from './form-submissions.js';
 import {createDefaultManageSubmissionsOverviewActions} from './manage-forms-overview-actions.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
 import {getListOfAllForms} from './manage-forms-api.js';
-import {
-    getReadableSubmissionIds,
-    isPersonalSubmission,
-    readFormSubmissions,
-} from './personal-submissions.js';
 
 /**
  * Activity to view and manage form submissions.
  *
- * Only forms containing the user's own or explicitly shared submissions are listed.
- * Collection-level access alone does not qualify a form or submission.
+ * The backend's whereMayReadSubmissions filter lists forms with readable own/shared
+ * submissions or collection-level access to all submissions.
  *
  * Routing: `/` shows the forms overview, `/<formId>` the submissions of a form and
  * `/<formId>/details/<submissionId>` additionally opens a submission.
@@ -55,27 +50,6 @@ export class ManageSubmissions extends ManageFormsActivityBase {
 
     getFormsCollectionFilters() {
         return {whereMayReadSubmissions: 'true'};
-    }
-
-    async filterFormsCollection(entries) {
-        if (entries.length === 0) return [];
-        const readableIds = await getReadableSubmissionIds(this);
-        // Sequential requests avoid flooding the API when many forms are available.
-        const personalForms = [];
-        for (const entry of entries) {
-            const submissions = await readFormSubmissions(this, entry.identifier);
-            const personalSubmissionIds = new Set(
-                submissions
-                    .filter((submission) =>
-                        isPersonalSubmission(submission, this.auth?.['user-id'], readableIds),
-                    )
-                    .map((submission) => submission.identifier),
-            );
-            if (personalSubmissionIds.size > 0) {
-                personalForms.push({...entry, personalSubmissionIds});
-            }
-        }
-        return personalForms;
     }
 
     isFormListed(entry) {
@@ -133,7 +107,7 @@ export class ManageSubmissions extends ManageFormsActivityBase {
     handleSubmissionsDeleted(event) {
         if (event.detail.formId !== this.activeFormId) return;
         if (event.detail.remainingCount === 0) this.handleBackToOverview();
-        // Deleting the last personal submission must remove the form from the overview.
+        // Refresh eligibility after deletion; collection-level access can keep an empty form listed.
         void getListOfAllForms(this);
     }
 
