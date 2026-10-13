@@ -269,8 +269,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                               title: i18n.t('manage-forms.share-links'),
                               formatter: 'html',
                               headerSort: false,
-                              minWidth: 200,
-                              widthGrow: 3,
+                              minWidth: 230,
+                              widthGrow: 2,
                               download: false,
                           },
                       ]
