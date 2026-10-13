@@ -8,7 +8,7 @@ import {FormSubmissions} from '../src/form-submissions.js';
 import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
-import {FormLinks} from '../src/form-links.js';
+import {FormLinksModal} from '../src/form-links-modal.js';
 import {getFormRenderUrl} from '../src/utils.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 import {
@@ -34,7 +34,7 @@ customElements.define('test-manage-forms-overview-page', class extends ManageFor
 customElements.define('test-manage-forms', class extends ManageForms {});
 customElements.define('test-manage-submissions', class extends ManageSubmissions {});
 customElements.define('test-form-submissions', class extends FormSubmissions {});
-customElements.define('test-form-links', class extends FormLinks {});
+customElements.define('test-form-links-modal', class extends FormLinksModal {});
 customElements.define(
     'test-manage-form-submissions-page',
     class extends ManageFormSubmissionsPage {},
@@ -815,7 +815,14 @@ suite('manage forms action menus', () => {
             assert.deepEqual(host.allForms[0].grantedActions, ['manage']);
             assert.deepEqual(
                 host.formsOverviewActionDefinitions.map((action) => action.id),
-                ['open-submissions', 'delete', 'edit', 'edit-permission', 'preview'],
+                [
+                    'open-submissions',
+                    'website-links',
+                    'delete',
+                    'edit',
+                    'edit-permission',
+                    'preview',
+                ],
             );
             assert.deepEqual(
                 [...host.allForms[0].actionButton.querySelectorAll('button')].map(
@@ -958,7 +965,7 @@ suite('manage forms action menus', () => {
         assert.isFalse(host.isFormListed({grantedFormActions: ['read', 'create_submissions']}));
         assert.deepEqual(
             host.createDefaultOverviewActions().map(({id}) => id),
-            ['open-submissions', 'delete', 'edit', 'edit-permission'],
+            ['open-submissions', 'website-links', 'delete', 'edit', 'edit-permission'],
         );
     });
 
@@ -1699,24 +1706,47 @@ suite('manage-forms and manage-submissions activities', () => {
 
 suite('shareable links', () => {
     test('website links select the exact form instance and retain personal activity URLs', async () => {
-        const links = document.createElement('test-form-links');
+        const links = document.createElement('test-form-links-modal');
         links.lang = 'en';
-        links.form = {
-            formId: 'instance-1',
-            formName: 'My form',
-            moduleInstance: {getUrlSlug: () => 'demo-form'},
-        };
         document.body.appendChild(links);
         try {
-            await links.updateComplete;
-            const anchors = links.shadowRoot.querySelectorAll('a');
-            assert.lengthOf(anchors, 2);
+            await links.open({
+                formId: 'instance-1',
+                formName: 'My form',
+                moduleInstance: {getUrlSlug: () => 'demo-form'},
+            });
+            const inputs = links.shadowRoot.querySelectorAll('input[readonly]');
+            assert.lengthOf(inputs, 2);
             assert.equal(
-                new URL(anchors[0].href).searchParams.get('form-identifier'),
+                new URL(inputs[0].value).searchParams.get('form-identifier'),
                 'instance-1',
             );
-            assert.include(anchors[1].href, '/en/manage-submissions/instance-1');
-            assert.lengthOf(links.shadowRoot.querySelectorAll('button'), 2);
+            assert.include(inputs[1].value, '/en/manage-submissions/instance-1');
+            const anchors = links.shadowRoot.querySelectorAll('a[target="_blank"]');
+            assert.deepEqual(
+                [...anchors].map((anchor) => anchor.href),
+                [...inputs].map((input) => input.value),
+            );
+            // Labels and descriptions precede the inputs and are linked to them.
+            inputs.forEach((input) => {
+                const label = links.shadowRoot.querySelector(`label[for="${input.id}"]`);
+                const description = links.shadowRoot.getElementById(
+                    input.getAttribute('aria-describedby'),
+                );
+                assert.ok(label && description);
+                assert.isTrue(
+                    Boolean(
+                        label.compareDocumentPosition(description) &
+                        Node.DOCUMENT_POSITION_FOLLOWING,
+                    ) &&
+                        Boolean(
+                            description.compareDocumentPosition(input) &
+                            Node.DOCUMENT_POSITION_FOLLOWING,
+                        ),
+                );
+            });
+            assert.lengthOf(links.shadowRoot.querySelectorAll('.link-buttons button'), 2);
+            links.close();
             const render = document.createElement('dbp-formalize-render-form');
             render.routingUrl = '/demo-form?form-identifier=instance-1';
             render.formUrlSlug = 'demo-form';

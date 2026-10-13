@@ -430,7 +430,6 @@ export async function getListOfAllForms(host) {
                     dateCreated: dateCreated,
                     grantedActions: grantedActions,
                     actionButton: actionContainer,
-                    formLinks: host.createFormLinks?.(managedForm),
                 };
                 forms.push(new_form);
             }

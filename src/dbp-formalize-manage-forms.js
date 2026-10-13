@@ -11,7 +11,7 @@ import {createDefaultManageFormsOverviewActions} from './manage-forms-overview-a
 import {apiDeleteForm, getListOfAllForms, successFailureNotification} from './manage-forms-api.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
 import {FormSubmissions} from './form-submissions.js';
-import {FormLinks} from './form-links.js';
+import {FormLinksModal} from './form-links-modal.js';
 
 /**
  * Statically reference translation keys that are only resolved dynamically
@@ -73,7 +73,7 @@ export class ManageForms extends ManageFormsActivityBase {
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
             'dbp-formalize-edit-form-dialog': EditFormDialog,
             'dbp-formalize-form-submissions': FormSubmissions,
-            'dbp-formalize-form-links': FormLinks,
+            'dbp-formalize-form-links-modal': FormLinksModal,
         };
     }
 
@@ -166,12 +166,8 @@ export class ManageForms extends ManageFormsActivityBase {
         return this._('dbp-formalize-form-submissions');
     }
 
-    createFormLinks(form) {
-        const links = this.createScopedElement('dbp-formalize-form-links');
-        links.form = form;
-        links.lang = this.lang;
-        links.langDir = this.langDir;
-        return links;
+    openFormLinks(form) {
+        void this._('#form-links-modal')?.open(form);
     }
 
     /**
@@ -432,6 +428,11 @@ export class ManageForms extends ManageFormsActivityBase {
                 id="deletion-modal"
                 lang-dir="${this.langDir}"
                 subscribe="lang"></dbp-formalize-deletion-confirmation-modal>
+
+            <dbp-formalize-form-links-modal
+                id="form-links-modal"
+                lang="${this.lang}"
+                lang-dir="${this.langDir}"></dbp-formalize-form-links-modal>
 
             <dbp-formalize-edit-form-dialog
                 id="edit-form-dialog"

@@ -73,6 +73,19 @@ export function createDefaultManageFormsOverviewActions() {
     return [
         ...createDefaultManageSubmissionsOverviewActions(),
         {
+            id: 'website-links',
+            iconName: 'link',
+            placements: [OVERVIEW_ACTION_PLACEMENTS.ROW],
+            label: ({t}) => t('manage-forms.share-links'),
+            ariaLabel: ({t, form}) =>
+                t('manage-forms.share-links-aria', {formName: form?.formName ?? ''}),
+            isVisible: ({host}) => typeof host.openFormLinks === 'function',
+            isEnabled: ({items}) => items.length === 1,
+            handler: ({host, form}) => {
+                if (form?.formId) host.openFormLinks(form);
+            },
+        },
+        {
             id: 'delete',
             iconName: 'trash',
             placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],

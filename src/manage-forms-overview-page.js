@@ -52,7 +52,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         // Object passed as `host` to action predicates and handlers (usually the activity)
         this.actionHost = null;
         this.showEmployerColumn = false;
-        this.showFormLinks = false;
         this.optionsForms = {};
         this.paginationSizeStorageKey = '';
         this.noFormsAvailable = false;
@@ -89,7 +88,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             actionDefinitions: {type: Array, attribute: false},
             actionHost: {type: Object, attribute: false},
             showEmployerColumn: {type: Boolean, attribute: false},
-            showFormLinks: {type: Boolean, attribute: false},
             optionsForms: {type: Object, attribute: false},
             paginationSizeStorageKey: {type: String, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
@@ -118,7 +116,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         super.updated(changedProperties);
 
         const optionsChanged =
-            changedProperties.has('showFormLinks') ||
             (changedProperties.has('lang') && changedProperties.get('lang') !== undefined) ||
             (changedProperties.has('showEmployerColumn') &&
                 changedProperties.get('showEmployerColumn') !== undefined);
@@ -261,19 +258,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 {field: 'name', sorter: 'string', widthGrow: showEmployerColumn ? 2 : 4},
                 ...(showEmployerColumn
                     ? [{field: 'employer', sorter: 'string', widthGrow: 2}]
-                    : []),
-                ...(this.showFormLinks
-                    ? [
-                          {
-                              field: 'formLinks',
-                              title: i18n.t('manage-forms.share-links'),
-                              formatter: 'html',
-                              headerSort: false,
-                              minWidth: 230,
-                              widthGrow: 2,
-                              download: false,
-                          },
-                      ]
                     : []),
                 // Hidden helper columns carrying data needed for the actions.
                 {field: 'formId', visible: false},
