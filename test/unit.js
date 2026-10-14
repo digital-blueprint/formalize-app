@@ -279,6 +279,55 @@ suite('manage forms table configuration', () => {
         assert.isFalse(node.showEmployerColumn);
     });
 
+    test('should show the employer column when it is enabled before the first update', async () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        page.showEmployerColumn = true;
+        document.body.appendChild(page);
+
+        try {
+            await page.updateComplete;
+            assert.include(
+                page.optionsForms.columns.map(({field}) => field),
+                'employer',
+            );
+        } finally {
+            page.remove();
+        }
+    });
+
+    test('should rebuild a forms table that was built with outdated options', () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        let destroyCount = 0;
+        let buildCount = 0;
+        const table = {
+            tableReady: false,
+            tableBuilding: false,
+            tabulatorTable: null,
+            buildTable() {
+                buildCount++;
+                this.tabulatorTable = {destroy: () => destroyCount++};
+                this.tableReady = true;
+            },
+            setData: () => Promise.resolve(),
+        };
+        page.getFormsTable = () => table;
+        page.restoreTableState = () => Promise.resolve();
+
+        page.syncTable();
+        assert.equal(buildCount, 1);
+
+        // Unchanged options only update the rows.
+        page.syncTable();
+        assert.equal(buildCount, 1);
+        assert.equal(destroyCount, 0);
+
+        // E.g. new column labels after the translation overrides were loaded.
+        page.updateTableOptions();
+        page.syncTable();
+        assert.equal(destroyCount, 1);
+        assert.equal(buildCount, 2);
+    });
+
     test('should use module schema labels when persisted labels are missing', () => {
         const definitions = [
             {field: 'dateCreated', title: 'Date created'},

@@ -64,6 +64,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.searchInProgress = false;
         this._restoringUrlState = false;
         this._urlStateReady = false;
+        // Version of the table options and the version the table was built with,
+        // used to rebuild the table when its columns or labels are outdated.
+        this._tableOptionsVersion = 0;
+        this._builtTableOptionsVersion = null;
         this.updateTableOptions();
     }
 
@@ -105,7 +109,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             }
 
             if ((propName === 'lang' || propName === 'langDir') && this.langDir) {
-                void setOverridesByGlobalCache(this._i18n, this);
+                void this.loadTranslationOverrides();
             }
         });
 
@@ -115,10 +119,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
     updated(changedProperties) {
         super.updated(changedProperties);
 
+        // Values set before the first update have an undefined old value, so the
+        // initial column configuration must be applied here as well.
         const optionsChanged =
-            (changedProperties.has('lang') && changedProperties.get('lang') !== undefined) ||
-            (changedProperties.has('showEmployerColumn') &&
-                changedProperties.get('showEmployerColumn') !== undefined);
+            changedProperties.has('lang') || changedProperties.has('showEmployerColumn');
         if (optionsChanged) {
             this.updateTableOptions();
         }
@@ -129,7 +133,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 changedProperties.has('forms') ||
                 changedProperties.has('showFormsTable'))
         ) {
-            this.syncTable({rebuild: optionsChanged});
+            this.syncTable();
         }
 
         if (
@@ -156,7 +160,19 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         super.connectedCallback();
 
         if (this.langDir) {
-            void setOverridesByGlobalCache(this._i18n, this);
+            void this.loadTranslationOverrides();
+        }
+    }
+
+    /**
+     * Loads translation overrides and rebuilds the column labels afterwards,
+     * because the table options are built with the translations at that time.
+     */
+    async loadTranslationOverrides() {
+        await setOverridesByGlobalCache(this._i18n, this);
+        this.updateTableOptions();
+        if (this.showFormsTable) {
+            this.syncTable();
         }
     }
 
@@ -300,6 +316,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             },
             data: this.forms,
         };
+        this._tableOptionsVersion++;
     }
 
     getFormsTable() {
@@ -312,6 +329,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
     /**
      * Pushes the current rows into the table, building it if necessary.
+     * The table is rebuilt if it was built with outdated options (e.g. before the
+     * translation overrides were loaded or the employer column was enabled).
      * The table state from the routing URL is restored once the data is loaded.
      *
      * @param {{rebuild?: boolean}} options
@@ -326,7 +345,9 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         table.options = this.optionsForms;
         table.data = this.forms;
 
-        if (rebuild && table.tabulatorTable) {
+        // A table that is still building gets rebuilt in handleTableBuilt().
+        const optionsOutdated = this._builtTableOptionsVersion !== this._tableOptionsVersion;
+        if ((rebuild || optionsOutdated) && table.tableReady && table.tabulatorTable) {
             table.tabulatorTable.destroy();
             table.tableReady = false;
             table.tableBuilding = false;
@@ -334,6 +355,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
         if (!table.tableReady && !table.tableBuilding) {
             // State restoration happens in handleTableBuilt().
+            this._builtTableOptionsVersion = this._tableOptionsVersion;
             table.buildTable();
         } else if (table.tableReady) {
             this._urlStateReady = false;
@@ -348,6 +370,11 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
     handleTableBuilt() {
         const table = this.getFormsTable();
+        // Options may have changed while the table was building.
+        if (this.showFormsTable && this._builtTableOptionsVersion !== this._tableOptionsVersion) {
+            this.syncTable();
+            return;
+        }
         // Rows may have changed while the table was building.
         if (table && table.data !== this.forms) {
             void Promise.resolve(table.setData(this.forms)).then(() => this.restoreTableState());

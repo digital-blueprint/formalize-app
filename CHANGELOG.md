@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Forms overview: fixed the employer column not being shown when it is enabled before the first render, and rebuild the column labels after the translation overrides are loaded, so overridden column titles are used
 - Manage Forms activity (task #75970): replaced the "Website links" table column with a `link` row action that opens a "Website links" modal; each link is shown with its label, a description and the full URL in a read-only field, plus buttons to copy it and to open it in a new tab
 - v1.4.1 follow-up to task #74995, comment #12061: restore submission management and submission/detail routes in Manage Forms; prominently offer copyable form-instance and submission website links. Rename Manage Submissions to My form submissions and remove its create-submission entry point. Existing activity URLs remain compatible.
 - Split the Manage Forms activity into two activities: `dbp-formalize-manage-forms` (routing name `manage-forms`) for managing forms, permissions and their submissions, and the new My Form Submissions activity `dbp-formalize-manage-submissions` (routing name `manage-submissions`) for readable submissions, whether own, shared or accessible through collection-level permissions
