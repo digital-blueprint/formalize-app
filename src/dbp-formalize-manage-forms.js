@@ -116,6 +116,9 @@ export class ManageForms extends ManageFormsActivityBase {
     }
 
     handleRoute() {
+        if (!this.isConnected) {
+            return;
+        }
         this.showFormsOverview();
         this.activeFormId = '';
 

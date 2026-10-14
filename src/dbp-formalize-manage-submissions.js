@@ -65,6 +65,9 @@ export class ManageSubmissions extends ManageFormsActivityBase {
     }
 
     handleRoute() {
+        if (!this.isConnected) {
+            return;
+        }
         const formId = this.getRoutingData().pathSegments[0] || '';
         if (!formId) {
             this.activeFormId = '';
