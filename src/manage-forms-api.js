@@ -188,6 +188,29 @@ function getFormsCollectionUrl(host) {
 }
 
 /**
+ * Returns the valid overview columns of a module (see `BaseObject.getManageFormsOverviewColumns()`).
+ * The fields are prefixed, so they can't collide with the built-in columns of the overview.
+ *
+ * @param {object|null} moduleInstance
+ * @param {object} host
+ * @returns {Array<{field: string, title: (lng: string) => string, getValue: (form: Record<string, any>) => any, widthGrow?: number}>}
+ */
+export function getModuleOverviewColumns(moduleInstance, host) {
+    const columns = moduleInstance?.getManageFormsOverviewColumns?.({host});
+    if (!Array.isArray(columns)) return [];
+
+    return columns
+        .filter(
+            (column) =>
+                typeof column?.field === 'string' &&
+                column.field !== '' &&
+                typeof column.title === 'function' &&
+                typeof column.getValue === 'function',
+        )
+        .map((column) => ({...column, field: `module-${column.field}`}));
+}
+
+/**
  * Fetch the list of all forms and populate `host.allForms`.
  *
  * Forms are filtered by `host.allowListFrontendKeys` and `host.denyListFrontendKeys`,
@@ -198,6 +221,9 @@ function getFormsCollectionUrl(host) {
  * - `getFormsCollectionFilters()`: query parameters added to the form collection request
  * - `isFormListed(entry)`: whether a form entry from the API is shown
  * - `createDefaultOverviewActions()`: the built-in overview actions passed to the modules
+ *
+ * Modules can add columns to the overview (`host.formsOverviewColumns`) with
+ * `getManageFormsOverviewColumns()`.
  *
  * @param {object} host - The ManageForms element.
  * @returns {Promise<void>}
@@ -278,6 +304,8 @@ export async function getListOfAllForms(host) {
 
             let id = 0;
             const overviewActions = new Map();
+            /** @type {Map<string, {field: string, title: (lng: string) => string, widthGrow?: number}>} */
+            const overviewColumns = new Map();
             for (const entry of entries) {
                 let localizedFormName = entry['localizedNames'].find((localizedName) => {
                     return localizedName.languageTag === host.lang;
@@ -415,26 +443,38 @@ export async function getListOfAllForms(host) {
                     }
                 });
 
-                const employer =
-                    frontendKey === 'job-offer'
-                        ? additionalData?.jobOfferType === 'external'
-                            ? additionalData?.companyName || ''
-                            : 'TU Graz'
-                        : '';
-
                 let new_form = {
                     id: id,
                     name: formName,
-                    employer: employer,
                     formId: formId,
                     dateCreated: dateCreated,
                     grantedActions: grantedActions,
                     actionButton: actionContainer,
                 };
+
+                // Add the values of the module-specific overview columns
+                for (const column of getModuleOverviewColumns(matchedModuleInstance, host)) {
+                    if (!overviewColumns.has(column.field)) {
+                        overviewColumns.set(column.field, {
+                            field: column.field,
+                            title: column.title,
+                            widthGrow: column.widthGrow,
+                        });
+                    }
+                    new_form[column.field] = String(column.getValue(managedForm) ?? '');
+                }
                 forms.push(new_form);
             }
 
             host.formsOverviewActionDefinitions = [...overviewActions.values()];
+
+            // Forms of other modules show an empty cell in module-specific columns
+            const columnFields = [...overviewColumns.keys()];
+            for (const form of forms) {
+                for (const field of columnFields) {
+                    form[field] ??= '';
+                }
+            }
 
             // Avoid replacing allForms when the set of forms hasn't changed.
             // A token refresh can cause this function to be re-invoked even
@@ -442,22 +482,20 @@ export async function getListOfAllForms(host) {
             // prevents the Lit reactive cycle from re-triggering
             // updated('allForms'), which would rebuild/reset the tabulator
             // tables, show a loading spinner, and disrupt the user.
-            const prevRows = (host.allForms || []).map(
-                ({formId, name, employer, grantedActions}) => [
-                    formId,
-                    name,
-                    employer,
-                    grantedActions,
-                ],
-            );
-            const nextRows = forms.map(({formId, name, employer, grantedActions}) => [
-                formId,
-                name,
-                employer,
-                grantedActions,
-            ]);
+            const getRowsKey = (rows, fields) =>
+                JSON.stringify([
+                    fields,
+                    rows.map((row) => [
+                        row.formId,
+                        row.name,
+                        row.grantedActions,
+                        ...fields.map((field) => row[field]),
+                    ]),
+                ]);
+            const prevColumnFields = (host.formsOverviewColumns || []).map(({field}) => field);
             if (
-                JSON.stringify(prevRows) === JSON.stringify(nextRows) &&
+                getRowsKey(host.allForms || [], prevColumnFields) ===
+                    getRowsKey(forms, columnFields) &&
                 (host.allForms || []).length > 0
             ) {
                 // Forms unchanged — just make sure the loading spinner is hidden.
@@ -465,6 +503,7 @@ export async function getListOfAllForms(host) {
                 return;
             }
 
+            host.formsOverviewColumns = [...overviewColumns.values()];
             host.allForms = forms;
         }
     } catch (e) {

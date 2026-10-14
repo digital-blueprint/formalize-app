@@ -73,6 +73,10 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         // Maps a form identifier to its grantedActions array.
         this.formsGrantedActions = new Map();
         this.formsOverviewActionDefinitions = [];
+        // Module-specific overview columns (see BaseObject.getManageFormsOverviewColumns())
+        this.formsOverviewColumns = [];
+        // Short name of the university, available to the modules (e.g. for their overview columns)
+        this.universityShortName = '';
         this.allowListFrontendKeys = [];
         this.denyListFrontendKeys = [];
         this.loadingFormsTable = false;
@@ -109,6 +113,8 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
             allForms: {type: Array, attribute: false},
             forms: {type: Object, attribute: false},
             formsOverviewActionDefinitions: {type: Array, attribute: false},
+            formsOverviewColumns: {type: Array, attribute: false},
+            universityShortName: {type: String, attribute: 'university-short-name'},
             loadingFormsTable: {type: Boolean, attribute: false},
             showFormsTable: {type: Boolean, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
@@ -156,13 +162,6 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
      */
     handleRoute() {
         this.showFormsOverview();
-    }
-
-    get showEmployerColumn() {
-        return (
-            this.allowListFrontendKeys?.length === 1 &&
-            this.allowListFrontendKeys[0] === 'job-offer'
-        );
     }
 
     getOverviewPage() {
@@ -269,6 +268,16 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
             }
         }
 
+        // Module columns may display the university short name
+        if (
+            changedProperties.has('universityShortName') &&
+            changedProperties.get('universityShortName') !== undefined &&
+            this.isLoggedIn() &&
+            this.allForms.length > 0
+        ) {
+            await getListOfAllForms(this);
+        }
+
         if (
             changedProperties.has('allowListFrontendKeys') ||
             changedProperties.has('denyListFrontendKeys')
@@ -348,7 +357,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
                 .formsById=${this.forms}
                 .actionDefinitions=${this.formsOverviewActionDefinitions}
                 .actionHost=${this}
-                .showEmployerColumn=${this.showEmployerColumn}
+                .moduleColumns=${this.formsOverviewColumns}
                 .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                 .noFormsAvailable=${this.noFormsAvailable}
                 .creatableModulesCount=${creatableModulesCount}></dbp-formalize-manage-forms-overview-page>

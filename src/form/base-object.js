@@ -83,6 +83,23 @@ export class BaseObject {
     }
 
     /**
+     * Returns additional columns for the forms of this module in the manage-forms overview.
+     * A column is shown if at least one listed form provides it; other forms show an empty cell.
+     *
+     * Each column is an object with:
+     * - `field`: unique identifier of the column within the module
+     * - `title(lng)`: returns the column title for the given language
+     * - `getValue(form)`: returns the cell value for a form entry (e.g. using `form.additionalData`)
+     * - `widthGrow` (optional): relative column width, defaults to 2
+     *
+     * @param {{host: object}} _context
+     * @returns {Array<{field: string, title: (lng: string) => string, getValue: (form: Record<string, any>) => string, widthGrow?: number}>}
+     */
+    getManageFormsOverviewColumns(_context) {
+        return [];
+    }
+
+    /**
      * Indicates whether this form supports a read-only view mode.
      * Override in subclasses and return true to enable the read-only
      * submission view and the "open in render-form" actions.

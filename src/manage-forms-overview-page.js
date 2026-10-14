@@ -43,7 +43,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.langDir = '';
         this.loadingFormsTable = false;
         this.showFormsTable = false;
-        // Table rows ({id, name, employer, formId, grantedActions, actionButton, ...})
+        // Table rows ({id, name, formId, grantedActions, actionButton, ...module column values})
         this.forms = [];
         /** @type {Map<string, object>} Full form entries, merged into the action context items */
         this.formsById = new Map();
@@ -51,7 +51,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.actionDefinitions = [];
         // Object passed as `host` to action predicates and handlers (usually the activity)
         this.actionHost = null;
-        this.showEmployerColumn = false;
+        /** @type {Array<{field: string, title: (lng: string) => string, widthGrow?: number}>} Module-specific columns */
+        this.moduleColumns = [];
         this.optionsForms = {};
         this.paginationSizeStorageKey = '';
         this.noFormsAvailable = false;
@@ -91,7 +92,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             formsById: {type: Object, attribute: false},
             actionDefinitions: {type: Array, attribute: false},
             actionHost: {type: Object, attribute: false},
-            showEmployerColumn: {type: Boolean, attribute: false},
+            moduleColumns: {type: Array, attribute: false},
             optionsForms: {type: Object, attribute: false},
             paginationSizeStorageKey: {type: String, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
@@ -122,7 +123,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         // Values set before the first update have an undefined old value, so the
         // initial column configuration must be applied here as well.
         const optionsChanged =
-            changedProperties.has('lang') || changedProperties.has('showEmployerColumn');
+            changedProperties.has('lang') || changedProperties.has('moduleColumns');
         if (optionsChanged) {
             this.updateTableOptions();
         }
@@ -256,11 +257,11 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
      */
     updateTableOptions() {
         const i18n = this._i18n;
-        const showEmployerColumn = this.showEmployerColumn;
+        const moduleColumns = Array.isArray(this.moduleColumns) ? this.moduleColumns : [];
         const getColumnLabels = (lng) => ({
             id: i18n.t('manage-forms.id', {lng}),
             name: i18n.t('manage-forms.name', {lng}),
-            employer: i18n.t('manage-forms.employer', {lng}),
+            ...Object.fromEntries(moduleColumns.map(({field, title}) => [field, title(lng)])),
         });
 
         this.optionsForms = {
@@ -271,10 +272,12 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             layout: 'fitColumns',
             columns: [
                 {field: 'id', width: 50, sorter: 'number'},
-                {field: 'name', sorter: 'string', widthGrow: showEmployerColumn ? 2 : 4},
-                ...(showEmployerColumn
-                    ? [{field: 'employer', sorter: 'string', widthGrow: 2}]
-                    : []),
+                {field: 'name', sorter: 'string', widthGrow: moduleColumns.length > 0 ? 2 : 4},
+                ...moduleColumns.map(({field, widthGrow}) => ({
+                    field,
+                    sorter: 'string',
+                    widthGrow: widthGrow ?? 2,
+                })),
                 // Hidden helper columns carrying data needed for the actions.
                 {field: 'formId', visible: false},
                 {field: 'grantedActions', visible: false},
@@ -330,7 +333,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
     /**
      * Pushes the current rows into the table, building it if necessary.
      * The table is rebuilt if it was built with outdated options (e.g. before the
-     * translation overrides were loaded or the employer column was enabled).
+     * translation overrides were loaded or module columns were added).
      * The table state from the routing URL is restored once the data is loaded.
      *
      * @param {{rebuild?: boolean}} options

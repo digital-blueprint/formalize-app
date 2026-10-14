@@ -253,42 +253,43 @@ suite('submission error handling', () => {
 });
 
 suite('manage forms table configuration', () => {
-    test('should only show the employer column for job-offer-only activities', () => {
-        const node = document.createElement('test-manage-forms');
+    test('should add module columns to the forms table', () => {
         const page = document.createElement('test-manage-forms-overview-page');
 
-        node.allowListFrontendKeys = [];
-        page.showEmployerColumn = node.showEmployerColumn;
         page.updateTableOptions();
-        assert.notInclude(
-            page.optionsForms.columns.map(({field}) => field),
-            'employer',
+        assert.deepEqual(
+            page.optionsForms.columns
+                .filter(({visible}) => visible !== false)
+                .map(({field}) => field),
+            ['id', 'name', 'actionButton'],
         );
         assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 4);
 
-        node.allowListFrontendKeys = ['job-offer'];
-        page.showEmployerColumn = node.showEmployerColumn;
+        page.moduleColumns = [
+            {field: 'module-organization', title: (lng) => `Organization ${lng}`},
+        ];
         page.updateTableOptions();
-        assert.include(
-            page.optionsForms.columns.map(({field}) => field),
-            'employer',
+        assert.deepEqual(
+            page.optionsForms.columns
+                .filter(({visible}) => visible !== false)
+                .map(({field}) => field),
+            ['id', 'name', 'module-organization', 'actionButton'],
         );
         assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 2);
-
-        node.allowListFrontendKeys = ['job-offer', 'other-form'];
-        assert.isFalse(node.showEmployerColumn);
+        assert.equal(page.optionsForms.langs.en.columns['module-organization'], 'Organization en');
+        assert.equal(page.optionsForms.langs.de.columns['module-organization'], 'Organization de');
     });
 
-    test('should show the employer column when it is enabled before the first update', async () => {
+    test('should show module columns that are set before the first update', async () => {
         const page = document.createElement('test-manage-forms-overview-page');
-        page.showEmployerColumn = true;
+        page.moduleColumns = [{field: 'module-organization', title: () => 'Organization'}];
         document.body.appendChild(page);
 
         try {
             await page.updateComplete;
             assert.include(
                 page.optionsForms.columns.map(({field}) => field),
-                'employer',
+                'module-organization',
             );
         } finally {
             page.remove();
@@ -1069,9 +1070,27 @@ suite('manage forms action menus', () => {
         );
     });
 
-    test('should add employers to job-offer rows and refresh changed employers', async () => {
+    test('should add module column values to the rows and refresh changed values', async () => {
         const originalFetch = window.fetch;
         let companyName = 'Example Company';
+        class OrganizationModule extends BaseObject {
+            getFormFrontendKey() {
+                return 'organization-form';
+            }
+
+            getManageFormsOverviewColumns({host}) {
+                return [
+                    {
+                        field: 'organization',
+                        title: () => 'Organization',
+                        getValue: (form) =>
+                            form.additionalData?.companyName || host.universityShortName,
+                    },
+                    // Invalid columns are ignored
+                    {field: 'invalid'},
+                ];
+            }
+        }
         const makeEntry = (identifier, frontendKey, additionalData) => ({
             identifier,
             frontendKey,
@@ -1089,10 +1108,17 @@ suite('manage forms action menus', () => {
             allForms: [],
             allowListFrontendKeys: [],
             denyListFrontendKeys: [],
-            loadedModules: new Map(),
+            loadedModules: new Map([
+                [
+                    'organization-form',
+                    {formId: 'module-form', moduleInstance: new OrganizationModule()},
+                ],
+            ]),
             forms: new Map(),
             formsGrantedActions: new Map(),
+            formsOverviewColumns: [],
             lang: 'en',
+            universityShortName: 'Example University',
             createScopedElement: () => document.createElement('button'),
             sendSetPropertyEvent: () => {},
         };
@@ -1103,14 +1129,8 @@ suite('manage forms action menus', () => {
                 json: () =>
                     Promise.resolve({
                         'hydra:member': [
-                            makeEntry('external', 'job-offer', {
-                                jobOfferType: 'external',
-                                companyName,
-                            }),
-                            makeEntry('internal', 'job-offer', {
-                                jobOfferType: 'internal',
-                                organization: 'Faculty',
-                            }),
+                            makeEntry('external', 'organization-form', {companyName}),
+                            makeEntry('internal', 'organization-form', {}),
                             makeEntry('other', 'other-form', {companyName: 'Ignored Company'}),
                         ],
                     }),
@@ -1119,13 +1139,18 @@ suite('manage forms action menus', () => {
         try {
             await getListOfAllForms(host);
             assert.deepEqual(
-                host.allForms.map(({employer}) => employer),
-                ['Example Company', 'TU Graz', ''],
+                host.formsOverviewColumns.map(({field}) => field),
+                ['module-organization'],
+            );
+            assert.equal(host.formsOverviewColumns[0].title('en'), 'Organization');
+            assert.deepEqual(
+                host.allForms.map((form) => form['module-organization']),
+                ['Example Company', 'Example University', ''],
             );
 
             companyName = 'Updated Company';
             await getListOfAllForms(host);
-            assert.equal(host.allForms[0].employer, 'Updated Company');
+            assert.equal(host.allForms[0]['module-organization'], 'Updated Company');
         } finally {
             window.fetch = originalFetch;
         }

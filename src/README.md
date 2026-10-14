@@ -28,6 +28,8 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `enable-forms-bulk-delete`
 - `hide-create-submission-button` (optional): hides the create submission button in a form's submission view
 - `enable-submission-permission-editing` (optional, default: off): enables permission editing when the user has `manage` on every selected submission
+- `university-short-name` (optional): short name of the university, available to the form modules (e.g. for their overview columns)
+    - example `university-short-name="University"`
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
@@ -40,6 +42,8 @@ The activity supports deep links through the app shell `routing-url` property:
 - `/<form-identifier>/edit` opens the form editor.
 - `/<form-identifier>` shows the form's readable submissions, with export, deletion and other permission-controlled actions.
 - `/<form-identifier>/details/<submission-identifier>` opens submission details.
+
+Form modules can add columns to the forms overview by implementing `getManageFormsOverviewColumns()` (see `src/form/base-object.js`).
 
 The overview prominently offers a form link and a **My form submissions** link, each with a copy button, for embedding on a website. Form links include `form-identifier` in their query string to select the exact backend instance when multiple forms share a frontend module. A fill-in link is only offered when a matching module is available.
 
