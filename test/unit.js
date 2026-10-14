@@ -501,7 +501,9 @@ suite('dbp-formalize-manage-forms basics', () => {
         host.allForms = [{formId: 'job-offer'}];
         host.getRoutingData = () => ({pathSegments: ['job-offer']});
 
+        document.body.appendChild(host);
         host.handleRoute();
+        host.remove();
 
         assert.equal(host.activeFormId, 'job-offer');
         assert.isFalse(host.showFormsTable);
