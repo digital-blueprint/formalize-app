@@ -88,7 +88,7 @@ export function createDefaultManageFormsOverviewActions() {
         {
             id: 'edit',
             iconName: 'pencil',
-            placements: [OVERVIEW_ACTION_PLACEMENTS.ROW, OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
+            placements: [OVERVIEW_ACTION_PLACEMENTS.ROW],
             label: ({t}) => t('manage-forms.edit-button-text'),
             title: ({t}) => t('manage-forms.edit-form-button'),
             ariaLabel: ({t, form}) =>

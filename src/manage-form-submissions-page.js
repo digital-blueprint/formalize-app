@@ -26,7 +26,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.enabledStates = {draft: false, submitted: false};
         this.noSubmissionAvailable = {draft: true, submitted: true};
         this.searchWidgetIsOpen = {draft: false, submitted: false};
-        this.isEditSubmissionEnabled = {draft: false, submitted: false};
         this.enableSubmissionPermissionEditing = false;
         this.isEditSubmissionPermissionEnabled = {draft: false, submitted: false};
         this.isBatchTaggingEnabled = {draft: false, submitted: false};
@@ -66,7 +65,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             enabledStates: {type: Object, attribute: false},
             noSubmissionAvailable: {type: Object, attribute: false},
             searchWidgetIsOpen: {type: Object, attribute: false},
-            isEditSubmissionEnabled: {type: Object, attribute: false},
             enableSubmissionPermissionEditing: {type: Boolean, attribute: false},
             isEditSubmissionPermissionEnabled: {type: Object, attribute: false},
             isBatchTaggingEnabled: {type: Object, attribute: false},
@@ -303,11 +301,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             const option = event.detail.option;
             // const value = event.detail.value;
 
-            if (option.value === 'edit-submission') {
-                this.handleAction('edit-submission', state, {event});
-                return;
-            }
-
             if (option.value === 'batch-tagging') {
                 this.handleAction('batch-tagging', state);
                 return;
@@ -334,13 +327,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         const i18n = this._i18n;
 
         const submissionActions = [];
-
-        submissionActions.push({
-            value: 'edit-submission',
-            disabled: !this.isEditSubmissionEnabled[state],
-            label: i18n.t('manage-forms.edit-submission-button-text'),
-            iconName: 'pencil',
-        });
 
         submissionActions.push({
             value: 'batch-tagging',

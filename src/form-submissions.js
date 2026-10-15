@@ -108,7 +108,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this.submittedFileDetails = {draft: new Map(), submitted: new Map()};
         this.isDeleteSelectedSubmissionEnabled = {draft: false, submitted: false};
         this.isDeleteAllSubmissionEnabled = {draft: false, submitted: false};
-        this.isEditSubmissionEnabled = {draft: false, submitted: false};
         this.isEditSubmissionPermissionEnabled = {draft: false, submitted: false};
         this.isBatchTaggingEnabled = {draft: false, submitted: false};
         this.enabledStates = {draft: false, submitted: false};
@@ -177,7 +176,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             enabledStates: {type: Object, attribute: false},
             isDeleteSelectedSubmissionEnabled: {type: Object, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Object, attribute: false},
-            isEditSubmissionEnabled: {type: Object, attribute: false},
             isEditSubmissionPermissionEnabled: {type: Object, attribute: false},
             isBatchTaggingEnabled: {type: Object, attribute: false},
             selectedRowCount: {type: Object, attribute: false},
@@ -1036,7 +1034,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     setIsActionAvailable(state) {
         this.setActionButtonsStates(state);
         const isAvailable =
-            this.isEditSubmissionEnabled[state] ||
             this.isEditSubmissionPermissionEnabled[state] ||
             this.isDeleteAllSubmissionEnabled[state] ||
             this.isDeleteSelectedSubmissionEnabled[state] ||
@@ -1092,14 +1089,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                 selectedCount === 0 &&
                 (allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
                     allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE)),
-        };
-
-        this.isEditSubmissionEnabled = {
-            ...this.isEditSubmissionEnabled,
-            [state]:
-                selectedCount === 1 &&
-                (selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.MANAGE) ||
-                    selectedSubmissionsGrants.has(SUBMISSION_PERMISSIONS.UPDATE)),
         };
 
         this.isEditSubmissionPermissionEnabled = {
@@ -1390,9 +1379,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             case 'prepare-actions':
                 this.setActionButtonsStates(state);
                 break;
-            case 'edit-submission':
-                this.handleEditSubmissions(effectiveEvent, state);
-                break;
             case 'batch-tagging':
                 void this.handleOpenBatchTaggingModal(state);
                 break;
@@ -1454,7 +1440,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                 .searchWidgetIsOpen=${this.searchWidgetIsOpen}
                 .actionsWidgetIsOpen=${this.actionsWidgetIsOpen}
                 .isActionAvailable=${this.isActionAvailable}
-                .isEditSubmissionEnabled=${this.isEditSubmissionEnabled}
                 .enableSubmissionPermissionEditing=${this.enableSubmissionPermissionEditing}
                 .isEditSubmissionPermissionEnabled=${this.isEditSubmissionPermissionEnabled}
                 .isBatchTaggingEnabled=${this.isBatchTaggingEnabled}

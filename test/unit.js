@@ -543,10 +543,10 @@ suite('dbp-formalize-manage-forms basics', () => {
         });
 
         assert.equal(page.selectedFormsCount, 1);
+        // Single-item actions like edit are only offered in the row actions menu
         assert.deepEqual(
             page.actions.map(({value, disabled}) => ({value, disabled})),
             [
-                {value: 'edit', disabled: false},
                 {value: 'edit-permission', disabled: false},
                 {value: 'delete', disabled: false},
             ],
@@ -603,7 +603,6 @@ suite('dbp-formalize-manage-forms basics', () => {
 
         const actions = Object.fromEntries(page.actions.map((action) => [action.value, action]));
         assert.isFalse(actions.delete.disabled);
-        assert.isTrue(actions.edit.disabled);
         assert.isTrue(actions['edit-permission'].disabled);
     });
 
@@ -619,7 +618,7 @@ suite('dbp-formalize-manage-forms basics', () => {
             page.actions.map((action) => action.value),
             'delete',
         );
-        assert.isFalse(page.actions.find((action) => action.value === 'edit').disabled);
+        assert.isFalse(page.actions.find((action) => action.value === 'edit-permission').disabled);
     });
 
     test('should open the permission dialog for a form resource', () => {
@@ -718,7 +717,6 @@ suite('dbp-formalize-manage-forms basics', () => {
             allRowCount: {submitted: 0},
             isDeleteSelectedSubmissionEnabled: {submitted: false},
             isDeleteAllSubmissionEnabled: {submitted: false},
-            isEditSubmissionEnabled: {submitted: false},
             isEditSubmissionPermissionEnabled: {submitted: false},
             isBatchTaggingEnabled: {submitted: false},
         };
