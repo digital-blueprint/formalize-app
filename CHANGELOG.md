@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Forms overview, form submissions and manage fields: renamed the "Aktionen"/"Actions" dropdown above the tables to "Mehrfachaktionen"/"Multi-actions", because it contains the actions for the selected rows
 - Forms overview: removed the hardcoded job-offer employer column (including the hardcoded university name); form modules can now add their own overview columns with `BaseObject.getManageFormsOverviewColumns()`. The manage-forms activities accept a `university-short-name` attribute, which modules can use for their column values
 - Forms overview: fixed the employer column not being shown when it is enabled before the first render, and rebuild the column labels after the translation overrides are loaded, so overridden column titles are used
 - Manage Forms activity (task #75970): replaced the "Website links" table column with a `link` row action that opens a "Website links" modal; each link is shown with its label, a description and the full URL in a read-only field, plus buttons to copy it and to open it in a new tab

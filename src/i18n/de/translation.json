@@ -56,7 +56,7 @@
     },
     "loading-message": "Lädt...",
     "manage-fields": {
-        "actions-button-text": "Aktionen",
+        "actions-button-text": "Mehrfachaktionen",
         "back-to-forms": "Zurück zu Nutzerdefinierte Datenfelder",
         "cancel": "Schließen",
         "create-item": "Firma erstellen",
@@ -93,7 +93,7 @@
     },
     "manage-forms": {
         "abort": "Abbrechen",
-        "actions-button-text": "Aktionen",
+        "actions-button-text": "Mehrfachaktionen",
         "all-columns": "Alle Spalten",
         "apply-col-settings": "Filteroptionen übernehmen",
         "back-text": "Zurück zur Formularliste",

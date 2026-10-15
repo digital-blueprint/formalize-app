@@ -56,7 +56,7 @@
     },
     "loading-message": "Loading...",
     "manage-fields": {
-        "actions-button-text": "Actions",
+        "actions-button-text": "Multi-actions",
         "back-to-forms": "Back to User defined data fields",
         "cancel": "Close",
         "create-item": "Create Company",
@@ -93,7 +93,7 @@
     },
     "manage-forms": {
         "abort": "Cancel",
-        "actions-button-text": "Actions",
+        "actions-button-text": "Multi-actions",
         "all-columns": "All columns",
         "apply-col-settings": "Apply filter options",
         "back-text": "Back to form list",
