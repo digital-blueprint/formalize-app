@@ -743,7 +743,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       )}
                                       .value=${data.comment || ''}
                                       description=${i18n.t(
-                                          'render-form.forms.accessible-courses-form.comment-placeholder',
+                                          'render-form.forms.accessible-courses-form.comment-description',
                                       )}
                                       rows="5"></dbp-form-string-element>
                               `
@@ -868,7 +868,7 @@ class FormalizeFormElement extends BaseFormElement {
                                       )}
                                       .value=${data.comment || ''}
                                       description=${i18n.t(
-                                          'render-form.forms.accessible-courses-form.comment-placeholder',
+                                          'render-form.forms.accessible-courses-form.comment-description',
                                       )}
                                       rows="5"></dbp-form-string-view>
                               `

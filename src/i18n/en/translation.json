@@ -232,7 +232,7 @@
             "accessible-courses-form": {
                 "adaptations": "Needed adjustments",
                 "comment": "Comment",
-                "comment-placeholder": "To be filled out by university staff only!",
+                "comment-description": "To be filled out by university staff only!",
                 "course-data": "Course details",
                 "course-name": "Course",
                 "description": "Which of the adjustments agreed upon during the initial consultation and deemed necessary by a medical specialist would you like to request for this course?",
