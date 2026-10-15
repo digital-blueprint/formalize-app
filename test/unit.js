@@ -29,6 +29,7 @@ import {
     createDefaultManageSubmissionsOverviewActions,
 } from '../src/manage-forms-overview-actions.js';
 import {ROUTING_URL_CHANGE_EVENT} from '../src/manage-forms-routing.js';
+import {RowActionsMenu, createRowActionsMenu} from '../src/table-components.js';
 
 customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
 customElements.define('test-manage-forms', class extends ManageForms {});
@@ -40,6 +41,17 @@ customElements.define(
     class extends ManageFormSubmissionsPage {},
 );
 customElements.define('test-base-form-element', class extends BaseFormElement {});
+customElements.define('dbp-formalize-row-actions-menu', class extends RowActionsMenu {});
+
+/** Returns the options of the row actions menu in a table row action container. */
+const getRowActions = (container) => container.firstElementChild?.options ?? [];
+
+/** Returns the IDs of the actions in the row actions menu of a table row. */
+const getRowActionIds = (container) => getRowActions(container).map(({value}) => value);
+
+/** Runs an action of the row actions menu like a selection in the menu. */
+const runRowAction = (container, value) =>
+    container.firstElementChild.dispatchEvent(new CustomEvent('change', {detail: {value}}));
 
 suite('available forms feature flag', () => {
     teardown(() => {
@@ -534,9 +546,9 @@ suite('dbp-formalize-manage-forms basics', () => {
         assert.deepEqual(
             page.actions.map(({value, disabled}) => ({value, disabled})),
             [
-                {value: 'delete', disabled: false},
                 {value: 'edit', disabled: false},
                 {value: 'edit-permission', disabled: false},
+                {value: 'delete', disabled: false},
             ],
         );
     });
@@ -665,6 +677,26 @@ suite('dbp-formalize-manage-forms basics', () => {
         assert.deepEqual(calls, ['open']);
     });
 
+    test('should open permission editing for a single submission of a row', () => {
+        const dialog = {resourceIdentifier: '', resourceIdentifiers: [], open: () => {}};
+        const actionHost = {
+            enableSubmissionPermissionEditing: true,
+            submissionTables: {
+                submitted: {
+                    tabulatorTable: {getSelectedData: () => [{submissionId: 'submission-2'}]},
+                },
+            },
+            _: () => dialog,
+        };
+
+        FormSubmissions.prototype.handleEditSubmissionsPermission.call(actionHost, 'submitted', [
+            'submission-1',
+        ]);
+
+        assert.equal(dialog.resourceIdentifier, 'submission-1');
+        assert.deepEqual(dialog.resourceIdentifiers, ['submission-1']);
+    });
+
     test('should require manage on every selected submission', () => {
         const submissions = [{submissionId: 'submission-1'}, {submissionId: 'submission-2'}];
         const rows = submissions.map((submission) => ({getData: () => submission}));
@@ -701,6 +733,64 @@ suite('dbp-formalize-manage-forms basics', () => {
 });
 
 suite('manage forms action menus', () => {
+    test('should show the row actions menu as popover and run the selected action', async () => {
+        let selectedEvent = null;
+        const host = {
+            createScopedElement: (tagName) => document.createElement(tagName),
+        };
+        const menu = createRowActionsMenu(host, 'Actions for Example', [
+            {value: 'edit', label: 'Edit', iconName: 'pencil', handler: () => {}},
+            {
+                value: 'delete',
+                label: 'Delete',
+                iconName: 'trash',
+                handler: (event) => (selectedEvent = event),
+            },
+        ]);
+        let rowClicked = false;
+        const row = document.createElement('div');
+        row.addEventListener('click', () => (rowClicked = true));
+        row.appendChild(menu);
+        document.body.appendChild(row);
+
+        try {
+            await menu.updateComplete;
+            const trigger = menu.shadowRoot.querySelector('.trigger');
+            assert.equal(trigger.getAttribute('aria-label'), 'Actions for Example');
+            assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+
+            trigger.click();
+            await menu.updateComplete;
+            const popover = menu.shadowRoot.querySelector('.menu');
+            assert.isTrue(popover.matches(':popover-open'));
+            // The menu is placed below the trigger and aligned to its right edge
+            const triggerRect = trigger.getBoundingClientRect();
+            const popoverRect = popover.getBoundingClientRect();
+            assert.approximately(popoverRect.top, triggerRect.bottom + 4, 1);
+            assert.isAtMost(
+                popoverRect.right,
+                Math.max(triggerRect.right, popoverRect.width + 8) + 1,
+            );
+            assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+            assert.isFalse(rowClicked);
+
+            const items = [...menu.shadowRoot.querySelectorAll('[role="menuitem"]')];
+            assert.deepEqual(
+                items.map((item) => item.textContent.trim()),
+                ['Edit', 'Delete'],
+            );
+
+            items[1].click();
+            await menu.updateComplete;
+            assert.isNotNull(selectedEvent);
+            assert.isFalse(menu.open);
+            assert.isNull(menu.shadowRoot.querySelector('.menu'));
+            assert.isFalse(rowClicked);
+        } finally {
+            row.remove();
+        }
+    });
+
     test('should render supplied dropdown actions', async () => {
         const element = document.createElement('test-manage-forms-overview-page');
         element.selectedFormsCount = 1;
@@ -777,9 +867,9 @@ suite('manage forms action menus', () => {
         }
 
         const getIconName = (formId) =>
-            host.allForms
-                .find((form) => form.formId === formId)
-                .actionButton.querySelector('button').iconName;
+            getRowActions(host.allForms.find((form) => form.formId === formId).actionButton).find(
+                ({value}) => value === 'open-submissions',
+            ).iconName;
         assert.equal(getIconName('custom'), 'list');
         assert.equal(getIconName('default'), 'keyword-research');
         const defaultActions = [{id: 'default'}];
@@ -849,14 +939,13 @@ suite('manage forms action menus', () => {
         try {
             await getListOfAllForms(host);
 
-            const buttons = host.allForms[0].actionButton.querySelectorAll('button');
-            assert.lengthOf(buttons, 2);
-            assert.equal(buttons[0].dataset.action, 'open-submissions');
-            assert.equal(buttons[1].dataset.action, 'preview');
-            assert.equal(buttons[1].iconName, 'eye');
+            const actionButton = host.allForms[0].actionButton;
+            assert.deepEqual(getRowActionIds(actionButton), ['open-submissions', 'preview']);
+            assert.equal(getRowActions(actionButton)[1].iconName, 'eye');
+            assert.equal(getRowActions(actionButton)[1].label, 'Preview');
 
             host.forms.set('job-1', {...host.forms.get('job-1'), formName: 'Updated developer'});
-            buttons[1].click();
+            runRowAction(actionButton, 'preview');
             assert.equal(actionContext.host, host);
             assert.equal(actionContext.form.formId, 'job-1');
             assert.equal(actionContext.form.formName, 'Updated developer');
@@ -870,18 +959,19 @@ suite('manage forms action menus', () => {
                 [
                     'open-submissions',
                     'website-links',
-                    'delete',
                     'edit',
                     'edit-permission',
+                    'delete',
                     'preview',
                 ],
             );
-            assert.deepEqual(
-                [...host.allForms[0].actionButton.querySelectorAll('button')].map(
-                    (button) => button.dataset.action,
-                ),
-                ['open-submissions', 'edit', 'preview'],
-            );
+            // The row menu contains every action that is possible for this single form
+            assert.deepEqual(getRowActionIds(host.allForms[0].actionButton), [
+                'open-submissions',
+                'edit',
+                'edit-permission',
+                'preview',
+            ]);
         } finally {
             window.fetch = originalFetch;
         }
@@ -1017,7 +1107,7 @@ suite('manage forms action menus', () => {
         assert.isFalse(host.isFormListed({grantedFormActions: ['read', 'create_submissions']}));
         assert.deepEqual(
             host.createDefaultOverviewActions().map(({id}) => id),
-            ['open-submissions', 'website-links', 'delete', 'edit', 'edit-permission'],
+            ['open-submissions', 'website-links', 'edit', 'edit-permission', 'delete'],
         );
     });
 
@@ -1064,12 +1154,7 @@ suite('manage forms action menus', () => {
         // Trust the backend's form eligibility without additional requests.
         assert.lengthOf(requestedUrls, 1);
         assert.lengthOf(host.allForms, 1);
-        assert.deepEqual(
-            [...host.allForms[0].actionButton.querySelectorAll('button')].map(
-                (button) => button.dataset.action,
-            ),
-            ['open-submissions'],
-        );
+        assert.deepEqual(getRowActionIds(host.allForms[0].actionButton), ['open-submissions']);
     });
 
     test('should add module column values to the rows and refresh changed values', async () => {
@@ -1679,7 +1764,7 @@ suite('manage-forms and manage-submissions activities', () => {
             element.allForms.map(({formId}) => formId),
             ['form-edit'],
         );
-        element.allForms[0].actionButton.querySelector('[data-action="open-submissions"]').click();
+        runRowAction(element.allForms[0].actionButton, 'open-submissions');
         const component = element.getFormSubmissions();
         await waitFor(() => component.rawSubmissions.length === 2);
         await waitFor(
@@ -1706,7 +1791,7 @@ suite('manage-forms and manage-submissions activities', () => {
 
         // Open the submissions with the row action
         const row = element.allForms.find(({formId}) => formId === 'form-own');
-        row.actionButton.querySelector('[data-action="open-submissions"]').click();
+        runRowAction(row.actionButton, 'open-submissions');
         assert.equal(element.routes.at(-1), '/form-own');
 
         const formSubmissions = element.shadowRoot.querySelector('dbp-formalize-form-submissions');

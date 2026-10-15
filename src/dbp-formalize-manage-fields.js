@@ -5,7 +5,6 @@ import {
     ScopedElementsMixin,
     Button,
     Icon,
-    IconButton,
     MiniSpinner,
     DBPSelect,
     sendNotification,
@@ -15,7 +14,12 @@ import * as commonStyles from '@dbp-toolkit/common/styles.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {formatDate, SUBMISSION_STATES_BINARY} from './utils.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
-import {CustomTabulatorTable, GetDetailsButton} from './table-components.js';
+import {
+    CustomTabulatorTable,
+    GetDetailsButton,
+    RowActionsMenu,
+    createRowActionsMenu,
+} from './table-components.js';
 import {Modal} from '@dbp-toolkit/common/src/modal.js';
 import {Notification} from '@dbp-toolkit/notification';
 import {
@@ -115,10 +119,10 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return {
             'dbp-button': Button,
             'dbp-icon': Icon,
-            'dbp-icon-button': IconButton,
             'dbp-select': DBPSelect,
             'dbp-mini-spinner': MiniSpinner,
             'dbp-formalize-get-details-button': GetDetailsButton,
+            'dbp-formalize-row-actions-menu': RowActionsMenu,
             'dbp-tabulator-table': CustomTabulatorTable,
             'dbp-formalize-deletion-confirmation-modal': DeletionConfirmationModal,
             'dbp-modal': Modal,
@@ -708,22 +712,6 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }));
     }
 
-    createTableActionButton(iconName, title, onClick, ariaLabel = title) {
-        const button = this.createScopedElement('dbp-icon-button');
-        button.setAttribute('subscribe', 'lang');
-        button.setAttribute('icon-name', iconName);
-        // The title stays short as a tooltip, while the aria-label additionally names the row
-        // so screen reader users can tell the repeated action buttons apart.
-        button.title = title;
-        button.setAttribute('aria-label', ariaLabel);
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            onClick();
-        });
-
-        return button;
-    }
-
     createTableActions(buttons) {
         const actions = document.createElement('div');
         actions.style.display = 'flex';
@@ -754,12 +742,20 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         const i18n = this._i18n;
         const itemName = this.getItemTitle(item);
         return this.createTableActions([
-            this.createTableActionButton(
-                'pencil',
-                i18n.t('manage-fields.edit-item'),
-                () => this.editItem(item),
-                i18n.t('manage-fields.edit-item-aria', {itemName}),
-            ),
+            createRowActionsMenu(this, i18n.t('manage-fields.row-actions-aria', {itemName}), [
+                {
+                    value: 'edit',
+                    label: i18n.t('manage-fields.edit-item'),
+                    iconName: 'pencil',
+                    handler: () => this.editItem(item),
+                },
+                {
+                    value: 'delete',
+                    label: i18n.t('manage-fields.delete-item'),
+                    iconName: 'trash',
+                    handler: () => void this.deleteItems([item]),
+                },
+            ]),
         ]);
     }
 

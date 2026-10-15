@@ -86,19 +86,6 @@ export function createDefaultManageFormsOverviewActions() {
             },
         },
         {
-            id: 'delete',
-            iconName: 'trash',
-            placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
-            label: ({t}) => t('manage-forms.delete'),
-            ariaLabel: ({t, form}) =>
-                t('manage-forms.delete-form-aria', {formName: form?.formName ?? ''}),
-            isVisible: ({host}) => host.enableFormsBulkDelete,
-            isEnabled: ({items}) => items.length > 0 && items.every(canDeleteForm),
-            handler: ({host, items}) => {
-                void host.handleDeleteForms(items.map((form) => form.formId));
-            },
-        },
-        {
             id: 'edit',
             iconName: 'pencil',
             placements: [OVERVIEW_ACTION_PLACEMENTS.ROW, OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
@@ -121,6 +108,19 @@ export function createDefaultManageFormsOverviewActions() {
             isEnabled: ({items}) => items.length > 0 && items.every(canManageForm),
             handler: ({host, items}) =>
                 host.handleEditFormPermission(items.map((form) => form.formId)),
+        },
+        {
+            id: 'delete',
+            iconName: 'trash',
+            placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
+            label: ({t}) => t('manage-forms.delete'),
+            ariaLabel: ({t, form}) =>
+                t('manage-forms.delete-form-aria', {formName: form?.formName ?? ''}),
+            isVisible: ({host}) => host.enableFormsBulkDelete,
+            isEnabled: ({items}) => items.length > 0 && items.every(canDeleteForm),
+            handler: ({host, items}) => {
+                void host.handleDeleteForms(items.map((form) => form.formId));
+            },
         },
     ];
 }

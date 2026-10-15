@@ -6,7 +6,12 @@ import {FileSink} from '@dbp-toolkit/file-handling';
 import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import xss from 'xss';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
-import {CustomTabulatorTable, GetDetailsButton, GetSubmissionLink} from './table-components.js';
+import {
+    CustomTabulatorTable,
+    GetDetailsButton,
+    GetSubmissionLink,
+    RowActionsMenu,
+} from './table-components.js';
 import {ManageFormSubmissionsPage} from './manage-form-submissions-page.js';
 import {ManageSubmissionModal} from './manage-submission-modal.js';
 import {BatchTaggingModal} from './batch-tagging-modal.js';
@@ -136,6 +141,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             'dbp-grant-permission-dialog': GrantPermissionDialog,
             'dbp-file-sink': FileSink,
             'dbp-formalize-get-details-button': GetDetailsButton,
+            'dbp-formalize-row-actions-menu': RowActionsMenu,
             'dbp-formalize-get-submission-link': GetSubmissionLink,
             'dbp-formalize-manage-form-submissions-page': ManageFormSubmissionsPage,
             'dbp-formalize-manage-submission-modal': ManageSubmissionModal,
@@ -1126,14 +1132,21 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         }
     }
 
-    handleEditSubmissionsPermission(state) {
+    /**
+     * Opens the permission dialog for the given or the selected submissions
+     * @param {string} state - form state. draft or submitted
+     * @param {string[]|null} ids - submission IDs, defaults to the selected submissions
+     */
+    handleEditSubmissionsPermission(state, ids = null) {
         if (!this.enableSubmissionPermissionEditing) return;
 
         const submissionIds =
+            ids ??
             this.submissionTables[state]?.tabulatorTable
                 ?.getSelectedData()
                 ?.map((submission) => submission.submissionId)
-                .filter(Boolean) ?? [];
+                .filter(Boolean) ??
+            [];
         const permissionDialog = this._('#submission-grant-permission-dialog');
         if (!permissionDialog || submissionIds.length === 0) return;
 
@@ -1213,9 +1226,16 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this.notifySubmissionsProcessed(responseStatus);
     }
 
-    handleEditSubmissions(event, state) {
-        const data = this.submissionTables[state].tabulatorTable.getSelectedData();
-        const submissionId = data[0].submissionId;
+    /**
+     * Opens the given or the first selected submission in the render form activity
+     * @param {Event|null} event
+     * @param {string} state - form state. draft or submitted
+     * @param {string|null} id - submission ID, defaults to the first selected submission
+     */
+    handleEditSubmissions(event, state, id = null) {
+        const submissionId =
+            id ?? this.submissionTables[state].tabulatorTable.getSelectedData()[0]?.submissionId;
+        if (!submissionId) return;
 
         // Redirect to render-form activity to display the readonly form with submission values
         const activeForm = this.form;
@@ -1251,15 +1271,17 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
      * Delete all or only the selected submissions
      * @param {string} state - form state. draft or submitted
      * @param {boolean} selectedOnly - if true only the selected submissions are deleted
+     * @param {string[]|null} ids - if set only these submissions are deleted
      */
-    async handleDeleteSubmissions(state, selectedOnly = false) {
+    async handleDeleteSubmissions(state, selectedOnly = false, ids = null) {
         const tabulatorTable = this.submissionTables[state].tabulatorTable;
-        const data = selectedOnly
-            ? tabulatorTable.getSelectedData()
-            : tabulatorTable.getData('all');
-        const rows = selectedOnly
-            ? tabulatorTable.getSelectedRows()
-            : tabulatorTable.getRows('all');
+        let rows = selectedOnly ? tabulatorTable.getSelectedRows() : tabulatorTable.getRows('all');
+        if (ids) {
+            rows = tabulatorTable
+                .getRows('all')
+                .filter((row) => ids.includes(row.getData().submissionId));
+        }
+        const data = rows.map((row) => row.getData());
 
         if (data.length === 0) {
             sendNotification({

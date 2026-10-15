@@ -4,7 +4,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {ScopedElementsMixin, Icon, MiniSpinner} from '@dbp-toolkit/common';
 import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
-import {GetDetailsButton} from './table-components.js';
+import {GetDetailsButton, RowActionsMenu} from './table-components.js';
 import {ManageFormsOverviewPage} from './manage-forms-overview-page.js';
 import {loadModules, getListOfAllForms} from './manage-forms-api.js';
 import {
@@ -103,6 +103,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
             'dbp-mini-spinner': MiniSpinner,
             // Used for the row action buttons created in getListOfAllForms()
             'dbp-formalize-get-details-button': GetDetailsButton,
+            'dbp-formalize-row-actions-menu': RowActionsMenu,
             'dbp-formalize-manage-forms-overview-page': ManageFormsOverviewPage,
         };
     }

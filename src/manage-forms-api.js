@@ -20,6 +20,7 @@ import {
     createManageFormsOverviewActionContext,
     resolveManageFormsOverviewAction,
 } from './manage-forms-overview-actions.js';
+import {createRowActionsMenu} from './table-components.js';
 
 // ---------------------------------------------------------------------------
 // Utility helpers used only by the functions in this module
@@ -119,33 +120,47 @@ export function loadModules(host) {
 // ---------------------------------------------------------------------------
 
 /**
- * Creates the standard icon button used for an action in a manage-forms table row.
+ * Creates the row actions menu of a form in the forms overview. It contains every action
+ * that is visible and enabled for this single form, regardless of its placement.
  *
  * @param {object} host - The ManageForms element.
- * @param {{id: string, iconName?: string, title: string, ariaLabel: string, handler: (context: object) => void}} action
- * @param {object|(() => object)} context - Data passed to the action handler.
- * @returns {HTMLElement}
+ * @param {Array<Record<string, any>>} actions - Overview action definitions.
+ * @param {() => object} getContext - Returns the current action context of the row.
+ * @returns {HTMLElement|null} The menu, or null if no action is available.
  */
-export function createManageFormsOverviewActionButton(host, action, context) {
-    const button = host.createScopedElement('dbp-formalize-get-details-button');
-    button.setAttribute('subscribe', 'lang');
-    button.dataset.action = action.id;
-    if (action.iconName) {
-        button.iconName = action.iconName;
+export function createManageFormsOverviewRowActionsMenu(host, actions, getContext) {
+    const initialContext = getContext();
+    const menuActions = actions
+        .filter((action) => action?.id && typeof action.handler === 'function')
+        .map((action) => ({
+            action,
+            resolved: resolveManageFormsOverviewAction(action, initialContext),
+        }))
+        .filter(({resolved}) => resolved.visible && resolved.enabled)
+        .map(({action, resolved}) => ({
+            value: action.id,
+            // The title is more descriptive than the short label used for toolbar buttons
+            label: resolved.title || resolved.label,
+            iconName: action.iconName,
+            handler: (event) => {
+                const currentContext = {...getContext(), event};
+                const currentAction = resolveManageFormsOverviewAction(action, currentContext);
+                if (currentAction.visible && currentAction.enabled) {
+                    action.handler(currentContext);
+                }
+            },
+        }));
+
+    if (menuActions.length === 0) {
+        return null;
     }
-    const initialContext = typeof context === 'function' ? context() : context;
-    const resolvedAction = resolveManageFormsOverviewAction(action, initialContext);
-    button.title = resolvedAction.title;
-    button.ariaLabel = resolvedAction.ariaLabel;
-    button.addEventListener('click', (event) => {
-        const contextValue = typeof context === 'function' ? context() : context;
-        const currentContext = {...contextValue, event};
-        const currentAction = resolveManageFormsOverviewAction(action, currentContext);
-        if (currentAction.visible && currentAction.enabled) {
-            action.handler(currentContext);
-        }
-    });
-    return button;
+
+    const formName = initialContext.form?.formName ?? '';
+    return createRowActionsMenu(
+        host,
+        host._i18n.t('manage-forms.row-actions-aria', {name: formName}),
+        menuActions,
+    );
 }
 
 /**
@@ -399,8 +414,7 @@ export async function getListOfAllForms(host) {
 
                 const managedForm = host.forms.get(formId);
 
-                // Build the row action button container. All actions use descriptors so
-                // toolbar/dropdown actions can be moved into rows without new button markup.
+                // Build the row actions container with a menu of all actions for this form.
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =
                     'display: inline-flex; gap: 0.5rem; align-items: center;';
@@ -419,29 +433,18 @@ export async function getListOfAllForms(host) {
                     ? customizedActions
                     : defaultActions;
                 rowActions.forEach((action) => {
-                    const placements = Array.isArray(action?.placements)
-                        ? action.placements
-                        : ['row'];
                     if (action?.id) {
                         overviewActions.set(action.id, action);
                     }
-                    const resolvedAction = resolveManageFormsOverviewAction(action, actionContext);
-                    if (
-                        placements.includes('row') &&
-                        action?.id &&
-                        typeof action.handler === 'function' &&
-                        resolvedAction.visible &&
-                        resolvedAction.enabled
-                    ) {
-                        actionContainer.appendChild(
-                            createManageFormsOverviewActionButton(
-                                host,
-                                action,
-                                getCurrentActionContext,
-                            ),
-                        );
-                    }
                 });
+                const rowActionsMenu = createManageFormsOverviewRowActionsMenu(
+                    host,
+                    rowActions,
+                    getCurrentActionContext,
+                );
+                if (rowActionsMenu) {
+                    actionContainer.appendChild(rowActionsMenu);
+                }
 
                 let new_form = {
                     id: id,
@@ -677,68 +680,86 @@ export async function getAllFormSubmissions(host, formId) {
                 submissionId: submissionId,
             };
 
-            let actionButtonsDiv = host.createScopedElement('div');
+            const actionButtonsDiv = host.createScopedElement('div');
+            const submissionGrants = host.submissionsGrantedActions.get(submissionId) ?? [];
+            const hasSubmissionGrant = (...permissions) =>
+                permissions.some((permission) => submissionGrants.includes(permission));
+            const hasReadOnlyMode =
+                !!activeForm.formSlug &&
+                typeof activeForm.moduleInstance?.hasReadOnlyMode === 'function' &&
+                activeForm.moduleInstance.hasReadOnlyMode();
+            const rowActions = [
+                {
+                    value: 'quick-view',
+                    label: i18n.t('manage-forms.open-quick-view'),
+                    iconName: 'keyword-research',
+                    handler: () => {
+                        const routingData = host.getRoutingData();
+                        const routeFormId = routingData.pathSegments[0];
+                        if (routeFormId.match(/[0-9a-f-]+/)) {
+                            host.setSubmissionDetailsRoute(submissionId);
+                            host.requestDetailedSubmission(state, cols, id);
+                        }
+                    },
+                },
+            ];
 
-            // Add link to manage form entry in render form view (only for forms with a slug and read-only mode)
-            if (
-                activeForm.formSlug &&
-                activeForm.moduleInstance &&
-                typeof activeForm.moduleInstance.hasReadOnlyMode === 'function' &&
-                activeForm.moduleInstance.hasReadOnlyMode()
-            ) {
-                const submissionDetailsFormButton = host.createScopedElement(
-                    'dbp-formalize-get-submission-link',
-                );
+            // Link to the submission in the read-only render form view
+            if (hasReadOnlyMode) {
                 const formSubmissionUrl = new URL(
                     getFormRenderUrl(activeForm.formSlug, host.lang, activeForm.formId),
                 );
                 formSubmissionUrl.pathname += `/${submissionId}/readonly`;
-                /*
-                    t('manage-forms.open-detailed-view-form')
-                */
-                submissionDetailsFormButton.ariaLabel = i18n.t(
-                    'manage-forms.open-detailed-view-form',
-                    {id: id},
-                );
-                submissionDetailsFormButton.submissionUrl = formSubmissionUrl.href;
-                submissionDetailsFormButton.iconName = 'open-new-window';
-                submissionDetailsFormButton.title = i18n.t('manage-forms.open-detailed-view-form', {
-                    id: id,
+                rowActions.push({
+                    value: 'detailed-view',
+                    label: i18n.t('manage-forms.open-detailed-view'),
+                    iconName: 'open-new-window',
+                    handler: () => {
+                        window.open(formSubmissionUrl.href, '_blank', 'noopener,noreferrer');
+                    },
                 });
-                submissionDetailsFormButton.id = id.toString();
-                submissionDetailsFormButton.setAttribute('subscribe', 'lang');
-                submissionDetailsFormButton.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                });
-                actionButtonsDiv.appendChild(submissionDetailsFormButton);
             }
 
-            // Add button to show submission details in a modal
-            const submissionDetailsButton = host.createScopedElement(
-                'dbp-formalize-get-details-button',
-            );
-            /*
-                t('manage-forms.open-detailed-view-modal')
-            */
-            submissionDetailsButton.ariaLabel = i18n.t('manage-forms.open-detailed-view-modal', {
-                id: id,
-            });
-            submissionDetailsButton.title = i18n.t('manage-forms.open-detailed-view-modal', {
-                id: id,
-            });
-            submissionDetailsButton.id = id.toString();
-            submissionDetailsButton.setAttribute('subscribe', 'lang');
-            submissionDetailsButton.addEventListener('click', (event) => {
-                event.stopPropagation();
-                const routingData = host.getRoutingData();
-                const routeFormId = routingData.pathSegments[0];
-                if (routeFormId.match(/[0-9a-f-]+/)) {
-                    host.setSubmissionDetailsRoute(submissionId);
-                    host.requestDetailedSubmission(state, cols, id);
-                }
-            });
+            if (
+                hasReadOnlyMode &&
+                hasSubmissionGrant(SUBMISSION_PERMISSIONS.MANAGE, SUBMISSION_PERMISSIONS.UPDATE)
+            ) {
+                rowActions.push({
+                    value: 'edit-submission',
+                    label: i18n.t('manage-forms.edit-submission-button-text'),
+                    iconName: 'pencil',
+                    handler: (event) => host.handleEditSubmissions(event, state, submissionId),
+                });
+            }
 
-            actionButtonsDiv.appendChild(submissionDetailsButton);
+            if (
+                host.enableSubmissionPermissionEditing &&
+                hasSubmissionGrant(SUBMISSION_PERMISSIONS.MANAGE)
+            ) {
+                rowActions.push({
+                    value: 'edit-permission',
+                    label: i18n.t('manage-forms.edit-permission-button-text'),
+                    iconName: 'edit-permission',
+                    handler: () => host.handleEditSubmissionsPermission(state, [submissionId]),
+                });
+            }
+
+            if (hasSubmissionGrant(SUBMISSION_PERMISSIONS.MANAGE, SUBMISSION_PERMISSIONS.DELETE)) {
+                rowActions.push({
+                    value: 'delete',
+                    label: i18n.t('manage-forms.delete'),
+                    iconName: 'trash',
+                    handler: () => void host.handleDeleteSubmissions(state, true, [submissionId]),
+                });
+            }
+
+            actionButtonsDiv.appendChild(
+                createRowActionsMenu(
+                    host,
+                    i18n.t('manage-forms.submission-row-actions-aria', {id}),
+                    rowActions,
+                ),
+            );
             actionButtonsDiv.classList.add('actions-buttons');
             cols.htmlButtons = actionButtonsDiv;
             submissions_list.push(cols);

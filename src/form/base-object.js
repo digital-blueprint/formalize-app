@@ -73,6 +73,9 @@ export class BaseObject {
     /**
      * Customizes the actions for a form row in the manage-forms overview.
      * Override in subclasses to modify built-in actions or append module-specific actions.
+     * The row actions menu contains every action that is visible and enabled for the single
+     * form of the row; the `placements` only control which actions appear in the multi-actions
+     * dropdown above the table (`dropdown`).
      *
      * @param {object} _context
      * @param {Array<Record<string, any>>} actions

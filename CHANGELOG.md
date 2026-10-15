@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Forms overview, form submissions and manage fields: the row action buttons were replaced by a row actions (kebab) menu that contains all actions that are possible for this single row. Forms: open submissions, website links, edit, edit permissions and delete (if bulk deletion is enabled), plus module actions such as the job offer preview. Submissions: quick view, detailed view, edit, edit permissions and delete, depending on the grants of the submission. Manage fields entries: edit and delete. The menu is shown as popover, so it isn't clipped by the table
 - Forms overview, form submissions and manage fields: renamed the "Aktionen"/"Actions" dropdown above the tables to "Mehrfachaktionen"/"Multi-actions", because it contains the actions for the selected rows
 - Forms overview: removed the hardcoded job-offer employer column (including the hardcoded university name); form modules can now add their own overview columns with `BaseObject.getManageFormsOverviewColumns()`. The manage-forms activities accept a `university-short-name` attribute, which modules can use for their column values
 - Forms overview: fixed the employer column not being shown when it is enabled before the first render, and rebuild the column labels after the translation overrides are loaded, so overridden column titles are used
