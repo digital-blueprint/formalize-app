@@ -421,14 +421,14 @@ export function getManageFormsCSS() {
         .table-action-header {
             display: grid;
             grid-template-areas: 'actions search search search button export';
-            grid-template-columns: 115px 1fr 1fr 1fr max-content 133px;
+            grid-template-columns: max-content 1fr 1fr 1fr max-content 133px;
             gap: 0 1em;
             position: relative;
         }
 
         .table-action-header.open {
             grid-template-areas: 'actions search filter-col filter-op button export';
-            grid-template-columns: 115px auto auto auto max-content 133px;
+            grid-template-columns: max-content auto auto auto max-content 133px;
             gap: 0 1em;
             position: relative;
         }
@@ -620,7 +620,7 @@ export function getManageFormsCSS() {
                     'actions . . . export'
                     'search search search search button'
                     'filter-col filter-col . filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 118px max-content;
+                grid-template-columns: max-content 1fr 1fr 118px max-content;
                 gap: 1em 0;
             }
 
@@ -629,7 +629,7 @@ export function getManageFormsCSS() {
                     'actions . . . export'
                     'search search search search button'
                     'filter-col filter-col filter-op filter-op filter-op';
-                grid-template-columns: 115px 1fr 1fr 118px max-content;
+                grid-template-columns: max-content 1fr 1fr 118px max-content;
                 gap: 1em 0;
             }
 

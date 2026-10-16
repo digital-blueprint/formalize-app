@@ -417,6 +417,7 @@ function createOverviewPage({
     actionDefinitions = createDefaultManageFormsOverviewActions(),
     formsById = new Map(),
     selectedForms = [],
+    forms = [],
 }) {
     const page = document.createElement('test-manage-forms-overview-page');
     page.getFormsTable = () => ({
@@ -425,6 +426,7 @@ function createOverviewPage({
     page.actionHost = actionHost;
     page.actionDefinitions = actionDefinitions;
     page.formsById = formsById;
+    page.forms = forms;
     page.updateActions();
     return page;
 }
@@ -562,6 +564,57 @@ suite('dbp-formalize-manage-forms basics', () => {
         });
 
         assert.isTrue(page.actions.every((action) => action.disabled));
+    });
+
+    test('should offer deleting all deletable forms when nothing is selected', () => {
+        const forms = [
+            {formId: 'job-offer-1', grantedActions: ['delete']},
+            {formId: 'job-offer-2', grantedActions: ['read']},
+            {formId: 'job-offer-3', grantedActions: ['manage']},
+        ];
+        let deletedFormIds = null;
+        const page = createOverviewPage({
+            actionHost: {
+                enableFormsBulkDelete: true,
+                _i18n: {t: (key, options) => `${key}:${options?.n ?? ''}`},
+                handleDeleteForms: (formIds) => (deletedFormIds = formIds),
+            },
+            formsById: new Map(forms.map((form) => [form.formId, form])),
+            forms,
+        });
+
+        assert.deepEqual(
+            page.actions.map(({value, label, disabled}) => ({value, label, disabled})),
+            [
+                {
+                    value: 'edit-permission',
+                    label: 'manage-forms.edit-permission-button-text:',
+                    disabled: true,
+                },
+                {
+                    value: 'delete-all',
+                    label: 'manage-forms.delete-all-forms-button-text:2',
+                    disabled: false,
+                },
+            ],
+        );
+
+        page.runAction('delete-all');
+        assert.deepEqual(deletedFormIds, ['job-offer-1', 'job-offer-3']);
+    });
+
+    test('should not offer deleting all forms when bulk deletion is disabled', () => {
+        const forms = [{formId: 'job-offer', grantedActions: ['manage']}];
+        const page = createOverviewPage({
+            actionHost: {enableFormsBulkDelete: false, _i18n: {t: (key) => key}},
+            formsById: new Map(forms.map((form) => [form.formId, form])),
+            forms,
+        });
+
+        assert.deepEqual(
+            page.actions.map(({value, disabled}) => ({value, disabled})),
+            [{value: 'edit-permission', disabled: true}],
+        );
     });
 
     test('should execute a resolved overview action without action-specific dispatch code', () => {
@@ -960,6 +1013,7 @@ suite('manage forms action menus', () => {
                     'edit',
                     'edit-permission',
                     'delete',
+                    'delete-all',
                     'preview',
                 ],
             );
@@ -1105,7 +1159,14 @@ suite('manage forms action menus', () => {
         assert.isFalse(host.isFormListed({grantedFormActions: ['read', 'create_submissions']}));
         assert.deepEqual(
             host.createDefaultOverviewActions().map(({id}) => id),
-            ['open-submissions', 'website-links', 'edit', 'edit-permission', 'delete'],
+            [
+                'open-submissions',
+                'website-links',
+                'edit',
+                'edit-permission',
+                'delete',
+                'delete-all',
+            ],
         );
     });
 

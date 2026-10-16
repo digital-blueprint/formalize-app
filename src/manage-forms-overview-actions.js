@@ -28,14 +28,21 @@ const canManageForm = (form) => getFormGrants(form).includes(FORM_PERMISSIONS.MA
  * @param {Record<string, any>} host
  * @param {Array<Record<string, any>>} items
  * @param {Event|null} event
+ * @param {Array<Record<string, any>>} allItems All forms listed in the overview
  * @returns {Record<string, any>}
  */
-export function createManageFormsOverviewActionContext(host, items = [], event = null) {
+export function createManageFormsOverviewActionContext(
+    host,
+    items = [],
+    event = null,
+    allItems = items,
+) {
     return {
         host,
         // Lets modules tailor their actions to the activity ('manage-forms' or 'manage-submissions').
         activity: /** @type {any} */ (host.constructor)?.activityName ?? null,
         items,
+        allItems,
         form: items[0] ?? null,
         event,
         t: host._i18n.t.bind(host._i18n),
@@ -113,13 +120,29 @@ export function createDefaultManageFormsOverviewActions() {
             id: 'delete',
             iconName: 'trash',
             placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
-            label: ({t}) => t('manage-forms.delete'),
-            ariaLabel: ({t, form}) =>
-                t('manage-forms.delete-form-aria', {formName: form?.formName ?? ''}),
-            isVisible: ({host}) => host.enableFormsBulkDelete,
+            label: ({t, items}) =>
+                t('manage-forms.delete-selected-forms-button-text', {n: items.length}),
+            isVisible: ({host, items}) => host.enableFormsBulkDelete && items.length > 0,
             isEnabled: ({items}) => items.length > 0 && items.every(canDeleteForm),
             handler: ({host, items}) => {
                 void host.handleDeleteForms(items.map((form) => form.formId));
+            },
+        },
+        {
+            id: 'delete-all',
+            iconName: 'trash',
+            placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
+            label: ({t, allItems}) =>
+                t('manage-forms.delete-all-forms-button-text', {
+                    n: allItems.filter(canDeleteForm).length,
+                }),
+            // Like in the submissions table, "delete all" is only offered without a selection.
+            isVisible: ({host, items}) => host.enableFormsBulkDelete && items.length === 0,
+            isEnabled: ({allItems}) => allItems.some(canDeleteForm),
+            handler: ({host, allItems}) => {
+                void host.handleDeleteForms(
+                    allItems.filter(canDeleteForm).map((form) => form.formId),
+                );
             },
         },
     ];

@@ -196,6 +196,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 }
 
                 .forms-table-actions-select {
+                    flex: 0 0 auto;
                     --dbp-select-border-color: var(--dbp-content);
                     --dbp-select-chevron-color: var(--dbp-content);
                     --dbp-select-placeholder-color: var(--dbp-content);
@@ -459,13 +460,30 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         }));
     }
 
+    /**
+     * Returns all forms listed in the overview merged with the full form entries.
+     *
+     * @returns {Array<object>}
+     */
+    getAllItems() {
+        return (this.forms ?? []).map((rowData) => ({
+            ...rowData,
+            ...(this.formsById?.get(rowData.formId) ?? {}),
+        }));
+    }
+
     /** Resolves dropdown actions for the current form selection. */
     updateActions() {
         if (!this.actionHost) return;
 
         const items = this.getSelectedItems();
         this.selectedFormsCount = items.length;
-        const context = createManageFormsOverviewActionContext(this.actionHost, items);
+        const context = createManageFormsOverviewActionContext(
+            this.actionHost,
+            items,
+            null,
+            this.getAllItems(),
+        );
         this.actions = this.actionDefinitions
             .filter((action) => action.placements?.includes(OVERVIEW_ACTION_PLACEMENTS.DROPDOWN))
             .map((action) => resolveManageFormsOverviewAction(action, context))
@@ -492,6 +510,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             this.actionHost,
             this.getSelectedItems(),
             event,
+            this.getAllItems(),
         );
         const resolvedAction = resolveManageFormsOverviewAction(action, context);
         if (resolvedAction.visible && resolvedAction.enabled) {
@@ -611,10 +630,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         class="forms-table-actions-select ${classMap({
                             hidden: !hasDropdownActions,
                         })}"
-                        ?disabled=${
-                            this.selectedFormsCount === 0 ||
-                            !formActions.some((action) => !action.disabled)
-                        }
+                        ?disabled=${!formActions.some((action) => !action.disabled)}
                         @change=${this._onFormAction}
                         id="forms-table-actions-select"
                         label="${i18n.t('manage-forms.actions-button-text')}"
