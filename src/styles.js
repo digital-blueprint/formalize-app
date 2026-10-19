@@ -393,6 +393,7 @@ export function getManageFormsCSS() {
             background: none;
             color: inherit;
             font: inherit;
+            cursor: pointer;
         }
 
         .back-navigation:hover {
