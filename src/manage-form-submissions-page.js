@@ -26,8 +26,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.enabledStates = {draft: false, submitted: false};
         this.noSubmissionAvailable = {draft: true, submitted: true};
         this.searchWidgetIsOpen = {draft: false, submitted: false};
-        this.enableSubmissionPermissionEditing = false;
-        this.isEditSubmissionPermissionEnabled = {draft: false, submitted: false};
         this.isBatchTaggingEnabled = {draft: false, submitted: false};
         this.isDeleteAllSubmissionEnabled = {draft: false, submitted: false};
         this.isDeleteSelectedSubmissionEnabled = {draft: false, submitted: false};
@@ -65,8 +63,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             enabledStates: {type: Object, attribute: false},
             noSubmissionAvailable: {type: Object, attribute: false},
             searchWidgetIsOpen: {type: Object, attribute: false},
-            enableSubmissionPermissionEditing: {type: Boolean, attribute: false},
-            isEditSubmissionPermissionEnabled: {type: Object, attribute: false},
             isBatchTaggingEnabled: {type: Object, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Object, attribute: false},
             isDeleteSelectedSubmissionEnabled: {type: Object, attribute: false},
@@ -306,11 +302,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                 return;
             }
 
-            if (option.value === 'edit-permission') {
-                this.handleAction('edit-permission', state);
-                return;
-            }
-
             if (option.value === 'delete-all') {
                 this.handleAction('delete-all', state);
                 return;
@@ -334,15 +325,6 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             label: i18n.t('manage-forms.batch-tagging-button-text'),
             iconName: 'tags',
         });
-
-        if (this.enableSubmissionPermissionEditing) {
-            submissionActions.push({
-                value: 'edit-permission',
-                disabled: !this.isEditSubmissionPermissionEnabled[state],
-                label: i18n.t('manage-forms.edit-permission-button-text'),
-                iconName: 'edit-permission',
-            });
-        }
 
         if (this.isDeleteAllSubmissionEnabled[state]) {
             submissionActions.push({

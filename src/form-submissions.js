@@ -108,7 +108,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this.submittedFileDetails = {draft: new Map(), submitted: new Map()};
         this.isDeleteSelectedSubmissionEnabled = {draft: false, submitted: false};
         this.isDeleteAllSubmissionEnabled = {draft: false, submitted: false};
-        this.isEditSubmissionPermissionEnabled = {draft: false, submitted: false};
         this.isBatchTaggingEnabled = {draft: false, submitted: false};
         this.enabledStates = {draft: false, submitted: false};
         this.searchWidgetIsOpen = {draft: false, submitted: false};
@@ -176,7 +175,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             enabledStates: {type: Object, attribute: false},
             isDeleteSelectedSubmissionEnabled: {type: Object, attribute: false},
             isDeleteAllSubmissionEnabled: {type: Object, attribute: false},
-            isEditSubmissionPermissionEnabled: {type: Object, attribute: false},
             isBatchTaggingEnabled: {type: Object, attribute: false},
             selectedRowCount: {type: Object, attribute: false},
             allRowCount: {type: Object, attribute: false},
@@ -291,19 +289,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             // Re-create the submission links and labels in the new language
             if (this.form && !changedProperties.has('form')) {
                 void this.loadSubmissions();
-            }
-        }
-
-        if (changedProperties.has('enableSubmissionPermissionEditing')) {
-            for (const state of Object.values(SUBMISSION_STATES)) {
-                if (this.submissionTables[state]?.tabulatorTable) {
-                    this.setIsActionAvailable(state);
-                } else if (!this.enableSubmissionPermissionEditing) {
-                    this.isEditSubmissionPermissionEnabled = {
-                        ...this.isEditSubmissionPermissionEnabled,
-                        [state]: false,
-                    };
-                }
             }
         }
 
@@ -1034,7 +1019,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     setIsActionAvailable(state) {
         this.setActionButtonsStates(state);
         const isAvailable =
-            this.isEditSubmissionPermissionEnabled[state] ||
             this.isDeleteAllSubmissionEnabled[state] ||
             this.isDeleteSelectedSubmissionEnabled[state] ||
             this.isBatchTaggingEnabled[state];
@@ -1091,18 +1075,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                     allSubmissionsGrants.has(SUBMISSION_PERMISSIONS.DELETE)),
         };
 
-        this.isEditSubmissionPermissionEnabled = {
-            ...this.isEditSubmissionPermissionEnabled,
-            [state]:
-                this.enableSubmissionPermissionEditing &&
-                selectedCount > 0 &&
-                selectedRows.every((row) => {
-                    const submissionId = row.getData().submissionId;
-                    const grants = this.submissionsGrantedActions.get(submissionId) ?? [];
-                    return grants.includes(SUBMISSION_PERMISSIONS.MANAGE);
-                }),
-        };
-
         // Batch tagging is disabled until tag-based permissions are implemented
         this.isBatchTaggingEnabled = {...this.isBatchTaggingEnabled, [state]: false};
     }
@@ -1122,20 +1094,14 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     }
 
     /**
-     * Opens the permission dialog for the given or the selected submissions
+     * Opens the permission dialog for the given submissions
      * @param {string} state - form state. draft or submitted
-     * @param {string[]|null} ids - submission IDs, defaults to the selected submissions
+     * @param {string[]} ids - submission IDs
      */
-    handleEditSubmissionsPermission(state, ids = null) {
+    handleEditSubmissionsPermission(state, ids = []) {
         if (!this.enableSubmissionPermissionEditing) return;
 
-        const submissionIds =
-            ids ??
-            this.submissionTables[state]?.tabulatorTable
-                ?.getSelectedData()
-                ?.map((submission) => submission.submissionId)
-                .filter(Boolean) ??
-            [];
+        const submissionIds = ids.filter(Boolean);
         const permissionDialog = this._('#submission-grant-permission-dialog');
         if (!permissionDialog || submissionIds.length === 0) return;
 
@@ -1382,11 +1348,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             case 'batch-tagging':
                 void this.handleOpenBatchTaggingModal(state);
                 break;
-            case 'edit-permission':
-                if (this.isEditSubmissionPermissionEnabled[state]) {
-                    this.handleEditSubmissionsPermission(state);
-                }
-                break;
             case 'delete-all':
                 void this.handleDeleteSubmissions(state);
                 break;
@@ -1440,8 +1401,6 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                 .searchWidgetIsOpen=${this.searchWidgetIsOpen}
                 .actionsWidgetIsOpen=${this.actionsWidgetIsOpen}
                 .isActionAvailable=${this.isActionAvailable}
-                .enableSubmissionPermissionEditing=${this.enableSubmissionPermissionEditing}
-                .isEditSubmissionPermissionEnabled=${this.isEditSubmissionPermissionEnabled}
                 .isBatchTaggingEnabled=${this.isBatchTaggingEnabled}
                 .isDeleteAllSubmissionEnabled=${this.isDeleteAllSubmissionEnabled}
                 .isDeleteSelectedSubmissionEnabled=${this.isDeleteSelectedSubmissionEnabled}

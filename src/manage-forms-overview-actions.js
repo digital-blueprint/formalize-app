@@ -108,13 +108,14 @@ export function createDefaultManageFormsOverviewActions() {
         {
             id: 'edit-permission',
             iconName: 'edit-permission',
-            placements: [OVERVIEW_ACTION_PLACEMENTS.DROPDOWN],
+            placements: [OVERVIEW_ACTION_PLACEMENTS.ROW],
             label: ({t}) => t('manage-forms.edit-permission-button-text'),
             ariaLabel: ({t, form}) =>
                 t('manage-forms.edit-form-permission-aria', {formName: form?.formName ?? ''}),
-            isEnabled: ({items}) => items.length > 0 && items.every(canManageForm),
-            handler: ({host, items}) =>
-                host.handleEditFormPermission(items.map((form) => form.formId)),
+            isEnabled: ({items}) => items.length === 1 && canManageForm(items[0]),
+            handler: ({host, form}) => {
+                if (form?.formId) host.handleEditFormPermission([form.formId]);
+            },
         },
         {
             id: 'delete',

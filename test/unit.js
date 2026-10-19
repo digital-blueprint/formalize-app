@@ -25,8 +25,11 @@ import {
     setSubmissionFormOptions,
 } from '../src/manage-forms-table-config.js';
 import {
+    OVERVIEW_ACTION_PLACEMENTS,
     createDefaultManageFormsOverviewActions,
     createDefaultManageSubmissionsOverviewActions,
+    createManageFormsOverviewActionContext,
+    resolveManageFormsOverviewAction,
 } from '../src/manage-forms-overview-actions.js';
 import {ROUTING_URL_CHANGE_EVENT} from '../src/manage-forms-routing.js';
 import {RowActionsMenu, createRowActionsMenu} from '../src/table-components.js';
@@ -545,13 +548,10 @@ suite('dbp-formalize-manage-forms basics', () => {
         });
 
         assert.equal(page.selectedFormsCount, 1);
-        // Single-item actions like edit are only offered in the row actions menu
+        // Single-item actions like edit and edit permissions are only offered in the row actions menu
         assert.deepEqual(
             page.actions.map(({value, disabled}) => ({value, disabled})),
-            [
-                {value: 'edit-permission', disabled: false},
-                {value: 'delete', disabled: false},
-            ],
+            [{value: 'delete', disabled: false}],
         );
     });
 
@@ -587,11 +587,6 @@ suite('dbp-formalize-manage-forms basics', () => {
             page.actions.map(({value, label, disabled}) => ({value, label, disabled})),
             [
                 {
-                    value: 'edit-permission',
-                    label: 'manage-forms.edit-permission-button-text:',
-                    disabled: true,
-                },
-                {
                     value: 'delete-all',
                     label: 'manage-forms.delete-all-forms-button-text:2',
                     disabled: false,
@@ -611,10 +606,7 @@ suite('dbp-formalize-manage-forms basics', () => {
             forms,
         });
 
-        assert.deepEqual(
-            page.actions.map(({value, disabled}) => ({value, disabled})),
-            [{value: 'edit-permission', disabled: true}],
-        );
+        assert.deepEqual(page.actions, []);
     });
 
     test('should execute a resolved overview action without action-specific dispatch code', () => {
@@ -643,10 +635,10 @@ suite('dbp-formalize-manage-forms basics', () => {
         );
     });
 
-    test('should require manage on every form for multi-form permission editing', () => {
+    test('should not offer permission editing for multiple forms', () => {
         const forms = [
             {formId: 'job-offer-1', grantedActions: ['manage']},
-            {formId: 'job-offer-2', grantedActions: ['delete']},
+            {formId: 'job-offer-2', grantedActions: ['manage']},
         ];
         const page = createOverviewPage({
             actionHost: {enableFormsBulkDelete: true, _i18n: {t: (key) => key}},
@@ -654,9 +646,33 @@ suite('dbp-formalize-manage-forms basics', () => {
             selectedForms: forms,
         });
 
-        const actions = Object.fromEntries(page.actions.map((action) => [action.value, action]));
-        assert.isFalse(actions.delete.disabled);
-        assert.isTrue(actions['edit-permission'].disabled);
+        assert.deepEqual(
+            page.actions.map((action) => action.value),
+            ['delete'],
+        );
+    });
+
+    test('should edit the permissions of a single form from its row', () => {
+        let editedFormIds = null;
+        const host = {
+            _i18n: {t: (key) => key},
+            handleEditFormPermission: (formIds) => (editedFormIds = formIds),
+        };
+        const action = createDefaultManageFormsOverviewActions().find(
+            ({id}) => id === 'edit-permission',
+        );
+        const form = {formId: 'job-offer', grantedActions: ['manage']};
+        const context = createManageFormsOverviewActionContext(host, [form]);
+
+        assert.deepEqual(action.placements, [OVERVIEW_ACTION_PLACEMENTS.ROW]);
+        assert.isTrue(resolveManageFormsOverviewAction(action, context).enabled);
+        action.handler(context);
+        assert.deepEqual(editedFormIds, ['job-offer']);
+
+        const readOnlyContext = createManageFormsOverviewActionContext(host, [
+            {formId: 'job-offer', grantedActions: ['read']},
+        ]);
+        assert.isFalse(resolveManageFormsOverviewAction(action, readOnlyContext).enabled);
     });
 
     test('should disable deletion when form bulk deletion is not enabled', () => {
@@ -671,7 +687,6 @@ suite('dbp-formalize-manage-forms basics', () => {
             page.actions.map((action) => action.value),
             'delete',
         );
-        assert.isFalse(page.actions.find((action) => action.value === 'edit-permission').disabled);
     });
 
     test('should open the permission dialog for a form resource', () => {
@@ -700,46 +715,23 @@ suite('dbp-formalize-manage-forms basics', () => {
         );
     });
 
-    test('should open permission editing for selected submissions', () => {
+    test('should not open permission editing without a submission', () => {
         const calls = [];
         const dialog = {
             resourceIdentifier: '',
             resourceIdentifiers: [],
             open: () => calls.push('open'),
         };
-        const actionHost = {
-            enableSubmissionPermissionEditing: true,
-            submissionTables: {
-                submitted: {
-                    tabulatorTable: {
-                        getSelectedData: () => [
-                            {submissionId: 'submission-1'},
-                            {submissionId: 'submission-2'},
-                        ],
-                    },
-                },
-            },
-            _: () => dialog,
-        };
+        const actionHost = {enableSubmissionPermissionEditing: true, _: () => dialog};
 
         FormSubmissions.prototype.handleEditSubmissionsPermission.call(actionHost, 'submitted');
 
-        assert.equal(dialog.resourceIdentifier, '');
-        assert.deepEqual(dialog.resourceIdentifiers, ['submission-1', 'submission-2']);
-        assert.deepEqual(calls, ['open']);
+        assert.deepEqual(calls, []);
     });
 
     test('should open permission editing for a single submission of a row', () => {
         const dialog = {resourceIdentifier: '', resourceIdentifiers: [], open: () => {}};
-        const actionHost = {
-            enableSubmissionPermissionEditing: true,
-            submissionTables: {
-                submitted: {
-                    tabulatorTable: {getSelectedData: () => [{submissionId: 'submission-2'}]},
-                },
-            },
-            _: () => dialog,
-        };
+        const actionHost = {enableSubmissionPermissionEditing: true, _: () => dialog};
 
         FormSubmissions.prototype.handleEditSubmissionsPermission.call(actionHost, 'submitted', [
             'submission-1',
@@ -747,39 +739,6 @@ suite('dbp-formalize-manage-forms basics', () => {
 
         assert.equal(dialog.resourceIdentifier, 'submission-1');
         assert.deepEqual(dialog.resourceIdentifiers, ['submission-1']);
-    });
-
-    test('should require manage on every selected submission', () => {
-        const submissions = [{submissionId: 'submission-1'}, {submissionId: 'submission-2'}];
-        const rows = submissions.map((submission) => ({getData: () => submission}));
-        const actionHost = {
-            enableSubmissionPermissionEditing: true,
-            submissionTables: {
-                submitted: {
-                    tabulatorTable: {
-                        getSelectedRows: () => rows,
-                        getRows: () => rows,
-                    },
-                },
-            },
-            submissionsGrantedActions: new Map([
-                ['submission-1', ['manage']],
-                ['submission-2', ['read']],
-            ]),
-            selectedRowCount: {submitted: 0},
-            allRowCount: {submitted: 0},
-            isDeleteSelectedSubmissionEnabled: {submitted: false},
-            isDeleteAllSubmissionEnabled: {submitted: false},
-            isEditSubmissionPermissionEnabled: {submitted: false},
-            isBatchTaggingEnabled: {submitted: false},
-        };
-
-        FormSubmissions.prototype.setActionButtonsStates.call(actionHost, 'submitted');
-        assert.isFalse(actionHost.isEditSubmissionPermissionEnabled.submitted);
-
-        actionHost.submissionsGrantedActions.set('submission-2', ['manage']);
-        FormSubmissions.prototype.setActionButtonsStates.call(actionHost, 'submitted');
-        assert.isTrue(actionHost.isEditSubmissionPermissionEnabled.submitted);
     });
 });
 
@@ -1661,23 +1620,6 @@ suite('manage forms action menus', () => {
             .querySelector('#action-dropdown--draft')
             .options.map(({value}) => value);
         assert.notInclude(actions, 'edit-permission');
-
-        page.remove();
-    });
-
-    test('should provide submission permission editing when enabled', async () => {
-        const page = document.createElement('test-manage-form-submissions-page');
-        page.noSubmissionAvailable = {draft: false, submitted: true};
-        page.isActionAvailable = {draft: true, submitted: false};
-        page.enableSubmissionPermissionEditing = true;
-        page.isEditSubmissionPermissionEnabled = {draft: true, submitted: false};
-        document.body.appendChild(page);
-        await page.updateComplete;
-
-        const select = page.shadowRoot.querySelector('#action-dropdown--draft');
-        const permissionAction = select.options.find(({value}) => value === 'edit-permission');
-        assert.isDefined(permissionAction);
-        assert.isFalse(permissionAction.disabled);
 
         page.remove();
     });
