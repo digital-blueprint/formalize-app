@@ -86,6 +86,22 @@ export class BaseObject {
     }
 
     /**
+     * Customizes the links shown in the "Website links" modal of the manage-forms overview.
+     * Override in subclasses if the forms of this module aren't filled in via the render-form
+     * activity or their submissions aren't shown in the manage-submissions activity, e.g. because
+     * the app uses its own activities for them.
+     *
+     * Each link is an object with `id`, `url`, `label` and `description`.
+     *
+     * @param {{form: Record<string, any>, lang: string}} _context
+     * @param {Array<{id: string, url: string, label: string, description: string}>} links - The built-in links
+     * @returns {Array<{id: string, url: string, label: string, description: string}>}
+     */
+    getManageFormsWebsiteLinks(_context, links = []) {
+        return links;
+    }
+
+    /**
      * Returns additional columns for the forms of this module in the manage-forms overview.
      * A column is shown if at least one listed form provides it; other forms show an empty cell.
      *

@@ -3,21 +3,30 @@ export const pascalToKebab = (str) => {
     return str.replace(/([A-Z])/g, '-$1').toLowerCase();
 };
 
-export const getFormRenderUrl = (formUrlSlug, lang, formIdentifier = '') => {
+/**
+ * Returns the absolute URL of an activity of the current app, e.g. `<origin>/<base>/<lang>/<routingName>/<path>`.
+ *
+ * @param {string} routingName - Routing name of the activity
+ * @param {string} path - Path inside the activity, including query string (may be empty)
+ * @param {string} lang
+ * @returns {string}
+ */
+export const getActivityUrl = (routingName, path, lang) => {
     const currentUrl = new URL(window.location.href);
     const origin = currentUrl.origin;
     const basePath = currentUrl.pathname.replace(/^(.*\/)[de][en]\/.*$/, '$1');
+    return `${origin}${basePath}${lang}/${routingName}${path ? `/${path}` : ''}`;
+};
+
+export const getFormRenderUrl = (formUrlSlug, lang, formIdentifier = '') => {
     const query = formIdentifier
         ? `?${new URLSearchParams({'form-identifier': formIdentifier})}`
         : '';
-    return `${origin}${basePath}${lang}/render-form/${formUrlSlug}${query}`;
+    return getActivityUrl('render-form', `${formUrlSlug}${query}`, lang);
 };
 
 export const getFormManageSubmissionsUrl = (formId, lang) => {
-    const currentUrl = new URL(window.location.href);
-    const origin = currentUrl.origin;
-    const basePath = currentUrl.pathname.replace(/^(.*\/)[de][en]\/.*$/, '$1');
-    return `${origin}${basePath}${lang}/manage-submissions/${formId}`;
+    return getActivityUrl('manage-submissions', formId, lang);
 };
 
 // Submission states

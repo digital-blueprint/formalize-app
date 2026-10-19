@@ -149,8 +149,9 @@ export class FormLinksModal extends ScopedElementsMixin(DBPLitElement) {
     getLinks() {
         if (!this.form) return [];
         const i18n = this._i18n;
-        const slug = this.form.moduleInstance?.getUrlSlug?.();
-        return [
+        const moduleInstance = this.form.moduleInstance;
+        const slug = moduleInstance?.getUrlSlug?.();
+        const links = [
             ...(slug
                 ? [
                       {
@@ -168,6 +169,12 @@ export class FormLinksModal extends ScopedElementsMixin(DBPLitElement) {
                 description: i18n.t('manage-forms.my-submissions-link-description'),
             },
         ];
+
+        // Modules can replace the links, e.g. if they use other activities of the app
+        if (typeof moduleInstance?.getManageFormsWebsiteLinks !== 'function') {
+            return links;
+        }
+        return moduleInstance.getManageFormsWebsiteLinks({form: this.form, lang: this.lang}, links);
     }
 
     async copyLink(url) {
