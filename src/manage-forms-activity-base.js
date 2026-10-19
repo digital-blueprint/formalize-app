@@ -6,7 +6,7 @@ import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GetDetailsButton, RowActionsMenu} from './table-components.js';
 import {ManageFormsOverviewPage} from './manage-forms-overview-page.js';
-import {loadModules, getListOfAllForms} from './manage-forms-api.js';
+import {loadModules, getListOfAllForms, loadFormsSubmissionCounts} from './manage-forms-api.js';
 import {
     ROUTING_URL_CHANGE_EVENT,
     getRoutingUrlWithQueryPrefixes,
@@ -75,6 +75,9 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         this.formsOverviewActionDefinitions = [];
         // Module-specific overview columns (see BaseObject.getManageFormsOverviewColumns())
         this.formsOverviewColumns = [];
+        /** @type {Map<string, number>} Number of submitted submissions by form identifier */
+        this.formsSubmissionCounts = new Map();
+        this.loadSubmissionCountsPromise = null;
         // Short name of the university, available to the modules (e.g. for their overview columns)
         this.universityShortName = '';
         this.allowListFrontendKeys = [];
@@ -115,6 +118,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
             forms: {type: Object, attribute: false},
             formsOverviewActionDefinitions: {type: Array, attribute: false},
             formsOverviewColumns: {type: Array, attribute: false},
+            formsSubmissionCounts: {type: Object, attribute: false},
             universityShortName: {type: String, attribute: 'university-short-name'},
             loadingFormsTable: {type: Boolean, attribute: false},
             showFormsTable: {type: Boolean, attribute: false},
@@ -246,6 +250,17 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
             this.handleRoute();
         }
 
+        // Refresh the counts every time the overview is shown, because submissions
+        // may have been added or deleted in the meantime
+        if (
+            (changedProperties.has('showFormsTable') || changedProperties.has('allForms')) &&
+            this.showFormsTable &&
+            this.isLoggedIn() &&
+            this.allForms.length > 0
+        ) {
+            void loadFormsSubmissionCounts(this);
+        }
+
         if (changedProperties.has('routingUrl')) {
             const oldUrl = changedProperties.get('routingUrl');
             if (oldUrl !== undefined) {
@@ -359,6 +374,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
                 .actionDefinitions=${this.formsOverviewActionDefinitions}
                 .actionHost=${this}
                 .moduleColumns=${this.formsOverviewColumns}
+                .submissionCounts=${this.formsSubmissionCounts}
                 .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                 .noFormsAvailable=${this.noFormsAvailable}
                 .creatableModulesCount=${creatableModulesCount}></dbp-formalize-manage-forms-overview-page>

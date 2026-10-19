@@ -190,7 +190,8 @@
         "submission-id": "Einreichungs-ID",
         "submission-row-actions-aria": "Aktionen für Zeile {{id}}",
         "submission-table-draft-title": "Entwurf",
-        "submission-table-submitted-title": "Eingereicht"
+        "submission-table-submitted-title": "Eingereicht",
+        "submissions-count": "Einreichungen"
     },
     "render-form": {
         "available-forms-description": "Wählen Sie ein Formular aus, um eine neue Einreichung zu beginnen.",

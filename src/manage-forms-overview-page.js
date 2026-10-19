@@ -53,6 +53,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.actionHost = null;
         /** @type {Array<{field: string, title: (lng: string) => string, widthGrow?: number}>} Module-specific columns */
         this.moduleColumns = [];
+        /** @type {Map<string, number>} Number of submitted submissions by form identifier */
+        this.submissionCounts = new Map();
         this.optionsForms = {};
         this.paginationSizeStorageKey = '';
         this.noFormsAvailable = false;
@@ -93,6 +95,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             actionDefinitions: {type: Array, attribute: false},
             actionHost: {type: Object, attribute: false},
             moduleColumns: {type: Array, attribute: false},
+            submissionCounts: {type: Object, attribute: false},
             optionsForms: {type: Object, attribute: false},
             paginationSizeStorageKey: {type: String, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
@@ -126,6 +129,12 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             changedProperties.has('lang') || changedProperties.has('moduleColumns');
         if (optionsChanged) {
             this.updateTableOptions();
+        }
+
+        if (changedProperties.has('submissionCounts') || changedProperties.has('forms')) {
+            // New rows are passed to the table by syncTable() below, only existing
+            // rows have to be updated in the table directly
+            this.applySubmissionCounts({updateTable: !changedProperties.has('forms')});
         }
 
         if (
@@ -263,6 +272,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             id: i18n.t('manage-forms.id', {lng}),
             name: i18n.t('manage-forms.name', {lng}),
             ...Object.fromEntries(moduleColumns.map(({field, title}) => [field, title(lng)])),
+            numSubmissions: i18n.t('manage-forms.submissions-count', {lng}),
         });
 
         this.optionsForms = {
@@ -279,6 +289,14 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     sorter: 'string',
                     widthGrow: widthGrow ?? 2,
                 })),
+                {
+                    field: 'numSubmissions',
+                    sorter: 'number',
+                    hozAlign: 'right',
+                    headerHozAlign: 'right',
+                    widthGrow: 1,
+                    minWidth: 120,
+                },
                 // Hidden helper columns carrying data needed for the actions.
                 {field: 'formId', visible: false},
                 {field: 'grantedActions', visible: false},
@@ -321,6 +339,30 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             data: this.forms,
         };
         this._tableOptionsVersion++;
+    }
+
+    /**
+     * Writes the loaded submission counts into the form rows.
+     *
+     * @param {{updateTable?: boolean}} options - Also update the rows of the built table
+     */
+    applySubmissionCounts({updateTable = true} = {}) {
+        const counts = this.submissionCounts instanceof Map ? this.submissionCounts : new Map();
+        const table = this.getFormsTable();
+        // A table that is not built yet gets the updated rows when it is built
+        const tabulatorTable = updateTable && table?.tableReady ? table.tabulatorTable : null;
+
+        for (const form of this.forms ?? []) {
+            const count = counts.get(form.formId) ?? null;
+            if (form.numSubmissions === count) continue;
+
+            form.numSubmissions = count;
+            if (tabulatorTable) {
+                for (const row of tabulatorTable.searchRows('formId', '=', form.formId)) {
+                    void row.update({numSubmissions: count});
+                }
+            }
+        }
     }
 
     getFormsTable() {
@@ -542,7 +584,11 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
 
         const filters = (this.optionsForms.columns ?? [])
             .filter(
-                (column) => column.field && column.visible !== false && column.formatter !== 'html',
+                (column) =>
+                    column.field &&
+                    column.field !== 'numSubmissions' &&
+                    column.visible !== false &&
+                    column.formatter !== 'html',
             )
             .map((column) => ({field: column.field, type: 'like', value: filterValue}));
 

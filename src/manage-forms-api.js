@@ -365,6 +365,8 @@ export async function getListOfAllForms(host) {
                 const allowedSubmissionStates = entry['allowedSubmissionStates'];
                 const dataFeedSchema = entry['dataFeedSchema'];
                 const grantedActions = entry['grantedActions'] ?? [];
+                const grantedSubmissionCollectionActions =
+                    entry['grantedSubmissionCollectionActions'] ?? [];
 
                 const additionalData = entry['additionalData'] ?? null;
                 const localizedNames = entry['localizedNames'] ?? [];
@@ -405,6 +407,7 @@ export async function getListOfAllForms(host) {
                     additionalData,
                     localizedNames,
                     grantedActions,
+                    grantedSubmissionCollectionActions,
                 });
 
                 // Store current grants before modules build permission-gated row actions.
@@ -452,6 +455,8 @@ export async function getListOfAllForms(host) {
                     formId: formId,
                     dateCreated: dateCreated,
                     grantedActions: grantedActions,
+                    // Filled in asynchronously by loadFormsSubmissionCounts()
+                    numSubmissions: host.formsSubmissionCounts?.get(formId) ?? null,
                     actionButton: actionContainer,
                 };
 
@@ -519,6 +524,120 @@ export async function getListOfAllForms(host) {
             timeout: 0,
         });
     }
+}
+
+// ---------------------------------------------------------------------------
+// Submission counts
+// ---------------------------------------------------------------------------
+
+/** Maximum number of forms whose submissions are counted at the same time. */
+const SUBMISSION_COUNT_CONCURRENCY = 4;
+
+/**
+ * Returns true if the user may read all submitted submissions of a form, so the
+ * number of readable submissions equals the number of submissions of the form.
+ *
+ * @param {object|undefined} form - Form entry of `host.forms`.
+ * @returns {boolean}
+ */
+function mayReadAllFormSubmissions(form) {
+    const actions = form?.grantedSubmissionCollectionActions ?? [];
+    return actions.some((action) =>
+        [SUBMISSION_PERMISSIONS.READ, SUBMISSION_PERMISSIONS.MANAGE].includes(action),
+    );
+}
+
+/**
+ * Counts the submitted (non-draft) submissions of a form.
+ *
+ * The API has no count endpoint and no submission state filter, so all readable
+ * submissions are fetched (following the pagination) and counted.
+ *
+ * @param {object} host
+ * @param {string} formId
+ * @returns {Promise<number>}
+ */
+export async function apiGetSubmittedSubmissionsCount(host, formId) {
+    const options = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/ld+json',
+            Authorization: 'Bearer ' + host.auth.token,
+        },
+    };
+
+    let url =
+        host.entryPointUrl +
+        '/formalize/submissions?' +
+        new URLSearchParams({formIdentifier: formId, perPage: '9999'}).toString();
+    let count = 0;
+    while (url) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`Failed to load submissions: ${response.status}`);
+        }
+        const page = await response.json();
+        count += (page['hydra:member'] ?? []).filter(
+            (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED,
+        ).length;
+        const next = page['hydra:view']?.['hydra:next'];
+        url = next ? new URL(next, host.entryPointUrl).href : null;
+    }
+    return count;
+}
+
+/**
+ * Loads the number of submitted submissions of all forms listed in the overview
+ * and stores them in `host.formsSubmissionCounts` (form identifier -> count).
+ *
+ * Only forms whose submissions the user may read on form level are counted,
+ * all other forms keep an empty cell. The map is replaced after every form, so
+ * the overview can show the counts while the remaining ones are still loading.
+ *
+ * @param {object} host - The ManageForms element.
+ * @returns {Promise<void>}
+ */
+export function loadFormsSubmissionCounts(host) {
+    if (host.loadSubmissionCountsPromise) return host.loadSubmissionCountsPromise;
+
+    // Forms whose count was already requested in the running load
+    const requestedFormIds = new Set();
+    // Returns the next listed form that still needs to be counted. The list is read
+    // again every time, so forms added while loading are counted as well.
+    const getNextFormId = () =>
+        (host.allForms ?? [])
+            .map((form) => form.formId)
+            .find(
+                (formId) =>
+                    !requestedFormIds.has(formId) &&
+                    mayReadAllFormSubmissions(host.forms.get(formId)),
+            );
+
+    host.loadSubmissionCountsPromise = (async () => {
+        const worker = async () => {
+            let formId;
+            while ((formId = getNextFormId()) !== undefined) {
+                requestedFormIds.add(formId);
+                try {
+                    const count = await apiGetSubmittedSubmissionsCount(host, formId);
+                    host.formsSubmissionCounts = new Map(host.formsSubmissionCounts).set(
+                        formId,
+                        count,
+                    );
+                } catch (e) {
+                    console.error(`Error counting the submissions of form ${formId}:`, e);
+                }
+            }
+        };
+
+        try {
+            await Promise.all(Array.from({length: SUBMISSION_COUNT_CONCURRENCY}, worker));
+        } finally {
+            host.loadSubmissionCountsPromise = null;
+        }
+    })();
+
+    return host.loadSubmissionCountsPromise;
 }
 
 // ---------------------------------------------------------------------------

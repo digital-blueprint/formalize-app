@@ -276,7 +276,7 @@ suite('manage forms table configuration', () => {
             page.optionsForms.columns
                 .filter(({visible}) => visible !== false)
                 .map(({field}) => field),
-            ['id', 'name', 'actionButton'],
+            ['id', 'name', 'numSubmissions', 'actionButton'],
         );
         assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 4);
 
@@ -288,7 +288,7 @@ suite('manage forms table configuration', () => {
             page.optionsForms.columns
                 .filter(({visible}) => visible !== false)
                 .map(({field}) => field),
-            ['id', 'name', 'module-organization', 'actionButton'],
+            ['id', 'name', 'module-organization', 'numSubmissions', 'actionButton'],
         );
         assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 2);
         assert.equal(page.optionsForms.langs.en.columns['module-organization'], 'Organization en');
@@ -1788,7 +1788,30 @@ suite('manage-forms and manage-submissions activities', () => {
             ['form-own', 'form-edit', 'form-shared', 'form-empty'],
         );
         assert.isFalse(requests.some((url) => url.pathname.startsWith('/authorization/')));
-        assert.isFalse(requests.some((url) => url.pathname === '/formalize/submissions'));
+
+        // Submissions are only counted for forms with form-level read permission
+        await waitFor(() => element.formsSubmissionCounts.size === 3);
+        assert.deepEqual(Object.fromEntries(element.formsSubmissionCounts), {
+            'form-own': 3,
+            'form-edit': 2,
+            'form-empty': 0,
+        });
+        assert.isFalse(
+            requests.some(
+                (url) =>
+                    url.pathname === '/formalize/submissions' &&
+                    url.searchParams.get('formIdentifier') === 'form-shared',
+            ),
+        );
+        await waitFor(() =>
+            getOverviewTable(element)
+                .tabulatorTable.getData()
+                .every(({formId, numSubmissions}) =>
+                    formId === 'form-shared'
+                        ? numSubmissions === null
+                        : numSubmissions === element.formsSubmissionCounts.get(formId),
+                ),
+        );
 
         // Open the submissions with the row action
         const row = element.allForms.find(({formId}) => formId === 'form-own');

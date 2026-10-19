@@ -190,7 +190,8 @@
         "submission-id": "Submission ID",
         "submission-row-actions-aria": "Actions for row {{id}}",
         "submission-table-draft-title": "Drafts",
-        "submission-table-submitted-title": "Submitted"
+        "submission-table-submitted-title": "Submitted",
+        "submissions-count": "Submissions"
     },
     "render-form": {
         "available-forms-description": "Select a form to start a new submission.",
