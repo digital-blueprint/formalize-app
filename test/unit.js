@@ -321,6 +321,14 @@ suite('manage forms table configuration', () => {
             ['id', 'name', 'numSubmissions', 'actionButton'],
         );
         assert.equal(page.optionsForms.columns.find(({field}) => field === 'name').widthGrow, 4);
+        assert.equal(
+            page.optionsForms.columns.find(({field}) => field === 'numSubmissions').width,
+            120,
+        );
+        assert.equal(
+            page.optionsForms.columns.find(({field}) => field === 'actionButton').width,
+            120,
+        );
 
         page.moduleColumns = [
             {field: 'module-organization', title: (lng) => `Organization ${lng}`},
