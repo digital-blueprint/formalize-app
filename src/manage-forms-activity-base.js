@@ -56,6 +56,7 @@ export function parseFormListAttribute(value) {
  * - `getFormsCollectionFilters()`: query parameters of the form collection request
  * - `isFormListed(entry)`: whether a form entry from the API is shown
  * - `createDefaultOverviewActions()`: the built-in overview actions
+ * - `hasOverviewRowSelection()`: whether the forms in the overview can be selected
  * - `handleRoute()`: shows the view matching the current routing URL
  */
 export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLitElement) {
@@ -160,6 +161,15 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
      */
     createDefaultOverviewActions() {
         return [];
+    }
+
+    /**
+     * Whether the forms in the overview can be selected with checkboxes, which is only
+     * useful if there are actions for multiple forms in the multi-actions dropdown.
+     * @returns {boolean}
+     */
+    hasOverviewRowSelection() {
+        return true;
     }
 
     /**
@@ -374,6 +384,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
                 .actionDefinitions=${this.formsOverviewActionDefinitions}
                 .actionHost=${this}
                 .moduleColumns=${this.formsOverviewColumns}
+                .rowSelection=${this.hasOverviewRowSelection()}
                 .submissionCounts=${this.formsSubmissionCounts}
                 .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                 .noFormsAvailable=${this.noFormsAvailable}

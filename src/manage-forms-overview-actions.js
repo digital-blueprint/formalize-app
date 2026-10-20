@@ -1,7 +1,11 @@
 import {FORM_PERMISSIONS} from './utils.js';
 
 export const OVERVIEW_ACTION_PLACEMENTS = {
+    // In the row actions (kebab) menu
     ROW: 'row',
+    // As always visible icon button in the row, next to the row actions menu
+    INLINE: 'inline',
+    // In the multi-actions dropdown above the table
     DROPDOWN: 'dropdown',
 };
 
@@ -58,9 +62,9 @@ export function createDefaultManageSubmissionsOverviewActions() {
     return [
         {
             id: 'open-submissions',
-            iconName: 'keyword-research',
-            placements: [OVERVIEW_ACTION_PLACEMENTS.ROW],
-            label: ({t, form}) => t('manage-forms.open-forms', {formName: form?.formName ?? ''}),
+            iconName: 'list',
+            placements: [OVERVIEW_ACTION_PLACEMENTS.INLINE],
+            label: ({t}) => t('manage-forms.open-forms'),
             ariaLabel: ({t, form}) =>
                 t('manage-forms.open-forms-aria', {formName: form?.formName ?? ''}),
             isEnabled: ({items}) => items.length === 1,

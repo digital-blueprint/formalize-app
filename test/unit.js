@@ -46,15 +46,35 @@ customElements.define(
 customElements.define('test-base-form-element', class extends BaseFormElement {});
 customElements.define('dbp-formalize-row-actions-menu', class extends RowActionsMenu {});
 
+/** Returns the row actions menu in a table row action container. */
+const getRowActionsMenu = (container) =>
+    [...container.children].find((element) => Array.isArray(element.options)) ?? null;
+
+/** Returns the always visible action buttons in a table row action container. */
+const getInlineRowActionButtons = (container) =>
+    [...container.children].filter((element) => element.dataset.action);
+
+/** Returns the IDs of the always visible action buttons of a table row. */
+const getInlineRowActionIds = (container) =>
+    getInlineRowActionButtons(container).map((button) => button.dataset.action);
+
 /** Returns the options of the row actions menu in a table row action container. */
-const getRowActions = (container) => container.firstElementChild?.options ?? [];
+const getRowActions = (container) => getRowActionsMenu(container)?.options ?? [];
 
 /** Returns the IDs of the actions in the row actions menu of a table row. */
 const getRowActionIds = (container) => getRowActions(container).map(({value}) => value);
 
-/** Runs an action of the row actions menu like a selection in the menu. */
-const runRowAction = (container, value) =>
-    container.firstElementChild.dispatchEvent(new CustomEvent('change', {detail: {value}}));
+/** Runs an action of a table row like a click on its button or a selection in the menu. */
+const runRowAction = (container, value) => {
+    const button = getInlineRowActionButtons(container).find(
+        (element) => element.dataset.action === value,
+    );
+    if (button) {
+        button.click();
+        return;
+    }
+    getRowActionsMenu(container).dispatchEvent(new CustomEvent('change', {detail: {value}}));
+};
 
 suite('available forms feature flag', () => {
     teardown(() => {
@@ -268,6 +288,28 @@ suite('submission error handling', () => {
 });
 
 suite('manage forms table configuration', () => {
+    test('should only show the selection checkboxes if row selection is enabled', () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+
+        page.updateTableOptions();
+        assert.equal(page.optionsForms.selectableRows, 'highlight');
+        assert.equal(page.optionsForms.rowHeader?.formatter, 'rowSelection');
+
+        page.rowSelection = false;
+        page.updateTableOptions();
+        assert.isFalse(page.optionsForms.selectableRows);
+        assert.isUndefined(page.optionsForms.rowHeader);
+    });
+
+    test('should not offer row selection in the manage-submissions overview', () => {
+        assert.isTrue(
+            document.createElement('dbp-formalize-manage-forms').hasOverviewRowSelection(),
+        );
+        assert.isFalse(
+            document.createElement('dbp-formalize-manage-submissions').hasOverviewRowSelection(),
+        );
+    });
+
     test('should add module columns to the forms table', () => {
         const page = document.createElement('test-manage-forms-overview-page');
 
@@ -839,7 +881,7 @@ suite('manage forms action menus', () => {
             allowListFrontendKeys: [],
             denyListFrontendKeys: [],
             loadedModules: new Map([
-                ['custom', {formId: 'custom', moduleInstance: createModule('custom', 'list')}],
+                ['custom', {formId: 'custom', moduleInstance: createModule('custom', 'eye')}],
                 ['default', {formId: 'default', moduleInstance: createModule('default', null)}],
             ]),
             forms: new Map(),
@@ -877,11 +919,11 @@ suite('manage forms action menus', () => {
         }
 
         const getIconName = (formId) =>
-            getRowActions(host.allForms.find((form) => form.formId === formId).actionButton).find(
-                ({value}) => value === 'open-submissions',
-            ).iconName;
-        assert.equal(getIconName('custom'), 'list');
-        assert.equal(getIconName('default'), 'keyword-research');
+            getInlineRowActionButtons(
+                host.allForms.find((form) => form.formId === formId).actionButton,
+            ).find((button) => button.dataset.action === 'open-submissions').iconName;
+        assert.equal(getIconName('custom'), 'eye');
+        assert.equal(getIconName('default'), 'list');
         const defaultActions = [{id: 'default'}];
         assert.equal(
             new BaseObject().getManageFormsOverviewActions({}, defaultActions),
@@ -950,9 +992,11 @@ suite('manage forms action menus', () => {
             await getListOfAllForms(host);
 
             const actionButton = host.allForms[0].actionButton;
-            assert.deepEqual(getRowActionIds(actionButton), ['open-submissions', 'preview']);
-            assert.equal(getRowActions(actionButton)[1].iconName, 'eye');
-            assert.equal(getRowActions(actionButton)[1].label, 'Preview');
+            // Opening the submissions is always visible, all other actions are in the menu
+            assert.deepEqual(getInlineRowActionIds(actionButton), ['open-submissions']);
+            assert.deepEqual(getRowActionIds(actionButton), ['preview']);
+            assert.equal(getRowActions(actionButton)[0].iconName, 'eye');
+            assert.equal(getRowActions(actionButton)[0].label, 'Preview');
 
             host.forms.set('job-1', {...host.forms.get('job-1'), formName: 'Updated developer'});
             runRowAction(actionButton, 'preview');
@@ -976,9 +1020,11 @@ suite('manage forms action menus', () => {
                     'preview',
                 ],
             );
-            // The row menu contains every action that is possible for this single form
-            assert.deepEqual(getRowActionIds(host.allForms[0].actionButton), [
+            // The row menu contains every other action that is possible for this single form
+            assert.deepEqual(getInlineRowActionIds(host.allForms[0].actionButton), [
                 'open-submissions',
+            ]);
+            assert.deepEqual(getRowActionIds(host.allForms[0].actionButton), [
                 'edit',
                 'edit-permission',
                 'preview',
@@ -1172,7 +1218,9 @@ suite('manage forms action menus', () => {
         // Trust the backend's form eligibility without additional requests.
         assert.lengthOf(requestedUrls, 1);
         assert.lengthOf(host.allForms, 1);
-        assert.deepEqual(getRowActionIds(host.allForms[0].actionButton), ['open-submissions']);
+        assert.deepEqual(getInlineRowActionIds(host.allForms[0].actionButton), [
+            'open-submissions',
+        ]);
     });
 
     test('should add module column values to the rows and refresh changed values', async () => {
@@ -1825,6 +1873,11 @@ suite('manage-forms and manage-submissions activities', () => {
         );
         assert.equal(formSubmissions.activeFormName, 'Own submissions only');
         assert.isFalse(element.showFormsTable);
+
+        // The quick view of a submission is always visible next to the row actions menu
+        const submissionActions = formSubmissions.submissions.submitted[0].htmlButtons;
+        assert.deepEqual(getInlineRowActionIds(submissionActions), ['quick-view']);
+        assert.notInclude(getRowActionIds(submissionActions), 'quick-view');
         assert.isTrue(
             requests.some(
                 (url) =>

@@ -16,6 +16,7 @@ import {
 } from './utils.js';
 import xss from 'xss';
 import {
+    OVERVIEW_ACTION_PLACEMENTS,
     createDefaultManageFormsOverviewActions,
     createManageFormsOverviewActionContext,
     resolveManageFormsOverviewAction,
@@ -120,8 +121,65 @@ export function loadModules(host) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Returns true if the action is shown as icon button in the row instead of in the row
+ * actions menu.
+ *
+ * @param {Record<string, any>} action
+ * @returns {boolean}
+ */
+const isInlineOverviewAction = (action) =>
+    Array.isArray(action?.placements) &&
+    action.placements.includes(OVERVIEW_ACTION_PLACEMENTS.INLINE);
+
+/**
+ * Creates the always visible icon buttons of a form in the forms overview for the
+ * actions with the `inline` placement that are visible and enabled for this single form.
+ *
+ * @param {object} host - The ManageForms element.
+ * @param {Array<Record<string, any>>} actions - Overview action definitions.
+ * @param {() => object} getContext - Returns the current action context of the row.
+ * @returns {HTMLElement[]}
+ */
+export function createManageFormsOverviewInlineActionButtons(host, actions, getContext) {
+    const initialContext = getContext();
+    return actions
+        .filter(
+            (action) =>
+                action?.id &&
+                typeof action.handler === 'function' &&
+                isInlineOverviewAction(action),
+        )
+        .filter((action) => {
+            const resolved = resolveManageFormsOverviewAction(action, initialContext);
+            return resolved.visible && resolved.enabled;
+        })
+        .map((action) => {
+            const resolved = resolveManageFormsOverviewAction(action, initialContext);
+            const button = host.createScopedElement('dbp-formalize-get-details-button');
+            button.setAttribute('subscribe', 'lang');
+            button.dataset.action = action.id;
+            if (action.iconName) {
+                button.iconName = action.iconName;
+            }
+            button.title = resolved.title;
+            button.ariaLabel = resolved.ariaLabel;
+            button.addEventListener('click', (event) => {
+                // Clicking the button must not select the table row
+                event.stopPropagation();
+                const currentContext = {...getContext(), event};
+                const currentAction = resolveManageFormsOverviewAction(action, currentContext);
+                if (currentAction.visible && currentAction.enabled) {
+                    action.handler(currentContext);
+                }
+            });
+            return button;
+        });
+}
+
+/**
  * Creates the row actions menu of a form in the forms overview. It contains every action
- * that is visible and enabled for this single form, regardless of its placement.
+ * that is visible and enabled for this single form, except the `inline` actions, which
+ * are shown as icon buttons next to the menu.
  *
  * @param {object} host - The ManageForms element.
  * @param {Array<Record<string, any>>} actions - Overview action definitions.
@@ -131,7 +189,12 @@ export function loadModules(host) {
 export function createManageFormsOverviewRowActionsMenu(host, actions, getContext) {
     const initialContext = getContext();
     const menuActions = actions
-        .filter((action) => action?.id && typeof action.handler === 'function')
+        .filter(
+            (action) =>
+                action?.id &&
+                typeof action.handler === 'function' &&
+                !isInlineOverviewAction(action),
+        )
         .map((action) => ({
             action,
             resolved: resolveManageFormsOverviewAction(action, initialContext),
@@ -417,7 +480,8 @@ export async function getListOfAllForms(host) {
 
                 const managedForm = host.forms.get(formId);
 
-                // Build the row actions container with a menu of all actions for this form.
+                // Build the row actions container with the inline action buttons and a menu
+                // of all other actions for this form.
                 const actionContainer = document.createElement('span');
                 actionContainer.style.cssText =
                     'display: inline-flex; gap: 0.5rem; align-items: center;';
@@ -440,6 +504,13 @@ export async function getListOfAllForms(host) {
                         overviewActions.set(action.id, action);
                     }
                 });
+                actionContainer.append(
+                    ...createManageFormsOverviewInlineActionButtons(
+                        host,
+                        rowActions,
+                        getCurrentActionContext,
+                    ),
+                );
                 const rowActionsMenu = createManageFormsOverviewRowActionsMenu(
                     host,
                     rowActions,
@@ -807,21 +878,25 @@ export async function getAllFormSubmissions(host, formId) {
                 !!activeForm.formSlug &&
                 typeof activeForm.moduleInstance?.hasReadOnlyMode === 'function' &&
                 activeForm.moduleInstance.hasReadOnlyMode();
-            const rowActions = [
-                {
-                    value: 'quick-view',
-                    label: i18n.t('manage-forms.open-quick-view'),
-                    iconName: 'keyword-research',
-                    handler: () => {
-                        const routingData = host.getRoutingData();
-                        const routeFormId = routingData.pathSegments[0];
-                        if (routeFormId.match(/[0-9a-f-]+/)) {
-                            host.setSubmissionDetailsRoute(submissionId);
-                            host.requestDetailedSubmission(state, cols, id);
-                        }
-                    },
-                },
-            ];
+            // The quick view is always visible next to the row actions menu
+            const quickViewButton = host.createScopedElement('dbp-formalize-get-details-button');
+            quickViewButton.setAttribute('subscribe', 'lang');
+            quickViewButton.dataset.action = 'quick-view';
+            quickViewButton.title = i18n.t('manage-forms.open-quick-view');
+            quickViewButton.ariaLabel = i18n.t('manage-forms.open-quick-view-aria', {id});
+            quickViewButton.addEventListener('click', (event) => {
+                // Clicking the button must not select the table row
+                event.stopPropagation();
+                const routingData = host.getRoutingData();
+                const routeFormId = routingData.pathSegments[0];
+                if (routeFormId.match(/[0-9a-f-]+/)) {
+                    host.setSubmissionDetailsRoute(submissionId);
+                    host.requestDetailedSubmission(state, cols, id);
+                }
+            });
+            actionButtonsDiv.appendChild(quickViewButton);
+
+            const rowActions = [];
 
             // Link to the submission in the read-only render form view
             if (hasReadOnlyMode) {
@@ -872,14 +947,18 @@ export async function getAllFormSubmissions(host, formId) {
                 });
             }
 
-            actionButtonsDiv.appendChild(
-                createRowActionsMenu(
-                    host,
-                    i18n.t('manage-forms.submission-row-actions-aria', {id}),
-                    rowActions,
-                ),
-            );
+            if (rowActions.length > 0) {
+                actionButtonsDiv.appendChild(
+                    createRowActionsMenu(
+                        host,
+                        i18n.t('manage-forms.submission-row-actions-aria', {id}),
+                        rowActions,
+                    ),
+                );
+            }
             actionButtonsDiv.classList.add('actions-buttons');
+            actionButtonsDiv.style.cssText =
+                'display: inline-flex; gap: 0.5rem; align-items: center;';
             cols.htmlButtons = actionButtonsDiv;
             submissions_list.push(cols);
         }
@@ -911,7 +990,7 @@ export async function getAllFormSubmissions(host, formId) {
                     columnDefinition.hozAlign = 'right';
                     columnDefinition.vertAlign = 'middle';
                     columnDefinition.headerSort = false;
-                    columnDefinition.minWidth = 64;
+                    columnDefinition.minWidth = 104;
                     columnDefinition.frozen = true;
                     columnDefinition.headerHozAlign = 'right';
                     columnDefinition.download = false;

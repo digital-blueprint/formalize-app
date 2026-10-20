@@ -73,7 +73,7 @@ export function setSubmissionFormOptions(host, state) {
                 columnDefinition.hozAlign = 'right';
                 columnDefinition.vertAlign = 'middle';
                 columnDefinition.headerSort = false;
-                columnDefinition.minWidth = 64;
+                columnDefinition.minWidth = 104;
                 columnDefinition.frozen = true;
                 columnDefinition.headerHozAlign = 'right';
                 columnDefinition.download = false;

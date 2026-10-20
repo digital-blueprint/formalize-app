@@ -60,6 +60,11 @@ export class ManageSubmissions extends ManageFormsActivityBase {
         return createDefaultManageSubmissionsOverviewActions();
     }
 
+    hasOverviewRowSelection() {
+        // There are no actions for multiple forms in this activity
+        return false;
+    }
+
     getFormSubmissions() {
         return this._('dbp-formalize-form-submissions');
     }

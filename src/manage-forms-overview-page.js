@@ -64,6 +64,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.actions = [];
         // Number of currently selected forms in the overview table.
         this.selectedFormsCount = 0;
+        // Whether forms can be selected with checkboxes for the multi-actions dropdown
+        this.rowSelection = true;
         this.searchInProgress = false;
         this._restoringUrlState = false;
         this._urlStateReady = false;
@@ -102,6 +104,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             creatableModulesCount: {type: Number, attribute: false},
             actions: {type: Array, attribute: false},
             selectedFormsCount: {type: Number, attribute: false},
+            rowSelection: {type: Boolean, attribute: false},
             searchInProgress: {type: Boolean, attribute: false},
         };
     }
@@ -126,7 +129,9 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         // Values set before the first update have an undefined old value, so the
         // initial column configuration must be applied here as well.
         const optionsChanged =
-            changedProperties.has('lang') || changedProperties.has('moduleColumns');
+            changedProperties.has('lang') ||
+            changedProperties.has('moduleColumns') ||
+            changedProperties.has('rowSelection');
         if (optionsChanged) {
             this.updateTableOptions();
         }
@@ -306,7 +311,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                     formatter: 'html',
                     hozAlign: 'right',
                     widthShrink: 1,
-                    minWidth: 44,
+                    minWidth: 104,
                     headerSort: false,
                 },
             ],
@@ -316,8 +321,11 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 resizable: false,
             },
             initialSort: [{column: 'dateCreated', dir: 'desc'}],
-            selectableRows: 'highlight',
-            rowHeader: {
+            data: this.forms,
+        };
+        if (this.rowSelection) {
+            this.optionsForms.selectableRows = 'highlight';
+            this.optionsForms.rowHeader = {
                 formatter: 'rowSelection',
                 titleFormatter: 'rowSelection',
                 titleFormatterParams: {
@@ -335,9 +343,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 minWidth: 40,
                 widthGrow: 0,
                 widthShrink: 0,
-            },
-            data: this.forms,
-        };
+            };
+        } else {
+            this.optionsForms.selectableRows = false;
+        }
         this._tableOptionsVersion++;
     }
 
