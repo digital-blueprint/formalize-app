@@ -361,6 +361,33 @@ suite('manage forms table configuration', () => {
         }
     });
 
+    test('should align submission counts to the left and only actions to the right', () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        const defaults = page.optionsForms.columnDefaults;
+        for (const column of page.optionsForms.columns.filter(({visible}) => visible !== false)) {
+            assert.equal(
+                column.hozAlign ?? defaults.hozAlign,
+                column.field === 'actionButton' ? 'right' : 'left',
+            );
+        }
+        const countColumn = page.optionsForms.columns.find(({field}) => field === 'numSubmissions');
+        assert.notEqual(countColumn.headerHozAlign, 'right');
+    });
+
+    test('should wait for translation overrides before building the forms table', () => {
+        const page = document.createElement('test-manage-forms-overview-page');
+        let buildCount = 0;
+        page.getFormsTable = () => ({buildTable: () => buildCount++});
+
+        page._loadingTranslationOverrides = true;
+        page.syncTable();
+        assert.equal(buildCount, 0);
+
+        page._loadingTranslationOverrides = false;
+        page.syncTable();
+        assert.equal(buildCount, 1);
+    });
+
     test('should rebuild a forms table that was built with outdated options', () => {
         const page = document.createElement('test-manage-forms-overview-page');
         let destroyCount = 0;

@@ -73,6 +73,8 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         // used to rebuild the table when its columns or labels are outdated.
         this._tableOptionsVersion = 0;
         this._builtTableOptionsVersion = null;
+        this._loadingTranslationOverrides = false;
+        this._translationOverridesVersion = 0;
         this.updateTableOptions();
     }
 
@@ -106,6 +108,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             selectedFormsCount: {type: Number, attribute: false},
             rowSelection: {type: Boolean, attribute: false},
             searchInProgress: {type: Boolean, attribute: false},
+            _loadingTranslationOverrides: {state: true},
         };
     }
 
@@ -184,8 +187,13 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
      * because the table options are built with the translations at that time.
      */
     async loadTranslationOverrides() {
+        const version = ++this._translationOverridesVersion;
+        this._loadingTranslationOverrides = true;
         await setOverridesByGlobalCache(this._i18n, this);
+        if (version !== this._translationOverridesVersion) return;
+
         this.updateTableOptions();
+        this._loadingTranslationOverrides = false;
         if (this.showFormsTable) {
             this.syncTable();
         }
@@ -297,8 +305,6 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                 {
                     field: 'numSubmissions',
                     sorter: 'number',
-                    hozAlign: 'right',
-                    headerHozAlign: 'right',
                     width: 120,
                 },
                 // Hidden helper columns carrying data needed for the actions.
@@ -389,6 +395,9 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
      * @param {{rebuild?: boolean}} options
      */
     syncTable({rebuild = false} = {}) {
+        // Wait for the final column labels instead of showing untranslated defaults.
+        if (this._loadingTranslationOverrides) return;
+
         const table = this.getFormsTable();
         if (!table) return;
 
@@ -657,7 +666,10 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         const hasDropdownActions = formActions.length > 0;
 
         return html`
-            <div class="container forms-table ${classMap({hidden: !this.showFormsTable})}">
+            <div
+                class="container forms-table ${classMap({
+                    hidden: !this.showFormsTable || this._loadingTranslationOverrides,
+                })}">
                 <div
                     class="forms-table-toolbar ${classMap({
                         hidden: !this.loadingFormsTable && this.creatableModulesCount === 0,
