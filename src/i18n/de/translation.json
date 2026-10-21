@@ -129,7 +129,7 @@
         "edit-form-aria": "Formular {{- formName}} bearbeiten",
         "edit-form-button": "Formular bearbeiten",
         "edit-form-permission-aria": "Berechtigungen für Formular {{- formName}} bearbeiten",
-        "edit-permission-button-text": "Berechtigung bearbeiten",
+        "edit-permission-button-text": "Berechtigungen bearbeiten",
         "edit-permission-modal-title": "Berechtigung bearbeiten",
         "edit-submission-button-text": "Bearbeiten",
         "export-attachments-label": "Anhänge ({{n}})",
