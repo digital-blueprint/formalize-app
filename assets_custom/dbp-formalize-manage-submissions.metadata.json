@@ -3,12 +3,12 @@
     "module_src": "dbp-formalize-manage-submissions.js",
     "routing_name": "manage-submissions",
     "name": {
-        "de": "Meine Formulareinreichungen",
-        "en": "My form submissions"
+        "de": "Formulare verwalten",
+        "en": "Manage forms"
     },
     "short_name": {
-        "de": "Meine Formulareinreichungen",
-        "en": "My form submissions"
+        "de": "Formulare verwalten",
+        "en": "Manage forms"
     },
     "description": {
         "de": "Formulareinreichungen gemäß Ihren Berechtigungen anzeigen, bearbeiten und löschen",
