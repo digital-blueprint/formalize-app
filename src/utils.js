@@ -26,7 +26,7 @@ export const getFormRenderUrl = (formUrlSlug, lang, formIdentifier = '') => {
 };
 
 export const getFormManageSubmissionsUrl = (formId, lang) => {
-    return getActivityUrl('manage-submissions', formId, lang);
+    return getActivityUrl('manage-forms', formId, lang);
 };
 
 // Submission states

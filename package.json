@@ -88,8 +88,9 @@
         "watch-custom": "rolldown -c rolldown.config.js --watch --environment APP_ENV:localCustom",
         "watch-full": "rolldown -c rolldown.config.js --watch --environment FORCE_FULL",
         "watch-bs": "rolldown -c rolldown.config.js --watch --environment APP_ENV:bs",
-        "test": "rolldown -c rolldown.config.js --environment APP_ENV:test && web-test-runner",
-        "test-full": "rolldown -c rolldown.config.js --environment FORCE_FULL,APP_ENV:test && web-test-runner",
+        "test": "npm run test:activity-routing && rolldown -c rolldown.config.js --environment APP_ENV:test && web-test-runner",
+        "test:activity-routing": "node --test test/activity-routing.test.mjs",
+        "test-full": "npm run test:activity-routing && rolldown -c rolldown.config.js --environment FORCE_FULL,APP_ENV:test && web-test-runner",
         "publish": "sed -i 's/\"private\": true/\"private\": false/' package.json && can-npm-publish --verbose 2>&1 && npm publish --access public 2>&1; sed -i 's/\"private\": false/\"private\": true/' package.json",
         "tsc": "tsc -p jsconfig.json"
     }
