@@ -1709,6 +1709,28 @@ suite('manage forms action menus', () => {
 });
 
 suite('manage-forms and manage-submissions activities', () => {
+    test('creation requires form read and create permissions, or form management', () => {
+        const element = document.createElement('test-manage-submissions');
+        for (const [actions, expected] of [
+            [[], false],
+            [['read'], false],
+            [['create_submissions'], false],
+            [['update'], false],
+            [['read', 'create_submissions'], true],
+            [['manage'], true],
+        ]) {
+            assert.equal(
+                element.canCreateSubmission({grantedFormActions: actions}),
+                expected,
+                JSON.stringify(actions),
+            );
+        }
+        assert.isFalse(element.canCreateSubmission(null));
+        assert.isFalse(
+            element.canCreateSubmission({grantedSubmissionCollectionActions: ['manage']}),
+        );
+    });
+
     const forms = [
         {
             identifier: 'form-own',
@@ -1898,6 +1920,7 @@ suite('manage-forms and manage-submissions activities', () => {
 
         // Open the submissions with the row action
         const row = element.allForms.find(({formId}) => formId === 'form-own');
+        element.forms.get('form-own').formSlug = 'demo-form';
         runRowAction(row.actionButton, 'open-submissions');
         assert.equal(element.routes.at(-1), '/form-own');
 
@@ -1908,6 +1931,15 @@ suite('manage-forms and manage-submissions activities', () => {
         );
         assert.equal(formSubmissions.activeFormName, 'Own submissions only');
         assert.isFalse(element.showFormsTable);
+        assert.isFalse(formSubmissions.hideCreateSubmissionButton);
+        await formSubmissions.getSubmissionsPage().updateComplete;
+        const createButton = formSubmissions
+            .getSubmissionsPage()
+            .shadowRoot.querySelector('.table-header.submissions a.button');
+        assert.ok(createButton);
+        assert.equal(createButton.textContent.trim(), 'Create submission');
+        assert.include(createButton.href, '/en/render-form/demo-form?form-identifier=form-own');
+        assert.equal(createButton.target, '_blank');
 
         // The quick view of a submission is always visible next to the row actions menu
         const submissionActions = formSubmissions.submissions.submitted[0].htmlButtons;
@@ -1944,6 +1976,12 @@ suite('manage-forms and manage-submissions activities', () => {
         );
         assert.lengthOf(formSubmissions.rawSubmissions, 2);
         assert.isTrue(formSubmissions.hideCreateSubmissionButton);
+        await formSubmissions.getSubmissionsPage().updateComplete;
+        assert.isNull(
+            formSubmissions
+                .getSubmissionsPage()
+                .shadowRoot.querySelector('.table-header.submissions a.button'),
+        );
         await waitFor(
             () =>
                 formSubmissions.showSubmissionTables &&

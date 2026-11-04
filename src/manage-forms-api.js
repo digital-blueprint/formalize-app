@@ -470,6 +470,7 @@ export async function getListOfAllForms(host) {
                     additionalData,
                     localizedNames,
                     grantedActions,
+                    grantedFormActions: entry['grantedFormActions'] ?? grantedActions,
                     grantedSubmissionCollectionActions,
                 });
 

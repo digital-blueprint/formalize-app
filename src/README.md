@@ -73,7 +73,7 @@ The form collection is requested with `whereMayReadSubmissions=true`; the backen
 #### Attributes
 
 - `lang`, `entry-point-url`, `allow-list-frontend-keys`, `deny-list-frontend-keys` and `auth`: same as in [dbp-formalize-manage-forms](#dbp-formalize-manage-forms)
-- Creating new submissions is intentionally not offered here; users follow the specific form link provided on a website instead. There is no new overview of all open forms.
+- The **Create submission** button opens the form in a new tab when a renderable form link is available and the user has both `read` and `create_submissions` form permissions (or `manage`). This is permission-controlled and has no configuration attribute to disable it. There is no new overview of all open forms.
 - `enable-submission-permission-editing` (optional, default: off): enables permission editing for selected submissions when the user has `manage` on every selected submission
     - example `enable-submission-permission-editing`
 

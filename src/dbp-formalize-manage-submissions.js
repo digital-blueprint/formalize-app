@@ -7,6 +7,7 @@ import {FormSubmissions} from './form-submissions.js';
 import {createDefaultManageSubmissionsOverviewActions} from './manage-forms-overview-actions.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
 import {getListOfAllForms} from './manage-forms-api.js';
+import {FORM_PERMISSIONS} from './utils.js';
 
 /**
  * Activity to view and manage form submissions.
@@ -67,6 +68,15 @@ export class ManageSubmissions extends ManageFormsActivityBase {
 
     getFormSubmissions() {
         return this._('dbp-formalize-form-submissions');
+    }
+
+    canCreateSubmission(form) {
+        const actions = form?.grantedFormActions ?? [];
+        return (
+            actions.includes(FORM_PERMISSIONS.MANAGE) ||
+            (actions.includes(FORM_PERMISSIONS.READ) &&
+                actions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS))
+        );
     }
 
     handleRoute() {
@@ -140,7 +150,7 @@ export class ManageSubmissions extends ManageFormsActivityBase {
                     .auth=${this.auth}
                     .routingUrl=${this.routingUrl}
                     .form=${activeForm}
-                    .hideCreateSubmissionButton=${true}
+                    .hideCreateSubmissionButton=${!this.canCreateSubmission(activeForm)}
                     .enableSubmissionPermissionEditing=${this.enableSubmissionPermissionEditing}
                     .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                     @submissions-deleted=${(event) => this.handleSubmissionsDeleted(event)}
