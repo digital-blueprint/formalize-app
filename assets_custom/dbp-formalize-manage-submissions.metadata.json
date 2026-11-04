@@ -1,7 +1,7 @@
 {
     "element": "dbp-formalize-manage-submissions",
     "module_src": "dbp-formalize-manage-submissions.js",
-    "routing_name": "manage-forms",
+    "routing_name": "manage-submissions",
     "name": {
         "de": "Formulare verwalten",
         "en": "Manage forms"

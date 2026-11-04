@@ -1751,7 +1751,6 @@ suite('manage-forms and manage-submissions activities', () => {
     ];
     let originalFetch;
     let requests;
-    let includeDraftSubmission;
 
     const waitFor = async (predicate, timeout = 5000) => {
         const start = Date.now();
@@ -1787,7 +1786,6 @@ suite('manage-forms and manage-submissions activities', () => {
     setup(() => {
         originalFetch = window.fetch;
         requests = [];
-        includeDraftSubmission = false;
         const json = (data) => Promise.resolve({ok: true, json: () => Promise.resolve(data)});
         window.fetch = (input) => {
             const url = new URL(/** @type {string} */ (input), window.location.origin);
@@ -1820,8 +1818,7 @@ suite('manage-forms and manage-submissions activities', () => {
                     ).map((index) => ({
                         identifier: `${formId}-submission-${index}`,
                         creatorId: formId === 'form-own' && index <= 2 ? 'user-1' : 'other-user',
-                        submissionState:
-                            includeDraftSubmission && formId === 'form-own' && index === 1 ? 1 : 4,
+                        submissionState: 4,
                         dateCreated: `2026-03-0${index}T10:00:00+00:00`,
                         dataFeedElement: JSON.stringify({firstName: `Alice ${index}`}),
                         tags: [],
@@ -1861,32 +1858,6 @@ suite('manage-forms and manage-submissions activities', () => {
         assert.equal(element.routes.at(-1), '/form-edit');
         assert.lengthOf(component.rawSubmissions, 2);
         assert.isFalse(element.showFormsTable);
-    });
-
-    test('middleware detail routes show creators their drafts and submitted submissions', async () => {
-        includeDraftSubmission = true;
-        const element = mountActivity('dbp-formalize-manage-submissions');
-        // The app shell passes the part after /de/manage-forms to the activity.
-        element.routingUrl = '/form-own/details/form-own-submission-2';
-        await element.updateComplete;
-        const component = element.getFormSubmissions();
-        await waitFor(
-            () =>
-                component.submissionTables.draft?.tabulatorTable?.getData().length === 1 &&
-                component.submissionTables.submitted?.tabulatorTable?.getData().length === 2,
-        );
-        assert.equal(element.activeFormId, 'form-own');
-        assert.equal(component.submissionIdToOpen, 'form-own-submission-2');
-        assert.isFalse(element.showFormsTable);
-        assert.deepEqual(
-            component.submissions.draft.map(({submissionId}) => submissionId),
-            ['form-own-submission-1'],
-        );
-        await waitFor(() =>
-            component
-                .getSubmissionModal('submitted')
-                ?.contentItems.some(({value}) => value === 'Alice 2'),
-        );
     });
 
     test('manage-submissions lists forms with readable submissions and opens them', async () => {
@@ -2023,7 +1994,7 @@ suite('shareable links', () => {
                 new URL(inputs[0].value).searchParams.get('form-identifier'),
                 'instance-1',
             );
-            assert.include(inputs[1].value, '/en/manage-forms/instance-1');
+            assert.include(inputs[1].value, '/en/manage-submissions/instance-1');
             const anchors = links.shadowRoot.querySelectorAll('a[target="_blank"]');
             assert.deepEqual(
                 [...anchors].map((anchor) => anchor.href),

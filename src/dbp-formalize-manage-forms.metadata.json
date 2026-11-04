@@ -1,7 +1,7 @@
 {
     "element": "dbp-formalize-manage-forms",
     "module_src": "dbp-formalize-manage-forms.js",
-    "routing_name": "manage-form-definitions",
+    "routing_name": "manage-forms",
     "name": {
         "de": "Formulare verwalten",
         "en": "Manage forms"
