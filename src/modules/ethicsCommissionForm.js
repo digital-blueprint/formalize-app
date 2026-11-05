@@ -4904,7 +4904,7 @@ class FormalizeFormElement extends BaseFormElement {
                             }}
                             .value=${data.complyWithSustainabilityStrategy || ''}>
                             <span slot="label">
-                                <dbp-translated subscribe="lang">
+                                <dbp-translated inline subscribe="lang">
                                     <div slot="de">
                                         3.4. Entspricht Ihr Forschungsvorhaben der <a href='https://www.tugraz.at/tu-graz/universitaet/klimaneutrale-tu-graz/roadmap/' target='_blank'>Nachhaltigkeitsstrategie</a> der TU Graz?
                                     </div>
@@ -5145,7 +5145,7 @@ class FormalizeFormElement extends BaseFormElement {
                             }}
                             .value=${data.replaceHumanDecisionMaking || ''}>
                             <span slot="label">
-                                <dbp-translated subscribe="lang">
+                                <dbp-translated inline subscribe="lang">
                                     <div slot="de">
                                         5.1. Können die im Forschungsvorhaben eingesetzten informationsverarbeitenden Systeme menschliche ethisch relevante Entscheidungen im Projekt beeinflussen, ersetzen oder umgehen?
                                     </div>
