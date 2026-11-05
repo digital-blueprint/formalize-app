@@ -63,6 +63,10 @@ export function setSubmissionFormOptions(host, state) {
                 columnDefinition.visible = false;
                 columnDefinition.title = host._i18n.t('manage-forms.submission-id');
             }
+            if (columnDefinition.field === 'creatorId') {
+                columnDefinition.visible = true;
+                columnDefinition.title = host._i18n.t('manage-forms.creator');
+            }
             if (columnDefinition.field === 'dateCreated') {
                 columnDefinition.visible = true;
                 columnDefinition.title = host.lang === 'de' ? 'Erstellt am' : 'Date created';
@@ -266,6 +270,7 @@ function getSchemaFields(
                 def.field !== 'dateCreated' &&
                 def.field !== 'tags' &&
                 def.field !== 'identifier' &&
+                def.field !== 'creatorId' &&
                 def.field !== 'submissionId' &&
                 def.field !== 'htmlButtons'
             ) {
@@ -275,6 +280,9 @@ function getSchemaFields(
         });
     } else {
         Object.keys(formSchemaFields.properties).forEach((field) => {
+            // creatorId is submission metadata and is added as a system field below.
+            if (field === 'creatorId') return;
+
             const schemaField = formSchemaFields.properties[field];
 
             const definition = {
@@ -322,6 +330,7 @@ function getSystemFields(initialColumnDefinitions, formSchemaFields) {
     return initialColumnDefinitions.filter(
         (def) =>
             (def.field === 'identifier' && !Object.hasOwn(schemaProperties, 'identifier')) ||
+            def.field === 'creatorId' ||
             def.field === 'submissionId' ||
             def.field === 'htmlButtons',
     );

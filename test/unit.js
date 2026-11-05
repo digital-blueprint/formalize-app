@@ -487,6 +487,60 @@ suite('manage forms table configuration', () => {
 
         assert.equal(definitions[0].title, 'Einreichungs-ID');
     });
+
+    test('should configure the creator as a visible system column', () => {
+        const host = {
+            lang: 'en',
+            _i18n: {t: (key) => ({'manage-forms.creator': 'Creator'})[key]},
+            options_submissions: {},
+        };
+        setSubmissionFormOptions(host, 'submitted');
+        const definitions = [{field: 'creatorId', title: 'creatorId'}];
+
+        host.options_submissions.submitted.autoColumnsDefinitions(definitions);
+
+        assert.equal(definitions[0].title, 'Creator');
+        assert.isTrue(definitions[0].visible);
+    });
+
+    test('should include creatorId only once when it is also present in the schema', () => {
+        const definitions = [
+            {field: 'dateCreated', title: 'Date created'},
+            {field: 'creatorId', title: 'Creator', visible: true},
+            {field: 'submissionId', title: 'Submission ID'},
+        ];
+        const host = {
+            availableTags: [],
+            form: {
+                dataFeedSchema: JSON.stringify({
+                    properties: {
+                        creatorId: {localizedName: {en: 'Schema creator'}},
+                    },
+                }),
+            },
+            lang: 'en',
+            submissionTables: {
+                submitted: {
+                    getColumns: () =>
+                        definitions.map((definition) => ({
+                            getDefinition: () => definition,
+                        })),
+                },
+            },
+            submissionsColumnsInitial: {},
+        };
+
+        setDefaultSubmissionTableOrder(host, 'submitted');
+
+        assert.lengthOf(
+            host.submissionsColumnsInitial.submitted.filter(({field}) => field === 'creatorId'),
+            1,
+        );
+        assert.equal(
+            host.submissionsColumnsInitial.submitted.find(({field}) => field === 'creatorId').title,
+            'Creator',
+        );
+    });
 });
 
 /**
@@ -1818,6 +1872,15 @@ suite('manage-forms and manage-submissions activities', () => {
             if (url.pathname.startsWith('/authorization/')) {
                 return Promise.resolve({ok: false, status: 404});
             }
+            if (url.pathname.startsWith('/base/people/')) {
+                const identifier = url.pathname.split('/').at(-1);
+                return json({
+                    identifier,
+                    givenName: identifier === 'user-1' ? 'Alice' : 'Bob',
+                    familyName: 'Example',
+                    localData: {email: `${identifier}@example.com`},
+                });
+            }
             if (url.pathname === '/formalize/submissions') {
                 const formId = url.searchParams.get('formIdentifier');
                 return json({
@@ -1930,6 +1993,17 @@ suite('manage-forms and manage-submissions activities', () => {
                 formSubmissions.submissionTables.submitted?.tabulatorTable?.getData().length === 3,
         );
         assert.equal(formSubmissions.activeFormName, 'Own submissions only');
+        assert.equal(
+            formSubmissions.submissions.submitted[0].creatorId,
+            'Alice Example (user-1@example.com)',
+        );
+        assert.isTrue(
+            requests.some(
+                (url) =>
+                    url.pathname === '/base/people/user-1' &&
+                    url.searchParams.get('includeLocal') === 'email',
+            ),
+        );
         assert.isFalse(element.showFormsTable);
         assert.isFalse(formSubmissions.hideCreateSubmissionButton);
         await formSubmissions.getSubmissionsPage().updateComplete;

@@ -111,6 +111,7 @@
         "copy-link-failed": "Der Link konnte nicht kopiert werden. Bitte markieren und kopieren Sie ihn manuell.",
         "create-form-button": "Neues Formular erstellen",
         "create-submission-button": "Einreichung erstellen",
+        "creator": "Ersteller*in",
         "default-export-select": "Exportieren",
         "delete": "Löschen",
         "delete-all-forms-button-text": "Alle löschen ({{n}})",

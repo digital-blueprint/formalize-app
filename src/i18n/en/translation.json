@@ -111,6 +111,7 @@
         "copy-link-failed": "Could not copy the link. Please select and copy it manually.",
         "create-form-button": "Create new form",
         "create-submission-button": "Create submission",
+        "creator": "Creator",
         "default-export-select": "Export",
         "delete": "Delete",
         "delete-all-forms-button-text": "Delete all ({{n}})",

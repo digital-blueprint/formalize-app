@@ -176,6 +176,10 @@ export default class DBPFormalizeLitElement extends LangMixin(
                 Authorization: 'Bearer ' + this.getToken(),
             },
         };
-        return await fetch(this.entryPointUrl + `/base/people/${userIdentifier}`, options);
+        return await fetch(
+            this.entryPointUrl +
+                `/base/people/${encodeURIComponent(userIdentifier)}?includeLocal=email`,
+            options,
+        );
     }
 }

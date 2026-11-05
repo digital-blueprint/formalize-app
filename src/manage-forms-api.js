@@ -805,6 +805,8 @@ export async function getAllFormSubmissions(host, formId) {
             let dateCreated = humanReadableDate(submission['dateCreated']);
             let dataFeedElement = JSON.parse(submission['dataFeedElement']);
             let submissionId = submission['identifier'];
+            const creatorId = submission['creatorId'];
+            let creator = creatorId || '';
             const submissionTags = submission['tags'] || [];
             const submittedFiles = submission['submittedFiles'] || [];
             host.submittedFileDetails[state].set(submissionId, submittedFiles);
@@ -826,27 +828,36 @@ export async function getAllFormSubmissions(host, formId) {
                 fileFieldData[fieldName] = fileFieldData[fieldName].join(', ');
             }
 
-            // Flatten array values, resolve user identifiers
+            // Flatten array values
             for (const [key, value] of Object.entries(dataFeedElement)) {
                 if (Array.isArray(value)) {
                     dataFeedElement[key] = value.join(', ');
                 }
-                if (key === 'identifier' && value) {
-                    if (!host.userNameCache.has(value)) {
-                        try {
-                            const resp = await host.apiGetUserDetails(value);
-                            const userObject = await resp.json();
-                            const fullName = `${userObject['givenName']} ${userObject['familyName']}`;
-                            dataFeedElement[key] = fullName;
-                            host.userNameCache.set(value, fullName);
-                        } catch (e) {
-                            console.error(e);
-                            dataFeedElement[key] = value;
-                        }
-                    } else {
-                        dataFeedElement[key] = host.userNameCache.get(value);
+            }
+
+            // Resolve the submission creator from the submission metadata. This
+            // used to be stored as `identifier` in dataFeedElement.
+            if (creatorId) {
+                if (!host.userNameCache.has(creatorId)) {
+                    try {
+                        const resp = await host.apiGetUserDetails(creatorId);
+                        if (!resp.ok) throw new Error(`Failed to load creator: ${resp.status}`);
+                        const userObject = await resp.json();
+                        const fullName =
+                            [userObject?.givenName, userObject?.familyName]
+                                .filter(Boolean)
+                                .join(' ') ||
+                            userObject?.name ||
+                            creatorId;
+                        const email = userObject?.localData?.email || userObject?.email || '';
+                        const creatorLabel = email ? `${fullName} (${email})` : fullName;
+                        host.userNameCache.set(creatorId, creatorLabel);
+                    } catch (e) {
+                        console.error(e);
+                        host.userNameCache.set(creatorId, creatorId);
                     }
                 }
+                creator = host.userNameCache.get(creatorId);
             }
 
             // Translate enum keys to human-readable labels
@@ -868,6 +879,7 @@ export async function getAllFormSubmissions(host, formId) {
                     : '',
                 ...dataFeedElement,
                 ...fileFieldData,
+                creatorId: creator,
                 submissionId: submissionId,
             };
 
@@ -977,6 +989,10 @@ export async function getAllFormSubmissions(host, formId) {
                 if (columnDefinition.field === 'submissionId') {
                     columnDefinition.visible = true;
                     columnDefinition.title = host._i18n.t('manage-forms.submission-id');
+                }
+                if (columnDefinition.field === 'creatorId') {
+                    columnDefinition.visible = true;
+                    columnDefinition.title = host._i18n.t('manage-forms.creator');
                 }
                 if (columnDefinition.field === 'dateCreated') {
                     columnDefinition.visible = true;
