@@ -1108,6 +1108,7 @@ class FormalizeFormElement extends BaseFormElement {
     extractShadowContent(element) {
         // Store original elements and their clones
         const shadowElements = [];
+        const hiddenElements = [];
         element.querySelectorAll('*').forEach((el) => {
             if (!(el instanceof HTMLElement)) return;
 
@@ -1140,6 +1141,7 @@ class FormalizeFormElement extends BaseFormElement {
                 // The comments field must not appear in the print/PDF version.
                 // Hide the original and skip creating a rendered clone for it.
                 if (el.getAttribute('name') === 'comments') {
+                    hiddenElements.push({element: el, display: el.style.display});
                     el.style.display = 'none';
                     return;
                 }
@@ -1187,6 +1189,9 @@ class FormalizeFormElement extends BaseFormElement {
                 // Remove clone and restore original element
                 clone.remove();
                 original.style.display = '';
+            });
+            hiddenElements.forEach(({element, display}) => {
+                element.style.display = display;
             });
         };
     }
