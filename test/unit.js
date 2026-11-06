@@ -1,4 +1,9 @@
 import {assert} from 'chai';
+import {
+    gatherFormDataFromElement,
+    validateRequiredFields,
+} from '@dbp-toolkit/form-elements/src/utils.js';
+import MediaTransparencyModule from '../src/modules/mediaTransparencyForm.js';
 import {setFeatureFlag} from '@dbp-toolkit/common';
 
 import '../src/dbp-formalize.js';
@@ -44,6 +49,8 @@ customElements.define(
     class extends ManageFormSubmissionsPage {},
 );
 customElements.define('test-base-form-element', class extends BaseFormElement {});
+const MediaTransparencyForm = new MediaTransparencyModule().getFormComponent();
+customElements.define('test-media-transparency-form', class extends MediaTransparencyForm {});
 customElements.define('dbp-formalize-row-actions-menu', class extends RowActionsMenu {});
 
 /** Returns the row actions menu in a table row action container. */
@@ -75,6 +82,187 @@ const runRowAction = (container, value) => {
     }
     getRowActionsMenu(container).dispatchEvent(new CustomEvent('change', {detail: {value}}));
 };
+
+suite('Out of Home owner fields', () => {
+    let node;
+    const otherOwner = 'Sonstiges';
+
+    const settle = async () => {
+        await node.updateComplete;
+        await Promise.all(
+            Array.from(node.shadowRoot.querySelectorAll('[name]')).map(
+                (element) => element.updateComplete,
+            ),
+        );
+    };
+
+    const selectOwner = async (value) => {
+        const dropdown = node.shadowRoot.querySelector('[name="mediumOwnersName"]');
+        dropdown.value = value;
+        dropdown.dispatchEvent(
+            new CustomEvent('change', {
+                detail: {fieldName: 'mediumOwnersName', value},
+                bubbles: true,
+                composed: true,
+            }),
+        );
+        await settle();
+    };
+
+    setup(async () => {
+        node = document.createElement('test-media-transparency-form');
+        node.lang = 'en';
+        await node._i18n.changeLanguage('en');
+        node.formData = {
+            category: 'Out of Home',
+            advertisementSubcategory: 'Sonstiges',
+            mediumOwnersName: 'Gazzetta GmbH',
+            amountInEuro: '10,00',
+            reportingDeadline: `${new Date().getFullYear()}/1`,
+        };
+        node.selectedCategory = 'Out of Home';
+        node.conditionalFields.category = true;
+        node.conditionalFields.advertisementSubcategory = true;
+        // Exercise field validation and storage without attachment widgets.
+        node.getFileGroupsFromSchema = () => [];
+        document.body.appendChild(node);
+        await settle();
+    });
+
+    teardown(() => node.remove());
+
+    test('persists a listed owner in the primary field without medium fields', async () => {
+        const form = node.shadowRoot.querySelector('form');
+        const dropdown = form.querySelector('[name="mediumOwnersName"]');
+        assert.equal(dropdown.label, "Media owner's name");
+        assert.equal(dropdown.items[otherOwner], 'Other');
+        assert.isNull(form.querySelector('[name="mediaName"]'));
+        assert.isNull(form.querySelector('[name="otherMediumName"]'));
+        assert.isNull(form.querySelector('[name="otherMediumOwnersName"]'));
+        assert.isTrue(await validateRequiredFields(form));
+        const data = gatherFormDataFromElement(form);
+        node._cleanFormDataBeforeSubmit(data);
+        assert.equal(data.mediumOwnersName, 'Gazzetta GmbH');
+        assert.equal(data.otherMediumOwnersName, '');
+        assert.notProperty(data, 'otherMediumOwnersNameCustom');
+    });
+
+    test('requires a separate custom name and persists Sonstiges as the owner selection', async () => {
+        await selectOwner(otherOwner);
+        const form = node.shadowRoot.querySelector('form');
+        const input = form.querySelector('[name="otherMediumOwnersName"]');
+        assert.isNotNull(input);
+        assert.isTrue(input.hasAttribute('required'));
+        assert.equal(input.label, 'Other media owner');
+        assert.isFalse(await validateRequiredFields(form));
+        input.value = 'Custom company';
+        await input.updateComplete;
+        assert.isTrue(await validateRequiredFields(form));
+        const data = gatherFormDataFromElement(form);
+        node._cleanFormDataBeforeSubmit(data);
+        assert.equal(data.mediumOwnersName, otherOwner);
+        assert.equal(data.otherMediumOwnersName, 'Custom company');
+        assert.notProperty(data, 'otherMediumOwnersNameCustom');
+    });
+
+    test('clears custom text when switching back to a listed owner', async () => {
+        await selectOwner(otherOwner);
+        node.formData.otherMediumOwnersName = 'Stale custom name';
+        await selectOwner('CompanyCode Werbe GmbH');
+        assert.equal(node.formData.otherMediumOwnersName, '');
+        assert.isNull(node.shadowRoot.querySelector('[name="otherMediumOwnersName"]'));
+        const data = gatherFormDataFromElement(node.shadowRoot.querySelector('form'));
+        node._cleanFormDataBeforeSubmit(data);
+        assert.equal(data.mediumOwnersName, 'CompanyCode Werbe GmbH');
+        assert.equal(data.otherMediumOwnersName, '');
+    });
+
+    test('rejects the unselected owner placeholder', async () => {
+        await selectOwner('nothing-selected');
+        const form = node.shadowRoot.querySelector('form');
+        assert.isFalse(await validateRequiredFields(form));
+        const data = gatherFormDataFromElement(form);
+        node._cleanFormDataBeforeSubmit(data);
+        assert.equal(data.mediumOwnersName, '');
+    });
+
+    test('reads a saved custom owner without inferring its type from the name', async () => {
+        node.apiGetUserDetails = () => Promise.resolve({ok: true, json: () => Promise.resolve({})});
+        node.data = {
+            identifier: 'submission',
+            dataFeedElement: JSON.stringify({
+                ...node.formData,
+                mediumOwnersName: otherOwner,
+                otherMediumOwnersName: 'Saved custom company',
+            }),
+            submissionState: 4,
+            grantedActions: [],
+            tags: [],
+            submittedFiles: [],
+        };
+        await node.processFormData();
+        node.requestUpdate();
+        await settle();
+        assert.equal(node.shadowRoot.querySelector('[name="mediumOwnersName"]').value, otherOwner);
+        assert.equal(
+            node.shadowRoot.querySelector('[name="otherMediumOwnersName"]').value,
+            'Saved custom company',
+        );
+        assert.notProperty(node.formData, 'otherMediumOwnersNameCustom');
+    });
+
+    test('shows a translated other-owner label and no medium fields in read-only mode', async () => {
+        node.formData.mediumOwnersName = otherOwner;
+        node.formData.otherMediumOwnersName = 'Custom company';
+        node.formData.mediaName = 'Sonstiges';
+        node.formData.otherMediumName = 'Hidden medium';
+        node.readOnly = true;
+        await settle();
+        assert.isNull(node.shadowRoot.querySelector('[name="mediaName"]'));
+        assert.isNull(node.shadowRoot.querySelector('[name="otherMediumName"]'));
+        assert.equal(node.shadowRoot.querySelector('[name="mediumOwnersName"]').value, 'Other');
+        assert.equal(
+            node.shadowRoot.querySelector('[name="otherMediumOwnersName"]').value,
+            'Custom company',
+        );
+        node.lang = 'de';
+        await node._i18n.changeLanguage('de');
+        node.requestUpdate();
+        await settle();
+        assert.equal(node.shadowRoot.querySelector('[name="mediumOwnersName"]').value, 'Sonstiges');
+    });
+
+    test('clears both owner fields on subtype and category changes', async () => {
+        node.formData.otherMediumOwnersName = 'Stale custom name';
+        const subtype = node.shadowRoot.querySelector('[name="advertisementSubcategory"]');
+        subtype.value = 'Plakat';
+        subtype.dispatchEvent(
+            new CustomEvent('change', {
+                detail: {fieldName: 'advertisementSubcategory', value: 'Plakat'},
+                bubbles: true,
+                composed: true,
+            }),
+        );
+        await settle();
+        assert.equal(node.formData.mediumOwnersName, '');
+        assert.equal(node.formData.otherMediumOwnersName, '');
+        assert.property(node.getOutOfHomeOwnerItems(), 'Ankünder GmbH');
+        node.formData.mediumOwnersName = 'Ankünder GmbH';
+        const category = node.shadowRoot.querySelector('[name="category"]');
+        category.value = 'Print';
+        category.dispatchEvent(
+            new CustomEvent('change', {
+                detail: {fieldName: 'category', value: 'Print'},
+                bubbles: true,
+                composed: true,
+            }),
+        );
+        await settle();
+        assert.equal(node.formData.mediumOwnersName, '');
+        assert.equal(node.formData.otherMediumOwnersName, '');
+        assert.isNotNull(node.shadowRoot.querySelector('[name="mediaName"]'));
+    });
+});
 
 suite('available forms feature flag', () => {
     teardown(() => {

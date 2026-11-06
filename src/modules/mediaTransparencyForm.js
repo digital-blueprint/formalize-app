@@ -30,12 +30,14 @@ import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 
 /**
  * @typedef {object} MediaFormData
+ * @property {string} [category] - Selected advertisement category.
  * @property {string} [mediaName] - Selected media name.
- * @property {string} [otherMediumOwnersName] - Selected or custom medium owner name.
- * @property {string} [otherMediumOwnersNameCustom] - Custom medium owner name.
+ * @property {string} [mediumOwnersName] - Listed owner name or 'Sonstiges' for a custom owner.
+ * @property {string} [otherMediumOwnersName] - Custom medium owner name.
  */
 
 const OTHER_MEDIA_VALUE = 'Sonstiges';
+const OTHER_OWNER_VALUE = 'Sonstiges';
 const NOTHING_SELECTED = 'nothing-selected';
 
 /**
@@ -248,7 +250,6 @@ class FormalizeFormElement extends BaseFormElement {
             category: false,
             advertisementSubcategory: false,
             mediaName: false,
-            outOfHomeOtherMediunOwner: false,
         };
 
         this.submissionIsSaved = false;
@@ -430,26 +431,6 @@ class FormalizeFormElement extends BaseFormElement {
 
             if (this.formData?.category === 'Out of Home') {
                 this.conditionalFields.mediaName = false;
-                this.conditionalFields.mediumOwnersName = false;
-
-                // Check if the saved otherMediumOwnersName is a known dropdown option or a custom value
-                const savedOwnerName = this.formData.otherMediumOwnersName;
-                const mediaNameItems = this.getMediaNameItems();
-                const isKnownOption = savedOwnerName && savedOwnerName in mediaNameItems;
-
-                if (isKnownOption) {
-                    // Known dropdown option — no custom text input needed
-                    this.conditionalFields.outOfHomeOtherMediunOwner = false;
-                } else {
-                    // Custom value or "Sonstiges" — show custom text input
-                    this.conditionalFields.outOfHomeOtherMediunOwner = true;
-                    if (savedOwnerName && savedOwnerName !== OTHER_MEDIA_VALUE) {
-                        // Move the custom value to the temporary field for the text input
-                        this.formData.otherMediumOwnersNameCustom = savedOwnerName;
-                        // Set the dropdown to "Sonstiges" so it displays correctly
-                        this.formData.otherMediumOwnersName = OTHER_MEDIA_VALUE;
-                    }
-                }
             }
 
             // Initialize file groups from schema
@@ -519,23 +500,22 @@ class FormalizeFormElement extends BaseFormElement {
 
     /**
      * Clean up form data before submission.
-     * - Merges the custom owner name field for the Out of Home / Sonstiges case.
      * - Converts the NOTHING_SELECTED placeholder back to an empty string so it
      *   is not persisted as a real value.
      * @param {MediaFormData} formData - The form data object to clean up.
      */
     _cleanFormDataBeforeSubmit(formData) {
-        // Merge custom owner name for Out of Home / Sonstiges case
-        if (formData.otherMediumOwnersNameCustom !== undefined) {
-            formData.otherMediumOwnersName = formData.otherMediumOwnersNameCustom;
-            delete formData.otherMediumOwnersNameCustom;
-        }
-
         // Convert placeholder values back to empty strings
         if (formData.mediaName === NOTHING_SELECTED) {
             formData.mediaName = '';
         }
-        if (formData.otherMediumOwnersName === NOTHING_SELECTED) {
+        if (formData.mediumOwnersName === NOTHING_SELECTED) {
+            formData.mediumOwnersName = '';
+        }
+        if (
+            formData.category === 'Out of Home' &&
+            formData.mediumOwnersName !== OTHER_OWNER_VALUE
+        ) {
             formData.otherMediumOwnersName = '';
         }
     }
@@ -549,7 +529,7 @@ class FormalizeFormElement extends BaseFormElement {
         // Access the data from the event detail
         const data = event.detail;
 
-        // Merge custom owner name for Out of Home / Sonstiges case
+        // Remove placeholder values before persisting the form data.
         this._cleanFormDataBeforeSubmit(data.formData);
 
         // Validate minimum file upload counts
@@ -679,7 +659,7 @@ class FormalizeFormElement extends BaseFormElement {
 
         const data = event.detail;
 
-        // Merge custom owner name for Out of Home / Sonstiges case
+        // Remove placeholder values before persisting the form data.
         this._cleanFormDataBeforeSubmit(data.formData);
 
         // Include unique identifier for person who is submitting
@@ -796,7 +776,7 @@ class FormalizeFormElement extends BaseFormElement {
         const data = event.detail;
         // const validationResult = data.validationResult;
 
-        // Merge custom owner name for Out of Home / Sonstiges case
+        // Remove placeholder values before persisting the form data.
         this._cleanFormDataBeforeSubmit(data.formData);
 
         // POST or PATCH
@@ -1277,6 +1257,29 @@ class FormalizeFormElement extends BaseFormElement {
         return items;
     }
 
+    /**
+     * Build owner options from the existing mapping for the selected Out of Home subtype.
+     * Persist owner names directly, keeping custom names in a separate field for RTR export.
+     * @returns {Record<string, string>}
+     */
+    getOutOfHomeOwnerItems() {
+        const i18n = this._i18n;
+        const mapping =
+            MEDIA_NAME_OWNER_MAPPING['Out of Home'][this.formData?.advertisementSubcategory] || {};
+        const items = {
+            [NOTHING_SELECTED]: i18n.t(
+                'render-form.forms.media-transparency-form.please-select-media-owner',
+            ),
+        };
+        for (const owner of Object.values(mapping)) {
+            items[owner] = owner;
+        }
+        items[OTHER_OWNER_VALUE] = i18n.t(
+            'render-form.forms.media-transparency-form.other-media-owner-option',
+        );
+        return items;
+    }
+
     getDeadlinePeriodItems() {
         const i18n = this._i18n;
         const items = {};
@@ -1603,7 +1606,8 @@ class FormalizeFormElement extends BaseFormElement {
                         : ''
                 }
                 ${
-                    this.conditionalFields.advertisementSubcategory
+                    this.conditionalFields.advertisementSubcategory &&
+                    data.category !== 'Out of Home'
                         ? html`
                               <dbp-form-enum-element
                                   subscribe="lang"
@@ -1667,7 +1671,7 @@ class FormalizeFormElement extends BaseFormElement {
                         : ''
                 }
                 ${
-                    this.conditionalFields.mediaName
+                    this.conditionalFields.mediaName && data.category !== 'Out of Home'
                         ? html`
                               <dbp-form-string-element
                                   subscribe="lang"
@@ -1692,45 +1696,21 @@ class FormalizeFormElement extends BaseFormElement {
                         : ''
                 }
                 ${
-                    data.category === 'Out of Home' && data.advertisementSubcategory === 'Sonstiges'
+                    data.category === 'Out of Home' && data.advertisementSubcategory
                         ? html`
-                              <div
-                                  style="visibility:hidden; height:0; margin:0; padding:0; border:0;">
-                                  <dbp-form-string-element
-                                      subscribe="lang"
-                                      name="otherMediumName"
-                                      label="${i18n.t(
-                                          'render-form.forms.media-transparency-form.field-other-medium-name-label',
-                                      )}"
-                                      maxlength="1000"
-                                      value=""></dbp-form-string-element>
-                              </div>
-
                               <dbp-form-enum-element
                                   subscribe="lang"
-                                  name="otherMediumOwnersName"
+                                  name="mediumOwnersName"
                                   label="${i18n.t(
-                                      'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
+                                      'render-form.forms.media-transparency-form.field-media-owners-name-label',
                                   )}"
                                   display-mode="dropdown"
-                                  .items=${this.getMediaNameItems()}
+                                  .items=${this.getOutOfHomeOwnerItems()}
                                   @change=${(e) => {
                                       const selectedValue = e.currentTarget.value;
-
-                                      // If 'Other' or placeholder is selected, show other medium fields
-                                      if (
-                                          selectedValue === OTHER_MEDIA_VALUE ||
-                                          selectedValue === NOTHING_SELECTED
-                                      ) {
-                                          this.conditionalFields.outOfHomeOtherMediunOwner = true;
+                                      data.mediumOwnersName = selectedValue;
+                                      if (selectedValue !== OTHER_OWNER_VALUE) {
                                           data.otherMediumOwnersName = '';
-                                          data.otherMediumOwnersNameCustom = '';
-                                      } else {
-                                          this.conditionalFields.outOfHomeOtherMediunOwner = false;
-                                          data.otherMediumOwnersNameCustom = '';
-                                          // Auto-fill owner name from mapping
-                                          const owner = this.getOwnerForMediaName(selectedValue);
-                                          data.otherMediumOwnersName = owner ?? '';
                                       }
                                       this.requestUpdate();
                                   }}
@@ -1738,27 +1718,27 @@ class FormalizeFormElement extends BaseFormElement {
                                       return value === NOTHING_SELECTED
                                           ? [
                                                 i18n.t(
-                                                    'render-form.forms.media-transparency-form.media-name-validation-error',
+                                                    'render-form.forms.media-transparency-form.media-owner-validation-error',
                                                 ),
                                             ]
                                           : [];
                                   }}
-                                  .value=${data.otherMediumOwnersName || NOTHING_SELECTED}
+                                  .value=${data.mediumOwnersName || NOTHING_SELECTED}
                                   required></dbp-form-enum-element>
 
                               ${
-                                  this.conditionalFields.outOfHomeOtherMediunOwner
+                                  data.mediumOwnersName === OTHER_OWNER_VALUE
                                       ? html`
                                             <dbp-form-string-element
                                                 subscribe="lang"
-                                                name="otherMediumOwnersNameCustom"
+                                                name="otherMediumOwnersName"
                                                 label="${i18n.t(
-                                                    'render-form.forms.media-transparency-form.field-media-owners-name-label',
+                                                    'render-form.forms.media-transparency-form.field-other-medium-owners-name-label',
                                                 )}"
                                                 required
                                                 maxlength="1000"
                                                 .value=${
-                                                    data.otherMediumOwnersNameCustom || ''
+                                                    data.otherMediumOwnersName || ''
                                                 }></dbp-form-string-element>
                                         `
                                       : ''
@@ -1925,7 +1905,7 @@ class FormalizeFormElement extends BaseFormElement {
                         : ''
                 }
                 ${
-                    data.mediaName
+                    data.mediaName && data.category !== 'Out of Home'
                         ? html`
                               <dbp-form-enum-view
                                   subscribe="lang"
@@ -1948,20 +1928,33 @@ class FormalizeFormElement extends BaseFormElement {
                                   label="${i18n.t(
                                       'render-form.forms.media-transparency-form.field-media-owners-name-label',
                                   )}"
-                                  .value=${data.mediumOwnersName || ''}></dbp-form-string-view>
+                                  .value=${
+                                      data.mediumOwnersName === OTHER_OWNER_VALUE
+                                          ? i18n.t(
+                                                'render-form.forms.media-transparency-form.other-media-owner-option',
+                                            )
+                                          : data.mediumOwnersName || ''
+                                  }></dbp-form-string-view>
                           `
                         : ''
                 }
                 ${
-                    data.otherMediumName || data.otherMediumOwnersName
+                    (data.otherMediumName && data.category !== 'Out of Home') ||
+                    data.otherMediumOwnersName
                         ? html`
-                              <dbp-form-string-view
-                                  subscribe="lang"
-                                  name="otherMediumName"
-                                  label="${i18n.t(
-                                      'render-form.forms.media-transparency-form.field-other-medium-name-label',
-                                  )}"
-                                  .value=${data.otherMediumName || ''}></dbp-form-string-view>
+                              ${
+                                  data.category !== 'Out of Home'
+                                      ? html`
+                                            <dbp-form-string-view
+                                                subscribe="lang"
+                                                name="otherMediumName"
+                                                label="${i18n.t(
+                                                    'render-form.forms.media-transparency-form.field-other-medium-name-label',
+                                                )}"
+                                                .value=${data.otherMediumName || ''}></dbp-form-string-view>
+                                        `
+                                      : ''
+                              }
 
                               <dbp-form-string-view
                                   subscribe="lang"
