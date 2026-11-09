@@ -72,10 +72,14 @@ export class ManageSubmissions extends ManageFormsActivityBase {
 
     canCreateSubmission(form) {
         const actions = form?.grantedFormActions ?? [];
+        const submissionCollectionActions = form?.grantedSubmissionCollectionActions ?? [];
         return (
             actions.includes(FORM_PERMISSIONS.MANAGE) ||
+            submissionCollectionActions.includes(SUBMISSION_COLLECTION_PERMISSIONS.MANAGE) ||
             (actions.includes(FORM_PERMISSIONS.READ) &&
-                actions.includes(FORM_PERMISSIONS.CREATE_SUBMISSIONS))
+                submissionCollectionActions.includes(
+                    SUBMISSION_COLLECTION_PERMISSIONS.CREATE_SUBMISSIONS,
+                ))
         );
     }
 
