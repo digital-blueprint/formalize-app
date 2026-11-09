@@ -1951,24 +1951,32 @@ suite('manage forms action menus', () => {
 });
 
 suite('manage-forms and manage-submissions activities', () => {
-    test('creation requires form read and create permissions, or form management', () => {
+    test('creation requires form read and collection create permissions, or form or collection management', () => {
         const element = document.createElement('test-manage-submissions');
-        for (const [actions, expected] of [
-            [[], false],
-            [['read'], false],
-            [['create_submissions'], false],
-            [['update'], false],
-            [['read', 'create_submissions'], true],
-            [['manage'], true],
+        for (const [actions, collectionActions, expected] of [
+            [[], [], false],
+            [['read'], [], false],
+            [['create_submissions'], [], false],
+            [['update'], [], false],
+            [['read', 'create_submissions'], [], false],
+            [[], ['create_submissions'], false],
+            [['update'], ['create_submissions'], false],
+            [['read'], ['read'], false],
+            [['read'], ['create_submissions'], true],
+            [['manage'], [], true],
+            [[], ['manage'], true],
         ]) {
             assert.equal(
-                element.canCreateSubmission({grantedFormActions: actions}),
+                element.canCreateSubmission({
+                    grantedFormActions: actions,
+                    grantedSubmissionCollectionActions: collectionActions,
+                }),
                 expected,
-                JSON.stringify(actions),
+                JSON.stringify({actions, collectionActions}),
             );
         }
         assert.isFalse(element.canCreateSubmission(null));
-        assert.isFalse(
+        assert.isTrue(
             element.canCreateSubmission({grantedSubmissionCollectionActions: ['manage']}),
         );
     });
@@ -1980,7 +1988,7 @@ suite('manage-forms and manage-submissions activities', () => {
             localizedNames: [],
             grantedActions: ['read', 'create_submissions'],
             grantedFormActions: ['read', 'create_submissions'],
-            grantedSubmissionCollectionActions: ['read'],
+            grantedSubmissionCollectionActions: ['read', 'create_submissions'],
             allowedSubmissionStates: 4,
             dateCreated: '2026-01-01T10:00:00+00:00',
         },
