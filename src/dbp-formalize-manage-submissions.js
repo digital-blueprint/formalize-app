@@ -7,7 +7,7 @@ import {FormSubmissions} from './form-submissions.js';
 import {createDefaultManageSubmissionsOverviewActions} from './manage-forms-overview-actions.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
 import {getListOfAllForms} from './manage-forms-api.js';
-import {FORM_PERMISSIONS} from './utils.js';
+import {FORM_PERMISSIONS, SUBMISSION_COLLECTION_PERMISSIONS} from './utils.js';
 
 /**
  * Activity to view and manage form submissions.
