@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v1.5.1
+
+- fix package versions
+
 ## v1.5.0
 
 - Form submissions: fixed the console warning "Sort Warning - Sort field does not exist and is being ignored: dateCreated" for forms without submissions (task #76111, subtask #49163). The columns are generated from the submissions, so an empty table has no `dateCreated` column; the initial sort is now omitted for empty tables with the new `removeInitialSort()` helper in `manage-forms-table-config.js`. Tables with submissions are still sorted by creation date
