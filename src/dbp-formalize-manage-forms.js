@@ -258,6 +258,7 @@ export class ManageForms extends ManageFormsActivityBase {
             formId: formEntry.formId,
             formSlug: formEntry.formSlug,
             formName: formEntry.formName,
+            dateCreated: formEntry.dateCreated,
             moduleInstance: formEntry.moduleInstance,
             additionalData: formEntry.additionalData || null,
             localizedNames: formEntry.localizedNames || [],
