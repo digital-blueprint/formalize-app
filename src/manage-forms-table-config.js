@@ -139,6 +139,17 @@ export function enableCheckboxSelection(host, state) {
 }
 
 /**
+ * The columns are generated from the data (autoColumns), so an empty table has no
+ * dateCreated column to sort by and Tabulator would log a sort warning.
+ *
+ * @param {object} host
+ * @param {string} state
+ */
+export function removeInitialSort(host, state) {
+    delete host.options_submissions[state].initialSort;
+}
+
+/**
  * @param {object} host
  * @param {string} state
  */

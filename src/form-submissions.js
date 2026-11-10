@@ -38,6 +38,7 @@ import {
     disableCheckboxSelection,
     enablePagination,
     disablePagination,
+    removeInitialSort,
 } from './manage-forms-table-config.js';
 import {
     buildRoutingUrlWithQuery,
@@ -326,6 +327,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                     // because setSubmissionFormOptions creates a fresh options object,
                     // overwriting any prior headerVisible/rowHeader changes.
                     disableCheckboxSelection(this, state);
+                    removeInitialSort(this, state);
                     // Push the fresh empty options directly onto the component
                     // so buildTable() doesn't read stale cached options.data.
                     this.submissionTables[state].options = this.options_submissions[state];
@@ -430,6 +432,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                 if (this.submissions[state].length === 0) {
                     disableCheckboxSelection(this, state);
                     disablePagination(this, state);
+                    removeInitialSort(this, state);
                     this.options_submissions[state].data = [];
                 } else {
                     enableCheckboxSelection(this, state);
