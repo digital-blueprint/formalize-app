@@ -2,7 +2,10 @@
 
 ## Unreleased
 
+## v1.5.0
+
 - Form submissions: fixed the console warning "Sort Warning - Sort field does not exist and is being ignored: dateCreated" for forms without submissions (task #76111, subtask #49163). The columns are generated from the submissions, so an empty table has no `dateCreated` column; the initial sort is now omitted for empty tables with the new `removeInitialSort()` helper in `manage-forms-table-config.js`. Tables with submissions are still sorted by creation date
+- Manage Submissions: fixed submission creation checks to honor submission-collection permissions.
 - Forms overview and form submissions: the most important row action is now always visible as icon button next to the row actions (kebab) menu instead of being inside it (task #76005). Forms overview: "Formulareinreichungen anzeigen"/"Show form submissions" with the `list` icon. Overview actions with the new `inline` placement (`OVERVIEW_ACTION_PLACEMENTS.INLINE`) are shown this way, the built-in `open-submissions` action now has this placement. Form submissions: the quick view was renamed to "Anzeigen"/"View". The row actions menu is omitted if there are no other actions, e.g. in the manage-submissions activity
 - Form submissions: renamed the row actions "Detaillierte Formularansicht öffnen" to "Detailansicht öffnen" and "Einreichung bearbeiten"/"Edit submission" to "Bearbeiten"/"Edit" (task #76005)
 - Manage-submissions activity: removed the selection checkboxes from the forms overview, because there are no actions for multiple forms (task #76005). Activities can control this with `ManageFormsActivityBase.hasOverviewRowSelection()`
