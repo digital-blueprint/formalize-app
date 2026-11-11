@@ -7,6 +7,7 @@ import MediaTransparencyModule from '../src/modules/mediaTransparencyForm.js';
 import {setFeatureFlag} from '@dbp-toolkit/common';
 
 import '../src/dbp-formalize.js';
+import '../src/dbp-formalize-manage-fields.js';
 import {ManageForms, hasFormEditRight} from '../src/dbp-formalize-manage-forms';
 import {ManageSubmissions} from '../src/dbp-formalize-manage-submissions.js';
 import {FormSubmissions} from '../src/form-submissions.js';
@@ -82,6 +83,107 @@ const runRowAction = (container, value) => {
     }
     getRowActionsMenu(container).dispatchEvent(new CustomEvent('change', {detail: {value}}));
 };
+
+suite('manage-fields permissions', () => {
+    test('should offer only permissions the current user may manage', () => {
+        const host = document.createElement('dbp-formalize-manage-fields');
+        host.createScopedElement = (name) => document.createElement(name);
+        for (const [formActions, collectionActions, expected] of [
+            [[], [], []],
+            [['read', 'update'], ['update'], []],
+            [['manage'], [], ['edit-form-permission']],
+            [['read'], ['manage'], ['edit-collection-permission']],
+            [['manage'], ['manage'], ['edit-form-permission', 'edit-collection-permission']],
+        ]) {
+            assert.deepEqual(
+                getRowActionIds(
+                    host.createFormActions({
+                        form: {
+                            identifier: 'form-id',
+                            grantedFormActions: formActions,
+                            grantedSubmissionCollectionActions: collectionActions,
+                        },
+                    }),
+                ),
+                expected,
+            );
+        }
+
+        for (const actions of [undefined, ['read', 'update'], ['manage']]) {
+            const item = {identifier: 'item-id', grantedActions: actions};
+            assert.equal(
+                getRowActionIds(host.createItemActions(item)).includes('edit-permission'),
+                actions?.includes('manage') ?? false,
+            );
+        }
+    });
+
+    test('should open the shared dialog for the correct resource and reset its target', () => {
+        const host = document.createElement('dbp-formalize-manage-fields');
+        let opened = 0;
+        const dialog = {open: () => opened++};
+        host.renderRoot = {
+            querySelector: (selector) =>
+                selector === '#item-grant-permission-dialog' ? dialog : null,
+        };
+        const form = {
+            identifier: 'form-id',
+            grantedFormActions: ['manage'],
+            grantedSubmissionCollectionActions: ['manage'],
+        };
+
+        host.editFormPermissions(form);
+        assert.equal(dialog.resourceClassIdentifier, 'DbpRelayFormalizeForm');
+        assert.equal(dialog.resourceIdentifier, 'form-id');
+        assert.deepEqual(dialog.resourceIdentifiers, ['form-id']);
+
+        host.editFormPermissions(form, true);
+        assert.equal(dialog.resourceClassIdentifier, 'DbpRelayFormalizeSubmissionCollection');
+        assert.equal(dialog.resourceIdentifier, 'form-id');
+
+        host.editItemPermissions({identifier: 'item-id', grantedActions: ['manage']});
+        assert.equal(dialog.resourceClassIdentifier, 'DbpRelayFormalizeSubmission');
+        assert.equal(dialog.resourceIdentifier, 'item-id');
+        assert.deepEqual(dialog.resourceIdentifiers, ['item-id']);
+        assert.equal(opened, 3);
+    });
+
+    test('should not open permission editing without management rights or an identifier', () => {
+        const host = document.createElement('dbp-formalize-manage-fields');
+        let opened = 0;
+        host.openPermissionDialog = () => opened++;
+        host.editFormPermissions({identifier: 'form-id', grantedFormActions: ['update']});
+        host.editFormPermissions({identifier: 'form-id', grantedFormActions: ['manage']}, true);
+        host.editItemPermissions({identifier: 'item-id', grantedActions: ['update']});
+        host.editFormPermissions(null);
+        host.editItemPermissions(null);
+        host.editFormPermissions({grantedFormActions: ['manage']});
+        host.editItemPermissions({grantedActions: ['manage']});
+        assert.equal(opened, 0);
+    });
+
+    test('should render the shared permission dialog with authentication and language', async () => {
+        const host = document.createElement('dbp-formalize-manage-fields');
+        host.isLoggedIn = () => true;
+        host.isAuthPending = () => false;
+        host.loading = false;
+        host._hasLoadedForms = true;
+        host.itemModules = [{}];
+        host.syncTabulatorTable = async () => {};
+        host.entryPointUrl = 'https://api.example.org';
+        document.body.appendChild(host);
+        try {
+            await host.updateComplete;
+            const dialog = host.shadowRoot.querySelector('#item-grant-permission-dialog');
+            assert.isNotNull(dialog);
+            assert.strictEqual(dialog.auth, host.auth);
+            assert.equal(dialog.lang, host.lang);
+            assert.equal(dialog.entryPointUrl, host.entryPointUrl);
+        } finally {
+            host.remove();
+        }
+    });
+});
 
 suite('Out of Home owner fields', () => {
     let node;

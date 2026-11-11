@@ -151,6 +151,8 @@ For example, an application shell can expose the company item form with:
 
 If the activity shows "No matching item form is available.", verify that a form with the configured `frontendKey` exists and that the current user may read that form through the Formalize authorization rules.
 
+The form row actions offer permission editing separately for the form and its submission collection, provided the current user has the respective `manage` grant. Item row actions offer permission editing when the item's `grantedActions` include `manage`. These actions reuse the shared grant permission dialog; they do not allow users without access to grant themselves permissions.
+
 #### Routing
 
 The activity supports deep links through the app shell `routing-url` property:

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- v1.5.1 follow-up: manage fields now reuses the shared grant permission dialog for forms, submission collections and individual submissions. Separate row actions are shown only with the respective manage grant, which is checked again before opening the dialog; includes German and English labels and regression tests (task #76576)
+
 ## v1.5.1
 
 - fix package versions
