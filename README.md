@@ -25,11 +25,11 @@ git submodule update --init
 # install dependencies
 npm install
 
-# constantly build dist/bundle.js and run a local web-server on port 8001
+# constantly build build/watch/ and run a local web-server on port 8001
 npm run watch
 
-# constantly build dist/bundle.js and run a local web-server on port 8001 using a custom assets directory assets_local/
-npm run watch-local
+# constantly build build/watch-custom/ using custom assets from assets_custom/
+npm run watch-custom
 
 # run tests
 npm test

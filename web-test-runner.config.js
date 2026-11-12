@@ -25,7 +25,7 @@ async function setup() {
 await setup();
 
 export default {
-    files: 'dist/*.js',
+    files: 'build/test/*.js',
     testFramework: {
         config: {
             ui: 'tdd',
