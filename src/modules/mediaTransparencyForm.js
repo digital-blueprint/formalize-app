@@ -1563,7 +1563,6 @@ class FormalizeFormElement extends BaseFormElement {
                                                             .length > 0,
                                                 })}"
                                                 subscribe="lang"
-                                                data-condition="!Sonstiges"
                                                 name="advertisementSubcategory"
                                                 label="${i18n.t(
                                                     'render-form.forms.media-transparency-form.field-advertisement-subcategory-label',
