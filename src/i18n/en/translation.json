@@ -195,9 +195,12 @@
         "something-went-wrong-title": "Error!",
         "submission-id": "Submission ID",
         "submission-row-actions-aria": "Actions for row {{id}}",
+        "submission-table-draft-description": "Drafts are visible only to you and the people you have authorized. A draft is not considered a submitted application and you can still edit it.",
         "submission-table-draft-title": "Drafts",
+        "submission-table-submitted-description": "Here you can find submitted applications for which you have read or edit permissions.",
         "submission-table-submitted-title": "Submitted",
-        "submissions-count": "Submissions"
+        "submissions-count": "Submissions",
+        "submissions-overview-description": "Here, you can fill out or manage forms based on your permissions. You can only see the forms that you are authorized to access."
     },
     "render-form": {
         "available-forms-description": "Select a form to start a new submission.",

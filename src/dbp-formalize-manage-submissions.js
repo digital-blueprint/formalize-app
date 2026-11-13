@@ -144,7 +144,9 @@ export class ManageSubmissions extends ManageFormsActivityBase {
                     <slot name="additional-information"></slot>
                 </div>
 
-                ${this.renderOverview()}
+                ${this.renderOverview({
+                    introduction: this._i18n.t('manage-forms.submissions-overview-description'),
+                })}
 
                 <dbp-formalize-form-submissions
                     class="${classMap({hidden: !activeForm})}"

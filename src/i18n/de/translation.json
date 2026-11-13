@@ -195,9 +195,12 @@
         "something-went-wrong-title": "Fehler!",
         "submission-id": "Einreichungs-ID",
         "submission-row-actions-aria": "Aktionen für Zeile {{id}}",
+        "submission-table-draft-description": "Entwürfe sind nur für Sie und die von Ihnen berechtigten Personen sichtbar. Ein Entwurf gilt nicht als eingereichter Antrag und kann weiterhin bearbeitet werden.",
         "submission-table-draft-title": "Entwurf",
+        "submission-table-submitted-description": "Hier finden Sie eingereichte Anträge, für die Sie Lese- oder auch Bearbeitungsrechte haben.",
         "submission-table-submitted-title": "Eingereicht",
-        "submissions-count": "Einreichungen"
+        "submissions-count": "Einreichungen",
+        "submissions-overview-description": "Hier können Sie Formulare gemäß Ihren Berechtigungen ausfüllen oder verwalten. Sie sehen nur jene Formulare, für die Sie berechtigt sind."
     },
     "render-form": {
         "available-forms-description": "Wählen Sie ein Formular aus, um eine neue Einreichung zu beginnen.",

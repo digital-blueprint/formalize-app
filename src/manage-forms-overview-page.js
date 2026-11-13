@@ -58,6 +58,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
         this.optionsForms = {};
         this.paginationSizeStorageKey = '';
         this.noFormsAvailable = false;
+        this.introduction = '';
         // Number of modules that implement createForm(); the button is only shown when > 0
         this.creatableModulesCount = 0;
         // Resolved dropdown actions for the current selection
@@ -103,6 +104,7 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
             optionsForms: {type: Object, attribute: false},
             paginationSizeStorageKey: {type: String, attribute: false},
             noFormsAvailable: {type: Boolean, attribute: false},
+            introduction: {type: String, attribute: false},
             creatableModulesCount: {type: Number, attribute: false},
             actions: {type: Array, attribute: false},
             selectedFormsCount: {type: Number, attribute: false},
@@ -690,6 +692,13 @@ export class ManageFormsOverviewPage extends ScopedElementsMixin(DBPLitElement) 
                         ${i18n.t('manage-forms.create-form-button')}
                     </button>
                 </div>
+                ${
+                    this.introduction
+                        ? html`
+                              <p class="forms-overview-description">${this.introduction}</p>
+                          `
+                        : ''
+                }
                 <div class="forms-table-actions">
                     <dbp-select
                         class="forms-table-actions-select ${classMap({

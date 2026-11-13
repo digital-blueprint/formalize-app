@@ -529,6 +529,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             draft: i18n.t('manage-forms.submission-table-draft-title'),
             submitted: i18n.t('manage-forms.submission-table-submitted-title'),
         };
+        const submissionTableDescription = {
+            draft: i18n.t('manage-forms.submission-table-draft-description'),
+            submitted: i18n.t('manage-forms.submission-table-submitted-description'),
+        };
 
         return html`
             <div
@@ -581,6 +585,9 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                 hidden: this.enabledStates[state] ? false : true,
                             })}">
                             <h3 class="table-title">${submissionTableTitle[state]}</h3>
+                            <p class="submission-table-description">
+                                ${submissionTableDescription[state]}
+                            </p>
 
                             <div
                                 class="${classMap({

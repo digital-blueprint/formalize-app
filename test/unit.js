@@ -2052,6 +2052,49 @@ suite('manage forms action menus', () => {
     });
 });
 
+suite('submission section descriptions', () => {
+    test('places translated descriptions below headings, including empty sections', async () => {
+        const page = document.createElement('test-manage-form-submissions-page');
+        page.showSubmissionTables = true;
+        page.enabledStates = {draft: true, submitted: true};
+        document.body.appendChild(page);
+        try {
+            const descriptions = {
+                en: [
+                    'Drafts are visible only to you and the people you have authorized. A draft is not considered a submitted application and you can still edit it.',
+                    'Here you can find submitted applications for which you have read or edit permissions.',
+                ],
+                de: [
+                    'Entwürfe sind nur für Sie und die von Ihnen berechtigten Personen sichtbar. Ein Entwurf gilt nicht als eingereichter Antrag und kann weiterhin bearbeitet werden.',
+                    'Hier finden Sie eingereichte Anträge, für die Sie Lese- oder auch Bearbeitungsrechte haben.',
+                ],
+            };
+            for (const lang of ['en', 'de']) {
+                page.lang = lang;
+                await page.updateComplete;
+                const headings = [...page.shadowRoot.querySelectorAll('h3.table-title')];
+                assert.lengthOf(headings, 2);
+                headings.forEach((heading, index) => {
+                    assert.equal(heading.nextElementSibling.tagName, 'P');
+                    assert.equal(
+                        heading.nextElementSibling.textContent.trim(),
+                        descriptions[lang][index],
+                    );
+                    assert.equal(getComputedStyle(heading.nextElementSibling).display, 'block');
+                });
+            }
+
+            page.enabledStates = {draft: false, submitted: true};
+            await page.updateComplete;
+            const paragraphs = page.shadowRoot.querySelectorAll('.submission-table-description');
+            assert.isTrue(paragraphs[0].parentElement.classList.contains('hidden'));
+            assert.isFalse(paragraphs[1].parentElement.classList.contains('hidden'));
+        } finally {
+            page.remove();
+        }
+    });
+});
+
 suite('manage-forms and manage-submissions activities', () => {
     test('creation requires form read and collection create permissions, or form or collection management', () => {
         const element = document.createElement('test-manage-submissions');
@@ -2219,6 +2262,38 @@ suite('manage-forms and manage-submissions activities', () => {
         document
             .querySelectorAll('dbp-formalize-manage-forms, dbp-formalize-manage-submissions')
             .forEach((element) => element.remove());
+    });
+
+    test('only the submissions overview shows its translated introduction before search', async () => {
+        const descriptions = {
+            en: 'Here, you can fill out or manage forms based on your permissions. You can only see the forms that you are authorized to access.',
+            de: 'Hier können Sie Formulare gemäß Ihren Berechtigungen ausfüllen oder verwalten. Sie sehen nur jene Formulare, für die Sie berechtigt sind.',
+        };
+        for (const tagName of ['dbp-formalize-manage-forms', 'dbp-formalize-manage-submissions']) {
+            const element = mountActivity(tagName);
+            await waitFor(() => getOverviewTable(element)?.tabulatorTable?.getData().length > 0);
+            for (const lang of ['en', 'de']) {
+                element.lang = lang;
+                await element.updateComplete;
+                const overview = element.shadowRoot.querySelector('#overview-page');
+                await overview.updateComplete;
+                const description = overview.shadowRoot.querySelector(
+                    '.forms-overview-description',
+                );
+                if (tagName === 'dbp-formalize-manage-forms') {
+                    assert.isNull(description);
+                } else {
+                    assert.equal(description.tagName, 'P');
+                    assert.equal(description.textContent.trim(), descriptions[lang]);
+                    assert.isTrue(
+                        description.nextElementSibling.classList.contains('forms-table-actions'),
+                    );
+                    assert.ok(description.nextElementSibling.querySelector('#forms-searchbar'));
+                    assert.equal(getComputedStyle(description).display, 'block');
+                }
+            }
+            element.remove();
+        }
     });
 
     test('manage-forms only lists editable forms', async () => {

@@ -364,9 +364,9 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
 
     /**
      * Renders the shared forms overview.
-     * @param {{creatableModulesCount?: number}} options
+     * @param {{creatableModulesCount?: number, introduction?: string}} options
      */
-    renderOverview({creatableModulesCount = 0} = {}) {
+    renderOverview({creatableModulesCount = 0, introduction = ''} = {}) {
         const i18n = this._i18n;
         return html`
             <span class="${classMap({hidden: !this.loadingFormsTable || this.showFormsTable})}">
@@ -388,6 +388,7 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
                 .submissionCounts=${this.formsSubmissionCounts}
                 .paginationSizeStorageKey=${this.getPaginationSizeStorageKey()}
                 .noFormsAvailable=${this.noFormsAvailable}
+                .introduction=${introduction}
                 .creatableModulesCount=${creatableModulesCount}></dbp-formalize-manage-forms-overview-page>
         `;
     }
