@@ -4,6 +4,7 @@ import {ScopedElementsMixin} from '@dbp-toolkit/common';
 import {DbpBaseElement} from '@dbp-toolkit/form-elements/src/base-element.js';
 import {ResourceSelect} from '@dbp-toolkit/resource-select';
 import {createInstance} from '../../i18n.js';
+import {DbpPersonSelectElement as BasePersonSelectElement} from '@dbp-toolkit/form-elements/src/elements/person-select.js';
 
 export class PersonSelect extends ResourceSelect {
     constructor() {
@@ -126,4 +127,54 @@ export class DbpPersonSelectElement extends ScopedElementsMixin(DbpBaseElement) 
     }
 }
 
+/**
+ * Person select used by the ethics commission form. It extends the toolkit person select
+ * so the dropdown entries of the applicant and co-applicants also show their email address.
+ */
+export class ProjectPersonSelectElement extends BasePersonSelectElement {
+    getPersonSearchQueryParameters(select, searchTerm) {
+        return {
+            search: searchTerm.trim(),
+            sort: 'familyName',
+            includeLocal: 'email',
+        };
+    }
+
+    getPersonItemQueryParameters(select) {
+        return {
+            includeLocal: 'email',
+        };
+    }
+
+    formatPerson(select, person) {
+        let text = person.givenName ?? '';
+
+        if (person.familyName) {
+            text += ` ${person.familyName}`;
+        }
+
+        const email = person.localData?.email;
+        return email ? `${text} (${email})` : text;
+    }
+
+    renderInput() {
+        return html`
+            <dbp-resource-select
+                .auth=${this.auth ?? {}}
+                .multiple=${this.multiple}
+                .values=${this.getPersonSelectValues()}
+                ?disabled=${this.disabled}
+                lang="${this.lang}"
+                resource-path="/base/people"
+                fetch-mode="search"
+                .getSearchQueryParameters=${this.getPersonSearchQueryParameters}
+                .getItemQueryParameters=${this.getPersonItemQueryParameters}
+                .formatResource=${this.formatPerson}
+                @change=${this.handlePersonChange}
+                entry-point-url="${this.entryPointUrl}"></dbp-resource-select>
+        `;
+    }
+}
+
 commonUtils.defineCustomElement('dbp-person-select-element', DbpPersonSelectElement);
+commonUtils.defineCustomElement('dbp-project-person-select-element', ProjectPersonSelectElement);

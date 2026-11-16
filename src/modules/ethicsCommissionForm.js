@@ -22,7 +22,6 @@ import {
     DbpDateElement,
     DbpBooleanElement,
     DbpEnumElement,
-    DbpPersonSelectElement,
     DbpResourceSelectElement,
     DbpStringView,
     DbpDateView,
@@ -32,6 +31,7 @@ import {
 } from '@dbp-toolkit/form-elements';
 import {validateRequiredFields} from '@dbp-toolkit/form-elements/src/utils.js';
 import html2pdf from 'html2pdf.js';
+import {ProjectPersonSelectElement} from '../form/elements/personselect.js';
 
 /** @typedef {import('jspdf').jsPDF} jsPDF */
 
@@ -190,7 +190,7 @@ class FormalizeFormElement extends BaseFormElement {
             'dbp-form-date-element': DbpDateElement,
             'dbp-form-boolean-element': DbpBooleanElement,
             'dbp-form-enum-element': DbpEnumElement,
-            'dbp-form-person-select-element': DbpPersonSelectElement,
+            'dbp-form-person-select-element': ProjectPersonSelectElement,
             'dbp-form-resource-select-element': DbpResourceSelectElement,
             'dbp-form-string-view': DbpStringView,
             'dbp-form-date-view': DbpDateView,
