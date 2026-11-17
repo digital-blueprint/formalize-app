@@ -31,16 +31,21 @@ export function setSubmissionFormOptions(host, state) {
 
     const options_submissions = {
         langs: lang_submissions,
+        // Submissions can omit optional fields, so discover columns across all rows.
         autoColumns: 'full',
         rowHeight: 64,
         layout: 'fitDataStretch',
+        // Bound the viewport so large pages only render nearby rows, not the entire page.
+        maxHeight: '70vh',
+        renderVertical: 'virtual',
         // layoutColumnsOnNewData: true,
         selectableRows: 'highlight',
         rowHeader: {
             formatter: 'rowSelection',
             titleFormatter: 'rowSelection',
             titleFormatterParams: {
-                rowRange: 'visible',
+                // Select the whole page, including rows outside the virtual viewport.
+                rowRange: 'display',
             },
             headerSort: false,
             resizable: false,
@@ -128,7 +133,7 @@ export function enableCheckboxSelection(host, state) {
     host.options_submissions[state].rowHeader = {
         formatter: 'rowSelection',
         titleFormatter: 'rowSelection',
-        titleFormatterParams: {rowRange: 'visible'},
+        titleFormatterParams: {rowRange: 'display'},
         headerSort: false,
         resizable: false,
         frozen: true,

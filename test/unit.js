@@ -1,5 +1,4 @@
 import {assert} from 'chai';
-import {TabulatorFull as Tabulator} from 'tabulator-tables';
 import {
     gatherFormDataFromElement,
     validateRequiredFields,
@@ -39,12 +38,17 @@ import {
     resolveManageFormsOverviewAction,
 } from '../src/manage-forms-overview-actions.js';
 import {ROUTING_URL_CHANGE_EVENT} from '../src/manage-forms-routing.js';
-import {RowActionsMenu, createRowActionsMenu} from '../src/table-components.js';
+import {
+    CustomTabulatorTable,
+    RowActionsMenu,
+    createRowActionsMenu,
+} from '../src/table-components.js';
 
 customElements.define('test-manage-forms-overview-page', class extends ManageFormsOverviewPage {});
 customElements.define('test-manage-forms', class extends ManageForms {});
 customElements.define('test-manage-submissions', class extends ManageSubmissions {});
 customElements.define('test-form-submissions', class extends FormSubmissions {});
+customElements.define('test-submissions-table', class extends CustomTabulatorTable {});
 customElements.define('test-form-links-modal', class extends FormLinksModal {});
 customElements.define(
     'test-manage-form-submissions-page',
@@ -742,31 +746,40 @@ suite('submission search performance', () => {
     });
 
     test('searches wide submissions at page size 100 in one deferred pass', async function () {
-        this.timeout(10000);
+        this.timeout(30000);
         const fields = Array.from({length: 150}, (_, index) => `field${index}`);
-        const data = Array.from({length: 500}, (_, row) =>
-            Object.fromEntries(fields.map((field) => [field, `${field} submission ${row}`])),
-        );
-        const container = document.createElement('div');
-        document.body.appendChild(container);
-        const table = new Tabulator(container, {
+        const data = Array.from({length: 500}, (_, row) => ({
+            dateCreated: '2026-11-17',
+            ...Object.fromEntries(fields.map((field) => [field, `${field} submission ${row}`])),
+        }));
+        data[499].optionalField = 'Only present in the last submission';
+        const component = document.createElement('test-submissions-table');
+        component.identifier = 'wide-submissions';
+        component.paginationSize = 100;
+        component.paginationEnabled = true;
+        component.setAttribute('overflow-y-scroll-enabled', '');
+        component.selectRowsEnabled = true;
+        component.columnConfigurationEnabled = true;
+        setSubmissionFormOptions(host, 'submitted');
+        component.options = {
+            ...host.options_submissions.submitted,
             data,
-            columns: fields.map((field, index) => ({field, visible: index < 149})),
-            pagination: true,
-            paginationSize: 100,
-            rowHeight: 64,
-            layout: 'fitDataStretch',
-        });
+        };
+        document.body.appendChild(component);
+        let table;
         try {
-            await new Promise((resolve) => table.on('tableBuilt', resolve));
+            await component.updateComplete;
+            await new Promise((resolve) => {
+                component.addEventListener('dbp-tabulator-table-built', resolve, {once: true});
+                component.buildTable();
+            });
+            table = component.tabulatorTable;
+            assert.isOk(table.getColumn('optionalField'));
+            await table.hideColumn('field149');
             let filterPasses = 0;
             table.on('dataFiltering', () => filterPasses++);
-            host.submissionTables.submitted = {
-                tabulatorTable: table,
-                getColumnsFields: () => fields,
-                setFilter: (filters) => table.setFilter(filters),
-            };
-            // Broad matches still render a full page of 100 rows.
+            host.submissionTables.submitted = component;
+            // Broad matches retain a full page of 100 rows, but only nearby rows need DOM nodes.
             inputs.submitted.value = 'submission';
             search('submitted');
             assert.equal(filterPasses, 0);
@@ -774,6 +787,24 @@ suite('submission search performance', () => {
             assert.equal(filterPasses, 1);
             assert.equal(host.visibleRowCount.submitted, 500);
             assert.equal(table.getPageSize(), 100);
+            assert.isBelow(component.shadowRoot.querySelectorAll('.tabulator-row').length, 100);
+            const holder = component.shadowRoot.querySelector('.tabulator-tableholder');
+            assert.equal(getComputedStyle(holder).overflowY, 'scroll');
+            assert.isAbove(holder.scrollHeight, holder.clientHeight);
+            holder.focus();
+            assert.strictEqual(component.shadowRoot.activeElement, holder);
+
+            // The header checkbox still selects the entire page, not just rendered rows.
+            component.shadowRoot.querySelector('.tabulator-header input[type="checkbox"]').click();
+            assert.lengthOf(table.getSelectedRows(), 100);
+            assert.lengthOf(table.getData('active'), 500);
+            const lastRowOnPage = table.getRows('display').at(-1);
+            await table.scrollToRow(lastRowOnPage, 'bottom', false);
+            assert.isTrue(holder.contains(lastRowOnPage.getElement()));
+            assert.lengthOf(table.getSelectedRows(), 100);
+            await table.setPage(2);
+            assert.lengthOf(table.getRows('display'), 100);
+            assert.include(table.getRows('display')[0].getData().field0, 'submission 100');
             filterPasses = 0;
             for (const value of ['field149', 'field149 submission', 'field149 submission 499']) {
                 inputs.submitted.value = value;
@@ -784,9 +815,12 @@ suite('submission search performance', () => {
             assert.equal(filterPasses, 1);
             assert.equal(host.visibleRowCount.submitted, 1);
             assert.equal(table.getData('active')[0].field149, 'field149 submission 499');
+            assert.isBelow(
+                component.shadowRoot.getElementById(component.identifier).clientHeight,
+                window.innerHeight * 0.7,
+            );
         } finally {
-            table.destroy();
-            container.remove();
+            component.remove();
         }
     });
 

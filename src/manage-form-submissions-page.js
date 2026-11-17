@@ -627,7 +627,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                                 .options=${this.optionsSubmissions[state]}
                                 pagination-size="5"
                                 .paginationSizeStorageKey=${this.paginationSizeStorageKey}
-                                sticky-header
+                                overflow-y-scroll-enabled
                                 select-rows-enabled
                                 column-configuration-enabled
                                 column-configuration-in-header
