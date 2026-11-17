@@ -1,4 +1,5 @@
 import {assert} from 'chai';
+import {TabulatorFull as Tabulator} from 'tabulator-tables';
 import {
     gatherFormDataFromElement,
     validateRequiredFields,
@@ -659,6 +660,258 @@ suite('available forms', () => {
         assert.equal(table.options, node.availableFormsTableOptions);
         assert.equal(table.data, node.availableForms);
         assert.deepEqual(calls, ['build']);
+    });
+});
+
+suite('submission search performance', () => {
+    let host;
+    let inputs;
+    let columns;
+    let operators;
+    let calls;
+
+    const waitForSearch = () => new Promise((resolve) => setTimeout(resolve, 300));
+    const search = (state, debounce = true) =>
+        host.handleSubmissionSearch({detail: {state, debounce}});
+
+    setup(() => {
+        host = document.createElement('test-form-submissions');
+        host.routingUrl = '/form';
+        host.handleSubmissionsChanged = () => {};
+        inputs = {};
+        columns = {};
+        operators = {};
+        calls = [];
+        for (const state of ['draft', 'submitted']) {
+            inputs[state] = document.createElement('input');
+            columns[state] = document.createElement('select');
+            columns[state].add(new Option('All', 'all'));
+            columns[state].add(new Option('Name', 'name'));
+            operators[state] = document.createElement('select');
+            operators[state].add(new Option('Like', 'like'));
+            operators[state].add(new Option('Starts', 'starts'));
+            host.submissionTables[state] = {
+                identifier: `table-${state}`,
+                paginationSize: 5,
+                getColumnsFields: () => ['name', 'description', 'htmlButtons'],
+                setFilter: (filters) => calls.push([state, 'filter', filters]),
+                clearFilter: () => calls.push([state, 'clear']),
+                tabulatorTable: {
+                    deselectRow: () => calls.push([state, 'deselect']),
+                    getRows: () => [],
+                    getPageSize: () => 5,
+                    getPage: () => 1,
+                    setPageSize: (size) => Promise.resolve(calls.push([state, 'page-size', size])),
+                    setPage: (page) => Promise.resolve(calls.push([state, 'page', page])),
+                },
+            };
+        }
+        host.getSubmissionsPage = () => ({
+            getSearchbar: (state) => inputs[state],
+            getSearchSelect: (state) => columns[state],
+            getSearchOperator: (state) => operators[state],
+        });
+    });
+
+    teardown(() => {
+        host.cancelPendingSearches();
+        host.remove();
+    });
+
+    test('coalesces typing into one filter pass using the latest input', async () => {
+        for (const value of ['A', 'Al', 'Alice']) {
+            inputs.submitted.value = value;
+            search('submitted');
+        }
+        assert.isEmpty(calls);
+        await waitForSearch();
+        assert.deepEqual(calls, [
+            ['submitted', 'deselect'],
+            [
+                'submitted',
+                'filter',
+                [
+                    [
+                        {field: 'name', type: 'like', value: 'Alice'},
+                        {field: 'description', type: 'like', value: 'Alice'},
+                    ],
+                ],
+            ],
+        ]);
+        assert.equal(host.routingUrl, '/form?submitted-search=Alice');
+    });
+
+    test('searches wide submissions at page size 100 in one deferred pass', async function () {
+        this.timeout(10000);
+        const fields = Array.from({length: 150}, (_, index) => `field${index}`);
+        const data = Array.from({length: 500}, (_, row) =>
+            Object.fromEntries(fields.map((field) => [field, `${field} submission ${row}`])),
+        );
+        const container = document.createElement('div');
+        document.body.appendChild(container);
+        const table = new Tabulator(container, {
+            data,
+            columns: fields.map((field, index) => ({field, visible: index < 149})),
+            pagination: true,
+            paginationSize: 100,
+            rowHeight: 64,
+            layout: 'fitDataStretch',
+        });
+        try {
+            await new Promise((resolve) => table.on('tableBuilt', resolve));
+            let filterPasses = 0;
+            table.on('dataFiltering', () => filterPasses++);
+            host.submissionTables.submitted = {
+                tabulatorTable: table,
+                getColumnsFields: () => fields,
+                setFilter: (filters) => table.setFilter(filters),
+            };
+            // Broad matches still render a full page of 100 rows.
+            inputs.submitted.value = 'submission';
+            search('submitted');
+            assert.equal(filterPasses, 0);
+            await waitForSearch();
+            assert.equal(filterPasses, 1);
+            assert.equal(host.visibleRowCount.submitted, 500);
+            assert.equal(table.getPageSize(), 100);
+            filterPasses = 0;
+            for (const value of ['field149', 'field149 submission', 'field149 submission 499']) {
+                inputs.submitted.value = value;
+                search('submitted');
+            }
+            assert.equal(filterPasses, 0);
+            await waitForSearch();
+            assert.equal(filterPasses, 1);
+            assert.equal(host.visibleRowCount.submitted, 1);
+            assert.equal(table.getData('active')[0].field149, 'field149 submission 499');
+        } finally {
+            table.destroy();
+            container.remove();
+        }
+    });
+
+    test('keeps draft and submitted debounce timers independent', async () => {
+        inputs.draft.value = 'Draft';
+        inputs.submitted.value = 'Submitted';
+        search('draft');
+        search('submitted');
+        await waitForSearch();
+        assert.lengthOf(
+            calls.filter(([, action]) => action === 'filter'),
+            2,
+        );
+        assert.include(host.routingUrl, 'draft-search=Draft');
+        assert.include(host.routingUrl, 'submitted-search=Submitted');
+    });
+
+    test('explicit search cancels pending typing and applies column/operator changes', async () => {
+        inputs.submitted.value = 'Alice';
+        search('submitted');
+        columns.submitted.value = 'name';
+        operators.submitted.value = 'starts';
+        search('submitted', false);
+        assert.deepInclude(calls, [
+            'submitted',
+            'filter',
+            [{field: 'name', type: 'starts', value: 'Alice'}],
+        ]);
+        await waitForSearch();
+        assert.lengthOf(
+            calls.filter(([, action]) => action === 'filter'),
+            1,
+        );
+    });
+
+    test('Enter applies search immediately without a later duplicate', async () => {
+        inputs.submitted.classList.add('searchbar');
+        inputs.submitted.setAttribute('data-state', 'submitted');
+        inputs.submitted.value = 'Alice';
+        search('submitted');
+        host.handleKeyEvents({
+            key: 'Enter',
+            composedPath: () => [inputs.submitted],
+            preventDefault: () => {},
+        });
+        assert.lengthOf(
+            calls.filter(([, action]) => action === 'filter'),
+            1,
+        );
+        await waitForSearch();
+        assert.lengthOf(
+            calls.filter(([, action]) => action === 'filter'),
+            1,
+        );
+    });
+
+    test('reset and disconnect cancel pending searches', async () => {
+        inputs.submitted.value = 'Alice';
+        search('submitted');
+        host.clearAllFilters('submitted');
+        inputs.draft.value = 'Draft';
+        search('draft');
+        host.disconnectedCallback();
+        await waitForSearch();
+        assert.deepEqual(calls, [['submitted', 'clear']]);
+        assert.isFalse(host.searchIsActive.submitted);
+    });
+
+    test('form changes cancel pending searches', async () => {
+        inputs.submitted.value = 'Alice';
+        search('submitted');
+        host.form = {formId: 'other-form'};
+        host.willUpdate(new Map([['form', null]]));
+        await waitForSearch();
+        assert.isEmpty(calls);
+    });
+
+    test('does not restore locally applied URLs, but restores external navigation', async () => {
+        document.body.appendChild(host);
+        await host.updateComplete;
+        host.showSubmissionTables = true;
+        let restores = 0;
+        host.restoreVisibleTableState = () => restores++;
+        inputs.submitted.value = 'Alice';
+        search('submitted', false);
+        await host.updateComplete;
+        assert.equal(restores, 0);
+        host.routingUrl = '/form?submitted-search=Bob';
+        await host.updateComplete;
+        assert.equal(restores, 1);
+    });
+
+    test('URL restoration skips unchanged filters and pagination without deselecting rows', async () => {
+        document.body.appendChild(host);
+        await host.updateComplete;
+        inputs.submitted.value = 'Alice';
+        search('submitted', false);
+        calls.length = 0;
+        await host.restoreSubmissionTableState('submitted');
+        assert.isEmpty(calls);
+
+        host.routingUrl = '/form?submitted-search=Bob&submitted-page=2&submitted-page-size=10';
+        await host.restoreSubmissionTableState('submitted');
+        assert.deepInclude(calls, ['submitted', 'page-size', 10]);
+        assert.deepInclude(calls, ['submitted', 'page', 2]);
+        assert.lengthOf(
+            calls.filter(([, action]) => action === 'filter'),
+            1,
+        );
+
+        calls.length = 0;
+        search('submitted', false);
+        assert.isEmpty(calls);
+        assert.include(host.routingUrl, 'submitted-page=2');
+
+        // A rebuilt table still needs the same search applied to its new instance.
+        calls.length = 0;
+        host.submissionTables.submitted.tabulatorTable = {
+            ...host.submissionTables.submitted.tabulatorTable,
+        };
+        host.filterTable('submitted', false);
+        assert.lengthOf(
+            calls.filter(([, action]) => action === 'filter'),
+            1,
+        );
     });
 });
 
@@ -2649,8 +2902,21 @@ suite('manage-forms and manage-submissions activities', () => {
         // Submission search is reflected in the activity routing URL
         const page = formSubmissions.getSubmissionsPage();
         const searchInput = page.getSearchbar('submitted');
+        await waitFor(() =>
+            formSubmissions._urlStateReadyTables.has('submissions-table-submitted'),
+        );
+        const table = formSubmissions.submissionTables.submitted.tabulatorTable;
+        let filterPasses = 0;
+        const countFilterPass = () => filterPasses++;
+        table.on('dataFiltering', countFilterPass);
         searchInput.value = 'Alice 1';
         searchInput.dispatchEvent(new Event('input'));
+        assert.equal(filterPasses, 0);
+        await waitFor(() => element.routes.at(-1) === '/form-own?submitted-search=Alice+1');
+        await formSubmissions.updateComplete;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        assert.equal(filterPasses, 1);
+        table.off('dataFiltering', countFilterPass);
         assert.equal(element.routes.at(-1), '/form-own?submitted-search=Alice+1');
 
         // Back to the overview keeps only the forms list parameters

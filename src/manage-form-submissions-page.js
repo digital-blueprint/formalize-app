@@ -141,10 +141,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         );
     }
 
-    handleSearch(state) {
+    handleSearch(state, debounce = false) {
         this.dispatchEvent(
             new CustomEvent('submission-search', {
-                detail: {state},
+                detail: {state, debounce},
                 bubbles: true,
                 composed: true,
             }),
@@ -378,7 +378,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
                     data-state="${state}"
                     class="searchbar"
                     placeholder="${i18n.t('manage-forms.searchbar-placeholder')}"
-                    @input=${() => this.handleSearch(state)} />
+                    @input=${() => this.handleSearch(state, true)} />
 
                 <button
                     class="button search-button"

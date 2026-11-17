@@ -133,6 +133,9 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this._switchGeneration = 0;
         this._restoringUrlStateTables = new Set();
         this._urlStateReadyTables = new Set();
+        this._searchTimers = new Map();
+        this._appliedSubmissionFilters = new Map();
+        this._locallyRequestedRoutingUrl = null;
     }
 
     static get scopedElements() {
@@ -215,6 +218,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('click', this.boundCloseActionsDropdownHandler);
+        this.cancelPendingSearches();
     }
 
     getSubmissionsPage() {
@@ -258,6 +262,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         super.willUpdate(changedProperties);
 
         if (changedProperties.has('form')) {
+            this.cancelPendingSearches();
             const allowedSubmissionStates = this.form?.allowedSubmissionStates;
             this.enabledStates = {
                 draft: isDraftStateEnabled(allowedSubmissionStates),
@@ -297,7 +302,11 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
 
         if (changedProperties.has('routingUrl')) {
             const oldUrl = changedProperties.get('routingUrl');
+            // Local search and pagination already changed the table; only restore external URLs.
+            const locallyApplied = this.routingUrl === this._locallyRequestedRoutingUrl;
+            this._locallyRequestedRoutingUrl = null;
             if (
+                !locallyApplied &&
                 oldUrl !== undefined &&
                 this.showSubmissionTables &&
                 getQueryString(oldUrl) !== getQueryString(this.routingUrl)
@@ -353,6 +362,8 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
      * Resets the component when no form is shown.
      */
     resetSubmissions() {
+        this.cancelPendingSearches();
+        this._appliedSubmissionFilters.clear();
         // Invalidate any in-flight loadSubmissions() call
         this._switchGeneration++;
         this._isSwitchingTable = false;
@@ -366,6 +377,8 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
      * Loads the submissions of the current form and (re)builds the tables.
      */
     async loadSubmissions() {
+        this.cancelPendingSearches();
+        this._appliedSubmissionFilters.clear();
         const form = this.form;
         if (!form) return;
 
@@ -490,6 +503,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this.submissionTables[state].setColumns(this.submissionsColumnsInitial[state]);
         // Translate column labels after the table is built
         this.updateSubmissionColumnOptions(state);
+        this._appliedSubmissionFilters.delete(state);
 
         this.setIsActionAvailable(state);
         this.setVisibleRowCount(state);
@@ -859,6 +873,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
 
         // Update locally right away, so consecutive changes build on each other
         // before the activity passes the new URL back down.
+        this._locallyRequestedRoutingUrl = routingUrl;
         this.routingUrl = routingUrl;
         dispatchRoutingUrlChange(this, routingUrl);
     }
@@ -892,6 +907,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     }
 
     async restoreSubmissionTableState(state) {
+        this.cancelPendingSearches(state);
         await this.updateComplete;
         const submissionsPage = this.getSubmissionsPage();
         await submissionsPage?.updateComplete;
@@ -923,10 +939,14 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             )
                 ? operatorValue
                 : 'like';
-            table.paginationSize = pageSize;
-            await table.tabulatorTable.setPageSize(pageSize);
+            if (table.tabulatorTable.getPageSize?.() !== pageSize) {
+                table.paginationSize = pageSize;
+                await table.tabulatorTable.setPageSize(pageSize);
+            }
             this.filterTable(state, false);
-            await table.tabulatorTable.setPage(page);
+            if (table.tabulatorTable.getPage?.() !== page) {
+                await table.tabulatorTable.setPage(page);
+            }
         } finally {
             this._restoringUrlStateTables.delete(table.identifier);
             this._urlStateReadyTables.add(table.identifier);
@@ -943,12 +963,39 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     // Search / filter
     // -----------------------------------------------------------------------
 
+    cancelPendingSearches(state = null) {
+        const states = state === null ? [...this._searchTimers.keys()] : [state];
+        for (const state of states) {
+            clearTimeout(this._searchTimers.get(state));
+            this._searchTimers.delete(state);
+        }
+    }
+
+    handleSubmissionSearch(event) {
+        const {state, debounce} = event.detail;
+        this.cancelPendingSearches(state);
+        if (!debounce) {
+            this.filterTable(state);
+            return;
+        }
+
+        // Keep table filtering out of the input handler and coalesce rapid keystrokes.
+        this._searchTimers.set(
+            state,
+            setTimeout(() => {
+                this._searchTimers.delete(state);
+                this.filterTable(state);
+            }, 250),
+        );
+    }
+
     /**
      * Filters the submissions table
      * @param {string} state
      * @param {boolean} updateUrl
      */
     filterTable(state, updateUrl = true) {
+        this.cancelPendingSearches(state);
         const submissionsPage = this.getSubmissionsPage();
         const filter = /** @type {HTMLInputElement} */ (submissionsPage?.getSearchbar(state));
         const search = /** @type {HTMLSelectElement} */ (submissionsPage?.getSearchSelect(state));
@@ -958,10 +1005,21 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
 
         const table = this.submissionTables[state];
 
-        if (!filter || !search || !operator || !table) return;
+        if (!filter || !search || !operator || !table?.tabulatorTable) return;
+
+        const filterState = JSON.stringify([filter.value, search.value, operator.value]);
+        const appliedFilter = this._appliedSubmissionFilters.get(state);
+        // Pagination-only navigation must not refilter or clear the current row selection.
+        if (appliedFilter?.table === table.tabulatorTable && appliedFilter.value === filterState) {
+            return;
+        }
 
         if (filter.value === '') {
             table.clearFilter();
+            this._appliedSubmissionFilters.set(state, {
+                table: table.tabulatorTable,
+                value: filterState,
+            });
             this.searchIsActive = {...this.searchIsActive, [state]: false};
             this.setVisibleRowCount(state);
             if (updateUrl) this.syncSubmissionFilterToUrl(state);
@@ -982,6 +1040,10 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             table.setFilter([listOfFilters]);
         }
 
+        this._appliedSubmissionFilters.set(state, {
+            table: table.tabulatorTable,
+            value: filterState,
+        });
         this.setVisibleRowCount(state);
         this.searchIsActive = {...this.searchIsActive, [state]: true};
 
@@ -998,6 +1060,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         const queryUpdates = {};
         const submissionsPage = this.getSubmissionsPage();
         for (const state of states) {
+            this.cancelPendingSearches(state);
             const searchInput = submissionsPage?.getSearchbar(state);
             const searchColumn = submissionsPage?.getSearchSelect(state);
             const searchOperator = submissionsPage?.getSearchOperator(state);
@@ -1009,6 +1072,10 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             searchColumn.value = 'all';
             searchOperator.value = 'like';
             table.clearFilter();
+            this._appliedSubmissionFilters.set(state, {
+                table: table.tabulatorTable,
+                value: JSON.stringify(['', 'all', 'like']),
+            });
             this.searchIsActive = {...this.searchIsActive, [state]: false};
             this.setVisibleRowCount(state);
             queryUpdates[`${state}-search`] = null;
@@ -1453,7 +1520,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                     this.handleSubmissionsPageSearchToggle(event)}
                 @submission-actions-toggle=${(event) =>
                     this.handleSubmissionsPageActionsToggle(event)}
-                @submission-search=${(event) => this.filterTable(event.detail.state)}
+                @submission-search=${(event) => this.handleSubmissionSearch(event)}
                 @submission-search-reset=${(event) => this.clearAllFilters(event.detail.state)}
                 @submission-action=${(event) =>
                     this.handleSubmissionsPageAction(

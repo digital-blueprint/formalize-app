@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- v1.5.1 follow-up: improved submission search performance by debouncing typing by 250 ms and avoiding redundant URL-triggered filtering and unchanged pagination resets; explicit searches remain immediate. Added regression tests for wide tables at page size 100. Rendering large pages can still cause noticeable UI blocking, so this is a partial improvement (task #76728).
 - Fixed the "Fill out form" menu entry becoming disabled after leaving the render-form activity while the `available-forms-overview` feature flag is enabled.
 - Fixed the "Fill out form" menu entry not being enabled and shown as active in the render-form activity.
 - The submission search column dropdown now shows the localized column labels from the form schema instead of the raw field names.
