@@ -104,7 +104,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this.noSubmissionAvailable = {draft: true, submitted: true};
         this.hiddenColumns = false;
         this.currentDetailPosition = 0;
-        this.submissionTables = {submitted: null, draft: null};
+        this.submissionTables = {draft: null, submitted: null};
         this.submissionsHasAttachment = {draft: false, submitted: false};
         this.submittedFileDetails = {draft: new Map(), submitted: new Map()};
         this.isDeleteSelectedSubmissionEnabled = {draft: false, submitted: false};
@@ -115,6 +115,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this.actionsWidgetIsOpen = {draft: false, submitted: false};
         this.isActionAvailable = {draft: false, submitted: false};
         this.needTableRebuild = {draft: false, submitted: false};
+        this.submissionColumnOptions = {draft: [], submitted: []};
         this.createSubmissionUrl = '';
         this.useSubFoldersForExports = true;
         this.downloadFolderNamePattern = '';
@@ -182,6 +183,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
             visibleRowCount: {type: Object, attribute: false},
             searchIsActive: {type: Object, attribute: false},
             submissionsHasAttachment: {type: Object, attribute: false},
+            submissionColumnOptions: {type: Object, attribute: false},
         };
     }
 
@@ -381,7 +383,8 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this._isSwitchingTable = true;
 
         // Reset submissions so stale data from a previous form is never shown.
-        this.submissions = {submitted: [], draft: []};
+        this.submissions = {draft: [], submitted: []};
+        this.submissionColumnOptions = {draft: [], submitted: []};
         // Invalidate any previous in-flight call
         const generation = ++this._switchGeneration;
 
@@ -485,6 +488,9 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         setDefaultSubmissionTableOrder(this, state);
 
         this.submissionTables[state].setColumns(this.submissionsColumnsInitial[state]);
+        // Translate column labels after the table is built
+        this.updateSubmissionColumnOptions(state);
+
         this.setIsActionAvailable(state);
         this.setVisibleRowCount(state);
 
@@ -886,7 +892,9 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     }
 
     async restoreSubmissionTableState(state) {
+        await this.updateComplete;
         const submissionsPage = this.getSubmissionsPage();
+        await submissionsPage?.updateComplete;
         const searchInput = submissionsPage?.getSearchbar(state);
         const searchColumn = submissionsPage?.getSearchSelect(state);
         const searchOperator = submissionsPage?.getSearchOperator(state);
@@ -1013,6 +1021,23 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
 
     closeAllSearchWidgets() {
         this.searchWidgetIsOpen = {draft: false, submitted: false};
+    }
+
+    updateSubmissionColumnOptions(state) {
+        const columnOptions =
+            this.submissionTables[state]?.getColumnDefinitions?.() ||
+            this.submissionsColumnsInitial[state];
+        let filteredColumnOptions = columnOptions.filter((col) => {
+            return col && col.field && col.field !== 'htmlButtons' && col.field !== 'rowIndex';
+        });
+        filteredColumnOptions = filteredColumnOptions.map((col) => {
+            return {field: col.field, title: col.title || col.field};
+        });
+
+        this.submissionColumnOptions = {
+            ...this.submissionColumnOptions,
+            [state]: filteredColumnOptions,
+        };
     }
 
     // -----------------------------------------------------------------------
@@ -1397,6 +1422,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
                         ),
                     ]),
                 )}
+                .submissionColumnOptions=${this.submissionColumnOptions}
                 .createSubmissionUrl=${this.createSubmissionUrl}
                 .hideCreateSubmissionButton=${this.hideCreateSubmissionButton}
                 .enabledStates=${this.enabledStates}

@@ -36,6 +36,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
         this.visibleRowCount = {draft: 0, submitted: 0};
         this.searchIsActive = {draft: false, submitted: false};
         this.submissionsHasAttachment = {draft: false, submitted: false};
+        this.submissionColumnOptions = {draft: [], submitted: []};
     }
 
     static get scopedElements() {
@@ -73,6 +74,7 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             visibleRowCount: {type: Object, attribute: false},
             searchIsActive: {type: Object, attribute: false},
             submissionsHasAttachment: {type: Object, attribute: false},
+            submissionColumnOptions: {type: Object, attribute: false},
         };
     }
 
@@ -187,7 +189,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
     getTableHeaderOptions(state) {
         const i18n = this._i18n;
 
-        if (this.submissions[state].length === 0) {
+        if (
+            !Array.isArray(this.submissionColumnOptions[state]) ||
+            this.submissionColumnOptions[state].length === 0
+        ) {
             return [];
         }
 
@@ -196,13 +201,10 @@ export class ManageFormSubmissionsPage extends ScopedElementsMixin(DBPLitElement
             <option value="all">${i18n.t('manage-forms.all-columns')}</option>
         `);
 
-        let cols = Object.keys(this.submissions[state][0]);
-        for (let col of cols) {
-            if (col && col !== 'htmlButtons') {
-                options.push(html`
-                    <option value="${col}">${col}</option>
-                `);
-            }
+        for (let col of this.submissionColumnOptions[state]) {
+            options.push(html`
+                <option value="${col.field}">${col.title}</option>
+            `);
         }
         return options;
     }

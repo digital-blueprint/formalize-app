@@ -1798,6 +1798,124 @@ suite('manage forms action menus', () => {
         page.remove();
     });
 
+    test('should label the search columns with their localized titles', async () => {
+        const page = document.createElement('test-manage-form-submissions-page');
+        page.lang = 'de';
+        page.noSubmissionAvailable = {draft: false, submitted: true};
+        page.isActionAvailable = {draft: false, submitted: false};
+        page.submissionColumnOptions = {
+            draft: [
+                {field: 'givenName', title: 'Vorname'},
+                {field: 'form_files-attachments', title: 'Anhänge'},
+            ],
+            submitted: [],
+        };
+        document.body.appendChild(page);
+        await page.updateComplete;
+
+        const searchColumn = page.getSearchSelect('draft');
+        // The option values stay the raw field names because filterTable() and the
+        // search column query parameter rely on them.
+        assert.deepEqual(
+            Array.from(searchColumn.options).map((option) => [
+                option.value,
+                option.textContent.trim(),
+            ]),
+            [
+                ['all', 'Alle Spalten'],
+                ['givenName', 'Vorname'],
+                ['form_files-attachments', 'Anhänge'],
+            ],
+        );
+
+        page.lang = 'en';
+        await page.updateComplete;
+        assert.equal(searchColumn.options[0].textContent.trim(), 'All columns');
+
+        page.remove();
+    });
+
+    test('should build the search column options from the table columns', () => {
+        const host = document.createElement('test-form-submissions');
+        host.submissionTables.draft = {
+            getColumnDefinitions: () => [
+                // The row selection header has no field.
+                {formatter: 'rowSelection'},
+                {field: 'rowIndex', title: 'ID'},
+                {field: 'givenName', title: 'Vorname'},
+                // Without a title the raw field name is used.
+                {field: 'notes'},
+                {field: 'htmlButtons', title: ''},
+            ],
+        };
+
+        host.updateSubmissionColumnOptions('draft');
+
+        assert.deepEqual(host.submissionColumnOptions.draft, [
+            {field: 'givenName', title: 'Vorname'},
+            {field: 'notes', title: 'notes'},
+        ]);
+    });
+
+    test('should fall back to the initial columns while the table has none', () => {
+        const host = document.createElement('test-form-submissions');
+        host.submissionsColumnsInitial.draft = [
+            {field: 'rowIndex', title: 'ID'},
+            {field: 'givenName', title: 'Vorname'},
+        ];
+        host.submissionTables.draft = null;
+
+        host.updateSubmissionColumnOptions('draft');
+
+        assert.deepEqual(host.submissionColumnOptions.draft, [
+            {field: 'givenName', title: 'Vorname'},
+        ]);
+    });
+
+    test('should read the search column labels after the schema columns are applied', () => {
+        const host = document.createElement('test-form-submissions');
+        // Tabulator generates the columns from the row data and uses the raw field
+        // name as the title, so the localized labels only exist once the schema
+        // columns have been applied to the table.
+        const autoColumnDefinitions = [
+            {field: 'rowIndex', title: 'ID'},
+            {field: 'dateCreated', title: 'Date created'},
+            {field: 'givenName', title: 'givenName'},
+            {field: 'htmlButtons', title: ''},
+        ];
+        let appliedColumnDefinitions = null;
+
+        host.lang = 'en';
+        host.availableTags = [];
+        host.form = {
+            formId: 'job-offer',
+            dataFeedSchema: JSON.stringify({
+                properties: {givenName: {localizedName: {de: 'Vorname', en: 'First name'}}},
+            }),
+        };
+        host.submissionTables.draft = {
+            identifier: 'submissions-table-draft',
+            getColumns: () =>
+                autoColumnDefinitions.map((definition) => ({getDefinition: () => definition})),
+            setColumns: (columns) => {
+                appliedColumnDefinitions = columns;
+            },
+            getColumnDefinitions: () => appliedColumnDefinitions ?? autoColumnDefinitions,
+        };
+        host.restoreSubmissionTableState = () => Promise.resolve();
+
+        host.handleTableBuilt(
+            new CustomEvent('dbp-tabulator-table-built', {
+                detail: {id: 'submissions-table-draft'},
+            }),
+        );
+
+        assert.deepEqual(host.submissionColumnOptions.draft, [
+            {field: 'dateCreated', title: 'Date created'},
+            {field: 'givenName', title: 'First name'},
+        ]);
+    });
+
     test('should put all submission filters into the routing URL', () => {
         const host = document.createElement('test-form-submissions');
         const searchInput = document.createElement('input');
@@ -1930,6 +2048,10 @@ suite('manage forms action menus', () => {
 
     test('should restore submission filters and pagination from the routing URL', async () => {
         const host = document.createElement('test-form-submissions');
+        // restoreSubmissionTableState() waits for the rendered search options, so the
+        // host has to be connected for its updateComplete to ever resolve.
+        document.body.appendChild(host);
+        await host.updateComplete;
         const searchInput = document.createElement('input');
         const searchColumn = document.createElement('select');
         const searchOperator = document.createElement('select');
@@ -1969,10 +2091,13 @@ suite('manage forms action menus', () => {
         assert.deepInclude(calls, ['page-size', 10]);
         assert.deepInclude(calls, ['page', 2]);
         assert.isTrue(host._urlStateReadyTables.has('submissions-table-draft'));
+        host.remove();
     });
 
     test('should keep the stored page size when the routing URL has no page size', async () => {
         const host = document.createElement('test-form-submissions');
+        document.body.appendChild(host);
+        await host.updateComplete;
         const searchInput = document.createElement('input');
         const searchColumn = document.createElement('select');
         const searchOperator = document.createElement('select');
@@ -2002,6 +2127,7 @@ suite('manage forms action menus', () => {
         await host.restoreSubmissionTableState('draft');
 
         assert.deepInclude(calls, ['page-size', 20]);
+        host.remove();
     });
 
     test('should restore form pagination after table data has loaded', async () => {
