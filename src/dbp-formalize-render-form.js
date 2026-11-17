@@ -11,6 +11,7 @@ import {
     getFormManageSubmissionsUrl,
     FORM_PERMISSIONS,
     SUBMISSION_COLLECTION_PERMISSIONS,
+    RENDER_FORM_ROUTING_NAME,
 } from './utils.js';
 import {createRef, ref} from 'lit/directives/ref.js';
 import * as commonStyles from '@dbp-toolkit/common/src/styles.js';
@@ -199,6 +200,29 @@ class RenderForm extends ScopedElementsMixin(DBPFormalizeLitElement) {
             // We need to check permissions, because the user has navigated to a different form
             void this.handlePermissionsForCurrentForm();
         }
+
+        // The menu item has to be updated even if the slug didn't change, because the app-shell
+        // resets it to the metadata default when the activity is left
+        this.updateActivityEnabledState();
+    }
+
+    /**
+     * Notifies the app-shell whether the menu item of this activity should be enabled.
+     *
+     * The activity can only be used if a form is being rendered, or if the available forms
+     * overview can be shown, so the menu item is disabled in all other cases.
+     */
+    updateActivityEnabledState() {
+        this.dispatchEvent(
+            new CustomEvent('dbp-app-shell-activity-enabled', {
+                detail: {
+                    name: RENDER_FORM_ROUTING_NAME,
+                    enabled: isAvailableFormsOverviewEnabled() || this.formUrlSlug !== '',
+                },
+                bubbles: true,
+                composed: true,
+            }),
+        );
     }
 
     async handlePermissionsForCurrentForm() {

@@ -4,6 +4,13 @@ export const pascalToKebab = (str) => {
 };
 
 /**
+ * Routing name of the activity that renders a form, see `dbp-formalize-render-form.metadata.json`.
+ *
+ * @type {string}
+ */
+export const RENDER_FORM_ROUTING_NAME = 'render-form';
+
+/**
  * Returns the absolute URL of an activity of the current app, e.g. `<origin>/<base>/<lang>/<routingName>/<path>`.
  *
  * @param {string} routingName - Routing name of the activity
@@ -22,7 +29,7 @@ export const getFormRenderUrl = (formUrlSlug, lang, formIdentifier = '') => {
     const query = formIdentifier
         ? `?${new URLSearchParams({'form-identifier': formIdentifier})}`
         : '';
-    return getActivityUrl('render-form', `${formUrlSlug}${query}`, lang);
+    return getActivityUrl(RENDER_FORM_ROUTING_NAME, `${formUrlSlug}${query}`, lang);
 };
 
 export const getFormManageSubmissionsUrl = (formId, lang) => {

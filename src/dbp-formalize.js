@@ -30,11 +30,15 @@ export class FormalizeAppShell extends AppShell {
             ?.dataset?.key;
         if (!changedFeatureFlag) return;
 
-        this._updateVisibleRoutes();
         const activeActivity =
-            /** @type {import('lit').LitElement & {loadAvailableForms?: () => Promise<void>}} */ (
+            /** @type {import('lit').LitElement & {loadAvailableForms?: () => Promise<void>, updateActivityEnabledState?: () => void}} */ (
                 this._lastElm
             );
+
+        // Let the activity re-evaluate its menu item first, otherwise its previous state would
+        // still be applied on top of the recalculated routes
+        activeActivity?.updateActivityEnabledState?.();
+        this._updateVisibleRoutes();
         activeActivity?.requestUpdate();
         if (isAvailableFormsOverviewEnabled()) {
             void activeActivity?.loadAvailableForms?.();

@@ -15,7 +15,7 @@ import {ManageFormsOverviewPage} from '../src/manage-forms-overview-page.js';
 import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js';
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
 import {FormLinksModal} from '../src/form-links-modal.js';
-import {getFormRenderUrl} from '../src/utils.js';
+import {getFormRenderUrl, RENDER_FORM_ROUTING_NAME} from '../src/utils.js';
 import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
 import {
     BaseFormElement,
@@ -435,6 +435,89 @@ suite('available forms feature flag', () => {
         shell._updateVisibleRoutes();
         assert.isTrue(shell.metadata['manage-forms'].disabled);
         assert.isUndefined(shell.metadata['welcome'].disabled);
+    });
+});
+
+suite('render-form menu item', () => {
+    teardown(() => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+    });
+
+    const createRenderForm = () => {
+        const node = document.createElement('dbp-formalize-render-form');
+        const events = [];
+        node.addEventListener('dbp-app-shell-activity-enabled', (event) =>
+            events.push(event.detail),
+        );
+        return {node, events};
+    };
+
+    test('is enabled while a form is rendered', () => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        const {node, events} = createRenderForm();
+        node.formUrlSlug = 'exam';
+
+        node.updateActivityEnabledState();
+
+        assert.deepEqual(events, [{name: RENDER_FORM_ROUTING_NAME, enabled: true}]);
+    });
+
+    test('is disabled without a form and without the available forms overview', () => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        const {node, events} = createRenderForm();
+        node.formUrlSlug = '';
+
+        node.updateActivityEnabledState();
+
+        assert.deepEqual(events, [{name: RENDER_FORM_ROUTING_NAME, enabled: false}]);
+    });
+
+    test('stays enabled on the available forms overview', () => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, true);
+        const {node, events} = createRenderForm();
+        node.formUrlSlug = '';
+
+        node.updateActivityEnabledState();
+
+        assert.deepEqual(events, [{name: RENDER_FORM_ROUTING_NAME, enabled: true}]);
+    });
+
+    test('is updated even if the form slug did not change', () => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        const {node, events} = createRenderForm();
+        node.routingUrl = '/exam';
+        node.formUrlSlug = 'exam';
+
+        node.updateFormUrlSlug();
+
+        assert.deepEqual(events, [{name: RENDER_FORM_ROUTING_NAME, enabled: true}]);
+    });
+
+    test('the app-shell keeps the activity state when recalculating the routes', () => {
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        const shell = document.createElement('dbp-formalize');
+        shell.routes = [RENDER_FORM_ROUTING_NAME];
+        shell.metadata = {
+            [RENDER_FORM_ROUTING_NAME]: {
+                required_roles: [],
+                visible: true,
+                disabled: true,
+                feature_flag: AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG,
+            },
+        };
+
+        shell._updateVisibleRoutes();
+        assert.isTrue(shell.visibleRoutes[0].disabled);
+
+        shell._handleActivityEnabled(
+            new CustomEvent('dbp-app-shell-activity-enabled', {
+                detail: {name: RENDER_FORM_ROUTING_NAME, enabled: true},
+            }),
+        );
+        assert.isFalse(shell.visibleRoutes[0].disabled);
+
+        shell._updateVisibleRoutes();
+        assert.isFalse(shell.visibleRoutes[0].disabled);
     });
 });
 
