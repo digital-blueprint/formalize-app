@@ -41,24 +41,26 @@ export class FormalizeAppShell extends AppShell {
         }
     }
 
-    _updateVisibleRoutes() {
-        const originalDisabledStates = new Map();
-
+    /**
+     * Applies the feature flag state to the activity metadata.
+     *
+     * The metadata is the single source of truth for the disabled state of a menu item, it is
+     * also read by the app-shell when switching away from an activity to restore the default.
+     * So the flag has to be written through instead of only patching the visible routes,
+     * otherwise leaving the activity would re-apply the stale metadata default.
+     */
+    _applyFeatureFlagToMetadata() {
         for (const routingName of this.routes) {
             const activity = this.metadata[routingName];
-            if (activity.feature_flag !== AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG) continue;
+            if (activity?.feature_flag !== AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG) continue;
 
-            originalDisabledStates.set(activity, activity.disabled);
             activity.disabled = !isAvailableFormsOverviewEnabled();
         }
+    }
 
-        try {
-            super._updateVisibleRoutes();
-        } finally {
-            for (const [activity, disabled] of originalDisabledStates) {
-                activity.disabled = disabled;
-            }
-        }
+    _updateVisibleRoutes() {
+        this._applyFeatureFlagToMetadata();
+        super._updateVisibleRoutes();
     }
 }
 

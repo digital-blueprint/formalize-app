@@ -399,6 +399,43 @@ suite('available forms feature flag', () => {
         shell._updateVisibleRoutes();
         assert.isFalse(shell.visibleRoutes[0].disabled);
     });
+
+    test('keeps the activity metadata in sync with the feature flag', () => {
+        const shell = document.createElement('dbp-formalize');
+        shell.routes = ['render-form'];
+        shell.metadata = {
+            'render-form': {
+                required_roles: [],
+                visible: true,
+                disabled: true,
+                feature_flag: AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG,
+            },
+        };
+
+        // The app-shell restores the metadata default when switching away from an activity,
+        // so the metadata has to reflect the feature flag, not the original default
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, true);
+        shell._updateVisibleRoutes();
+        assert.isFalse(shell.metadata['render-form'].disabled);
+
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, false);
+        shell._updateVisibleRoutes();
+        assert.isTrue(shell.metadata['render-form'].disabled);
+    });
+
+    test('leaves activities without the feature flag untouched', () => {
+        const shell = document.createElement('dbp-formalize');
+        shell.routes = ['welcome', 'manage-forms'];
+        shell.metadata = {
+            welcome: {required_roles: [], visible: true},
+            'manage-forms': {required_roles: [], visible: true, disabled: true},
+        };
+
+        setFeatureFlag(AVAILABLE_FORMS_OVERVIEW_FEATURE_FLAG, true);
+        shell._updateVisibleRoutes();
+        assert.isTrue(shell.metadata['manage-forms'].disabled);
+        assert.isUndefined(shell.metadata['welcome'].disabled);
+    });
 });
 
 suite('available forms', () => {

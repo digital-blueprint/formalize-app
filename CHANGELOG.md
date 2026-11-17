@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed the "Fill out form" menu entry becoming disabled after leaving the render-form activity while the `available-forms-overview` feature flag is enabled.
 - The submission search column dropdown now shows the localized column labels from the form schema instead of the raw field names.
 - Ethics commission form: the applicant and co-applicant person dropdowns now show each person's email address next to their name. A project-local person select element extends the toolkit base element and requests `includeLocal=email` for both search results and preselected entries, without changing the toolkit
 - v1.5.1 follow-up: manage fields now reuses the shared grant permission dialog for forms, submission collections and individual submissions. Separate row actions are shown only with the respective manage grant, which is checked again before opening the dialog; includes German and English labels and regression tests (task #76576)
