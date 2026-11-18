@@ -7,6 +7,7 @@ import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GetDetailsButton, RowActionsMenu} from './table-components.js';
 import {ManageFormsOverviewPage} from './manage-forms-overview-page.js';
 import {loadModules, getListOfAllForms, loadFormsSubmissionCounts} from './manage-forms-api.js';
+import {getApiRequestScope, SubmissionDataLoader} from './submission-data-loader.js';
 import {
     ROUTING_URL_CHANGE_EVENT,
     getRoutingUrlWithQueryPrefixes,
@@ -79,6 +80,10 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         /** @type {Map<string, number>} Number of submitted submissions by form identifier */
         this.formsSubmissionCounts = new Map();
         this.loadSubmissionCountsPromise = null;
+        this.submissionDataLoader = new SubmissionDataLoader();
+        this._formsLoad = null;
+        this._submissionCountsLoad = null;
+        this._submissionCountsScope = null;
         // Short name of the university, available to the modules (e.g. for their overview columns)
         this.universityShortName = '';
         this.allowListFrontendKeys = [];
@@ -220,12 +225,37 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         }
     }
 
-    async loadForms() {
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this.submissionDataLoader.invalidate();
+    }
+
+    loadForms() {
+        // Login and firstUpdated can both start loading during the same initialization.
+        const key = getApiRequestScope(this);
+        if (this._formsLoad?.key === key) return this._formsLoad.promise;
+        const load = {key};
+        this._formsLoad = load;
+        load.promise = this.loadFormsForCurrentSession().finally(() => {
+            if (this._formsLoad === load) this._formsLoad = null;
+        });
+        return load.promise;
+    }
+
+    async loadFormsForCurrentSession() {
         if (this.forms.size === 0) {
             await loadModules(this);
             this.handleModulesLoaded();
         }
         await getListOfAllForms(this);
+        if (
+            this.showFormsTable &&
+            this.isLoggedIn() &&
+            this.allForms.length > 0 &&
+            this._submissionCountsScope !== getApiRequestScope(this)
+        ) {
+            void loadFormsSubmissionCounts(this);
+        }
     }
 
     /**

@@ -48,6 +48,7 @@ import {
     getUrlPaginationValue,
 } from './manage-forms-routing.js';
 import {getManageFormsActivityStyles} from './manage-forms-activity-styles.js';
+import {getApiRequestScope, SubmissionDataLoader} from './submission-data-loader.js';
 
 /**
  * Statically reference translation keys that are only resolved dynamically
@@ -136,6 +137,8 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         this._searchTimers = new Map();
         this._appliedSubmissionFilters = new Map();
         this._locallyRequestedRoutingUrl = null;
+        this._submissionLoad = null;
+        this.submissionDataLoader = new SubmissionDataLoader();
     }
 
     static get scopedElements() {
@@ -157,6 +160,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         return {
             ...super.properties,
             form: {type: Object, attribute: false},
+            submissionDataLoader: {type: Object, attribute: false},
             hideCreateSubmissionButton: {type: Boolean, attribute: 'hide-create-submission-button'},
             enableSubmissionPermissionEditing: {
                 type: Boolean,
@@ -274,6 +278,21 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     async updated(changedProperties) {
         super.updated(changedProperties);
 
+        const previousAuth = changedProperties.get('auth');
+        if (
+            previousAuth?.token &&
+            previousAuth.token !== this.auth?.token &&
+            (!this.auth?.token ||
+                this._submissionLoad ||
+                !previousAuth['user-id'] ||
+                !this.auth?.['user-id'] ||
+                previousAuth['user-id'] !== this.auth?.['user-id'])
+        ) {
+            this.userNameCache.clear();
+            if (this.auth?.token && this.form) void this.loadSubmissions();
+            else this.resetSubmissions();
+        }
+
         if (changedProperties.has('form')) {
             const previousFormId = changedProperties.get('form')?.formId ?? '';
             if (!this.form) {
@@ -362,6 +381,7 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
      * Resets the component when no form is shown.
      */
     resetSubmissions() {
+        this._submissionLoad = null;
         this.cancelPendingSearches();
         this._appliedSubmissionFilters.clear();
         // Invalidate any in-flight loadSubmissions() call
@@ -376,15 +396,34 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
     /**
      * Loads the submissions of the current form and (re)builds the tables.
      */
-    async loadSubmissions() {
+    loadSubmissions() {
+        const form = this.form;
+        if (!form) return Promise.resolve();
+        const key = JSON.stringify([
+            getApiRequestScope(this),
+            form.formId,
+            this.lang,
+            this.langDir,
+        ]);
+        // A forms-list refresh may replace this form entry before its rows finish loading.
+        if (this._submissionLoad?.key === key) return this._submissionLoad.promise;
+        const load = {key};
+        this._submissionLoad = load;
+        const generation = ++this._switchGeneration;
+        load.promise = this.loadSubmissionsForForm(form, generation).finally(() => {
+            if (this._submissionLoad === load) this._submissionLoad = null;
+        });
+        return load.promise;
+    }
+
+    async loadSubmissionsForForm(form, generation) {
+        const scope = getApiRequestScope(this);
         this.cancelPendingSearches();
         this._appliedSubmissionFilters.clear();
-        const form = this.form;
-        if (!form) return;
-
         if (this._overridesReady !== null) {
             await this._overridesReady;
         }
+        if (generation !== this._switchGeneration) return;
 
         this.showSubmissionTables = false;
         this.loadingSubmissionTables = true;
@@ -398,14 +437,11 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         // Reset submissions so stale data from a previous form is never shown.
         this.submissions = {draft: [], submitted: []};
         this.submissionColumnOptions = {draft: [], submitted: []};
-        // Invalidate any previous in-flight call
-        const generation = ++this._switchGeneration;
-
         try {
             await getAllFormSubmissions(this, form.formId);
 
             // If a newer call was started while we were waiting, discard this stale result.
-            if (generation !== this._switchGeneration) return;
+            if (generation !== this._switchGeneration || scope !== getApiRequestScope(this)) return;
 
             // Ensure the child component has rendered so table refs exist
             await this.updateComplete;

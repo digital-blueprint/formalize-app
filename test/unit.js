@@ -16,7 +16,16 @@ import {ManageFormSubmissionsPage} from '../src/manage-form-submissions-page.js'
 import {filterAvailableForms} from '../src/dbp-formalize-render-form.js';
 import {FormLinksModal} from '../src/form-links-modal.js';
 import {getFormRenderUrl, RENDER_FORM_ROUTING_NAME} from '../src/utils.js';
-import {apiCreateForm, apiUpdateForm, getListOfAllForms} from '../src/manage-forms-api.js';
+import {
+    apiCreateForm,
+    apiUpdateForm,
+    apiDeleteSubmission,
+    apiUpdateSubmissionTags,
+    apiGetSubmittedSubmissionsCount,
+    loadFormsSubmissionCounts,
+    getListOfAllForms,
+} from '../src/manage-forms-api.js';
+import {SubmissionDataLoader} from '../src/submission-data-loader.js';
 import {
     BaseFormElement,
     BaseObject,
@@ -664,6 +673,268 @@ suite('available forms', () => {
         assert.equal(table.options, node.availableFormsTableOptions);
         assert.equal(table.data, node.availableForms);
         assert.deepEqual(calls, ['build']);
+    });
+});
+
+suite('shared submission loading', () => {
+    let originalFetch;
+    let loader;
+    let host;
+    let requests;
+    const response = (members, next = null) => ({
+        ok: true,
+        json: () =>
+            Promise.resolve({
+                'hydra:member': members,
+                'hydra:view': next ? {'hydra:next': next} : {},
+            }),
+    });
+
+    setup(() => {
+        originalFetch = window.fetch;
+        loader = new SubmissionDataLoader();
+        host = {
+            entryPointUrl: 'https://api.example.com',
+            auth: {token: 'token', 'user-id': 'user-1'},
+            activeFormId: 'form-1',
+            submissionDataLoader: loader,
+            _i18n: {t: (key) => key},
+        };
+        requests = [];
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            return Promise.resolve(
+                response([
+                    {identifier: `submission-${requests.length}`, submissionState: 4, tags: []},
+                ]),
+            );
+        };
+    });
+
+    teardown(() => {
+        loader.invalidate();
+        window.fetch = originalFetch;
+    });
+
+    test('shares the complete paginated response between concurrent counting and opening', async () => {
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            return Promise.resolve(
+                url.includes('page=2')
+                    ? response([{submissionState: 1}, {submissionState: 4}])
+                    : response(
+                          [{submissionState: 4}],
+                          '/formalize/submissions?formIdentifier=form-1&page=2',
+                      ),
+            );
+        };
+        const count = apiGetSubmittedSubmissionsCount(host, 'form-1');
+        const collection = loader.load({...host}, 'form-1', {reuseRecent: true});
+        const [total, {data}] = await Promise.all([count, collection]);
+        assert.equal(total, 2);
+        assert.lengthOf(data['hydra:member'], 3);
+        assert.lengthOf(requests, 2);
+    });
+
+    test('reuses a recent count response once without exposing mutable cached data', async () => {
+        const first = await loader.load(host, 'form-1', {remember: true});
+        first.data['hydra:member'][0].tags.push('changed');
+        const opened = await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 1);
+        assert.deepEqual(opened.data['hydra:member'][0].tags, []);
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 2);
+    });
+
+    test('different forms retain separate collection requests', async () => {
+        await Promise.all([
+            loader.load(host, 'form-1', {reuseRecent: true}),
+            loader.load(host, 'form-2', {reuseRecent: true}),
+        ]);
+        assert.lengthOf(requests, 2);
+        assert.equal(new URL(requests[0].url).searchParams.get('formIdentifier'), 'form-1');
+        assert.equal(new URL(requests[1].url).searchParams.get('formIdentifier'), 'form-2');
+    });
+
+    test('refreshing overview counts requests fresh data', async () => {
+        await apiGetSubmittedSubmissionsCount(host, 'form-1');
+        await apiGetSubmittedSubmissionsCount(host, 'form-1');
+        const opened = await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 2);
+        assert.equal(opened.data['hydra:member'][0].identifier, 'submission-2');
+    });
+
+    test('a background count can reuse a table response, but an overview refresh cannot', async () => {
+        await loader.load(host, 'form-1', {reuseRecent: true, remember: true});
+        assert.equal(await apiGetSubmittedSubmissionsCount(host, 'form-1', {reuseRecent: true}), 1);
+        assert.lengthOf(requests, 1);
+        await loader.load(host, 'form-1', {reuseRecent: true, remember: true});
+        await apiGetSubmittedSubmissionsCount(host, 'form-1');
+        assert.lengthOf(requests, 3);
+    });
+
+    test('does not reuse expired count responses', async () => {
+        let now = 0;
+        loader = new SubmissionDataLoader({now: () => now});
+        host.submissionDataLoader = loader;
+        await loader.load(host, 'form-1', {remember: true});
+        now = 30001;
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 2);
+    });
+
+    test('isolates count responses by token, user, and API endpoint', async () => {
+        await loader.load(host, 'form-1', {remember: true});
+        host.auth = {...host.auth, token: 'new-token'};
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 2);
+        await loader.load(host, 'form-1', {remember: true});
+        host.auth = {...host.auth, 'user-id': 'user-2'};
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 4);
+        await loader.load(host, 'form-1', {remember: true});
+        host.entryPointUrl = 'https://other.example.com';
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 6);
+    });
+
+    test('failed shared requests can be retried', async () => {
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            return Promise.resolve(requests.length === 1 ? {ok: false, status: 503} : response([]));
+        };
+        const results = await Promise.allSettled([
+            loader.load(host, 'form-1', {remember: true}),
+            loader.load(host, 'form-1', {reuseRecent: true}),
+        ]);
+        assert.isTrue(results.every(({status}) => status === 'rejected'));
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(requests, 2);
+    });
+
+    test('invalidating a pending response cannot replace a newer cached response', async () => {
+        let release;
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            if (requests.length === 1)
+                return new Promise((resolve) => {
+                    release = resolve;
+                });
+            return Promise.resolve(response([{identifier: 'new'}]));
+        };
+        const pending = loader.load(host, 'form-1', {remember: true});
+        loader.invalidate('form-1');
+        await loader.load(host, 'form-1', {remember: true});
+        release(response([{identifier: 'old'}]));
+        await pending;
+        const opened = await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.equal(opened.data['hydra:member'][0].identifier, 'new');
+        assert.lengthOf(requests, 2);
+    });
+
+    test('successful tagging and deletion invalidate cached count responses', async () => {
+        await loader.load(host, 'form-1', {remember: true});
+        assert.isTrue(await apiUpdateSubmissionTags(host, 'submission-1', ['tag']));
+        await loader.load(host, 'form-1', {remember: true});
+        assert.isTrue(await apiDeleteSubmission(host, 'submission-1'));
+        await loader.load(host, 'form-1', {reuseRecent: true});
+        assert.lengthOf(
+            requests.filter(({options}) => options.method === 'GET'),
+            3,
+        );
+    });
+
+    test('shares concurrent forms requests, but permits a later refresh', async () => {
+        const activity = document.createElement('test-manage-submissions');
+        activity.entryPointUrl = host.entryPointUrl;
+        activity.auth = host.auth;
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            return Promise.resolve(response([]));
+        };
+        const first = getListOfAllForms(activity);
+        const second = getListOfAllForms(activity);
+        assert.strictEqual(first, second);
+        await Promise.all([first, second]);
+        assert.lengthOf(requests, 1);
+        await getListOfAllForms(activity);
+        assert.lengthOf(requests, 2);
+    });
+
+    test('shares form preparation while a refreshed entry for the same form is loading', async () => {
+        const component = document.createElement('test-form-submissions');
+        component.auth = host.auth;
+        component.form = {formId: 'form-1'};
+        let release;
+        let preparations = 0;
+        component.loadSubmissionsForForm = () => {
+            preparations++;
+            return new Promise((resolve) => {
+                release = resolve;
+            });
+        };
+        const first = component.loadSubmissions();
+        component.form = {...component.form};
+        const second = component.loadSubmissions();
+        assert.strictEqual(first, second);
+        assert.equal(preparations, 1);
+        release();
+        await Promise.all([first, second]);
+        const refreshed = component.loadSubmissions();
+        release();
+        await refreshed;
+        assert.equal(preparations, 2);
+    });
+
+    test('an old forms response cannot replace a newer session response', async () => {
+        const activity = document.createElement('test-manage-submissions');
+        activity.entryPointUrl = host.entryPointUrl;
+        activity.auth = host.auth;
+        activity.createScopedElement = (name) => document.createElement(name);
+        let release;
+        const form = (identifier) => ({identifier, name: identifier, localizedNames: []});
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            if (requests.length === 1) {
+                return new Promise((resolve) => {
+                    release = resolve;
+                });
+            }
+            return Promise.resolve(response([form('new-form')]));
+        };
+        const old = getListOfAllForms(activity);
+        activity.auth = {token: 'new-token', 'user-id': 'user-2'};
+        await getListOfAllForms(activity);
+        release(response([form('old-form')]));
+        await old;
+        assert.deepEqual(
+            activity.allForms.map(({formId}) => formId),
+            ['new-form'],
+        );
+        assert.lengthOf(requests, 2);
+    });
+
+    test('new-session counts do not wait for or get overwritten by old-session counts', async () => {
+        host.allForms = [{formId: 'form-1'}];
+        host.forms = new Map([['form-1', {grantedSubmissionCollectionActions: ['read']}]]);
+        host.formsSubmissionCounts = new Map([['form-1', 9]]);
+        host.showFormsTable = true;
+        let release;
+        window.fetch = (url, options) => {
+            requests.push({url, options});
+            if (requests.length === 1)
+                return new Promise((resolve) => {
+                    release = resolve;
+                });
+            return Promise.resolve(response([{submissionState: 4}]));
+        };
+        const old = loadFormsSubmissionCounts(host);
+        host.auth = {token: 'new-token', 'user-id': 'user-2'};
+        await loadFormsSubmissionCounts(host);
+        release(response([{submissionState: 4}, {submissionState: 4}]));
+        await old;
+        assert.equal(host.formsSubmissionCounts.get('form-1'), 1);
+        assert.lengthOf(requests, 2);
     });
 });
 
@@ -2710,12 +2981,12 @@ suite('manage-forms and manage-submissions activities', () => {
         }
     };
 
-    const mountActivity = (tagName) => {
+    const mountActivity = (tagName, route = '/') => {
         const element = document.createElement(tagName);
         element.setAttribute('entry-point-url', 'https://api.example.com');
         element.setAttribute('base-path', '/');
         element.setAttribute('lang', 'en');
-        element.routingUrl = '/';
+        element.routingUrl = route;
         element.routes = [];
         element.sendSetPropertyEvent = (name, value) => {
             if (name === 'routing-url') {
@@ -2851,6 +3122,58 @@ suite('manage-forms and manage-submissions activities', () => {
         assert.isFalse(element.showFormsTable);
     });
 
+    test('direct submission routes load the forms and submission collections only once', async () => {
+        const element = mountActivity('dbp-formalize-manage-submissions', '/form-own');
+        await waitFor(() => element.getFormSubmissions()?.showSubmissionTables);
+        assert.lengthOf(
+            requests.filter((url) => url.pathname === '/formalize/forms'),
+            1,
+        );
+        assert.lengthOf(
+            requests.filter(
+                (url) =>
+                    url.pathname === '/formalize/submissions' &&
+                    url.searchParams.get('formIdentifier') === 'form-own',
+            ),
+            1,
+        );
+    });
+
+    test('refreshing forms during an in-flight submission load does not restart the load', async () => {
+        const mockFetch = window.fetch;
+        let release;
+        let started = false;
+        window.fetch = (input, options) => {
+            const url = new URL(input, window.location.origin);
+            if (
+                url.pathname === '/formalize/submissions' &&
+                url.searchParams.get('formIdentifier') === 'form-own'
+            ) {
+                started = true;
+                return new Promise((resolve) => {
+                    release = () => resolve(mockFetch(input, options));
+                });
+            }
+            return mockFetch(input, options);
+        };
+        const element = mountActivity('dbp-formalize-manage-submissions', '/form-own');
+        await waitFor(() => started);
+        await getListOfAllForms(element);
+        await element.updateComplete;
+        await element.getFormSubmissions().updateComplete;
+        release();
+        await waitFor(() => element.getFormSubmissions().showSubmissionTables);
+        assert.lengthOf(
+            requests.filter(
+                (url) =>
+                    url.pathname === '/formalize/submissions' &&
+                    url.searchParams.get('formIdentifier') === 'form-own',
+            ),
+            1,
+        );
+        assert.lengthOf(element.getFormSubmissions().rawSubmissions, 3);
+    });
+
     test('manage-submissions lists forms with readable submissions and opens them', async () => {
         const element = mountActivity('dbp-formalize-manage-submissions');
         await waitFor(() => getOverviewTable(element)?.tabulatorTable?.getData().length === 4);
@@ -2865,6 +3188,10 @@ suite('manage-forms and manage-submissions activities', () => {
 
         // Submissions are only counted for forms with form-level read permission
         await waitFor(() => element.formsSubmissionCounts.size === 3);
+        assert.lengthOf(
+            requests.filter((url) => url.pathname === '/formalize/forms'),
+            1,
+        );
         assert.deepEqual(Object.fromEntries(element.formsSubmissionCounts), {
             'form-own': 3,
             'form-edit': 2,
@@ -2899,6 +3226,14 @@ suite('manage-forms and manage-submissions activities', () => {
                 formSubmissions.submissionTables.submitted?.tabulatorTable?.getData().length === 3,
         );
         assert.equal(formSubmissions.activeFormName, 'Own submissions only');
+        assert.lengthOf(
+            requests.filter(
+                (url) =>
+                    url.pathname === '/formalize/submissions' &&
+                    url.searchParams.get('formIdentifier') === 'form-own',
+            ),
+            1,
+        );
         assert.equal(
             formSubmissions.submissions.submitted[0].creatorId,
             'Alice Example (user-1@example.com)',

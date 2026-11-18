@@ -411,6 +411,7 @@ export class ManageForms extends ManageFormsActivityBase {
                     lang-dir="${this.langDir}"
                     entry-point-url="${this.entryPointUrl}"
                     .auth=${this.auth}
+                    .submissionDataLoader=${this.submissionDataLoader}
                     .routingUrl=${this.routingUrl}
                     .form=${activeForm}
                     .hideCreateSubmissionButton=${this.hideCreateSubmissionButton}

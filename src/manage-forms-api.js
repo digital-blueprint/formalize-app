@@ -22,6 +22,7 @@ import {
     resolveManageFormsOverviewAction,
 } from './manage-forms-overview-actions.js';
 import {createRowActionsMenu} from './table-components.js';
+import {getApiRequestScope, SubmissionDataLoader} from './submission-data-loader.js';
 
 // ---------------------------------------------------------------------------
 // Utility helpers used only by the functions in this module
@@ -306,8 +307,22 @@ export function getModuleOverviewColumns(moduleInstance, host) {
  * @param {object} host - The ManageForms element.
  * @returns {Promise<void>}
  */
-export async function getListOfAllForms(host) {
+export function getListOfAllForms(host) {
+    const key = JSON.stringify([getApiRequestScope(host), getFormsCollectionUrl(host)]);
+    if (host._formsListRequest?.key === key) return host._formsListRequest.promise;
+
+    const request = {key};
+    host._formsListRequest = request;
+    request.promise = loadListOfAllForms(host, key).finally(() => {
+        if (host._formsListRequest === request) host._formsListRequest = null;
+    });
+    return request.promise;
+}
+
+async function loadListOfAllForms(host, requestKey) {
     const i18n = host._i18n;
+    const isCurrent = () =>
+        requestKey === JSON.stringify([getApiRequestScope(host), getFormsCollectionUrl(host)]);
     // Make sure module loading has finished before building the list. Several
     // reactive triggers (lang, allow/deny lists, routing) can call this while a
     // loadModules() started by another trigger is still in flight; awaiting it
@@ -315,6 +330,7 @@ export async function getListOfAllForms(host) {
     if (host.loadModulesPromise) {
         await host.loadModulesPromise;
     }
+    if (!isCurrent()) return;
     try {
         host.loadCourses = false;
 
@@ -333,6 +349,8 @@ export async function getListOfAllForms(host) {
             },
         });
 
+        if (!isCurrent()) return;
+
         if (!response.ok) {
             host.handleErrorResponse(response);
         } else {
@@ -341,12 +359,14 @@ export async function getListOfAllForms(host) {
             try {
                 data = await response.json();
             } catch (e) {
+                if (!isCurrent()) return;
                 host.sendErrorAnalyticsEvent('LoadListOfAllCourses', 'WrongResponse', e);
                 throwSomethingWentWrongNotification(host);
                 host.loadCourses = true;
                 return;
             }
 
+            if (!isCurrent()) return;
             const allowList = Array.isArray(host.allowListFrontendKeys)
                 ? host.allowListFrontendKeys
                 : [];
@@ -587,6 +607,7 @@ export async function getListOfAllForms(host) {
             host.allForms = forms;
         }
     } catch (e) {
+        if (!isCurrent()) return;
         host.loadCourses = true;
         console.error('[updated] Error getting list of forms:', e);
         sendNotification({
@@ -629,33 +650,16 @@ function mayReadAllFormSubmissions(form) {
  * @param {string} formId
  * @returns {Promise<number>}
  */
-export async function apiGetSubmittedSubmissionsCount(host, formId) {
-    const options = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/ld+json',
-            Authorization: 'Bearer ' + host.auth.token,
-        },
-    };
-
-    let url =
-        host.entryPointUrl +
-        '/formalize/submissions?' +
-        new URLSearchParams({formIdentifier: formId, perPage: '9999'}).toString();
-    let count = 0;
-    while (url) {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`Failed to load submissions: ${response.status}`);
-        }
-        const page = await response.json();
-        count += (page['hydra:member'] ?? []).filter(
-            (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED,
-        ).length;
-        const next = page['hydra:view']?.['hydra:next'];
-        url = next ? new URL(next, host.entryPointUrl).href : null;
-    }
-    return count;
+export async function apiGetSubmittedSubmissionsCount(host, formId, {reuseRecent = false} = {}) {
+    host.submissionDataLoader ??= new SubmissionDataLoader();
+    const {data} = await host.submissionDataLoader.load(host, formId, {
+        remember: true,
+        reuseRecent,
+        purpose: 'count',
+    });
+    return data['hydra:member'].filter(
+        (submission) => submission.submissionState === SUBMISSION_STATES_BINARY.SUBMITTED,
+    ).length;
 }
 
 /**
@@ -670,7 +674,14 @@ export async function apiGetSubmittedSubmissionsCount(host, formId) {
  * @returns {Promise<void>}
  */
 export function loadFormsSubmissionCounts(host) {
-    if (host.loadSubmissionCountsPromise) return host.loadSubmissionCountsPromise;
+    const scope = getApiRequestScope(host);
+    if (host._submissionCountsLoad?.scope === scope) return host._submissionCountsLoad.promise;
+    if (host._submissionCountsScope && host._submissionCountsScope !== scope) {
+        host.formsSubmissionCounts = new Map();
+    }
+    const load = {scope};
+    host._submissionCountsScope = scope;
+    host._submissionCountsLoad = load;
 
     // Forms whose count was already requested in the running load
     const requestedFormIds = new Set();
@@ -685,13 +696,18 @@ export function loadFormsSubmissionCounts(host) {
                     mayReadAllFormSubmissions(host.forms.get(formId)),
             );
 
-    host.loadSubmissionCountsPromise = (async () => {
+    load.promise = (async () => {
         const worker = async () => {
             let formId;
             while ((formId = getNextFormId()) !== undefined) {
+                if (scope !== getApiRequestScope(host)) return;
                 requestedFormIds.add(formId);
                 try {
-                    const count = await apiGetSubmittedSubmissionsCount(host, formId);
+                    const count = await apiGetSubmittedSubmissionsCount(host, formId, {
+                        // A background count may reach a form after its table already loaded.
+                        reuseRecent: !host.showFormsTable,
+                    });
+                    if (scope !== getApiRequestScope(host)) continue;
                     host.formsSubmissionCounts = new Map(host.formsSubmissionCounts).set(
                         formId,
                         count,
@@ -705,11 +721,14 @@ export function loadFormsSubmissionCounts(host) {
         try {
             await Promise.all(Array.from({length: SUBMISSION_COUNT_CONCURRENCY}, worker));
         } finally {
-            host.loadSubmissionCountsPromise = null;
+            if (host._submissionCountsLoad === load) {
+                host.loadSubmissionCountsPromise = null;
+                host._submissionCountsLoad = null;
+            }
         }
     })();
-
-    return host.loadSubmissionCountsPromise;
+    host.loadSubmissionCountsPromise = load.promise;
+    return load.promise;
 }
 
 // ---------------------------------------------------------------------------
@@ -728,43 +747,32 @@ export async function getAllFormSubmissions(host, formId) {
     const i18n = host._i18n;
     let response;
     let data;
+    const generation = host._switchGeneration;
+    const scope = getApiRequestScope(host);
+    const activeForm = host.form;
+    const isCurrent = () =>
+        generation === host._switchGeneration &&
+        scope === getApiRequestScope(host) &&
+        activeForm?.formId === host.form?.formId;
     host.rawSubmissions = [];
     host.submittedFileDetails = {draft: new Map(), submitted: new Map()};
     host.submissionsHasAttachment = {draft: false, submitted: false};
 
-    const options = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/ld+json',
-            Authorization: 'Bearer ' + host.auth.token,
-        },
-    };
-
     try {
-        response = await fetch(
-            host.entryPointUrl +
-                '/formalize/submissions?formIdentifier=' +
-                formId +
-                '&perPage=9999',
-            options,
-        );
-        data = await response.json();
-        // Follow API pagination so all readable submissions are included.
-        let next = data['hydra:view']?.['hydra:next'];
-        while (next) {
-            const pageResponse = await fetch(new URL(next, host.entryPointUrl).href, options);
-            if (!pageResponse.ok)
-                throw new Error(`Failed to load submissions: ${pageResponse.status}`);
-            const page = await pageResponse.json();
-            data['hydra:member'].push(...page['hydra:member']);
-            next = page['hydra:view']?.['hydra:next'];
-        }
+        host.submissionDataLoader ??= new SubmissionDataLoader();
+        ({response, data} = await host.submissionDataLoader.load(host, formId, {
+            reuseRecent: true,
+            remember: true,
+            purpose: 'table',
+        }));
     } catch (e) {
+        if (!isCurrent()) return response;
         host.sendErrorAnalyticsEvent('getAllSubmissions', 'WrongResponse', e);
         throwSomethingWentWrongNotification(host);
         throw e;
     }
 
+    if (!isCurrent()) return response;
     host.rawSubmissions = data['hydra:member'];
     host.submissionsGrantedActions = new Map();
 
@@ -795,7 +803,6 @@ export async function getAllFormSubmissions(host, formId) {
         }
 
         let submissions_list = [];
-        const activeForm = host.form;
         const enumTranslations = activeForm?.moduleInstance?.getEnumTranslations
             ? activeForm.moduleInstance.getEnumTranslations(host.lang)
             : {};
@@ -843,6 +850,7 @@ export async function getAllFormSubmissions(host, formId) {
                         const resp = await host.apiGetUserDetails(creatorId);
                         if (!resp.ok) throw new Error(`Failed to load creator: ${resp.status}`);
                         const userObject = await resp.json();
+                        if (!isCurrent()) return response;
                         const fullName =
                             [userObject?.givenName, userObject?.familyName]
                                 .filter(Boolean)
@@ -853,6 +861,7 @@ export async function getAllFormSubmissions(host, formId) {
                         const creatorLabel = email ? `${fullName} (${email})` : fullName;
                         host.userNameCache.set(creatorId, creatorLabel);
                     } catch (e) {
+                        if (!isCurrent()) return response;
                         console.error(e);
                         host.userNameCache.set(creatorId, creatorId);
                     }
@@ -982,6 +991,7 @@ export async function getAllFormSubmissions(host, formId) {
             ? submissions_list.map(({attachments, ...rest}) => rest)
             : submissions_list;
 
+        if (!isCurrent()) return response;
         host.submissions = {...host.submissions, [state]: submissions_list};
 
         host.options_submissions[state].autoColumnsDefinitions = (definitions) => {
@@ -1086,6 +1096,7 @@ export async function apiDeleteSubmission(host, submissionId) {
             console.warn(`Failed to delete submission. Response status: ${response.status}`);
             return false;
         }
+        host.submissionDataLoader?.invalidate(host.activeFormId);
         return true;
     } catch (error) {
         console.error(error.message);
@@ -1133,6 +1144,7 @@ export async function apiUpdateSubmissionTags(host, submissionId, finalTags) {
             console.warn('Error details:', errorData);
             return false;
         }
+        host.submissionDataLoader?.invalidate(host.activeFormId);
         return true;
     } catch (error) {
         console.error(error.message);
@@ -1395,6 +1407,7 @@ export async function apiDeleteForm(host, formIdentifier) {
             console.warn(`Failed to delete form. Response status: ${response.status}`);
             return false;
         }
+        host.submissionDataLoader?.invalidate(formIdentifier);
         return true;
     } catch (error) {
         console.error(error.message);

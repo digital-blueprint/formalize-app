@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- v1.5.1 follow-up: avoided duplicate forms requests during initialization and duplicate submission loads while opening a form. Counting and opening share in-flight collection requests; opening can consume a count response once within 30 seconds. Responses are isolated by authenticated session and API endpoint, invalidated after successful tagging/deletion, and refreshed when returning to the overview (task #76728).
 - v1.5.1 follow-up: reduced submission-table rendering work at large page sizes with a vertically scrolling viewport capped at 70% of the window height. Virtual rendering keeps off-screen rows out of the DOM; the header checkbox still selects the whole page, and optional fields in later submissions remain discoverable with full auto-column detection (task #76728).
 - v1.5.1 follow-up: improved submission search performance by debouncing typing by 250 ms and avoiding redundant URL-triggered filtering and unchanged pagination resets; explicit searches remain immediate. Added regression tests for wide tables at page size 100. Rendering large pages can still cause noticeable UI blocking, so this is a partial improvement (task #76728).
 - Fixed the "Fill out form" menu entry becoming disabled after leaving the render-form activity while the `available-forms-overview` feature flag is enabled.
