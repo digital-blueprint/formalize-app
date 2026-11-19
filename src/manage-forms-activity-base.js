@@ -2,7 +2,6 @@
 import {html} from 'lit';
 import {classMap} from 'lit/directives/class-map.js';
 import {ScopedElementsMixin, Icon, MiniSpinner} from '@dbp-toolkit/common';
-import {setOverridesByGlobalCache} from '@dbp-toolkit/common/i18next.js';
 import DBPFormalizeLitElement from './dbp-formalize-lit-element.js';
 import {GetDetailsButton, RowActionsMenu} from './table-components.js';
 import {ManageFormsOverviewPage} from './manage-forms-overview-page.js';
@@ -93,7 +92,6 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         this.noFormsAvailable = false;
         this.loadCourses = true;
         this.storeSession = true;
-        this._overridesReady = null;
         this.addEventListener(ROUTING_URL_CHANGE_EVENT, (event) =>
             this.handleRoutingUrlChangeRequest(/** @type {CustomEvent} */ (event)),
         );
@@ -217,14 +215,6 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         this.setRoutingUrl(event.detail.url);
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-
-        if (this.langDir) {
-            this._overridesReady = setOverridesByGlobalCache(this._i18n, this);
-        }
-    }
-
     disconnectedCallback() {
         super.disconnectedCallback();
         this.submissionDataLoader.invalidate();
@@ -282,8 +272,8 @@ export class ManageFormsActivityBase extends ScopedElementsMixin(DBPFormalizeLit
         super.updated(changedProperties);
 
         if (changedProperties.has('allForms')) {
-            if (this._overridesReady !== null) {
-                await this._overridesReady;
+            if (this._translationOverridesReady) {
+                await this._translationOverridesReady;
             }
             this.loadingFormsTable = false;
             this.noFormsAvailable = this.allForms.length === 0;

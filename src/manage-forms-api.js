@@ -366,6 +366,8 @@ async function loadListOfAllForms(host, requestKey) {
                 return;
             }
 
+            // Row menus are built before the table renders, so their labels need the overrides now.
+            if (host._translationOverridesReady) await host._translationOverridesReady;
             if (!isCurrent()) return;
             const allowList = Array.isArray(host.allowListFrontendKeys)
                 ? host.allowListFrontendKeys

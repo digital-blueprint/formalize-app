@@ -106,6 +106,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.lastModifiedByName = '';
         this.errorMessage = '';
         this.itemFrontendKeys = '';
+        this._permissionTarget = null;
         this._hasLoadedForms = false;
         this._isLoadingForms = false;
         this._lastFrontendKeys = '';
@@ -150,6 +151,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             lastModifiedByName: {type: String, attribute: false},
             errorMessage: {type: String, attribute: false},
             itemFrontendKeys: {type: String, attribute: 'item-frontend-keys'},
+            _permissionTarget: {state: true},
         };
     }
 
@@ -725,12 +727,14 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         return actions;
     }
 
-    openPermissionDialog(resourceClass, identifier) {
+    /** @param {{form: object, collection: boolean}|null} target */
+    openPermissionDialog(resourceClass, identifier, target = null) {
         const dialog = /** @type {GrantPermissionDialog | null} */ (
             this.renderRoot?.querySelector('#item-grant-permission-dialog')
         );
         if (!dialog || !identifier) return;
 
+        this._permissionTarget = target;
         dialog.resourceClassIdentifier = resourceClass;
         dialog.resourceIdentifier = identifier;
         dialog.resourceIdentifiers = [identifier];
@@ -746,6 +750,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         this.openPermissionDialog(
             collection ? 'DbpRelayFormalizeSubmissionCollection' : 'DbpRelayFormalizeForm',
             form.identifier,
+            {form, collection},
         );
     }
 
@@ -753,6 +758,39 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         if (!item?.identifier || !item.grantedActions?.includes('manage')) return;
 
         this.openPermissionDialog('DbpRelayFormalizeSubmission', item.identifier);
+    }
+
+    renderPermissionDialog() {
+        const i18n = this._i18n;
+        const target = this._permissionTarget;
+        const formName = target ? getLocalizedFormName(target.form, this.lang) : '';
+        const title = !target
+            ? ''
+            : target.collection
+              ? i18n.t('manage-fields.edit-collection-permission-modal-title', {defaultValue: ''})
+              : i18n.t('manage-fields.edit-form-permission-modal-title', {defaultValue: ''});
+        const description =
+            !target || !formName
+                ? ''
+                : target.collection
+                  ? i18n.t('manage-fields.edit-collection-permission-modal-description', {
+                        formName,
+                        defaultValue: '',
+                    })
+                  : i18n.t('manage-fields.edit-form-permission-modal-description', {
+                        formName,
+                        defaultValue: '',
+                    });
+
+        return html`
+            <dbp-grant-permission-dialog
+                id="item-grant-permission-dialog"
+                lang="${this.lang}"
+                .auth=${this.auth}
+                modal-title="${title || i18n.t('manage-forms.edit-permission-modal-title')}"
+                .modalDescription=${description}
+                entry-point-url="${this.entryPointUrl}"></dbp-grant-permission-dialog>
+        `;
     }
 
     createFormActions(entry) {
@@ -1365,12 +1403,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
                 subscribe="lang"
                 message-key="manage-fields.delete-confirmation-message"
                 message-li2-key="manage-fields.delete-confirmation-message-li2"></dbp-formalize-deletion-confirmation-modal>
-            <dbp-grant-permission-dialog
-                id="item-grant-permission-dialog"
-                lang="${this.lang}"
-                .auth=${this.auth}
-                modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
-                entry-point-url="${this.entryPointUrl}"></dbp-grant-permission-dialog>
+            ${this.renderPermissionDialog()}
             <section class="manage-fields">
                 ${
                     this.mode === 'list' || this.mode === 'unknown-item'
@@ -1405,12 +1438,18 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
         }
     }
 
+    async syncFormTable() {
+        if (this._translationOverridesReady) await this._translationOverridesReady;
+        await this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());
+    }
+
     updated(changedProperties) {
         super.updated?.(changedProperties);
 
         const needFormTableSync =
             changedProperties.has('itemFormEntries') ||
             changedProperties.has('lang') ||
+            changedProperties.has('langDir') ||
             changedProperties.has('mode');
 
         const needItemTableSync =
@@ -1419,7 +1458,7 @@ class ManageFields extends ScopedElementsMixin(DBPFormalizeLitElement) {
             changedProperties.has('mode');
 
         if (needFormTableSync) {
-            void this.syncTabulatorTable('#manage-fields-form-table', this.getFormTableOptions());
+            void this.syncFormTable();
         }
 
         if (needItemTableSync) {

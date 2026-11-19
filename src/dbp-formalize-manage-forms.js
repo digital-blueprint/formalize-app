@@ -7,7 +7,10 @@ import {GrantPermissionDialog} from '@dbp-toolkit/grant-permission-dialog';
 import {FORM_PERMISSIONS} from './utils.js';
 import {DeletionConfirmationModal} from './deletion-confirmation-modal.js';
 import {EditFormDialog} from './edit-form-dialog.js';
-import {createDefaultManageFormsOverviewActions} from './manage-forms-overview-actions.js';
+import {
+    canManageSubmissionCollection,
+    createDefaultManageFormsOverviewActions,
+} from './manage-forms-overview-actions.js';
 import {apiDeleteForm, getListOfAllForms, successFailureNotification} from './manage-forms-api.js';
 import {ManageFormsActivityBase} from './manage-forms-activity-base.js';
 import {FormSubmissions} from './form-submissions.js';
@@ -60,6 +63,8 @@ export class ManageForms extends ManageFormsActivityBase {
         this.activeFormId = '';
         this.hideCreateSubmissionButton = false;
         this.enableSubmissionPermissionEditing = false;
+        this.enableSubmissionCollectionPermissionEditing = false;
+        this._permissionTarget = null;
     }
 
     static get activityName() {
@@ -87,6 +92,11 @@ export class ManageForms extends ManageFormsActivityBase {
                 type: Boolean,
                 attribute: 'enable-submission-permission-editing',
             },
+            enableSubmissionCollectionPermissionEditing: {
+                type: Boolean,
+                attribute: 'enable-submission-collection-permission-editing',
+            },
+            _permissionTarget: {state: true},
             enableFormsBulkDelete: {
                 type: Boolean,
                 attribute: 'enable-forms-bulk-delete',
@@ -99,7 +109,9 @@ export class ManageForms extends ManageFormsActivityBase {
     }
 
     createDefaultOverviewActions() {
-        return createDefaultManageFormsOverviewActions();
+        return createDefaultManageFormsOverviewActions(
+            this.enableSubmissionCollectionPermissionEditing,
+        );
     }
 
     handleModulesLoaded() {
@@ -109,8 +121,14 @@ export class ManageForms extends ManageFormsActivityBase {
 
     updated(changedProperties) {
         if (changedProperties.has('enableFormsBulkDelete')) {
-            // The delete action is only visible when bulk deletion is enabled.
             this.getOverviewPage()?.updateActions();
+        }
+        if (
+            changedProperties.has('enableSubmissionCollectionPermissionEditing') &&
+            this.isLoggedIn() &&
+            this.allForms.length > 0
+        ) {
+            void getListOfAllForms(this);
         }
         return super.updated(changedProperties);
     }
@@ -306,12 +324,71 @@ export class ManageForms extends ManageFormsActivityBase {
     }
 
     handleEditFormPermission(formIds) {
+        this.openPermissionDialog(formIds);
+    }
+
+    handleEditSubmissionCollectionPermission(form) {
+        if (
+            !this.enableSubmissionCollectionPermissionEditing ||
+            !form?.formId ||
+            !canManageSubmissionCollection(form)
+        ) {
+            return;
+        }
+        this.openPermissionDialog([form.formId], true);
+    }
+
+    openPermissionDialog(formIds, collection = false) {
         const permissionDialog = this._('#form-grant-permission-dialog');
         if (!permissionDialog || !Array.isArray(formIds) || formIds.length === 0) return;
 
-        permissionDialog.resourceIdentifier = formIds.length === 1 ? formIds[0] : '';
+        const formId = formIds.length === 1 ? formIds[0] : '';
+        this._permissionTarget = {formId, collection};
+        permissionDialog.resourceClassIdentifier = collection
+            ? 'DbpRelayFormalizeSubmissionCollection'
+            : 'DbpRelayFormalizeForm';
+        permissionDialog.resourceIdentifier = formId;
         permissionDialog.resourceIdentifiers = formIds;
-        permissionDialog.open();
+        void permissionDialog.open();
+    }
+
+    renderPermissionDialog() {
+        const i18n = this._i18n;
+        const form = this.forms.get(this._permissionTarget?.formId);
+        const localizedName = form?.localizedNames?.find(
+            ({languageTag}) => languageTag === this.lang,
+        );
+        const formName = localizedName?.name || form?.formName || '';
+        const collection = this._permissionTarget?.collection;
+        const title = collection
+            ? i18n.t('manage-forms.edit-submission-collection-permission-modal-title', {
+                  defaultValue: '',
+              })
+            : i18n.t('manage-forms.edit-form-permission-modal-title', {defaultValue: ''});
+        const description = !formName
+            ? ''
+            : collection
+              ? i18n.t('manage-forms.edit-submission-collection-permission-modal-description', {
+                    formName,
+                    defaultValue: '',
+                })
+              : i18n.t('manage-forms.edit-form-permission-modal-description', {
+                    formName,
+                    defaultValue: '',
+                });
+
+        return html`
+            <dbp-grant-permission-dialog
+                id="form-grant-permission-dialog"
+                lang="${this.lang}"
+                modal-title="${title || i18n.t('manage-forms.edit-permission-modal-title')}"
+                .modalDescription=${description}
+                subscribe="auth"
+                entry-point-url="${this.entryPointUrl}"
+                resource-class-identifier=${
+                    collection ? 'DbpRelayFormalizeSubmissionCollection' : 'DbpRelayFormalizeForm'
+                }></dbp-grant-permission-dialog>
+        `;
     }
 
     /**
@@ -390,7 +467,6 @@ export class ManageForms extends ManageFormsActivityBase {
     }
 
     render() {
-        const i18n = this._i18n;
         const activeForm = this.activeFormId ? (this.forms.get(this.activeFormId) ?? null) : null;
 
         return html`
@@ -421,13 +497,7 @@ export class ManageForms extends ManageFormsActivityBase {
                         this.handleBackToOverview()}></dbp-formalize-form-submissions>
             </div>
 
-            <dbp-grant-permission-dialog
-                id="form-grant-permission-dialog"
-                lang="${this.lang}"
-                modal-title="${i18n.t('manage-forms.edit-permission-modal-title')}"
-                subscribe="auth"
-                entry-point-url="${this.entryPointUrl}"
-                resource-class-identifier="DbpRelayFormalizeForm"></dbp-grant-permission-dialog>
+            ${this.renderPermissionDialog()}
 
             <dbp-formalize-deletion-confirmation-modal
                 id="deletion-modal"

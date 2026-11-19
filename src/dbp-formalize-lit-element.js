@@ -14,6 +14,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
         this.entryPointUrl = '';
         this.basePath = '';
         this.langDir = '';
+        this._translationOverridesReady = null;
     }
 
     static get properties() {
@@ -29,7 +30,7 @@ export default class DBPFormalizeLitElement extends LangMixin(
         super.connectedCallback();
 
         if (this.langDir) {
-            void setOverridesByGlobalCache(this._i18n, this);
+            this.loadTranslationOverrides();
         }
     }
 
@@ -43,13 +44,17 @@ export default class DBPFormalizeLitElement extends LangMixin(
     initialize() {}
 
     update(changedProperties) {
-        changedProperties.forEach((oldValue, propName) => {
-            if ((propName === 'langDir' || propName === 'lang') && this.langDir) {
-                void setOverridesByGlobalCache(this._i18n, this);
-            }
-        });
-
         super.update(changedProperties);
+
+        if (this.langDir && (changedProperties.has('langDir') || changedProperties.has('lang'))) {
+            this.loadTranslationOverrides();
+        }
+    }
+
+    loadTranslationOverrides() {
+        this._translationOverridesReady = setOverridesByGlobalCache(this._i18n, this).catch(
+            (error) => console.warn('Failed to load translation overrides:', error),
+        );
     }
 
     /**

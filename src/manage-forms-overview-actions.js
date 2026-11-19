@@ -1,4 +1,4 @@
-import {FORM_PERMISSIONS} from './utils.js';
+import {FORM_PERMISSIONS, SUBMISSION_PERMISSIONS} from './utils.js';
 
 export const OVERVIEW_ACTION_PLACEMENTS = {
     // In the row actions (kebab) menu
@@ -25,6 +25,9 @@ const canDeleteForm = (form) => {
 };
 
 const canManageForm = (form) => getFormGrants(form).includes(FORM_PERMISSIONS.MANAGE);
+
+export const canManageSubmissionCollection = (form) =>
+    (form?.grantedSubmissionCollectionActions ?? []).includes(SUBMISSION_PERMISSIONS.MANAGE);
 
 /**
  * Builds the context passed to overview action predicates and handlers.
@@ -80,7 +83,7 @@ export function createDefaultManageSubmissionsOverviewActions() {
  *
  * @returns {Array<Record<string, any>>}
  */
-export function createDefaultManageFormsOverviewActions() {
+export function createDefaultManageFormsOverviewActions(enableCollectionPermissionEditing = false) {
     return [
         ...createDefaultManageSubmissionsOverviewActions(),
         {
@@ -113,7 +116,9 @@ export function createDefaultManageFormsOverviewActions() {
             id: 'edit-permission',
             iconName: 'edit-permission',
             placements: [OVERVIEW_ACTION_PLACEMENTS.ROW],
-            label: ({t}) => t('manage-forms.edit-permission-button-text'),
+            label: ({t}) =>
+                t('manage-forms.edit-form-permission-button-text', {defaultValue: ''}) ||
+                t('manage-forms.edit-permission-button-text'),
             ariaLabel: ({t, form}) =>
                 t('manage-forms.edit-form-permission-aria', {formName: form?.formName ?? ''}),
             isEnabled: ({items}) => items.length === 1 && canManageForm(items[0]),
@@ -121,6 +126,20 @@ export function createDefaultManageFormsOverviewActions() {
                 if (form?.formId) host.handleEditFormPermission([form.formId]);
             },
         },
+        ...(enableCollectionPermissionEditing
+            ? [
+                  {
+                      id: 'edit-submission-collection-permission',
+                      iconName: 'edit-permission',
+                      placements: [OVERVIEW_ACTION_PLACEMENTS.ROW],
+                      label: ({t}) => t('manage-forms.edit-submission-collection-permission'),
+                      isEnabled: ({items}) =>
+                          items.length === 1 && canManageSubmissionCollection(items[0]),
+                      handler: ({host, form}) =>
+                          host.handleEditSubmissionCollectionPermission(form),
+                  },
+              ]
+            : []),
         {
             id: 'delete',
             iconName: 'trash',

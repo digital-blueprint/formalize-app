@@ -83,6 +83,8 @@ This app has the following activities:
 
 You can find the documentation of the activity in the [formalize activities documentation](https://github.com/digital-blueprint/formalize-app/tree/main/src).
 
+Submission collection permission editing is opt-in for apps embedding [the manage-forms activity](src/README.md#dbp-formalize-manage-forms). Standalone Formalize does not enable it, and the manage-submissions activity continues to offer only individual submission permission editing.
+
 ## Adapt app
 
 ### Functionality

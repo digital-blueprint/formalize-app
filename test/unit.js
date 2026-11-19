@@ -193,6 +193,46 @@ suite('manage-fields permissions', () => {
             assert.strictEqual(dialog.auth, host.auth);
             assert.equal(dialog.lang, host.lang);
             assert.equal(dialog.entryPointUrl, host.entryPointUrl);
+            assert.equal(
+                dialog.modalTitle,
+                host._i18n.t('manage-forms.edit-permission-modal-title'),
+            );
+            assert.isEmpty(dialog.modalDescription);
+
+            host._i18n.addResourceBundle(
+                host.lang,
+                'translation',
+                {
+                    'manage-fields': {
+                        'edit-collection-permission-modal-title': 'Edit values permissions',
+                        'edit-collection-permission-modal-description':
+                            'Edit values for {{- formName}}',
+                    },
+                },
+                true,
+                true,
+            );
+            dialog.open = () => Promise.resolve();
+            host.editFormPermissions(
+                {
+                    identifier: 'field-id',
+                    name: 'Default name',
+                    localizedNames: [{languageTag: host.lang, name: 'Localized field'}],
+                    grantedSubmissionCollectionActions: ['manage'],
+                },
+                true,
+            );
+            await host.updateComplete;
+            assert.equal(dialog.modalTitle, 'Edit values permissions');
+            assert.equal(dialog.modalDescription, 'Edit values for Localized field');
+
+            host.editItemPermissions({identifier: 'item-id', grantedActions: ['manage']});
+            await host.updateComplete;
+            assert.equal(
+                dialog.modalTitle,
+                host._i18n.t('manage-forms.edit-permission-modal-title'),
+            );
+            assert.isEmpty(dialog.modalDescription);
         } finally {
             host.remove();
         }
@@ -1536,7 +1576,7 @@ function createOverviewPage({
 suite('dbp-formalize-manage-forms basics', () => {
     let node;
 
-    suiteSetup(async () => {
+    setup(async () => {
         node = document.createElement('dbp-formalize-manage-forms');
         node.auth = {token: ''};
         node.refreshTableReferences = () => {};
@@ -1544,7 +1584,7 @@ suite('dbp-formalize-manage-forms basics', () => {
         await node.updateComplete;
     });
 
-    suiteTeardown(() => {
+    teardown(() => {
         node.remove();
     });
 
@@ -1801,8 +1841,9 @@ suite('dbp-formalize-manage-forms basics', () => {
                     : document.createElement('div'),
         };
 
-        node.handleEditFormPermission.call(actionHost, ['job-offer-1', 'job-offer-2']);
+        node.openPermissionDialog.call(actionHost, ['job-offer-1', 'job-offer-2']);
 
+        assert.equal(dialog.resourceClassIdentifier, 'DbpRelayFormalizeForm');
         assert.equal(dialog.resourceIdentifier, '');
         assert.deepEqual(dialog.resourceIdentifiers, ['job-offer-1', 'job-offer-2']);
         assert.deepEqual(calls, ['open']);
@@ -1812,6 +1853,96 @@ suite('dbp-formalize-manage-forms basics', () => {
                 .getAttribute('resource-class-identifier'),
             'DbpRelayFormalizeForm',
         );
+    });
+
+    test('should offer collection permission editing only when enabled and independently of form grants', () => {
+        const form = {
+            formId: 'job-offer',
+            grantedActions: ['update'],
+            grantedSubmissionCollectionActions: ['manage'],
+        };
+        const actionId = 'edit-submission-collection-permission';
+        node.enableSubmissionPermissionEditing = true;
+        assert.isFalse(node.createDefaultOverviewActions().some(({id}) => id === actionId));
+        assert.isFalse(
+            createDefaultManageSubmissionsOverviewActions().some(({id}) => id === actionId),
+        );
+
+        node.enableSubmissionCollectionPermissionEditing = true;
+        const actions = node.createDefaultOverviewActions();
+        const action = actions.find(({id}) => id === actionId);
+        const formPermissionAction = actions.find(({id}) => id === 'edit-permission');
+        const resolve = (action, items = [form]) =>
+            resolveManageFormsOverviewAction(
+                action,
+                createManageFormsOverviewActionContext(node, items),
+            );
+
+        assert.deepEqual(action.placements, [OVERVIEW_ACTION_PLACEMENTS.ROW]);
+        assert.isTrue(resolve(action).visible);
+        assert.isTrue(resolve(action).enabled);
+        assert.isFalse(resolve(formPermissionAction).enabled);
+        assert.isFalse(resolve(action, [form, form]).enabled);
+        assert.isFalse(
+            resolve(action, [
+                {
+                    ...form,
+                    grantedActions: ['manage'],
+                    grantedSubmissionCollectionActions: ['read'],
+                },
+            ]).enabled,
+        );
+    });
+
+    test('should open collection permissions without submissions and reset the dialog for form permissions', async () => {
+        const form = {
+            formId: 'job-offer',
+            formName: 'Default name',
+            localizedNames: [{languageTag: node.lang, name: 'Localized offer'}],
+            grantedSubmissionCollectionActions: ['manage'],
+        };
+        node.forms.set(form.formId, form);
+        const dialog = node.shadowRoot.querySelector('#form-grant-permission-dialog');
+        let opened = 0;
+        dialog.open = () => opened++;
+        node._i18n.addResourceBundle(
+            node.lang,
+            'translation',
+            {
+                'manage-forms': {
+                    'edit-submission-collection-permission-modal-title':
+                        'Edit application permissions',
+                    'edit-submission-collection-permission-modal-description':
+                        'Edit applications for {{- formName}}',
+                },
+            },
+            true,
+            true,
+        );
+
+        node.handleEditSubmissionCollectionPermission(form);
+        assert.equal(opened, 0);
+        node.enableSubmissionCollectionPermissionEditing = true;
+        node.handleEditSubmissionCollectionPermission({
+            ...form,
+            grantedSubmissionCollectionActions: ['read'],
+        });
+        assert.equal(opened, 0);
+        node.handleEditSubmissionCollectionPermission(form);
+        await node.updateComplete;
+
+        assert.equal(opened, 1);
+        assert.equal(dialog.resourceClassIdentifier, 'DbpRelayFormalizeSubmissionCollection');
+        assert.deepEqual(dialog.resourceIdentifiers, [form.formId]);
+        assert.equal(dialog.modalTitle, 'Edit application permissions');
+        assert.equal(dialog.modalDescription, 'Edit applications for Localized offer');
+
+        node.handleEditFormPermission([form.formId]);
+        await node.updateComplete;
+        assert.equal(opened, 2);
+        assert.equal(dialog.resourceClassIdentifier, 'DbpRelayFormalizeForm');
+        assert.equal(dialog.modalTitle, node._i18n.t('manage-forms.edit-permission-modal-title'));
+        assert.isEmpty(dialog.modalDescription);
     });
 
     test('should not open permission editing without a submission', () => {

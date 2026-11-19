@@ -30,11 +30,24 @@ Note that you will need a Keycloak server along with a client id for the domain 
     - example `enable-forms-bulk-delete`
 - `hide-create-submission-button` (optional): hides the create submission button in a form's submission view
 - `enable-submission-permission-editing` (optional, default: off): enables permission editing when the user has `manage` on every selected submission
+- `enable-submission-collection-permission-editing` (optional, default: off): adds a form-row action for managing permissions for all current and future submissions of that form. The user needs `manage` in `grantedSubmissionCollectionActions`, independently of the form permission action. This does not change which forms appear in the overview, and it does not enable individual submission permission editing.
+- `lang-dir` (optional): base URL for translation overrides, with a trailing `/`. The activity loads `<language>/translation.json` from that URL.
 - `university-short-name` (optional): short name of the university, available to the form modules (e.g. for their overview columns)
     - example `university-short-name="University"`
 - `auth` object: you need to set that object property for the auth token
     - example auth property: `{token: "THE_BEARER_TOKEN"}`
     - note: most often this should be an attribute that is not set directly, but subscribed at a provider
+
+#### Permission wording
+
+In `lang-dir` translation files, put overrides under `dbp-formalize-manage-forms` → `manage-forms`:
+
+| Permission scope      | Row action label                        | Dialog title                                        | Dialog description                                        |
+| --------------------- | --------------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| Form                  | `edit-form-permission-button-text`      | `edit-form-permission-modal-title`                  | `edit-form-permission-modal-description`                  |
+| Submission collection | `edit-submission-collection-permission` | `edit-submission-collection-permission-modal-title` | `edit-submission-collection-permission-modal-description` |
+
+Descriptions can include the localized form name with `{{- formName}}`. Descriptions are omitted by default. Without overrides, the form action still uses `edit-permission-button-text`, and both dialog titles still use `edit-permission-modal-title`.
 
 #### Routing
 
@@ -152,6 +165,15 @@ For example, an application shell can expose the company item form with:
 If the activity shows "No matching item form is available.", verify that a form with the configured `frontendKey` exists and that the current user may read that form through the Formalize authorization rules.
 
 The form row actions offer permission editing separately for the form and its submission collection, provided the current user has the respective `manage` grant. Item row actions offer permission editing when the item's `grantedActions` include `manage`. These actions reuse the shared grant permission dialog; they do not allow users without access to grant themselves permissions.
+
+To customize the two form-row actions, use `lang-dir` as described above and put these keys under `dbp-formalize-manage-fields` → `manage-fields`:
+
+| Permission scope      | Row action label             | Dialog title                             | Dialog description                             |
+| --------------------- | ---------------------------- | ---------------------------------------- | ---------------------------------------------- |
+| Form                  | `edit-form-permission`       | `edit-form-permission-modal-title`       | `edit-form-permission-modal-description`       |
+| Submission collection | `edit-collection-permission` | `edit-collection-permission-modal-title` | `edit-collection-permission-modal-description` |
+
+Descriptions support `{{- formName}}` and are omitted by default. The dialog title falls back to `manage-forms.edit-permission-modal-title`. These overrides do not apply to individual item permissions.
 
 #### Routing
 
