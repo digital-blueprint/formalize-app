@@ -199,7 +199,7 @@ export const MEDIA_NAME_OWNER_MAPPING = {
         Bande: {},
         Kino: {},
         Sonstiges: {
-            'Gazzetta GmbH': 'Gazzetta GmbH',
+            'Grazetta GmbH': 'Grazetta GmbH',
             'CompanyCode Werbe GmbH': 'CompanyCode Werbe GmbH',
         },
     },
