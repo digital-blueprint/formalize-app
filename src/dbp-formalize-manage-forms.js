@@ -365,24 +365,32 @@ export class ManageForms extends ManageFormsActivityBase {
                   defaultValue: '',
               })
             : i18n.t('manage-forms.edit-form-permission-modal-title', {defaultValue: ''});
+        const nameMarker = '<emphasizedFormName/>';
+        const descriptionOptions = {formName, emphasizedFormName: nameMarker, defaultValue: ''};
         const description = !formName
             ? ''
             : collection
-              ? i18n.t('manage-forms.edit-submission-collection-permission-modal-description', {
-                    formName,
-                    defaultValue: '',
-                })
-              : i18n.t('manage-forms.edit-form-permission-modal-description', {
-                    formName,
-                    defaultValue: '',
-                });
+              ? i18n.t(
+                    'manage-forms.edit-submission-collection-permission-modal-description',
+                    descriptionOptions,
+                )
+              : i18n.t('manage-forms.edit-form-permission-modal-description', descriptionOptions);
+        // Insert emphasis with Lit so the translation and the job title are still treated as text.
+        const descriptionParts = description.split(nameMarker);
+        // prettier-ignore
+        const renderedDescription =
+            descriptionParts.length === 1
+                ? description
+                : html`${descriptionParts.flatMap((part, index) =>
+                      index === 0 ? [part] : [html`<em>${formName}</em>`, part],
+                  )}`;
 
         return html`
             <dbp-grant-permission-dialog
                 id="form-grant-permission-dialog"
                 lang="${this.lang}"
                 modal-title="${title || i18n.t('manage-forms.edit-permission-modal-title')}"
-                .modalDescription=${description}
+                .modalDescription=${renderedDescription}
                 subscribe="auth"
                 entry-point-url="${this.entryPointUrl}"
                 resource-class-identifier=${

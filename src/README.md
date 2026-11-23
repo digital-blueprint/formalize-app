@@ -47,7 +47,7 @@ In `lang-dir` translation files, put overrides under `dbp-formalize-manage-forms
 | Form                  | `edit-form-permission-button-text`      | `edit-form-permission-modal-title`                  | `edit-form-permission-modal-description`                  |
 | Submission collection | `edit-submission-collection-permission` | `edit-submission-collection-permission-modal-title` | `edit-submission-collection-permission-modal-description` |
 
-Descriptions can include the localized form name with `{{- formName}}`. Descriptions are omitted by default. Without overrides, the form action still uses `edit-permission-button-text`, and both dialog titles still use `edit-permission-modal-title`.
+Descriptions can include the localized form name with `{{- formName}}` as plain text or `{{- emphasizedFormName}}` in italics. Descriptions are omitted by default. Without overrides, the form action still uses `edit-permission-button-text`, and both dialog titles still use `edit-permission-modal-title`.
 
 #### Routing
 

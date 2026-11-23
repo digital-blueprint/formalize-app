@@ -1945,6 +1945,50 @@ suite('dbp-formalize-manage-forms basics', () => {
         assert.isEmpty(dialog.modalDescription);
     });
 
+    test('emphasizes only the localized job title in both permission descriptions', async () => {
+        const formName = 'Research <Lead> & coordinator';
+        const form = {
+            formId: 'job-offer',
+            formName: 'Default name',
+            localizedNames: [{languageTag: node.lang, name: formName}],
+            grantedSubmissionCollectionActions: ['manage'],
+        };
+        node.forms.set(form.formId, form);
+        node.enableSubmissionCollectionPermissionEditing = true;
+        const dialog = node.shadowRoot.querySelector('#form-grant-permission-dialog');
+        dialog.open = () => {};
+        node._i18n.addResourceBundle(
+            node.lang,
+            'translation',
+            {
+                'manage-forms': {
+                    'edit-form-permission-modal-description':
+                        'Edit the job offer “{{- emphasizedFormName}}”.',
+                    'edit-submission-collection-permission-modal-description':
+                        'For {{- emphasizedFormName}}, edit all current and future applications.',
+                },
+            },
+            true,
+            true,
+        );
+
+        const assertDescription = async (expected) => {
+            await node.updateComplete;
+            await dialog.updateComplete;
+            const description = dialog.shadowRoot.querySelector('.modal-description');
+            assert.equal(description.textContent, expected);
+            assert.equal(description.children.length, 1);
+            const emphasis = description.querySelector('em');
+            assert.equal(emphasis.textContent, formName);
+            assert.equal(emphasis.children.length, 0);
+        };
+
+        node.handleEditFormPermission([form.formId]);
+        await assertDescription(`Edit the job offer “${formName}”.`);
+        node.handleEditSubmissionCollectionPermission(form);
+        await assertDescription(`For ${formName}, edit all current and future applications.`);
+    });
+
     test('should not open permission editing without a submission', () => {
         const calls = [];
         const dialog = {
