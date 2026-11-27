@@ -3105,6 +3105,8 @@ suite('manage-forms and manage-submissions activities', () => {
         );
     });
 
+    const aliceIdentifier = 'A7C39E2B5D804F16';
+    const bobIdentifier = 'D4B81F6A903CE725';
     const forms = [
         {
             identifier: 'form-own',
@@ -3170,7 +3172,7 @@ suite('manage-forms and manage-submissions activities', () => {
             }
         };
         document.body.appendChild(element);
-        element.auth = {token: 'token', 'login-status': 'logged-in', 'user-id': 'user-1'};
+        element.auth = {token: 'token', 'login-status': 'logged-in', 'user-id': aliceIdentifier};
         return element;
     };
 
@@ -3196,7 +3198,7 @@ suite('manage-forms and manage-submissions activities', () => {
                 const identifier = url.pathname.split('/').at(-1);
                 return json({
                     identifier,
-                    givenName: identifier === 'user-1' ? 'Alice' : 'Bob',
+                    givenName: identifier === aliceIdentifier ? 'Alice' : 'Bob',
                     familyName: 'Example',
                     localData: {email: `${identifier}@example.com`},
                 });
@@ -3222,7 +3224,8 @@ suite('manage-forms and manage-submissions activities', () => {
                             : [1, 2]
                     ).map((index) => ({
                         identifier: `${formId}-submission-${index}`,
-                        creatorId: formId === 'form-own' && index <= 2 ? 'user-1' : 'other-user',
+                        creatorId:
+                            formId === 'form-own' && index <= 2 ? aliceIdentifier : bobIdentifier,
                         submissionState: 4,
                         dateCreated: `2026-03-0${index}T10:00:00+00:00`,
                         dataFeedElement: JSON.stringify({firstName: `Alice ${index}`}),
@@ -3411,12 +3414,12 @@ suite('manage-forms and manage-submissions activities', () => {
         );
         assert.equal(
             formSubmissions.submissions.submitted[0].creatorId,
-            'Alice Example (user-1@example.com)',
+            `Alice Example (${aliceIdentifier}@example.com)`,
         );
         assert.isTrue(
             requests.some(
                 (url) =>
-                    url.pathname === '/base/people/user-1' &&
+                    url.pathname === `/base/people/${aliceIdentifier}` &&
                     url.searchParams.get('includeLocal') === 'email',
             ),
         );
