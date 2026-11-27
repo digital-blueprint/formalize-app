@@ -1734,6 +1734,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
             allowedFileUploadCount: {},
             fileSizeLimit: {},
             minFileUploadCount: {},
+            allowedMimeTypes: {},
         };
 
         try {
@@ -1743,6 +1744,7 @@ export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement
                 fileUploadLimits.allowedFileUploadCount[type] = fileField.maxNumber;
                 fileUploadLimits.minFileUploadCount[type] = fileField.minNumber;
                 fileUploadLimits.fileSizeLimit[type] = fileField.maxSizeMb;
+                fileUploadLimits.allowedMimeTypes[type] = fileField.allowedMimeTypes;
             }
             return fileUploadLimits;
         } catch (e) {

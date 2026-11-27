@@ -1755,7 +1755,6 @@ export function getFileUploadWidgetCSS() {
         .file-upload-limit-warning {
             color: var(--dbp-muted);
             font-size: 0.9em;
-            white-space: nowrap;
         }
 
         .uploaded-files {

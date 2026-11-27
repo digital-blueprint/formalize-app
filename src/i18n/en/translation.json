@@ -235,6 +235,7 @@
             "download-attachment-title": "Download file {{- filename}}",
             "file-upload-count-limit-warning_one": "(max. 1 file)",
             "file-upload-count-limit-warning_other": "(max. {{count}} files)",
+            "file-upload-mime-type-limit-warning": "(allowed files: {{mimeTypes}})",
             "file-upload-size-limit-warning": "(max. {{size}} MB per file)",
             "upload-file-button-label_one": "Select file",
             "upload-file-button-label_other": "Select files",

@@ -386,6 +386,10 @@ class FormalizeFormElement extends BaseFormElement {
     openFilePicker(event) {
         event.preventDefault();
         const fileSource = this._('dbp-file-source');
+        const group = this.currentUploadGroup || 'attachments';
+
+        fileSource.allowedMimeTypes =
+            this.fileUploadLimits?.allowedMimeTypes?.[group]?.join(',') ?? '';
         fileSource.setAttribute('dialog-open', '');
     }
 
@@ -5709,10 +5713,11 @@ class FormalizeFormElement extends BaseFormElement {
                             <h4 class="attachments-title">
                                 ${i18n.t('render-form.download-widget.attachments-title')}
                             </h4>
-                            <span class="file-upload-limit-warning">
-                                ${i18n.t('render-form.download-widget.file-upload-count-limit-warning', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}
-                                ${i18n.t('render-form.download-widget.file-upload-size-limit-warning', {size: this.fileUploadLimits?.fileSizeLimit?.attachments})}
-                            </span>
+                            <div class="file-upload-limit-warning">
+                                <span>${i18n.t('render-form.download-widget.file-upload-count-limit-warning', {count: this.fileUploadLimits?.allowedFileUploadCount?.attachments})}</span>
+                                <span>${i18n.t('render-form.download-widget.file-upload-size-limit-warning', {size: this.fileUploadLimits?.fileSizeLimit?.attachments})}</span>
+                                <span>${i18n.t('render-form.download-widget.file-upload-mime-type-limit-warning', {mimeTypes: this.fileUploadLimits?.allowedMimeTypes?.attachments?.join(', ')})}</span>
+                            </div>
                         </div>
 
                         <div class="uploaded-files">
@@ -5846,15 +5851,37 @@ class FormalizeFormElement extends BaseFormElement {
                                                   'render-form.forms.ethics-commission-form.admin-voting-results-title',
                                               )}
                                           </h4>
-                                          <span class="file-upload-limit-warning">
-                                              ${i18n.t(
-                                                  'render-form.download-widget.file-upload-count-limit-warning',
-                                                  {
-                                                      count: this.fileUploadLimits
-                                                          ?.allowedFileUploadCount?.voting,
-                                                  },
-                                              )}
-                                          </span>
+                                          <div class="file-upload-limit-warning">
+                                              <span>
+                                                  ${i18n.t(
+                                                      'render-form.download-widget.file-upload-count-limit-warning',
+                                                      {
+                                                          count: this.fileUploadLimits
+                                                              ?.allowedFileUploadCount?.voting,
+                                                      },
+                                                  )}
+                                              </span>
+                                              <span>
+                                                  ${i18n.t(
+                                                      'render-form.download-widget.file-upload-size-limit-warning',
+                                                      {
+                                                          size: this.fileUploadLimits?.fileSizeLimit
+                                                              ?.voting,
+                                                      },
+                                                  )}
+                                              </span>
+                                              <span>
+                                                  ${i18n.t(
+                                                      'render-form.download-widget.file-upload-mime-type-limit-warning',
+                                                      {
+                                                          mimeTypes:
+                                                              this.fileUploadLimits?.allowedMimeTypes?.voting?.join(
+                                                                  ', ',
+                                                              ),
+                                                      },
+                                                  )}
+                                              </span>
+                                          </div>
                                       </div>
 
                                       <div class="uploaded-files">
@@ -5902,7 +5929,6 @@ class FormalizeFormElement extends BaseFormElement {
                 id="file-source"
                 class="file-source"
                 lang="${this.lang}"
-                allowed-mime-types='application/pdf'
                 max-file-size="10000"
                 enabled-targets="local,clipboard,nextcloud"
                 subscribe="nextcloud-auth-url,nextcloud-web-dav-url,nextcloud-name,nextcloud-file-url"></dbp-file-source>
