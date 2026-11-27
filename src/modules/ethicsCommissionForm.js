@@ -116,6 +116,14 @@ export default class extends BaseObject {
             },
         };
     }
+
+    /**
+     * Returns the fields that reference users.
+     * @returns {string[]}
+     */
+    getUserReferenceFields() {
+        return ['applicant', 'coApplicants'];
+    }
 }
 
 class FormalizeFormElement extends BaseFormElement {

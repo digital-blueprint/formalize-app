@@ -522,6 +522,40 @@ export class FormSubmissions extends ScopedElementsMixin(DBPFormalizeLitElement)
         }
     }
 
+    async resolveUserLabel(userId, isCurrent) {
+        // check for valid userId format. We have old submissions with full user names.
+        if (typeof userId !== 'string' || !/^[A-Z0-9]{16,32}$/.test(userId)) {
+            return userId;
+        }
+
+        if (this.userNameCache.has(userId)) {
+            return this.userNameCache.get(userId);
+        }
+
+        try {
+            const resp = await this.apiGetUserDetails(userId);
+            if (!resp.ok) throw new Error(`Failed to load user: ${resp.status}`);
+            const userObject = await resp.json();
+
+            if (!isCurrent()) return userId;
+
+            const fullName =
+                [userObject?.givenName, userObject?.familyName].filter(Boolean).join(' ') ||
+                userObject?.name ||
+                userId;
+            const email = userObject?.localData?.email || userObject?.email || '';
+            const userNameLabel = email ? `${fullName} (${email})` : fullName;
+
+            this.userNameCache.set(userId, userNameLabel);
+            return userNameLabel;
+        } catch (e) {
+            if (!isCurrent()) return userId;
+            console.error(e);
+            this.userNameCache.set(userId, userId);
+            return userId;
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Table events
     // -----------------------------------------------------------------------

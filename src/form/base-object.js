@@ -145,6 +145,16 @@ export class BaseObject {
     getEnumTranslations(_lang) {
         return {};
     }
+
+    /**
+     * Returns the fields that reference users.
+     * Override in subclasses to specify which fields contain user references.
+     *
+     * @returns {string[]}
+     */
+    getUserReferenceFields() {
+        return [];
+    }
 }
 
 export class BaseFormElement extends AuthMixin(ScopedElementsMixin(DBPLitElement)) {

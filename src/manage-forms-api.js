@@ -809,6 +809,7 @@ export async function getAllFormSubmissions(host, formId) {
             ? activeForm.moduleInstance.getEnumTranslations(host.lang)
             : {};
         const commonTranslations = enumTranslations._common || {};
+        const userReferenceFields = activeForm?.moduleInstance?.getUserReferenceFields?.() ?? [];
 
         for (let [x, submission] of submissions[state].entries()) {
             let dateCreated = humanReadableDate(submission['dateCreated']);
@@ -837,38 +838,37 @@ export async function getAllFormSubmissions(host, formId) {
                 fileFieldData[fieldName] = fileFieldData[fieldName].join(', ');
             }
 
+            // Resolve the submission creator from the submission metadata. This
+            // used to be stored as `identifier` in dataFeedElement.
+            if (creatorId) {
+                creator = await host.resolveUserLabel(creatorId, isCurrent);
+                if (!isCurrent()) return response;
+            }
+
+            // Translate user obfuscated ids to full names and emails for fields that reference users (getUserReferenceFields).
+            for (const formField of userReferenceFields) {
+                const fieldValue = dataFeedElement[formField];
+
+                if (Array.isArray(fieldValue)) {
+                    const labels = [];
+                    for (const userId of fieldValue) {
+                        const label = await host.resolveUserLabel(userId, isCurrent);
+                        if (!isCurrent()) return response;
+                        labels.push(label);
+                    }
+                    dataFeedElement[formField] = labels;
+                } else if (typeof fieldValue === 'string' && fieldValue) {
+                    const label = await host.resolveUserLabel(fieldValue, isCurrent);
+                    if (!isCurrent()) return response;
+                    dataFeedElement[formField] = label;
+                }
+            }
+
             // Flatten array values
             for (const [key, value] of Object.entries(dataFeedElement)) {
                 if (Array.isArray(value)) {
                     dataFeedElement[key] = value.join(', ');
                 }
-            }
-
-            // Resolve the submission creator from the submission metadata. This
-            // used to be stored as `identifier` in dataFeedElement.
-            if (creatorId) {
-                if (!host.userNameCache.has(creatorId)) {
-                    try {
-                        const resp = await host.apiGetUserDetails(creatorId);
-                        if (!resp.ok) throw new Error(`Failed to load creator: ${resp.status}`);
-                        const userObject = await resp.json();
-                        if (!isCurrent()) return response;
-                        const fullName =
-                            [userObject?.givenName, userObject?.familyName]
-                                .filter(Boolean)
-                                .join(' ') ||
-                            userObject?.name ||
-                            creatorId;
-                        const email = userObject?.localData?.email || userObject?.email || '';
-                        const creatorLabel = email ? `${fullName} (${email})` : fullName;
-                        host.userNameCache.set(creatorId, creatorLabel);
-                    } catch (e) {
-                        if (!isCurrent()) return response;
-                        console.error(e);
-                        host.userNameCache.set(creatorId, creatorId);
-                    }
-                }
-                creator = host.userNameCache.get(creatorId);
             }
 
             // Translate enum keys to human-readable labels
